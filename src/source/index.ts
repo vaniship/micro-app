@@ -3,7 +3,7 @@ import { fetchSource } from './fetch'
 import { logError, CompletionPath, pureCreateElement } from '../libs/utils'
 import { extractLinkFromHtml, fetchLinksFromHtml } from './links'
 import { extractScriptElement, fetchScriptsFromHtml } from './scripts'
-import scopedCSS from './scoped_css'
+import scopedCSS from '../sandbox/scoped_css'
 
 /**
  * transform html string to dom

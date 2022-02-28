@@ -187,10 +187,10 @@ export default class App extends React.Component {
                   onAftershow={this.handleAftershow}
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
-                  baseRoute='/micro-app/demo/react16'
-                  keep-alive
+                  // baseRoute='/micro-app/demo/react16'
+                  // keep-alive
                   // destroy
-                  // inline
+                  inline
                   // disableSandbox
                   // disable-sandbox
                   // disableScopecss
@@ -214,7 +214,7 @@ export default class App extends React.Component {
               <micro-app
                 name='modal-app1'
                 url={this.state.url}
-                baseRoute='/micro-app/demo/react16'
+                // baseRoute='/micro-app/demo/react16'
                 // disableSandbox
                 // macro
               />

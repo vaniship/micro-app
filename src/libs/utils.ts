@@ -44,6 +44,7 @@ export function isFunction (target: unknown): boolean {
 
 // is Array
 export const isArray = Array.isArray
+export const assign = Object.assign
 
 // is PlainObject
 export function isPlainObject (target: unknown): boolean {
@@ -377,4 +378,19 @@ export function trim (str: string): string {
 
 export function isFireFox (): boolean {
   return navigator.userAgent.indexOf('Firefox') > -1
+}
+
+// this events should be sent to the specified app
+const formatEventList = ['unmount', 'appstate-change', 'popstate']
+
+/**
+ * Format event name
+ * @param eventName event name
+ * @param appName app name
+ */
+export function formatEventName (eventName: string, appName: string): string {
+  if (formatEventList.includes(eventName)) {
+    return `${eventName}-${appName}`
+  }
+  return eventName
 }

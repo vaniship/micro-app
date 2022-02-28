@@ -17,6 +17,7 @@ function getDefaultKey () {
   return 'home'
 }
 
+
 function App () {
   return (
     <BrowserRouter basename={window.__MICRO_APP_BASE_ROUTE__ || '/micro-app/react16/'} >

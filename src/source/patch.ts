@@ -11,7 +11,7 @@ import {
   isInvalidQuerySelectorKey,
   isUniqueElement,
 } from '../libs/utils'
-import scopedCSS from './scoped_css'
+import scopedCSS from '../sandbox/scoped_css'
 import { extractLinkFromHtml, formatDynamicLink } from './links'
 import { extractScriptElement, runScript, runDynamicRemoteScript } from './scripts'
 import microApp from '../micro_app'

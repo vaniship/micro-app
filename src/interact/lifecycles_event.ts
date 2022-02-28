@@ -1,5 +1,5 @@
 import microApp from '../micro_app'
-import { logError, isFunction, removeDomScope, getRootContainer } from '../libs/utils'
+import { logError, isFunction, removeDomScope, getRootContainer, assign } from '../libs/utils'
 
 function formatEventInfo (event: CustomEvent, element: HTMLElement): void {
   Object.defineProperties(event, {
@@ -39,7 +39,7 @@ export default function dispatchLifecyclesEvent (
   // clear dom scope before dispatch lifeCycles event to base app, especially mounted & unmount
   removeDomScope()
 
-  const detail = Object.assign({
+  const detail = assign({
     name: appName,
     container: element,
   }, error && {

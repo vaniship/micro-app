@@ -107,15 +107,17 @@ window.addEventListener('unmount', function () {
 //   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
 // }, 1000)
 
+// ---------------------- 创建元素 --------------------- //
 // const dynamicScript1 = document.createElement('script')
 // // dynamicScript1.setAttribute('type', 'module')
 // // dynamicScript1.textContent = 'console.warn('inline module')'
-// dynamicScript1.setAttribute('src', 'http://127.0.0.1:8080/test.js')
+// dynamicScript1.setAttribute('src', '//127.0.0.1:8080/test.js')
 // dynamicScript1.onload = () => {
 //   console.log('动态module加载完成了')
 // }
-// document.body.appendChild(dynamicScript1)
+// document.head.appendChild(dynamicScript1)
 
+// ---------------------- 全局变量 --------------------- //
 // console.log('__micro_app_environment__', window.__micro_app_environment__)
 // console.log('__micro_app_name__', window.__micro_app_name__)
 // console.log('__full_public_path__', window.__full_public_path__)

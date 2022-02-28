@@ -16,6 +16,7 @@ import {
   isFunction,
   rawHasOwnProperty,
   pureCreateElement,
+  assign,
 } from '../libs/utils'
 import microApp from '../micro_app'
 import bindFunctionToRawWindow from './bind_function'
@@ -27,6 +28,7 @@ import {
   patchElementPrototypeMethods,
   releasePatches,
 } from '../source/patch'
+import createMicroRouter from './router'
 
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean
@@ -87,7 +89,7 @@ export default class SandBox implements SandBoxInterface {
     // inject global properties
     this.initMicroAppWindow(this.microAppWindow, appName, url)
     // Rewrite global event listener & timeout
-    Object.assign(this, effect(this.microAppWindow))
+    assign(this, effect(this.microAppWindow))
   }
 
   start (baseRoute: string): void {
@@ -290,7 +292,7 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow.__MICRO_APP_NAME__ = appName
     microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
     microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
-    microAppWindow.microApp = Object.assign(new EventCenterForMicroApp(appName), {
+    microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
       removeDomScope,
       pureCreateElement,
     })
@@ -299,6 +301,7 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
     this.setMappingPropertiesWithRawDescriptor(microAppWindow)
     this.setHijackProperties(microAppWindow, appName)
+    this.setRouterApi(microAppWindow, appName, url)
   }
 
   // properties associated with the native window
@@ -350,14 +353,16 @@ export default class SandBox implements SandBoxInterface {
     let modifiedEval: unknown, modifiedImage: unknown
     rawDefineProperties(microAppWindow, {
       document: {
+        configurable: false,
+        enumerable: true,
         get () {
           throttleDeferForSetAppName(appName)
           return globalEnv.rawDocument
         },
-        configurable: false,
-        enumerable: true,
       },
       eval: {
+        configurable: true,
+        enumerable: false,
         get () {
           throttleDeferForSetAppName(appName)
           return modifiedEval || eval
@@ -365,10 +370,10 @@ export default class SandBox implements SandBoxInterface {
         set: (value) => {
           modifiedEval = value
         },
-        configurable: true,
-        enumerable: false,
       },
       Image: {
+        configurable: true,
+        enumerable: false,
         get () {
           throttleDeferForSetAppName(appName)
           return modifiedImage || globalEnv.ImageProxy
@@ -376,8 +381,29 @@ export default class SandBox implements SandBoxInterface {
         set: (value) => {
           modifiedImage = value
         },
+      },
+    })
+  }
+
+  private setRouterApi (microAppWindow: microAppWindowType, appName: string, url: string): void {
+    const { location, history } = createMicroRouter(appName, url)
+    rawDefineProperties(microAppWindow, {
+      location: {
+        configurable: false,
+        enumerable: true,
+        get () {
+          return location
+        },
+        set: (value) => {
+          globalEnv.rawWindow.location = value
+        },
+      },
+      history: {
         configurable: true,
-        enumerable: false,
+        enumerable: true,
+        get () {
+          return history
+        },
       },
     })
   }

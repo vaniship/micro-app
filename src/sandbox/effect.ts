@@ -6,6 +6,7 @@ import {
   isFunction,
   isBoundFunction,
   rawDefineProperty,
+  formatEventName,
 } from '../libs/utils'
 import { appInstanceMap } from '../create_app'
 import globalEnv from '../libs/global_env'
@@ -127,21 +128,6 @@ export function releaseEffectDocumentEvent (): void {
   document.removeEventListener = globalEnv.rawDocumentRemoveEventListener
 }
 
-// this events should be sent to the specified app
-const formatEventList = ['unmount', 'appstate-change']
-
-/**
- * Format event name
- * @param type event name
- * @param microAppWindow micro window
- */
-function formatEventType (type: string, microAppWindow: microAppWindowType): string {
-  if (formatEventList.includes(type)) {
-    return `${type}-${microAppWindow.__MICRO_APP_NAME__}`
-  }
-  return type
-}
-
 /**
  * Rewrite side-effect events
  * @param microAppWindow micro window
@@ -169,7 +155,7 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    type = formatEventType(type, microAppWindow)
+    type = formatEventName(type, appName)
     const listenerList = eventListenerMap.get(type)
     if (listenerList) {
       listenerList.add(listener)
@@ -185,7 +171,7 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    type = formatEventType(type, microAppWindow)
+    type = formatEventName(type, appName)
     const listenerList = eventListenerMap.get(type)
     if (listenerList?.size && listenerList.has(listener)) {
       listenerList.delete(listener)

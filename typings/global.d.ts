@@ -194,6 +194,14 @@ declare module '@micro-app/types' {
 
   // special CallableFunction for interact
   type CallableFunctionForInteract = CallableFunction & { __APP_NAME__?: string, __AUTO_TRIGGER__?: boolean }
+
+  interface MicroLocation extends Location, URL {}
+  // interface MicroHistory extends History {}
+  interface MicroRouter {
+    location: MicroLocation
+    history: History
+    removeHistoryListener: CallableFunction
+  }
 }
 
 declare namespace JSX {

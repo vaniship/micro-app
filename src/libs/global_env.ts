@@ -1,4 +1,4 @@
-import { isSupportModuleScript, isBrowser, getCurrentAppName } from './utils'
+import { isSupportModuleScript, isBrowser, getCurrentAppName, assign } from './utils'
 import { rejectMicroAppStyle } from '../source/patch'
 import { listenUmountOfNestedApp, releaseUnmountOfNestedApp } from '../libs/additional'
 
@@ -94,7 +94,7 @@ export function initGlobalEnv (): void {
     // mark current application as base application
     window.__MICRO_APP_BASE_APPLICATION__ = true
 
-    Object.assign(globalEnv, {
+    assign(globalEnv, {
       // source/patch
       rawSetAttribute,
       rawAppendChild,
