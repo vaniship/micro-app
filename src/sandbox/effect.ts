@@ -10,6 +10,7 @@ import {
 } from '../libs/utils'
 import { appInstanceMap } from '../create_app'
 import globalEnv from '../libs/global_env'
+import { addHistoryListener } from './router'
 
 type MicroEventListener = EventListenerOrEventListenerObject & Record<string, any>
 type timeInfo = {
@@ -278,8 +279,12 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
     setCurrentAppName(null)
   }
 
+  // unique listener of popstate event for sub app
+  const removeHistoryListener = addHistoryListener(rawWindow, appName)
+
   // release all event listener & interval & timeout when unmount app
   const releaseEffect = () => {
+    removeHistoryListener()
     // Clear window binding events
     if (eventListenerMap.size) {
       eventListenerMap.forEach((listenerList, type) => {

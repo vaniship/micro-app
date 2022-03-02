@@ -196,11 +196,23 @@ declare module '@micro-app/types' {
   type CallableFunctionForInteract = CallableFunction & { __APP_NAME__?: string, __AUTO_TRIGGER__?: boolean }
 
   interface MicroLocation extends Location, URL {}
-  // interface MicroHistory extends History {}
+  type MicroHistory = ProxyHandler<History>
+  type MicroState = any
+  type HistoryProxyValue =
+    Pick<
+    History,
+    'length' |
+    'scrollRestoration' |
+    'state' |
+    'back' |
+    'forward' |
+    'go' |
+    'pushState' |
+    'replaceState'
+    > | CallableFunction
   interface MicroRouter {
     location: MicroLocation
-    history: History
-    removeHistoryListener: CallableFunction
+    history: MicroHistory
   }
 }
 
