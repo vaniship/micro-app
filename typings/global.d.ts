@@ -214,6 +214,16 @@ declare module '@micro-app/types' {
     location: MicroLocation
     history: MicroHistory
   }
+  type LocationQueryValue = string | null
+  type LocationQueryObject = Record<
+  string,
+  LocationQueryValue | LocationQueryValue[]
+  >
+
+  type LocationQuery = {
+    hashQuery?: LocationQueryObject,
+    searchQuery?: LocationQueryObject
+  }
 }
 
 declare namespace JSX {
