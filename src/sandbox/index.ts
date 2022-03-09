@@ -1,4 +1,4 @@
-import type { microAppWindowType, SandBoxInterface, plugins } from '@micro-app/types'
+import type { microAppWindowType, SandBoxInterface, plugins, MicroLocation } from '@micro-app/types'
 import {
   EventCenterForMicroApp, rebuildDataCenterSnapshot, recordDataCenterSnapshot
 } from '../interact'
@@ -28,11 +28,12 @@ import {
   patchElementPrototypeMethods,
   releasePatches,
 } from '../source/patch'
-import createMicroRouter from './router'
+import createMicroRouter, { initialActionForRoute, clearRouterStateFromURL } from './router'
 
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean
   __MICRO_APP_NAME__: string
+  __MICRO_APP_URL__: string
   __MICRO_APP_PUBLIC_PATH__: string
   __MICRO_APP_BASE_URL__: string
   __MICRO_APP_BASE_ROUTE__: string
@@ -78,7 +79,7 @@ export default class SandBox implements SandBoxInterface {
   private recordUmdInjectedValues?: Map<PropertyKey, unknown>
   // sandbox state
   private active = false
-  proxyWindow: WindowProxy // Proxy
+  proxyWindow: WindowProxy & MicroAppWindowDataType // Proxy
   microAppWindow = {} as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string) {
@@ -92,9 +93,10 @@ export default class SandBox implements SandBoxInterface {
     assign(this, effect(this.microAppWindow))
   }
 
-  start (baseRoute: string): void {
+  public start (baseRoute: string): void {
     if (!this.active) {
       this.active = true
+      this.initRouteState()
       this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseRoute
       // BUG FIX: bable-polyfill@6.x
       globalEnv.rawWindow._babelPolyfill && (globalEnv.rawWindow._babelPolyfill = false)
@@ -105,9 +107,8 @@ export default class SandBox implements SandBoxInterface {
     }
   }
 
-  stop (): void {
+  public stop (keepRouteState?: boolean): void {
     if (this.active) {
-      this.active = false
       this.releaseEffect()
       this.microAppWindow.microApp.clearDataListener()
       this.microAppWindow.microApp.clearGlobalDataListener()
@@ -122,15 +123,17 @@ export default class SandBox implements SandBoxInterface {
       })
       this.escapeKeys.clear()
 
+      if (!keepRouteState) this.clearRouteState()
       if (--SandBox.activeCount === 0) {
         releaseEffectDocumentEvent()
         releasePatches()
       }
+      this.active = false
     }
   }
 
   // record umd snapshot before the first execution of umdHookMount
-  recordUmdSnapshot (): void {
+  public recordUmdSnapshot (): void {
     this.microAppWindow.__MICRO_APP_UMD_MODE__ = true
     this.recordUmdEffect()
     recordDataCenterSnapshot(this.microAppWindow.microApp)
@@ -142,12 +145,28 @@ export default class SandBox implements SandBoxInterface {
   }
 
   // rebuild umd snapshot before remount umd app
-  rebuildUmdSnapshot (): void {
+  public rebuildUmdSnapshot (): void {
     this.recordUmdInjectedValues!.forEach((value: unknown, key: PropertyKey) => {
       Reflect.set(this.proxyWindow, key, value)
     })
     this.rebuildUmdEffect()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
+  }
+
+  public initRouteState (): void {
+    initialActionForRoute(
+      this.proxyWindow.__MICRO_APP_NAME__,
+      this.proxyWindow.__MICRO_APP_URL__,
+      this.proxyWindow.location as MicroLocation,
+    )
+  }
+
+  public clearRouteState (): void {
+    clearRouterStateFromURL(
+      this.proxyWindow.__MICRO_APP_NAME__,
+      this.proxyWindow.__MICRO_APP_URL__,
+      this.proxyWindow.location as MicroLocation,
+    )
   }
 
   /**
@@ -290,6 +309,7 @@ export default class SandBox implements SandBoxInterface {
   private initMicroAppWindow (microAppWindow: microAppWindowType, appName: string, url: string): void {
     microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
     microAppWindow.__MICRO_APP_NAME__ = appName
+    microAppWindow.__MICRO_APP_URL__ = url
     microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
     microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
     microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {

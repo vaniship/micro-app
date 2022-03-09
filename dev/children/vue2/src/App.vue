@@ -16,11 +16,13 @@ export default {
   name: 'App',
   data () {
     return {
-      activeName: window.location.href.includes('#/page2') ? 'page2': '/',
+      activeName: location.href.includes('#/page2') ? 'page2': '/',
     }
   },
-  created () {
-
+  mounted () {
+    window.addEventListener('popstate', () => {
+      this.activeName =location.href.includes('#/page2') ? 'page2': '/'
+    })
   },
   components: {
 

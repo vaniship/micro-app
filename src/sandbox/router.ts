@@ -14,9 +14,60 @@ import {
   formatEventName,
   isArray,
   isNull,
+  isString,
+  isUndefined,
+  logError,
 } from '../libs/utils'
+import { appInstanceMap } from '../create_app'
+
+// 更新url地址有以下几种情况：
+// 1、页面初始化
+// 2、子应用页面内部发生跳转
+// 3、通过micro-app api进行跳转
+
+// 更新location有以下几种情况，根据url地址进行更新：
+// 1、页面初始化
+// 2、子应用页面内部发生跳转
+// 3、通过micro-app api进行跳转
+// 4、popstate事件
+// const { pathname, search, hash } = location
+// pathname + search + hash
+// 如果有hash，则参数加在hash后面(默认为hash路由)，如果没有hash，则加在query上(默认history路由)
+// 特殊情况：history路由有hash，hash路由没有hash -- 不管
 
 type PopStateListener = (this: Window, e: PopStateEvent) => void
+
+/**
+ * register & release popstate event
+ * @param rawWindow origin window
+ * @param appName app name
+ * @returns release callback
+ */
+ export function addHistoryListener (rawWindow: Window, appName: string): CallableFunction {
+  // Send to the child app after receiving the popstate event
+  const popStateHandler: PopStateListener = (e: PopStateEvent): void => {
+    // 先更新location，再发送popstate事件
+    const microPath = getMicroPathFromURL(appName)
+    const app = appInstanceMap.get(appName)
+    if (microPath && app) {
+      // @ts-ignore
+      updateLocation(microPath, app.url, app.sandBox.proxyWindow.location)
+      // @ts-ignore
+      console.log(333333, microPath, app.sandBox.proxyWindow.location)
+    }
+    // 向当前子应用发送popstate-appname的事件，state的值需要被格式化
+    const state = getMicroState(appName, e.state)
+    rawWindow.dispatchEvent(
+      new PopStateEvent(formatEventName('popstate', appName), { state })
+    )
+  }
+
+  rawWindow.addEventListener('popstate', popStateHandler)
+
+  return () => {
+    rawWindow.removeEventListener('popstate', popStateHandler)
+  }
+}
 
 // set micro app state to origin state
 function createMicroState (
@@ -39,21 +90,45 @@ function getMicroState (appName: string, state: MicroState): MicroState {
   return state?.microAppState?.[appName] || null
 }
 
+// delete micro app state form origin state
+function deleteMicroState (appName: string, rawState: MicroState): MicroState {
+  if (rawState?.microAppState?.[appName]) {
+    delete rawState.microAppState[appName]
+  }
+  // 生成新的state对象
+  return oAssign({}, rawState)
+}
+
 // history of micro app
-function createMicroHistory (appName: string, url: string): MicroHistory {
+function createMicroHistory (appName: string, base: string, microLocation: MicroLocation): MicroHistory {
   const rawHistory = globalEnv.rawWindow.history
 
   // 是否需要在每次调用时都创建一个函数？这样看起来麻烦，但是是函数式编程，看起来更优雅
   // 如果使用一个对象将history的方法都实现一遍，确实是不需要每次都创建函数的，但是这样太不优雅了
-  function bindFunctionOfHistory (methodName: PropertyKey): CallableFunction {
+  function microHistoryMethod (methodName: PropertyKey): CallableFunction {
     return (...rests: any[]) => {
-      if (methodName === 'pushState' || methodName === 'replaceState') {
-        // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
-        // 经过格式化后的，包含某个微应用state的全量state
-        const newState = createMicroState(appName, rawHistory.state, rests[0])
-
+      console.log(444444444, rests[0], rests[1], rests[2], methodName)
+      let targetPath = null
+      // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
+      if ((methodName === 'pushState' || methodName === 'replaceState') && rests[2] && isString(rests[2])) {
+        try {
+          const targetLocation = new URL(rests[2], base) as MicroLocation
+          if (targetLocation.origin === microLocation.origin) {
+            targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+            // 经过格式化后的，包含某个微应用state的全量state
+            const newState = createMicroState(appName, rawHistory.state, rests[0])
+            rests = [newState, rests[1], attachMicroQueryToURL(appName, targetLocation)]
+          }
+        } catch (e) {
+          logError(e, appName)
+        }
       }
+
       rawHistory[methodName](...rests)
+
+      if (targetPath) updateLocation(targetPath, base, microLocation)
+
+      console.log(5555555, microLocation, base)
     }
   }
 
@@ -62,7 +137,7 @@ function createMicroHistory (appName: string, url: string): MicroHistory {
       if (key === 'state') {
         return getMicroState(appName, rawHistory.state)
       } else if (typeof Reflect.get(target, key) === 'function') {
-        return bindFunctionOfHistory(key)
+        return microHistoryMethod(key)
       }
       return Reflect.get(target, key)
     },
@@ -71,7 +146,159 @@ function createMicroHistory (appName: string, url: string): MicroHistory {
   return microHistory
 }
 
+const ENC_AD_RE = /&/g // %M1
+const ENC_EQ_RE = /=/g // %M2
+const DEC_AD_RE = /%M1/g // &
+const DEC_EQ_RE = /%M2/g // =
+
+function encodeMicroPath (path: string): string {
+  return encodeURIComponent(commonDecode(path).replace(ENC_AD_RE, '%M1').replace(ENC_EQ_RE, '%M2'))
+}
+
+function decodeMicroPath (path: string): string {
+  return commonDecode(path).replace(DEC_AD_RE, '&').replace(DEC_EQ_RE, '=')
+}
+
+function commonDecode (path: string): string {
+  try {
+    const decPath = decodeURIComponent(path)
+    if (path === decPath || DEC_AD_RE.test(decPath) || DEC_EQ_RE.test(decPath)) return decPath
+    return commonDecode(decPath)
+  } catch {
+    return path
+  }
+}
+
+// 根据浏览器url参数，获取当前子应用的fullPath
+function getMicroPathFromURL (appName: string): string | null {
+  const rawLocation = globalEnv.rawWindow.location
+  const queryObject = getQueryObjectFromURL(rawLocation.search, rawLocation.hash)
+  const microPath = queryObject.hashQuery?.[appName] || queryObject.searchQuery?.[appName]
+  // 解码
+  return microPath ? decodeMicroPath(microPath as string) : null
+}
+
+// 将name=encodeUrl地址插入到浏览器url上
+function attachMicroQueryToURL (appName: string, microLocation: MicroLocation): string {
+  let { pathname, search, hash } = globalEnv.rawWindow.location
+  const microQueryObject = getQueryObjectFromURL(search, hash)
+  const encodedMicroPath = encodeMicroPath(
+    microLocation.pathname +
+    microLocation.search +
+    microLocation.hash
+  )
+
+  // hash存在且search不存在，则认为是hash路由
+  if (hash && !search) {
+    if (microQueryObject.hashQuery) {
+      microQueryObject.hashQuery[appName] = encodedMicroPath
+    } else {
+      microQueryObject.hashQuery = {
+        [appName]: encodedMicroPath
+      }
+    }
+    const baseHash = hash.includes('?') ? hash.slice(0, hash.indexOf('?') + 1) : hash + '?'
+    hash = baseHash + stringifyQuery(microQueryObject.hashQuery)
+  } else {
+    if (microQueryObject.searchQuery) {
+      microQueryObject.searchQuery[appName] = encodedMicroPath
+    } else {
+      microQueryObject.searchQuery = {
+        [appName]: encodedMicroPath
+      }
+    }
+    search = '?' + stringifyQuery(microQueryObject.searchQuery)
+  }
+
+  return pathname + search + hash
+}
+
+// 将name=encodeUrl的参数从浏览器url上删除
+function removeMicroQueryFromURL (appName: string): string {
+  let { pathname, search, hash } = globalEnv.rawWindow.location
+  const microQueryObject = getQueryObjectFromURL(search, hash)
+
+  if (microQueryObject.hashQuery?.[appName]) {
+    delete microQueryObject.hashQuery?.[appName]
+    const hashQueryStr = stringifyQuery(microQueryObject.hashQuery)
+    hash = hash.slice(0, hash.indexOf('?') + Number(Boolean(hashQueryStr))) + hashQueryStr
+  } else if (microQueryObject.searchQuery?.[appName]) {
+    delete microQueryObject.searchQuery?.[appName]
+    const searchQueryStr = stringifyQuery(microQueryObject.searchQuery)
+    search = searchQueryStr ? '?' + searchQueryStr : ''
+  }
+
+  return pathname + search + hash
+}
+
+/**
+ * 根据location获取query对象
+ */
+function getQueryObjectFromURL (search: string, hash: string): LocationQuery {
+  const queryObject: LocationQuery = {}
+
+  if (search !== '' && search !== '?') {
+    queryObject.searchQuery = parseQuery(search.slice(1))
+  }
+
+  if (hash.includes('?')) {
+    queryObject.hashQuery = parseQuery(hash.slice(hash.indexOf('?') + 1))
+  }
+
+  return queryObject
+}
+
+// 将参数字符串转换为对象
+function parseQuery (search: string): LocationQueryObject {
+  const result: LocationQueryObject = {}
+  const queryList = search.split('&')
+
+  // 注意我们不会对key和value进行解码，以确保替换url时前后值一致
+  // 我们只对匹配到的微应用的key和value在后续进行编解码
+  for (const queryItem of queryList) {
+    const eqPos = queryItem.indexOf('=')
+    const key = eqPos < 0 ? queryItem : queryItem.slice(0, eqPos)
+    const value = eqPos < 0 ? null : queryItem.slice(eqPos + 1)
+
+    if (key in result) {
+      let currentValue = result[key]
+      if (!isArray(currentValue)) {
+        currentValue = result[key] = [currentValue]
+      }
+      currentValue.push(value)
+    } else {
+      result[key] = value
+    }
+  }
+
+  return result
+}
+
+// 将对象转换为字符串，一次只能格式化一个，所以search和hash需要分2次处理
+function stringifyQuery (queryObject: LocationQueryObject): string {
+  let result = ''
+
+  for (const key in queryObject) {
+    const value = queryObject[key]
+    if (isNull(value)) {
+      result += (result.length ? '&' : '') + key
+    } else {
+      const valueList: LocationQueryValue[] = isArray(value) ? value : [value]
+
+      valueList.forEach(value => {
+        if (!isUndefined(value)) {
+          result += (result.length ? '&' : '') + key
+          if (!isNull(value)) result += '=' + value
+        }
+      })
+    }
+  }
+
+  return result
+}
+
 // location of micro app
+// 只会在沙箱初始化时执行一次
 function createMicroLocation (url: string): MicroLocation {
   const rawLocation = globalEnv.rawWindow.location
   const microLocation = new URL(url) as MicroLocation
@@ -98,181 +325,53 @@ function createMicroLocation (url: string): MicroLocation {
   return microLocation
 }
 
-const ENC_AD_RE = /&/g // %M1
-const ENC_EQ_RE = /=/g // %M2
-const DEC_AD_RE = /%M1/g // &
-const DEC_EQ_RE = /%M2/g // =
-
-function encodeMicroPath (path: string): string {
-  return encodeURIComponent(commonDecode(path).replace(ENC_AD_RE, '%M1').replace(ENC_EQ_RE, '%M2'))
-}
-
-function decodeMicroPath (path: string): string {
-  return commonDecode(path).replace(DEC_AD_RE, '&').replace(DEC_EQ_RE, '=')
-}
-
-function commonDecode (path: string): string {
-  try {
-    const decPath = decodeURIComponent(path)
-    if (path === decPath || DEC_AD_RE.test(decPath) || DEC_EQ_RE.test(decPath)) return decPath
-    return commonDecode(decPath)
-  } catch {
-    return path
+// origin is readonly, so we ignore it
+const LocationKeys = ['hash', 'host', 'hostname', 'href', 'password', 'pathname', 'port', 'protocol', 'search']
+function updateLocation (path: string, base: string, microLocation: MicroLocation) {
+  const newLocation = new URL(path, base)
+  for (const key of LocationKeys) {
+    // @ts-ignore
+    microLocation[key] = newLocation[key]
   }
 }
 
-// 更新url地址有以下几种情况：
-// 1、页面初始化
-// 2、子应用页面内部发生跳转
-// 3、通过micro-app api进行跳转
-
-// 更新location有以下几种情况，根据url地址进行更新：
-// 1、页面初始化
-// 2、子应用页面内部发生跳转
-// 3、通过micro-app api进行跳转
-// 4、popstate事件
-// const { pathname, search, hash } = location
-// pathname + search + hash
-// 如果有hash，则参数加在hash后面(默认为hash路由)，如果没有hash，则加在query上(默认history路由)
-// 特殊情况：history路由有hash，hash路由没有hash -- 不管
-function updateLocationFromURL () {
-  const url = globalEnv.rawWindow.location
+// 更新浏览器url
+function updateBrowserURL (state: MicroState, fullPath: string): void {
+  globalEnv.rawWindow.history.replaceState(state, null, fullPath)
 }
 
-// 在初始化时，先从url上取当前子应用的路由信息
-// 如果存在则根据存在的信息更新location，如果没有，则更新url地址
-function attachRouteInfoToURL (appName: string, microLocation: MicroLocation) {
-  const { pathname, search, hash } = microLocation
-  const encodedMicroPath = encodeMicroPath(pathname + search + hash)
-  const fullPath = attachQueryToURL(appName, encodedMicroPath)
-  const rawHistory = globalEnv.rawWindow.history
-  globalEnv.rawWindow.history.replaceState(
-    createMicroState(appName, rawHistory.state, getMicroState(appName, rawHistory.state)),
-    null,
-    fullPath,
-  )
-}
+// 当沙箱执行start, 或者隐藏的keep-alive应用重新渲染时时才：根据浏览器url更新location 或者 将参数更新到url上
+export function initialActionForRoute (appName: string, url: string, microLocation: MicroLocation) {
+  const microPath = getMicroPathFromURL(appName)
+  // 如果初始化时参数有子应用的数据信息，则直接复用，如果没有则重新创建
 
-function attachQueryToURL (appName: string, encodedMicroPath: string): string {
-  let { pathname, search, hash } = globalEnv.rawWindow.location
-  const microQueryObject = getQueryObjectFromURL()
-
-  if (microQueryObject.hashQuery) {
-    microQueryObject.hashQuery[appName] = encodedMicroPath
-    hash = hash.slice(0, hash.indexOf('?') + 1) + stringifyQuery(microQueryObject.hashQuery)
+  if (microPath) {
+    updateLocation(microPath, url, microLocation)
   } else {
-    if (microQueryObject.searchQuery) {
-      microQueryObject.searchQuery[appName] = encodedMicroPath
-    } else {
-      microQueryObject.searchQuery = {
-        [appName]: encodedMicroPath
-      }
-    }
-    search = '?' + stringifyQuery(microQueryObject.searchQuery)
+    const fullPath = attachMicroQueryToURL(appName, microLocation)
+    // 下面需要优化，代码太繁琐了
+    const rawHistory = globalEnv.rawWindow.history
+    const historyState = createMicroState(appName, rawHistory.state, getMicroState(appName, rawHistory.state))
+    updateBrowserURL(historyState, fullPath)
   }
-
-  return pathname + search + hash
 }
 
-/**
- * 根据location获取query对象
- */
-function getQueryObjectFromURL (): LocationQuery {
-  const { search, hash } = globalEnv.rawWindow.location
-  const microQueryObject: LocationQuery = {}
-
-  if (search !== '' && search !== '?') {
-    microQueryObject.searchQuery = parseQuery(search.slice(1))
-  }
-
-  if (hash.includes('?')) {
-    microQueryObject.hashQuery = parseQuery(hash.slice(hash.indexOf('?') + 1))
-  }
-
-  return microQueryObject
-}
-
-function parseQuery (search: string): LocationQueryObject {
-  const result: LocationQueryObject = {}
-  const queryList = search.split('&')
-
-  // 注意我们不会对key和value进行解码，以确保替换url时前后值一致
-  // 我们只对匹配到的微应用的key和value在后续进行编解码
-  for (const queryItem of queryList) {
-    const eqPos = queryItem.indexOf('=')
-    const key = eqPos < 0 ? queryItem : queryItem.slice(0, eqPos)
-    const value = eqPos < 0 ? null : queryItem.slice(eqPos + 1)
-
-    if (key in result) {
-      let currentValue = result[key]
-      if (!isArray(currentValue)) {
-        currentValue = result[key] = [currentValue]
-      }
-      currentValue.push(value)
-    } else {
-      result[key] = value
-    }
-  }
-
-  return result
-}
-
-// 一次只能格式化一个，所以search和hash需要分2次处理
-function stringifyQuery (queryObject: LocationQueryObject): string {
-  let result = ''
-
-  for (const key in queryObject) {
-    const value = queryObject[key]
-    if (isNull(value)) {
-      result += (result.length ? '&' : '') + key
-    } else {
-      const valueList: LocationQueryValue[] = isArray(value) ? value : [value]
-
-      valueList.forEach(value => {
-        result += (result.length ? '&' : '') + key
-        if (value != null) result += '=' + value
-      })
-    }
-  }
-
-  return result
+export function clearRouterStateFromURL (appName: string, url: string, microLocation: MicroLocation) {
+  // 初始化location信息
+  const { pathname, search, hash } = new URL(url)
+  updateLocation(pathname + search + hash, url, microLocation)
+  // 删除浏览器url上的子应用参数
+  const fullPath = removeMicroQueryFromURL(appName)
+  const rawHistory = globalEnv.rawWindow.history
+  const historyState = deleteMicroState(appName, rawHistory.state)
+  updateBrowserURL(historyState, fullPath)
 }
 
 export default function createMicroRouter (appName: string, url: string): MicroRouter {
   const microLocation = createMicroLocation(url)
-  // const updateLocation = (path: string) => {
-  //   oAssign(microLocation, new URL(path, url))
-  // }
 
-  // 初始化信息
-  attachRouteInfoToURL(appName, microLocation)
   return {
     location: microLocation,
-    // updateLocation,
-    // location: rawLocation,
-    history: createMicroHistory(appName, url),
-  }
-}
-
-/**
- * register & release popstate event
- * @param rawWindow origin window
- * @param appName app name
- * @returns release callback
- */
-export function addHistoryListener (rawWindow: Window, appName: string): CallableFunction {
-  // Send to the child app after receiving the popstate event
-  const popStateHandler: PopStateListener = (e: PopStateEvent): void => {
-    // 向当前子应用发送popstate-appname的事件，state的值需要被格式化
-    const state = getMicroState(appName, e.state)
-    rawWindow.dispatchEvent(
-      new PopStateEvent(formatEventName('popstate', appName), { state })
-    )
-  }
-
-  rawWindow.addEventListener('popstate', popStateHandler)
-
-  return () => {
-    rawWindow.removeEventListener('popstate', popStateHandler)
+    history: createMicroHistory(appName, url, microLocation),
   }
 }
