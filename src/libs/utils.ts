@@ -1,5 +1,5 @@
 /* eslint-disable no-new-func, indent, @typescript-eslint/explicit-module-boundary-types */
-import type { Func } from '@micro-app/types'
+import type { Func, LocationQueryObject, LocationQueryValue } from '@micro-app/types'
 
 export const version = '__MICRO_APP_VERSION__'
 
@@ -380,17 +380,61 @@ export function isFireFox (): boolean {
   return navigator.userAgent.indexOf('Firefox') > -1
 }
 
-// this events should be sent to the specified app
-const formatEventList = ['unmount', 'appstate-change', 'popstate']
+/**
+ * Transforms a queryString into object.
+ * @param search - search string to parse
+ * @returns a query object
+ */
+export function parseQuery (search: string): LocationQueryObject {
+  const result: LocationQueryObject = {}
+  const queryList = search.split('&')
+
+  // 注意我们不会对key和value进行解码，以确保替换url时前后值一致
+  // 我们只对匹配到的微应用的key和value在后续进行编解码
+  for (const queryItem of queryList) {
+    const eqPos = queryItem.indexOf('=')
+    const key = eqPos < 0 ? queryItem : queryItem.slice(0, eqPos)
+    const value = eqPos < 0 ? null : queryItem.slice(eqPos + 1)
+
+    if (key in result) {
+      let currentValue = result[key]
+      if (!isArray(currentValue)) {
+        currentValue = result[key] = [currentValue]
+      }
+      currentValue.push(value)
+    } else {
+      result[key] = value
+    }
+  }
+
+  return result
+}
 
 /**
- * Format event name
- * @param eventName event name
- * @param appName app name
+ * Transforms an object to query string
+ * @param queryObject - query object to stringify
+ * @returns query string without the leading `?`
  */
-export function formatEventName (eventName: string, appName: string): string {
-  if (formatEventList.includes(eventName)) {
-    return `${eventName}-${appName}`
+export function stringifyQuery (queryObject: LocationQueryObject): string {
+  let result = ''
+
+  for (const key in queryObject) {
+    const value = queryObject[key]
+    if (isNull(value)) {
+      result += (result.length ? '&' : '') + key
+    } else {
+      const valueList: LocationQueryValue[] = isArray(value) ? value : [value]
+
+      valueList.forEach(value => {
+        if (!isUndefined(value)) {
+          result += (result.length ? '&' : '') + key
+          if (!isNull(value)) result += '=' + value
+        }
+      })
+    }
   }
-  return eventName
+
+  return result
 }
+
+export const noop = () => {}

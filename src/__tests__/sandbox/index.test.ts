@@ -71,7 +71,7 @@ describe('sandbox', () => {
 
   // 一些需要返回 proxyWindow 的变量
   test('which keys should return proxyWindow in sandbox', () => {
-    const proxyWindow = new Sandbox('test-app2', `http://127.0.0.1:${ports.sandbox}/common/`).proxyWindow
+    const proxyWindow = new Sandbox('test-app2', `http://127.0.0.1:${ports.sandbox}/common/`, true).proxyWindow
     expect(proxyWindow.window).toBe(proxyWindow)
     expect(proxyWindow.self).toBe(proxyWindow)
     // @ts-ignore
@@ -90,16 +90,16 @@ describe('sandbox', () => {
         value: 2,
       }
     })
-    const proxyWindow = new Sandbox('test-app3', `http://127.0.0.1:${ports.sandbox}/common/`).proxyWindow
+    const proxyWindow = new Sandbox('test-app3', `http://127.0.0.1:${ports.sandbox}/common/`, true).proxyWindow
     expect(proxyWindow.top).toBe(1)
     expect(proxyWindow.parent).toBe(2)
   })
 
   // 测试强隔离属性
   test('scopeProperties should prevent key in rawWidow', () => {
-    const sandbox = new Sandbox('test-app-scopeProperties', `http://127.0.0.1:${ports.sandbox}/common/`)
+    const sandbox = new Sandbox('test-app-scopeProperties', `http://127.0.0.1:${ports.sandbox}/common/`, true)
 
-    sandbox.start('')
+    sandbox.start('', true)
 
     const proxyWindow: any = sandbox.proxyWindow
 
@@ -151,8 +151,8 @@ describe('sandbox', () => {
 
   // 逃离属性可以逃逸到外层真实window上&卸载时清空escapeKeys
   test('escapeProperties should escape from microAppWindow to rawWindow', () => {
-    const sandbox = new Sandbox('test-app-escapeProperties', `http://127.0.0.1:${ports.sandbox}/common/`)
-    sandbox.start('')
+    const sandbox = new Sandbox('test-app-escapeProperties', `http://127.0.0.1:${ports.sandbox}/common/`, true)
+    sandbox.start('', true)
     const proxyWindow: any = sandbox.proxyWindow
 
     Object.defineProperties(window, {

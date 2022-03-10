@@ -70,11 +70,18 @@ export function defineElement (tagName: string): void {
 
     disconnectedCallback (): void {
       this.hasConnected = false
-      // keep-alive
-      if (this.getKeepAliveModeResult()) {
-        this.handleHiddenKeepAliveApp()
-      } else {
-        this.handleUnmount(this.getDestroyCompatibleResult())
+      const app = appInstanceMap.get(this.appName)
+      if (
+        app &&
+        app.getAppState() !== appStates.UNMOUNT &&
+        app.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN
+      ) {
+        // keep-alive
+        if (this.getKeepAliveModeResult()) {
+          this.handleHiddenKeepAliveApp()
+        } else {
+          this.handleUnmount(this.getDestroyCompatibleResult())
+        }
       }
     }
 
@@ -288,6 +295,7 @@ export function defineElement (tagName: string): void {
         this.shadowRoot ?? this,
         this.getDisposeResult('inline'),
         this.getBaseRouteCompatible(),
+        this.getDisposeResult('keep-route-state'),
       ))
     }
 
@@ -309,7 +317,9 @@ export function defineElement (tagName: string): void {
         inline: this.getDisposeResult('inline'),
         scopecss: !(this.getDisposeResult('disableScopecss') || this.getDisposeResult('shadowDOM')),
         useSandbox: !this.getDisposeResult('disableSandbox'),
+        useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
         baseroute: this.getBaseRouteCompatible(),
+        keepRouteState: this.getDisposeResult('keep-route-state'),
       })
 
       appInstanceMap.set(this.appName, instance)
@@ -324,7 +334,12 @@ export function defineElement (tagName: string): void {
       if (
         app &&
         app.getAppState() !== appStates.UNMOUNT
-      ) app.unmount(destroy, unmountcb)
+      ) {
+        app.unmount(
+          destroy,
+          unmountcb,
+        )
+      }
     }
 
     // hidden app when disconnectedCallback called with keep-alive

@@ -36,7 +36,7 @@ let app = null
 
 
 // -------------------分割线-umd模式------------------ //
-export async function mount (props) {
+export function mount (props) {
   app = new Vue({
     router,
     render: h => h(App),
@@ -45,14 +45,14 @@ export async function mount (props) {
 }
 
 // 卸载应用
-export async function unmount () {
+export function unmount () {
   app.$destroy()
   app.$el.innerHTML = ''
   app = null
   console.log("微应用vue2卸载了 -- 来自umd-unmount")
 }
 
-export async function bootstrap() {
+export function bootstrap() {
 
 }
 

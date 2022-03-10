@@ -314,6 +314,7 @@ function patchDocument () {
     const appName = getCurrentAppName()
     if (
       !appName ||
+      !appInstanceMap.get(appName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
       // see https://github.com/micro-zoe/micro-app/issues/56
@@ -321,6 +322,7 @@ function patchDocument () {
     ) {
       return globalEnv.rawQuerySelector.call(this, selectors)
     }
+
     return appInstanceMap.get(appName)?.container?.querySelector(selectors) ?? null
   }
 
@@ -328,12 +330,14 @@ function patchDocument () {
     const appName = getCurrentAppName()
     if (
       !appName ||
+      !appInstanceMap.get(appName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
       rawDocument !== this
     ) {
       return globalEnv.rawQuerySelectorAll.call(this, selectors)
     }
+
     return appInstanceMap.get(appName)?.container?.querySelectorAll(selectors) ?? []
   }
 

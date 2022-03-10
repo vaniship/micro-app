@@ -1,7 +1,15 @@
 import type { OptionsType, MicroAppConfigType, lifeCyclesType, plugins, fetchType, AppInterface } from '@micro-app/types'
 import { defineElement } from './micro_app_element'
 import preFetch, { getGlobalAssets } from './prefetch'
-import { logError, logWarn, isFunction, isBrowser, isPlainObject, formatAppName, getRootContainer } from './libs/utils'
+import {
+  logError,
+  logWarn,
+  isFunction,
+  isBrowser,
+  isPlainObject,
+  formatAppName,
+  getRootContainer,
+} from './libs/utils'
 import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
@@ -35,7 +43,7 @@ export function getAllApps (): string[] {
   return Array.from(appInstanceMap.keys())
 }
 
-export interface unmountAppParams {
+type unmountAppOptions = {
   destroy?: boolean // destroy app, default is false
   clearAliveState?: boolean // clear keep-alive app state, default is false
 }
@@ -43,10 +51,10 @@ export interface unmountAppParams {
 /**
  * unmount app by appName
  * @param appName
- * @param options unmountAppParams
+ * @param options unmountAppOptions
  * @returns Promise<void>
  */
-export function unmountApp (appName: string, options?: unmountAppParams): Promise<void> {
+export function unmountApp (appName: string, options?: unmountAppOptions): Promise<void> {
   const app = appInstanceMap.get(formatAppName(appName))
   return new Promise((resolve) => { // eslint-disable-line
     if (app) {
@@ -87,6 +95,7 @@ export function unmountApp (appName: string, options?: unmountAppParams): Promis
 
           container.setAttribute('destroy', 'true')
           container.parentNode!.removeChild(container)
+
           container.removeAttribute('destroy')
 
           typeof destroyAttrValue === 'string' && container.setAttribute('destroy', destroyAttrValue)
@@ -110,7 +119,7 @@ export function unmountApp (appName: string, options?: unmountAppParams): Promis
 }
 
 // unmount all apps in turn
-export function unmountAllApps (options?: unmountAppParams): Promise<void> {
+export function unmountAllApps (options?: unmountAppOptions): Promise<void> {
   return Array.from(appInstanceMap.keys()).reduce((pre, next) => pre.then(() => unmountApp(next, options)), Promise.resolve())
 }
 
@@ -121,6 +130,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
   inline?: boolean
   disableScopecss?: boolean
   disableSandbox?: boolean
+  disableMemoryRouter?: boolean
   ssr?: boolean
   lifeCycles?: lifeCyclesType
   plugins?: plugins
@@ -157,6 +167,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
       this.inline = options.inline
       this.disableScopecss = options.disableScopecss
       this.disableSandbox = options.disableSandbox
+      this.disableMemoryRouter = options.disableMemoryRouter
       this.ssr = options.ssr
       isFunction(options.fetch) && (this.fetch = options.fetch)
 

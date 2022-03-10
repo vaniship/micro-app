@@ -16,7 +16,7 @@ export default class App extends React.Component {
       name: '初始化数据'
     },
     name: 'react#16',
-    url: `${config.react16}micro-app/react16?a=1`,
+    url: `${config.react16}micro-app/react16/?a=1`,
     // url: 'http://127.0.0.1:8080/micro-app/react16',
     showLoading: true,
     showMicroApp: true,
@@ -187,9 +187,11 @@ export default class App extends React.Component {
                   onAftershow={this.handleAftershow}
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
-                  // baseRoute='/micro-app/demo/react16'
+                  baseRoute='/micro-app/demo/react16'
                   // keep-alive
                   // destroy
+                  keep-route-state
+                  // disable-memory-router
                   inline
                   // disableSandbox
                   // disable-sandbox

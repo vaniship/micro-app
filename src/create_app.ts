@@ -33,8 +33,10 @@ export interface CreateAppParam {
   ssrUrl?: string
   scopecss: boolean
   useSandbox: boolean
+  useMemoryRouter: boolean
   inline?: boolean
   baseroute?: string
+  keepRouteState?: boolean
   container?: HTMLElement | ShadowRoot
 }
 
@@ -56,7 +58,9 @@ export default class CreateApp implements AppInterface {
   inline: boolean
   scopecss: boolean
   useSandbox: boolean
-  baseroute = ''
+  useMemoryRouter: boolean
+  baseroute: string
+  keepRouteState: boolean
   source: sourceType
   sandBox: SandBoxInterface | null = null
 
@@ -68,23 +72,27 @@ export default class CreateApp implements AppInterface {
     inline,
     scopecss,
     useSandbox,
+    useMemoryRouter,
     baseroute,
+    keepRouteState,
   }: CreateAppParam) {
     this.container = container ?? null
     this.inline = inline ?? false
     this.baseroute = baseroute ?? ''
+    this.keepRouteState = keepRouteState ?? false
     this.ssrUrl = ssrUrl ?? ''
     // optional during init👆
     this.name = name
     this.url = url
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
+    this.useMemoryRouter = this.useSandbox && useMemoryRouter
     this.source = {
       links: new Map<string, sourceLinkInfo>(),
       scripts: new Map<string, sourceScriptInfo>(),
     }
     this.loadSourceCode()
-    this.useSandbox && (this.sandBox = new SandBox(name, url))
+    this.useSandbox && (this.sandBox = new SandBox(name, url, this.useMemoryRouter))
   }
 
   // Load resources
@@ -132,16 +140,17 @@ export default class CreateApp implements AppInterface {
    * @param container app container
    * @param inline js runs in inline mode
    * @param baseroute route prefix, default is ''
+   * @param keepRouteState keep route state when unmount, default is false
    */
   mount (
     container?: HTMLElement | ShadowRoot,
     inline?: boolean,
     baseroute?: string,
+    keepRouteState?: boolean,
   ): void {
-    if (isBoolean(inline) && inline !== this.inline) {
-      this.inline = inline
-    }
-
+    if (isBoolean(inline)) this.inline = inline
+    // keepRouteState effective on unmount
+    if (isBoolean(keepRouteState)) this.keepRouteState = keepRouteState
     this.container = this.container ?? container!
     this.baseroute = baseroute ?? this.baseroute
 
@@ -160,7 +169,7 @@ export default class CreateApp implements AppInterface {
 
     cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
 
-    this.sandBox?.start(this.baseroute)
+    this.sandBox?.start(this.baseroute, this.useMemoryRouter)
 
     let umdHookMountResult: any // result of mount function
 
@@ -230,6 +239,7 @@ export default class CreateApp implements AppInterface {
 
   /**
    * unmount app
+   * NOTE: Do not add any params on account of unmountApp
    * @param destroy completely destroy, delete cache resources
    * @param unmountcb callback of unmount
    */
@@ -295,7 +305,7 @@ export default class CreateApp implements AppInterface {
     }
 
     // this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
-    this.sandBox?.stop()
+    this.sandBox?.stop(this.keepRouteState)
     if (!getActiveApps().length) {
       releasePatchSetAttribute()
     }
@@ -336,12 +346,12 @@ export default class CreateApp implements AppInterface {
     this.keepAliveState = keepAliveStates.KEEP_ALIVE_HIDDEN
 
     // event should dispatch before clone node
-    // dispatch afterhidden event to micro-app
+    // dispatch afterHidden event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'afterhidden',
     })
 
-    // dispatch afterhidden event to base app
+    // dispatch afterHidden event to base app
     dispatchLifecyclesEvent(
       oldContainer!,
       this.name,
@@ -351,12 +361,12 @@ export default class CreateApp implements AppInterface {
 
   // show app when connectedCallback called with keep-alive
   showKeepAliveApp (container: HTMLElement | ShadowRoot): void {
-    // dispatch beforeshow event to micro-app
+    // dispatch beforeShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'beforeshow',
     })
 
-    // dispatch beforeshow event to base app
+    // dispatch beforeShow event to base app
     dispatchLifecyclesEvent(
       container,
       this.name,
@@ -373,12 +383,12 @@ export default class CreateApp implements AppInterface {
 
     this.keepAliveState = keepAliveStates.KEEP_ALIVE_SHOW
 
-    // dispatch aftershow event to micro-app
+    // dispatch afterShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'aftershow',
     })
 
-    // dispatch aftershow event to base app
+    // dispatch afterShow event to base app
     dispatchLifecyclesEvent(
       this.container,
       this.name,

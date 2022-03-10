@@ -1,8 +1,17 @@
-import type { microAppWindowType, SandBoxInterface, plugins, MicroLocation } from '@micro-app/types'
+import type {
+  microAppWindowType,
+  SandBoxInterface,
+  plugins,
+  MicroLocation,
+} from '@micro-app/types'
 import {
-  EventCenterForMicroApp, rebuildDataCenterSnapshot, recordDataCenterSnapshot
+  EventCenterForMicroApp,
+  rebuildDataCenterSnapshot,
+  recordDataCenterSnapshot,
 } from '../interact'
-import globalEnv from '../libs/global_env'
+import globalEnv, {
+  listenUmountOfNestedApp,
+} from '../libs/global_env'
 import {
   getEffectivePath,
   isArray,
@@ -28,7 +37,11 @@ import {
   patchElementPrototypeMethods,
   releasePatches,
 } from '../source/patch'
-import createMicroRouter, { initialActionForRoute, clearRouterStateFromURL } from './router'
+import createMicroRouter, {
+  initRouteStateWithURL,
+  clearRouteStateFromURL,
+  addHistoryListener,
+} from './router'
 
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean
@@ -64,6 +77,7 @@ export default class SandBox implements SandBoxInterface {
   private recordUmdEffect!: CallableFunction
   private rebuildUmdEffect!: CallableFunction
   private releaseEffect!: CallableFunction
+  private removeHistoryListener!: CallableFunction
   /**
    * Scoped global Properties(Properties that can only get and set in microAppWindow, will not escape to rawWindow)
    * https://github.com/micro-zoe/micro-app/issues/234
@@ -82,32 +96,41 @@ export default class SandBox implements SandBoxInterface {
   proxyWindow: WindowProxy & MicroAppWindowDataType // Proxy
   microAppWindow = {} as MicroAppWindowType // Proxy target
 
-  constructor (appName: string, url: string) {
+  constructor (appName: string, url: string, useMemoryRouter = true) {
     // get scopeProperties and escapeProperties from plugins
     this.getSpecialProperties(appName)
     // create proxyWindow with Proxy(microAppWindow)
     this.proxyWindow = this.createProxyWindow(appName)
     // inject global properties
-    this.initMicroAppWindow(this.microAppWindow, appName, url)
+    this.initMicroAppWindow(this.microAppWindow, appName, url, useMemoryRouter)
     // Rewrite global event listener & timeout
     assign(this, effect(this.microAppWindow))
   }
 
-  public start (baseRoute: string): void {
+  public start (baseRoute: string, useMemoryRouter = true): void {
     if (!this.active) {
       this.active = true
-      this.initRouteState()
-      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseRoute
-      // BUG FIX: bable-polyfill@6.x
-      globalEnv.rawWindow._babelPolyfill && (globalEnv.rawWindow._babelPolyfill = false)
+      if (useMemoryRouter) {
+        this.initRouteState()
+        // unique listener of popstate event for sub app
+        this.removeHistoryListener = addHistoryListener(
+          globalEnv.rawWindow,
+          this.proxyWindow.__MICRO_APP_NAME__,
+        )
+      } else {
+        this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseRoute
+      }
       if (++SandBox.activeCount === 1) {
         effectDocumentEvent()
         patchElementPrototypeMethods()
+        listenUmountOfNestedApp()
       }
+      // BUG FIX: bable-polyfill@6.x
+      globalEnv.rawWindow._babelPolyfill && (globalEnv.rawWindow._babelPolyfill = false)
     }
   }
 
-  public stop (keepRouteState?: boolean): void {
+  public stop (keepRouteState = false): void {
     if (this.active) {
       this.releaseEffect()
       this.microAppWindow.microApp.clearDataListener()
@@ -123,7 +146,12 @@ export default class SandBox implements SandBoxInterface {
       })
       this.escapeKeys.clear()
 
-      if (!keepRouteState) this.clearRouteState()
+      if (this.removeHistoryListener) {
+        if (!keepRouteState) this.clearRouteState()
+        // release listener of popstate
+        this.removeHistoryListener()
+      }
+
       if (--SandBox.activeCount === 0) {
         releaseEffectDocumentEvent()
         releasePatches()
@@ -151,22 +179,6 @@ export default class SandBox implements SandBoxInterface {
     })
     this.rebuildUmdEffect()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
-  }
-
-  public initRouteState (): void {
-    initialActionForRoute(
-      this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.__MICRO_APP_URL__,
-      this.proxyWindow.location as MicroLocation,
-    )
-  }
-
-  public clearRouteState (): void {
-    clearRouterStateFromURL(
-      this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.__MICRO_APP_URL__,
-      this.proxyWindow.location as MicroLocation,
-    )
   }
 
   /**
@@ -306,7 +318,12 @@ export default class SandBox implements SandBoxInterface {
    * @param appName app name
    * @param url app url
    */
-  private initMicroAppWindow (microAppWindow: microAppWindowType, appName: string, url: string): void {
+  private initMicroAppWindow (
+    microAppWindow: microAppWindowType,
+    appName: string,
+    url: string,
+    useMemoryRouter: boolean,
+  ): void {
     microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
     microAppWindow.__MICRO_APP_NAME__ = appName
     microAppWindow.__MICRO_APP_URL__ = url
@@ -321,7 +338,7 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
     this.setMappingPropertiesWithRawDescriptor(microAppWindow)
     this.setHijackProperties(microAppWindow, appName)
-    this.setRouterApi(microAppWindow, appName, url)
+    if (useMemoryRouter) this.setRouterApi(microAppWindow, appName, url)
   }
 
   // properties associated with the native window
@@ -405,14 +422,15 @@ export default class SandBox implements SandBoxInterface {
     })
   }
 
+  // set location & history for memory router
   private setRouterApi (microAppWindow: microAppWindowType, appName: string, url: string): void {
-    const { location, history } = createMicroRouter(appName, url)
+    const { microLocation, microHistory } = createMicroRouter(appName, url)
     rawDefineProperties(microAppWindow, {
       location: {
         configurable: false,
         enumerable: true,
         get () {
-          return location
+          return microLocation
         },
         set: (value) => {
           globalEnv.rawWindow.location = value
@@ -422,9 +440,25 @@ export default class SandBox implements SandBoxInterface {
         configurable: true,
         enumerable: true,
         get () {
-          return history
+          return microHistory
         },
       },
     })
+  }
+
+  private initRouteState (): void {
+    initRouteStateWithURL(
+      this.proxyWindow.__MICRO_APP_NAME__,
+      this.proxyWindow.__MICRO_APP_URL__,
+      this.proxyWindow.location as MicroLocation,
+    )
+  }
+
+  private clearRouteState (): void {
+    clearRouteStateFromURL(
+      this.proxyWindow.__MICRO_APP_NAME__,
+      this.proxyWindow.__MICRO_APP_URL__,
+      this.proxyWindow.location as MicroLocation,
+    )
   }
 }

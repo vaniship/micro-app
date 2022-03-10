@@ -6,17 +6,36 @@ import {
   isFunction,
   isBoundFunction,
   rawDefineProperty,
-  formatEventName,
 } from '../libs/utils'
 import { appInstanceMap } from '../create_app'
 import globalEnv from '../libs/global_env'
-import { addHistoryListener } from './router'
 
 type MicroEventListener = EventListenerOrEventListenerObject & Record<string, any>
 type timeInfo = {
   handler: TimerHandler,
   timeout?: number,
   args: any[],
+}
+
+// this events should be sent to the specified app
+const formatEventList = ['unmount', 'appstate-change']
+
+/**
+ * Format event name
+ * @param eventName event name
+ * @param appName app name
+ */
+export function formatEventName (eventName: string, appName: string): string {
+  if (
+    formatEventList.includes(eventName) ||
+    (
+      eventName === 'popstate' &&
+      appInstanceMap.get(appName)?.useMemoryRouter
+    )
+  ) {
+    return `${eventName}-${appName}`
+  }
+  return eventName
 }
 
 // document.onclick binding list, the binding function of each application is unique
@@ -279,12 +298,8 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
     setCurrentAppName(null)
   }
 
-  // unique listener of popstate event for sub app
-  const removeHistoryListener = addHistoryListener(rawWindow, appName)
-
   // release all event listener & interval & timeout when unmount app
   const releaseEffect = () => {
-    removeHistoryListener()
     // Clear window binding events
     if (eventListenerMap.size) {
       eventListenerMap.forEach((listenerList, type) => {

@@ -24,12 +24,13 @@ import microApp from './micro_app'
  *    url: string,
  *    disableScopecss?: boolean,
  *    disableSandbox?: boolean,
+ *    disableMemoryRouter?: boolean,
  *  },
  *  ...
  * ])
  * Note:
  *  1: preFetch is asynchronous and is performed only when the browser is idle
- *  2: disableScopecss, disableSandbox must be same with micro-app element, if conflict, the one who executes first shall prevail
+ *  2: disableScopecss, disableSandbox, disableMemoryRouter must be same with micro-app element, if conflict, the one who executes first shall prevail
  * @param apps micro apps
  */
 export default function preFetch (apps: prefetchParamList): void {
@@ -58,6 +59,7 @@ function preFetchInSerial (prefetchApp: prefetchParam): Promise<void> {
             url: prefetchApp.url,
             scopecss: !(prefetchApp.disableScopecss ?? microApp.disableScopecss),
             useSandbox: !(prefetchApp.disableSandbox ?? microApp.disableSandbox),
+            useMemoryRouter: !(prefetchApp.disableMemoryRouter ?? microApp.disableMemoryRouter),
           })
 
           app.isPrefetch = true

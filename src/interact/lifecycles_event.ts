@@ -1,5 +1,6 @@
 import microApp from '../micro_app'
 import { logError, isFunction, removeDomScope, getRootContainer, assign } from '../libs/utils'
+import { formatEventName } from '../sandbox/effect'
 
 function formatEventInfo (event: CustomEvent, element: HTMLElement): void {
   Object.defineProperties(event, {
@@ -72,7 +73,7 @@ export function dispatchCustomEventToMicroApp (
   appName: string,
   detail: Record<string, any> = {},
 ): void {
-  const event = new CustomEvent(`${eventName}-${appName}`, {
+  const event = new CustomEvent(formatEventName(eventName, appName), {
     detail,
   })
   window.dispatchEvent(event)

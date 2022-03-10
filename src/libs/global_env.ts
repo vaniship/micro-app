@@ -1,6 +1,6 @@
-import { isSupportModuleScript, isBrowser, getCurrentAppName, assign } from './utils'
+import { isSupportModuleScript, isBrowser, getCurrentAppName, assign, getRootContainer } from './utils'
 import { rejectMicroAppStyle } from '../source/patch'
-import { listenUmountOfNestedApp, releaseUnmountOfNestedApp } from '../libs/additional'
+import { appInstanceMap } from '../create_app'
 
 type RequestIdleCallbackOptions = {
   timeout: number
@@ -31,6 +31,31 @@ declare global {
   interface HTMLStyleElement {
     __MICRO_APP_LINK_PATH__?: string
     __MICRO_APP_HAS_SCOPED__?: boolean
+  }
+}
+
+function unmountNestedApp (): void {
+  appInstanceMap.forEach(app => {
+    // @ts-ignore
+    app.container && getRootContainer(app.container).disconnectedCallback()
+  })
+
+  !window.__MICRO_APP_UMD_MODE__ && appInstanceMap.clear()
+}
+
+// if micro-app run in micro application, delete all next generation application when unmount event received
+// unmount event will auto release by sandbox
+export function listenUmountOfNestedApp (): void {
+  if (window.__MICRO_APP_ENVIRONMENT__) {
+    releaseUnmountOfNestedApp()
+    window.addEventListener('unmount', unmountNestedApp, false)
+  }
+}
+
+// release listener
+function releaseUnmountOfNestedApp (): void {
+  if (window.__MICRO_APP_ENVIRONMENT__) {
+    window.removeEventListener('unmount', unmountNestedApp, false)
   }
 }
 
@@ -133,8 +158,6 @@ export function initGlobalEnv (): void {
 
     // global effect
     rejectMicroAppStyle()
-    releaseUnmountOfNestedApp()
-    listenUmountOfNestedApp()
   }
 }
 

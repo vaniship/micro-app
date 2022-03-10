@@ -63,22 +63,13 @@ microApp.start({
       react16: [{
         scopeProperties: ['scopeKey3', 'scopeKey4'],
         escapeProperties: ['escapeKey3', 'escapeKey4'],
-        loader(code, url) {
-          if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
-            console.log('react16插件', url)
-            code = code.replace('window.location.port', '3001')
-          }
-          return code
-        }
-      }],
-      react17: [{
-        loader(code, url) {
-          if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
-            console.log('react17插件', url)
-            code = code.replace('window.location.port', '3002')
-          }
-          return code
-        }
+        // loader(code, url) {
+        //   if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
+        //     console.log('react16插件', url)
+        //     code = code.replace('window.location.port', '3001')
+        //   }
+        //   return code
+        // }
       }],
       vue2: [{
         scopeProperties: ['scopeKey5', 'scopeKey6'],

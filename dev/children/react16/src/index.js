@@ -55,8 +55,6 @@ ReactDOM.render(
 
 // 监听卸载
 window.addEventListener('unmount', function () {
-  console.log(888888888, document.getElementById('root'))
-  debugger
   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
   console.log('微应用react16卸载了 -- 自定义事件unmount');
 })

@@ -8,8 +8,8 @@ declare module '@micro-app/types' {
   interface SandBoxInterface {
     proxyWindow: WindowProxy
     microAppWindow: Window // Proxy target
-    start (baseRoute: string): void
-    stop (): void
+    start (baseRoute: string, useMemoryRouter: boolean): void
+    stop (keepRouteState: boolean): void
     // record umd snapshot before the first execution of umdHookMount
     recordUmdSnapshot (): void
     // rebuild umd snapshot before remount umd app
@@ -50,7 +50,9 @@ declare module '@micro-app/types' {
     inline: boolean //  whether js runs in inline script mode, default is false
     scopecss: boolean // whether use css scoped, default is true
     useSandbox: boolean // whether use js sandbox, default is true
+    useMemoryRouter: boolean // whether use memoryRouter, default is true
     baseroute: string // route prefix, default is ''
+    keepRouteState: boolean // keep route state when unmount, default is false
     source: sourceType // sources of css, js, html
     sandBox: SandBoxInterface | null // sandbox
     umdMode: boolean // is umd mode
@@ -69,6 +71,7 @@ declare module '@micro-app/types' {
       container?: HTMLElement | ShadowRoot,
       inline?: boolean,
       baseroute?: string,
+      keepRouteState?: boolean,
     ): void
 
     // unmount app
@@ -111,6 +114,7 @@ declare module '@micro-app/types' {
     url: string,
     disableScopecss?: boolean
     disableSandbox?: boolean
+    disableMemoryRouter?: boolean
     shadowDOM?: boolean
   }
 
@@ -168,6 +172,7 @@ declare module '@micro-app/types' {
     inline?: boolean
     disableScopecss?: boolean
     disableSandbox?: boolean
+    disableMemoryRouter?: boolean
     ssr?: boolean
     lifeCycles?: lifeCyclesType
     preFetchApps?: prefetchParamList
@@ -184,6 +189,7 @@ declare module '@micro-app/types' {
     inline?: boolean
     disableScopecss?: boolean
     disableSandbox?: boolean
+    disableMemoryRouter?: boolean
     ssr?: boolean
     lifeCycles?: lifeCyclesType
     plugins?: plugins
@@ -211,8 +217,8 @@ declare module '@micro-app/types' {
     'replaceState'
     > | CallableFunction
   interface MicroRouter {
-    location: MicroLocation
-    history: MicroHistory
+    microLocation: MicroLocation
+    microHistory: MicroHistory
   }
   type LocationQueryValue = string | null
   type LocationQueryObject = Record<
