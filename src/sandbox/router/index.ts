@@ -34,6 +34,7 @@ export function initRouteStateWithURL (
   }
 }
 
+// 清空路由信息，主要有2点：1、本地location更新为初始化 2、删除history.state 和 浏览器url上的参数信息
 export function clearRouteStateFromURL (
   appName: string,
   url: string,
@@ -49,6 +50,8 @@ export function clearRouteStateFromURL (
   )
 }
 
+// 所谓路由系统，无非两种操作：读、写
+// 读是通过location，写是通过replace/pushState
 export default function createMicroRouter (appName: string, url: string): MicroRouter {
   const microLocation = createMicroLocation(url)
 

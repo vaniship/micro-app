@@ -389,8 +389,7 @@ export function parseQuery (search: string): LocationQueryObject {
   const result: LocationQueryObject = {}
   const queryList = search.split('&')
 
-  // 注意我们不会对key和value进行解码，以确保替换url时前后值一致
-  // 我们只对匹配到的微应用的key和value在后续进行编解码
+  // we will not decode the key/value to ensure that the values are consistent when update URL
   for (const queryItem of queryList) {
     const eqPos = queryItem.indexOf('=')
     const key = eqPos < 0 ? queryItem : queryItem.slice(0, eqPos)

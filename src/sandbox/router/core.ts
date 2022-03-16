@@ -8,6 +8,7 @@ import {
   assign,
   parseQuery,
   stringifyQuery,
+  isString,
 } from '../../libs/utils'
 
 // set micro app state to origin state
@@ -16,13 +17,12 @@ export function createMicroState (
   rawState: MicroState,
   microState: MicroState,
 ): MicroState {
-  // 生成新的microAppState，因为它们在第二层
-  const newMicroAppState = assign({}, rawState?.microAppState, {
-    [appName]: microState
-  })
   // 生成新的state对象
   return assign({}, rawState, {
-    microAppState: newMicroAppState
+    // 生成新的microAppState，因为它们在第二层
+    microAppState: assign({}, rawState?.microAppState, {
+      [appName]: microState
+    })
   })
 }
 
@@ -63,23 +63,6 @@ function commonDecode (path: string): string {
   }
 }
 
-/**
- * 根据location获取query对象
- */
-function getQueryObjectFromURL (search: string, hash: string): LocationQuery {
-  const queryObject: LocationQuery = {}
-
-  if (search !== '' && search !== '?') {
-    queryObject.searchQuery = parseQuery(search.slice(1))
-  }
-
-  if (hash.includes('?')) {
-    queryObject.hashQuery = parseQuery(hash.slice(hash.indexOf('?') + 1))
-  }
-
-  return queryObject
-}
-
 // 格式化query参数key，防止与原有参数的冲突
 function formatQueryAppName (appName: string) {
   return `app-${appName}`
@@ -90,8 +73,7 @@ export function getMicroPathFromURL (appName: string): string | null {
   const rawLocation = globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(rawLocation.search, rawLocation.hash)
   const microPath = queryObject.hashQuery?.[formatQueryAppName(appName)] || queryObject.searchQuery?.[formatQueryAppName(appName)]
-  // 解码
-  return microPath ? decodeMicroPath(microPath as string) : null
+  return isString(microPath) ? decodeMicroPath(microPath) : null
 }
 
 // 将name=encodeUrl地址插入到浏览器url上
@@ -145,4 +127,21 @@ export function removeMicroPathFromURL (appName: string): string {
   }
 
   return pathname + search + hash
+}
+
+/**
+ * 根据location获取query对象
+ */
+function getQueryObjectFromURL (search: string, hash: string): LocationQuery {
+  const queryObject: LocationQuery = {}
+
+  if (search !== '' && search !== '?') {
+    queryObject.searchQuery = parseQuery(search.slice(1))
+  }
+
+  if (hash.includes('?')) {
+    queryObject.hashQuery = parseQuery(hash.slice(hash.indexOf('?') + 1))
+  }
+
+  return queryObject
 }

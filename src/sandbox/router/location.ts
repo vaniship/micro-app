@@ -1,8 +1,6 @@
 import type { MicroLocation } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import {
-  assign as oAssign,
-} from '../../libs/utils'
+import { assign as oAssign } from '../../libs/utils'
 
 // location of micro app
 // 只会在沙箱初始化时执行一次
@@ -34,6 +32,7 @@ export function createMicroLocation (url: string): MicroLocation {
 
 // origin is readonly, so we ignore it
 const LocationKeys = ['hash', 'host', 'hostname', 'href', 'password', 'pathname', 'port', 'protocol', 'search']
+// 触发location更新的无非3种情况：1、push/replaceState 2、popState事件 3、初始化时url上有参数
 export function updateLocation (
   path: string,
   base: string,

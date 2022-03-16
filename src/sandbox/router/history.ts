@@ -5,10 +5,7 @@ import type {
   HistoryProxyValue,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import {
-  isString,
-  logError,
-} from '../../libs/utils'
+import { isString, logError } from '../../libs/utils'
 import { updateLocation } from './location'
 import { setMicroPathToURL, createMicroState, getMicroState } from './core'
 
@@ -22,7 +19,7 @@ export function createMicroHistory (
 
   // 是否需要在每次调用时都创建一个函数？这样看起来麻烦，但是是函数式编程，看起来更优雅
   // 如果使用一个对象将history的方法都实现一遍，确实是不需要每次都创建函数的，但是这样太不优雅了
-  function microHistoryMethod (methodName: PropertyKey): CallableFunction {
+  function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
     return (...rests: any[]) => {
       // console.log(444444444, rests[0], rests[1], rests[2], methodName)
       let targetPath = null
@@ -32,16 +29,18 @@ export function createMicroHistory (
           const targetLocation = new URL(rests[2], base) as MicroLocation
           if (targetLocation.origin === microLocation.origin) {
             targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-            // 经过格式化后的，包含某个微应用state的全量state
-            const newState = createMicroState(appName, rawHistory.state, rests[0])
-            rests = [newState, rests[1], setMicroPathToURL(appName, targetLocation)]
+            rests = [
+              createMicroState(appName, rawHistory.state, rests[0]),
+              rests[1],
+              setMicroPathToURL(appName, targetLocation),
+            ]
           }
         } catch (e) {
           logError(e, appName)
         }
       }
 
-      rawHistory[methodName](...rests)
+      rawHistory[methodName].apply(rawHistory, rests)
 
       if (targetPath) updateLocation(targetPath, base, microLocation)
 
@@ -50,11 +49,11 @@ export function createMicroHistory (
   }
 
   const microHistory = new Proxy(rawHistory, {
-    get (target: Record<string, unknown>, key: PropertyKey): HistoryProxyValue {
+    get (target: History, key: PropertyKey): HistoryProxyValue {
       if (key === 'state') {
         return getMicroState(appName, rawHistory.state)
       } else if (typeof Reflect.get(target, key) === 'function') {
-        return microHistoryMethod(key)
+        return getMicroHistoryMethod(key)
       }
       return Reflect.get(target, key)
     },

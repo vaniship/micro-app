@@ -258,3 +258,12 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
   unBoundDom2.innerHTML = 'unBoundDom2'
   document.body.appendChild(unBoundDom2)
 }
+
+// 注意：！！！！ 无论任何使用window.xx的情况都会重新触发元素绑定
+const _window = new Function('return window')()
+
+setTimeout(() => {
+  // window.microApp.removeDomScope()
+  console.log(_window.document.getElementById('root'))
+}, 0)
+
