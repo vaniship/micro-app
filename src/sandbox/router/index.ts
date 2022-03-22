@@ -30,7 +30,7 @@ export function initRouteStateWithURL (
   if (microPath) {
     updateLocation(microPath, url, microLocation)
   } else {
-    updateBrowserURL(globalEnv.rawWindow.history.state, setMicroPathToURL(appName, microLocation))
+    updateBrowserURL(globalEnv.rawWindow.history.state, setMicroPathToURL(appName, microLocation).fullPath)
   }
 }
 
@@ -53,7 +53,7 @@ export function clearRouteStateFromURL (
 // 所谓路由系统，无非两种操作：读、写
 // 读是通过location，写是通过replace/pushState
 export default function createMicroRouter (appName: string, url: string): MicroRouter {
-  const microLocation = createMicroLocation(url)
+  const microLocation = createMicroLocation(appName, url)
 
   return {
     microLocation,

@@ -265,5 +265,10 @@ const _window = new Function('return window')()
 setTimeout(() => {
   // window.microApp.removeDomScope()
   console.log(_window.document.getElementById('root'))
-}, 0)
+}, 0);
 
+
+// setTimeout(() => {
+//   window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
+//   // console.log(111111, window.location)
+// }, 5000);

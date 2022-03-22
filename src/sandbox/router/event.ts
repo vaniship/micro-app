@@ -24,12 +24,11 @@ export function addHistoryListener (rawWindow: Window, appName: string): Callabl
         // @ts-ignore
         updateLocation(microPath, app.url, app.sandBox.proxyWindow.location)
         // @ts-ignore
-        // console.log(333333, microPath, app.sandBox.proxyWindow.location)
+        console.log(333333, microPath, app.sandBox.proxyWindow.location)
       }
       // 向当前子应用发送popstate-appname的事件，state的值需要被格式化
-      const state = getMicroState(appName, e.state)
       rawWindow.dispatchEvent(
-        new PopStateEvent(formatEventName('popstate', appName), { state })
+        new PopStateEvent(formatEventName('popstate', appName), { state: getMicroState(appName, e.state) })
       )
     }
   }

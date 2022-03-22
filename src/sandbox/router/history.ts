@@ -21,18 +21,18 @@ export function createMicroHistory (
   // 如果使用一个对象将history的方法都实现一遍，确实是不需要每次都创建函数的，但是这样太不优雅了
   function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
     return (...rests: any[]) => {
-      // console.log(444444444, rests[0], rests[1], rests[2], methodName)
+      console.log(444444444, rests[0], rests[1], rests[2], methodName)
       let targetPath = null
       // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
       if ((methodName === 'pushState' || methodName === 'replaceState') && rests[2] && isString(rests[2])) {
         try {
-          const targetLocation = new URL(rests[2], base) as MicroLocation
+          const targetLocation = new URL('' + rests[2], base) as MicroLocation
           if (targetLocation.origin === microLocation.origin) {
             targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
             rests = [
               createMicroState(appName, rawHistory.state, rests[0]),
               rests[1],
-              setMicroPathToURL(appName, targetLocation),
+              setMicroPathToURL(appName, targetLocation).fullPath,
             ]
           }
         } catch (e) {
@@ -44,11 +44,11 @@ export function createMicroHistory (
 
       if (targetPath) updateLocation(targetPath, base, microLocation)
 
-      // console.log(5555555, microLocation, base)
+      console.log(5555555, microLocation, base)
     }
   }
 
-  const microHistory = new Proxy(rawHistory, {
+  return new Proxy(rawHistory, {
     get (target: History, key: PropertyKey): HistoryProxyValue {
       if (key === 'state') {
         return getMicroState(appName, rawHistory.state)
@@ -58,8 +58,6 @@ export function createMicroHistory (
       return Reflect.get(target, key)
     },
   })
-
-  return microHistory
 }
 
 // 更新浏览器url

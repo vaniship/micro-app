@@ -201,7 +201,9 @@ declare module '@micro-app/types' {
   // special CallableFunction for interact
   type CallableFunctionForInteract = CallableFunction & { __APP_NAME__?: string, __AUTO_TRIGGER__?: boolean }
 
-  interface MicroLocation extends Location, URL {}
+  interface MicroLocation extends Location, URL {
+    shadowLocation: URL
+  }
   type MicroHistory = ProxyHandler<History>
   type MicroState = any
   type HistoryProxyValue =
@@ -216,6 +218,22 @@ declare module '@micro-app/types' {
     'pushState' |
     'replaceState'
     > | CallableFunction
+  type LocationProxyValue =
+    Pick<
+    Location,
+    'href' |
+    'protocol' |
+    'host' |
+    'hostname' |
+    'port' |
+    'pathname' |
+    'search' |
+    'hash' |
+    'origin' |
+    'assign' |
+    'reload' |
+    'replace'
+    > | CallableFunction | URL
   interface MicroRouter {
     microLocation: MicroLocation
     microHistory: MicroHistory
