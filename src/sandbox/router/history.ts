@@ -21,7 +21,7 @@ export function createMicroHistory (
   // 如果使用一个对象将history的方法都实现一遍，确实是不需要每次都创建函数的，但是这样太不优雅了
   function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
     return (...rests: any[]) => {
-      console.log(444444444, rests[0], rests[1], rests[2], methodName)
+      // console.log(444444444, rests[0], rests[1], rests[2], methodName)
       let targetPath = null
       // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
       if ((methodName === 'pushState' || methodName === 'replaceState') && rests[2] && isString(rests[2])) {
@@ -44,7 +44,7 @@ export function createMicroHistory (
 
       if (targetPath) updateLocation(targetPath, base, microLocation)
 
-      console.log(5555555, microLocation, base)
+      // console.log(5555555, microLocation, base)
     }
   }
 
@@ -60,7 +60,7 @@ export function createMicroHistory (
   })
 }
 
-// 更新浏览器url
+// update browser url
 export function updateBrowserURL (state: MicroState, fullPath: string): void {
   globalEnv.rawWindow.history.replaceState(state, null, fullPath)
 }

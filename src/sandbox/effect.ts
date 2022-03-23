@@ -29,7 +29,7 @@ export function formatEventName (eventName: string, appName: string): string {
   if (
     formatEventList.includes(eventName) ||
     (
-      eventName === 'popstate' &&
+      (eventName === 'popstate' || eventName === 'hashchange') &&
       appInstanceMap.get(appName)?.useMemoryRouter
     )
   ) {

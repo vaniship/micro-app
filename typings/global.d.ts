@@ -218,22 +218,6 @@ declare module '@micro-app/types' {
     'pushState' |
     'replaceState'
     > | CallableFunction
-  type LocationProxyValue =
-    Pick<
-    Location,
-    'href' |
-    'protocol' |
-    'host' |
-    'hostname' |
-    'port' |
-    'pathname' |
-    'search' |
-    'hash' |
-    'origin' |
-    'assign' |
-    'reload' |
-    'replace'
-    > | CallableFunction | URL
   interface MicroRouter {
     microLocation: MicroLocation
     microHistory: MicroHistory

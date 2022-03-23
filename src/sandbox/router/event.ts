@@ -1,3 +1,4 @@
+import type { MicroLocation } from '@micro-app/types'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
 import { formatEventName } from '../effect'
@@ -7,29 +8,57 @@ import { updateLocation } from './location'
 type PopStateListener = (this: Window, e: PopStateEvent) => void
 
 /**
- * register & release popstate event
+ * listen & release popstate event
+ * each child app will listen for popstate event when sandbox start
+ * and release it when sandbox stop
  * @param rawWindow origin window
  * @param appName app name
  * @returns release callback
  */
 export function addHistoryListener (rawWindow: Window, appName: string): CallableFunction {
-  // Send to the child app after receiving the popstate event
+  // handle popstate event and distribute to child app
   const popStateHandler: PopStateListener = (e: PopStateEvent): void => {
     const activeApps = getActiveApps(true)
     if (activeApps.includes(appName)) {
       // 先更新location，再发送popstate事件
       const microPath = getMicroPathFromURL(appName)
+      const app = appInstanceMap.get(appName)!
+      const proxyWindow = app.sandBox!.proxyWindow
+      let isHashChange = false
+      // for hashChangeEvent
+      const oldHref = proxyWindow.location.href
       if (microPath) {
-        const app = appInstanceMap.get(appName)
-        // @ts-ignore
-        updateLocation(microPath, app.url, app.sandBox.proxyWindow.location)
-        // @ts-ignore
-        console.log(333333, microPath, app.sandBox.proxyWindow.location)
+        const oldHash = proxyWindow.location.hash
+        updateLocation(microPath, app.url, proxyWindow.location as MicroLocation)
+        isHashChange = proxyWindow.location.hash !== oldHash
       }
-      // 向当前子应用发送popstate-appname的事件，state的值需要被格式化
-      rawWindow.dispatchEvent(
-        new PopStateEvent(formatEventName('popstate', appName), { state: getMicroState(appName, e.state) })
+
+      // console.log(333333, microPath, proxyWindow.location)
+
+      // create PopStateEvent named popstate-appName with sub app state
+      const newPopStateEvent = new PopStateEvent(
+        formatEventName('popstate', appName),
+        { state: getMicroState(appName, e.state) }
       )
+
+      rawWindow.dispatchEvent(newPopStateEvent)
+
+      typeof proxyWindow.onpopstate === 'function' && proxyWindow.onpopstate(newPopStateEvent)
+
+      // send HashChangeEvent when hash change
+      if (isHashChange) {
+        const newHashChangeEvent = new HashChangeEvent(
+          formatEventName('hashchange', appName),
+          {
+            newURL: proxyWindow.location.href,
+            oldURL: oldHref,
+          }
+        )
+
+        rawWindow.dispatchEvent(newHashChangeEvent)
+
+        typeof proxyWindow.onhashchange === 'function' && proxyWindow.onhashchange(newHashChangeEvent)
+      }
     }
   }
 

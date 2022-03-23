@@ -269,6 +269,13 @@ setTimeout(() => {
 
 
 // setTimeout(() => {
-//   window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
+//   // window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
+//   window.location.pathname = '/micro-app/react16/page2#fff'
+//   // window.location.assign('http://localhost:3001/micro-app/react16/page2#eee')
+//   // window.location.replace('http://localhost:3001/micro-app/react16/page2#eee')
 //   // console.log(111111, window.location)
 // }, 5000);
+
+window.onpopstate = (e) => {
+  console.log(888888888, e)
+}
