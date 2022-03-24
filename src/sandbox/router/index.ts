@@ -8,6 +8,7 @@ import {
   setMicroPathToURL,
   removeMicroPathFromURL,
   deleteMicroState,
+  setMicroState,
 } from './core'
 import {
   createMicroLocation,
@@ -30,7 +31,11 @@ export function initRouteStateWithURL (
   if (microPath) {
     updateLocation(microPath, url, microLocation)
   } else {
-    updateBrowserURL(globalEnv.rawWindow.history.state, setMicroPathToURL(appName, microLocation).fullPath)
+    const setMicroPathResult = setMicroPathToURL(appName, microLocation)
+    updateBrowserURL(
+      setMicroState(appName, globalEnv.rawWindow.history.state, null, url, setMicroPathResult.searchHash),
+      setMicroPathResult.fullPath,
+    )
   }
 }
 
@@ -45,7 +50,7 @@ export function clearRouteStateFromURL (
   updateLocation(pathname + search + hash, url, microLocation)
   // 删除浏览器url上的子应用参数
   updateBrowserURL(
-    deleteMicroState(appName, globalEnv.rawWindow.history.state),
+    deleteMicroState(appName, globalEnv.rawWindow.history.state, url),
     removeMicroPathFromURL(appName),
   )
 }

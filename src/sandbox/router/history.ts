@@ -7,7 +7,7 @@ import type {
 import globalEnv from '../../libs/global_env'
 import { isString, logError } from '../../libs/utils'
 import { updateLocation } from './location'
-import { setMicroPathToURL, createMicroState, getMicroState } from './core'
+import { setMicroPathToURL, setMicroState, getMicroState } from './core'
 
 // history of micro app
 export function createMicroHistory (
@@ -29,10 +29,11 @@ export function createMicroHistory (
           const targetLocation = new URL('' + rests[2], base) as MicroLocation
           if (targetLocation.origin === microLocation.origin) {
             targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+            const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
             rests = [
-              createMicroState(appName, rawHistory.state, rests[0]),
+              setMicroState(appName, rawHistory.state, rests[0], base, setMicroPathResult.searchHash),
               rests[1],
-              setMicroPathToURL(appName, targetLocation).fullPath,
+              setMicroPathResult.fullPath,
             ]
           }
         } catch (e) {
@@ -57,10 +58,21 @@ export function createMicroHistory (
       }
       return Reflect.get(target, key)
     },
+    set (target: History, key: PropertyKey, value: unknown): boolean {
+      return Reflect.set(target, key, value)
+    }
   })
 }
 
-// update browser url
+// update browser url when child app mount/unmount
 export function updateBrowserURL (state: MicroState, fullPath: string): void {
   globalEnv.rawWindow.history.replaceState(state, null, fullPath)
+}
+
+/**
+ * dispatch pure PopStateEvent
+ * simulate location behavior
+ */
+export function dispatchPurePopStateEvent (): void {
+  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
 }

@@ -20,13 +20,13 @@ export function addHistoryListener (rawWindow: Window, appName: string): Callabl
   const popStateHandler: PopStateListener = (e: PopStateEvent): void => {
     const activeApps = getActiveApps(true)
     if (activeApps.includes(appName)) {
-      // 先更新location，再发送popstate事件
       const microPath = getMicroPathFromURL(appName)
       const app = appInstanceMap.get(appName)!
       const proxyWindow = app.sandBox!.proxyWindow
       let isHashChange = false
       // for hashChangeEvent
       const oldHref = proxyWindow.location.href
+      // Do not attach micro info to url when microPath is empty
       if (microPath) {
         const oldHash = proxyWindow.location.hash
         updateLocation(microPath, app.url, proxyWindow.location as MicroLocation)

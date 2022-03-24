@@ -305,7 +305,7 @@ export default class CreateApp implements AppInterface {
     }
 
     // this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
-    this.sandBox?.stop(this.keepRouteState)
+    this.sandBox?.stop(this.keepRouteState && !destroy)
     if (!getActiveApps().length) {
       releasePatchSetAttribute()
     }

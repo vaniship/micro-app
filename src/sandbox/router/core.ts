@@ -12,32 +12,52 @@ import {
 } from '../../libs/utils'
 
 // set micro app state to origin state
-export function createMicroState (
+export function setMicroState (
   appName: string,
   rawState: MicroState,
   microState: MicroState,
+  base: string,
+  searchHash: string
 ): MicroState {
-  // 生成新的state对象
-  return assign({}, rawState, {
-    // 生成新的microAppState，因为它们在第二层
+  const additionalState: Record<string, any> = {
     microAppState: assign({}, rawState?.microAppState, {
       [appName]: microState
     })
-  })
+  }
+
+  /**
+   * vue-router4 will execute the replace method to replace the URL base on history.state.current before push
+   * add the latest search & hash to history.state.current to avoid this problem
+   */
+  if (rawState?.current) {
+    additionalState.current = (new URL(rawState.current, base)).pathname + searchHash
+  }
+
+  // create new state object
+  return assign({}, rawState, additionalState)
+}
+
+// delete micro app state form origin state
+export function deleteMicroState (appName: string, rawState: MicroState, url: string): MicroState {
+  if (rawState?.microAppState?.[appName]) {
+    delete rawState.microAppState[appName]
+  }
+
+  let coverState
+  //
+  if (rawState?.current) {
+    coverState = {
+      current: removeMicroPathFromURL(appName, new URL(rawState.current, url) as MicroLocation)
+    }
+  }
+
+  // 生成新的state对象
+  return assign({}, rawState, coverState)
 }
 
 // get micro app state form origin state
 export function getMicroState (appName: string, state: MicroState): MicroState {
   return state?.microAppState?.[appName] || null
-}
-
-// delete micro app state form origin state
-export function deleteMicroState (appName: string, rawState: MicroState): MicroState {
-  if (rawState?.microAppState?.[appName]) {
-    delete rawState.microAppState[appName]
-  }
-  // 生成新的state对象
-  return assign({}, rawState)
 }
 
 const ENC_AD_RE = /&/g // %M1
@@ -78,6 +98,7 @@ export function getMicroPathFromURL (appName: string): string | null {
 
 type setMicroPathResult = {
   fullPath: string,
+  searchHash: string,
   attach2Hash: boolean,
 }
 
@@ -117,13 +138,14 @@ export function setMicroPathToURL (appName: string, microLocation: MicroLocation
 
   return {
     fullPath: pathname + search + hash,
+    searchHash: search + hash,
     attach2Hash,
   }
 }
 
 // 将name=encodeUrl的参数从浏览器url上删除
-export function removeMicroPathFromURL (appName: string): string {
-  let { pathname, search, hash } = globalEnv.rawWindow.location
+export function removeMicroPathFromURL (appName: string, targetLocation?: MicroLocation): string {
+  let { pathname, search, hash } = targetLocation || globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(search, hash)
 
   if (queryObject.hashQuery?.[formatQueryAppName(appName)]) {

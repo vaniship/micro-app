@@ -3,6 +3,7 @@ import type { MicroLocation } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, rawDefineProperties } from '../../libs/utils'
 import { setMicroPathToURL } from './core'
+import { dispatchPurePopStateEvent } from './history'
 
 /**
  * create location for micro app
@@ -38,7 +39,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
        * so we use pushState & reload to imitate href behavior
        * NOTE:
        *    1. if child app only change hash, it should not trigger browser reload
-       *    2. if address is the same and has hash, it should not add route stack
+       *    2. if address is same and has hash, it should not add route stack
        */
       if (
         targetLocation.pathname === shadowLocation.pathname &&
@@ -49,7 +50,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         }
 
         if (targetLocation.hash) {
-          rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+          dispatchPurePopStateEvent()
         } else {
           rawLocation.reload()
         }
@@ -66,14 +67,16 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
     return value
   }
 
-  const assignOrReplace = (value: string | URL, locationMethodName: string) => {
-    const formattedValue = commonHandle(value, locationMethodName === 'assign' ? 'pushState' : 'replaceState')
-    if (formattedValue) rawLocation[locationMethodName](formattedValue)
+  const createAssignOrReplace = (locationMethodName: string) => {
+    return (value: string | URL) => {
+      const formattedValue = commonHandle(value, locationMethodName === 'assign' ? 'pushState' : 'replaceState')
+      if (formattedValue) rawLocation[locationMethodName](formattedValue)
+    }
   }
 
-  const assign = (value: string | URL): void => assignOrReplace(value, 'assign')
+  const assign = createAssignOrReplace('assign')
 
-  const replace = (value: string | URL): void => assignOrReplace(value, 'replace')
+  const replace = createAssignOrReplace('replace')
 
   const reload = (forcedReload?: boolean): void => rawLocation.reload(forcedReload)
 
@@ -107,7 +110,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         const targetLocation = new URL(targetPath, url) as MicroLocation
         // When the browser url has a hash value, the same pathname will not trigger the browser refresh
         if (targetLocation.pathname === shadowLocation.pathname && shadowLocation.hash) {
-          rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+          dispatchPurePopStateEvent()
         } else {
           // When the value is the same, no new route stack will be added
           // Special scenes such as: /path ==> /path#hash, /path ==> /path?query
@@ -126,7 +129,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         const targetLocation = new URL(targetPath, url) as MicroLocation
         // When the browser url has a hash value, the same search will not trigger the browser refresh
         if (targetLocation.search === shadowLocation.search && shadowLocation.hash) {
-          rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+          dispatchPurePopStateEvent()
         } else {
           // When the value is the same, no new route stack will be added
           // Special scenes such as: ?query ==> ?query#hash
@@ -146,7 +149,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         // The same hash will not trigger popStateEvent
         if (targetLocation.hash !== shadowLocation.hash) {
           rawWindow.history.pushState(null, null, setMicroPathToURL(appName, targetLocation).fullPath)
-          rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+          dispatchPurePopStateEvent()
         }
       }
     },
