@@ -41,6 +41,8 @@ import createMicroRouter, {
   initRouteStateWithURL,
   clearRouteStateFromURL,
   addHistoryListener,
+  removeStateAndPathFromBrowser,
+  updateBrowserURLWithLocation,
 } from './router'
 
 export type MicroAppWindowDataType = {
@@ -147,7 +149,7 @@ export default class SandBox implements SandBoxInterface {
       this.escapeKeys.clear()
 
       if (this.removeHistoryListener) {
-        if (!keepRouteState) this.clearRouteState()
+        this.clearRouteState(keepRouteState)
         // release listener of popstate
         this.removeHistoryListener()
       }
@@ -454,11 +456,27 @@ export default class SandBox implements SandBoxInterface {
     )
   }
 
-  private clearRouteState (): void {
+  private clearRouteState (keepRouteState: boolean): void {
     clearRouteStateFromURL(
       this.proxyWindow.__MICRO_APP_NAME__,
       this.proxyWindow.__MICRO_APP_URL__,
       this.proxyWindow.location as MicroLocation,
+      keepRouteState,
+    )
+  }
+
+  setRouteInfoForKeepAliveApp (): void {
+    updateBrowserURLWithLocation(
+      this.proxyWindow.__MICRO_APP_NAME__,
+      this.proxyWindow.__MICRO_APP_URL__,
+      this.proxyWindow.location as MicroLocation,
+    )
+  }
+
+  removeRouteInfoForKeepAliveApp (): void {
+    removeStateAndPathFromBrowser(
+      this.proxyWindow.__MICRO_APP_NAME__,
+      this.proxyWindow.__MICRO_APP_URL__,
     )
   }
 }

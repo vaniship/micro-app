@@ -357,6 +357,9 @@ export default class CreateApp implements AppInterface {
       this.name,
       lifeCycles.AFTERHIDDEN,
     )
+
+    // called after lifeCyclesEvent
+    this.sandBox?.removeRouteInfoForKeepAliveApp()
   }
 
   // show app when connectedCallback called with keep-alive
@@ -382,6 +385,9 @@ export default class CreateApp implements AppInterface {
     this.container = container
 
     this.keepAliveState = keepAliveStates.KEEP_ALIVE_SHOW
+
+    // called before lifeCyclesEvent
+    this.sandBox?.setRouteInfoForKeepAliveApp()
 
     // dispatch afterShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {

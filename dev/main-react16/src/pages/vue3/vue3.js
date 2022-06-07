@@ -30,6 +30,7 @@ function Vue3 () {
         // destroy
         // disableSandbox
         // shadowDOM
+        keep-route-state
       >
       </micro-app>
     </div>

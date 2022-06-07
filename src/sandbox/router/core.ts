@@ -9,6 +9,8 @@ import {
   parseQuery,
   stringifyQuery,
   isString,
+  isUndefined,
+  isPlainObject,
 } from '../../libs/utils'
 
 // set micro app state to origin state
@@ -38,13 +40,17 @@ export function setMicroState (
 }
 
 // delete micro app state form origin state
-export function deleteMicroState (appName: string, rawState: MicroState, url: string): MicroState {
-  if (rawState?.microAppState?.[appName]) {
-    delete rawState.microAppState[appName]
+export function removeMicroState (appName: string, rawState: MicroState, url: string): MicroState {
+  if (isPlainObject(rawState?.microAppState)) {
+    if (!isUndefined(rawState.microAppState[appName])) {
+      delete rawState.microAppState[appName]
+    }
+    if (!Object.keys(rawState.microAppState).length) {
+      delete rawState.microAppState
+    }
   }
 
-  let coverState
-  //
+  let coverState = null
   if (rawState?.current) {
     coverState = {
       current: removeMicroPathFromURL(appName, new URL(rawState.current, url) as MicroLocation)

@@ -14,6 +14,8 @@ declare module '@micro-app/types' {
     recordUmdSnapshot (): void
     // rebuild umd snapshot before remount umd app
     rebuildUmdSnapshot (): void
+    setRouteInfoForKeepAliveApp (): void
+    removeRouteInfoForKeepAliveApp (): void
   }
 
   type sourceLinkInfo = {

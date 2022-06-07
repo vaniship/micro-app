@@ -17,8 +17,6 @@ export function createMicroHistory (
 ): MicroHistory {
   const rawHistory = globalEnv.rawWindow.history
 
-  // 是否需要在每次调用时都创建一个函数？这样看起来麻烦，但是是函数式编程，看起来更优雅
-  // 如果使用一个对象将history的方法都实现一遍，确实是不需要每次都创建函数的，但是这样太不优雅了
   function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
     return (...rests: any[]) => {
       // console.log(444444444, rests[0], rests[1], rests[2], methodName)

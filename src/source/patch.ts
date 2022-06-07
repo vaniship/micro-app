@@ -108,29 +108,40 @@ function invokePrototypeMethod (
   targetChild: Node,
   passiveChild?: Node | null,
 ): any {
-  const container = getContainer(parent, app)
+  const hijackElement = getHijackElement(parent, app)
   /**
    * If passiveChild is not the child node, insertBefore replaceChild will have a problem, at this time, it will be degraded to appendChild
    * E.g: document.head.insertBefore(targetChild, document.head.childNodes[0])
    */
-  if (container) {
+  if (hijackElement) {
     /**
      * 1. If passiveChild exists, it must be insertBefore or replaceChild
      * 2. When removeChild, targetChild may not be in microAppHead or head
      */
-    if (passiveChild && !container.contains(passiveChild)) {
-      return globalEnv.rawAppendChild.call(container, targetChild)
-    } else if (rawMethod === globalEnv.rawRemoveChild && !container.contains(targetChild)) {
+    if (passiveChild && !hijackElement.contains(passiveChild)) {
+      return globalEnv.rawAppendChild.call(hijackElement, targetChild)
+    } else if (rawMethod === globalEnv.rawRemoveChild && !hijackElement.contains(targetChild)) {
       if (parent.contains(targetChild)) {
         return rawMethod.call(parent, targetChild)
       }
       return targetChild
     }
 
-    return invokeRawMethod(rawMethod, container, targetChild, passiveChild)
+    return invokeRawMethod(rawMethod, hijackElement, targetChild, passiveChild)
   }
 
   return invokeRawMethod(rawMethod, parent, targetChild, passiveChild)
+}
+
+// head/body map to micro-app-head/micro-app-body
+function getHijackElement (node: Node, app: AppInterface) {
+  if (node === document.head) {
+    return app?.container?.querySelector('micro-app-head')
+  }
+  if (node === document.body) {
+    return app?.container?.querySelector('micro-app-body')
+  }
+  return null
 }
 
 function invokeRawMethod (
@@ -148,16 +159,6 @@ function invokeRawMethod (
 
 function isPendMethod (method: CallableFunction) {
   return method === globalEnv.rawAppend || method === globalEnv.rawPrepend
-}
-
-function getContainer (node: Node, app: AppInterface) {
-  if (node === document.head) {
-    return app?.container?.querySelector('micro-app-head')
-  }
-  if (node === document.body) {
-    return app?.container?.querySelector('micro-app-body')
-  }
-  return null
 }
 
 // Get the map element
