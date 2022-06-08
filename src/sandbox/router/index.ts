@@ -18,8 +18,26 @@ import {
   createMicroHistory,
   updateBrowserURL,
 } from './history'
-
 export { addHistoryListener } from './event'
+export { router } from './api'
+
+// 所谓路由系统，无非两种操作：读、写
+// 读是通过location，写是通过replace/pushState
+/**
+ * The router system has two operations: read and write
+ * Read through location and write through replaceState/pushState/location
+ * @param appName app name
+ * @param url app url
+ * @returns MicroRouter
+ */
+export default function createMicroRouter (appName: string, url: string): MicroRouter {
+  const microLocation = createMicroLocation(appName, url)
+
+  return {
+    microLocation,
+    microHistory: createMicroHistory(appName, url, microLocation),
+  }
+}
 
 // 当沙箱执行start, 或者隐藏的keep-alive应用重新渲染时时才根据浏览器url更新location 或者 将参数更新到url上
 export function initRouteStateWithURL (
@@ -51,9 +69,12 @@ export function updateBrowserURLWithLocation (
   )
 }
 
-// 清空路由信息，主要有2点：1、本地location更新为初始化 2、删除history.state 和 浏览器url上的参数信息
 /**
  * In any case, microPath & microState will be removed from browser, but location will be initialized only when keep-route-state is false
+ * @param appName app name
+ * @param url app url
+ * @param microLocation location of microApp
+ * @param keepRouteState keep-route-state is only used to control whether to clear the location of microApp
  */
 export function clearRouteStateFromURL (
   appName: string,
@@ -77,15 +98,4 @@ export function removeStateAndPathFromBrowser (appName: string, url: string): vo
     removeMicroState(appName, globalEnv.rawWindow.history.state, url),
     removeMicroPathFromURL(appName),
   )
-}
-
-// 所谓路由系统，无非两种操作：读、写
-// 读是通过location，写是通过replace/pushState
-export default function createMicroRouter (appName: string, url: string): MicroRouter {
-  const microLocation = createMicroLocation(appName, url)
-
-  return {
-    microLocation,
-    microHistory: createMicroHistory(appName, url, microLocation),
-  }
 }

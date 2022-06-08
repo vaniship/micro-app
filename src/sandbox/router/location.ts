@@ -3,10 +3,11 @@ import type { MicroLocation } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, rawDefineProperties } from '../../libs/utils'
 import { setMicroPathToURL } from './core'
-import { dispatchPurePopStateEvent } from './history'
+import { dispatchPurePopStateEvent } from './event'
 
 /**
- * create location for micro app
+ * Create location for micro app
+ * Each microApp has only one location object, it is a reference type
  * @param appName app name
  * @param url app url
  */
@@ -15,7 +16,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
   const rawLocation = rawWindow.location
   // microLocation is the location of child app, it is globally unique
   const microLocation = new URL(url) as MicroLocation
-  // shadowLocation is the host of some special keys (href, pathname, search, hash)
+  // shadowLocation is the current location information (href, pathname, search, hash)
   const shadowLocation = {
     href: microLocation.href,
     pathname: microLocation.pathname,

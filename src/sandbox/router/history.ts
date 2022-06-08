@@ -16,7 +16,6 @@ export function createMicroHistory (
   microLocation: MicroLocation,
 ): MicroHistory {
   const rawHistory = globalEnv.rawWindow.history
-
   function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
     return (...rests: any[]) => {
       // console.log(444444444, rests[0], rests[1], rests[2], methodName)
@@ -65,12 +64,4 @@ export function createMicroHistory (
 // update browser url when child app mount/unmount
 export function updateBrowserURL (state: MicroState, fullPath: string): void {
   globalEnv.rawWindow.history.replaceState(state, null, fullPath)
-}
-
-/**
- * dispatch pure PopStateEvent
- * simulate location behavior
- */
-export function dispatchPurePopStateEvent (): void {
-  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
 }

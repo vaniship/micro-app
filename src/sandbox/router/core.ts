@@ -71,11 +71,11 @@ const ENC_EQ_RE = /=/g // %M2
 const DEC_AD_RE = /%M1/g // &
 const DEC_EQ_RE = /%M2/g // =
 
-function encodeMicroPath (path: string): string {
+export function encodeMicroPath (path: string): string {
   return encodeURIComponent(commonDecode(path).replace(ENC_AD_RE, '%M1').replace(ENC_EQ_RE, '%M2'))
 }
 
-function decodeMicroPath (path: string): string {
+export function decodeMicroPath (path: string): string {
   return commonDecode(path).replace(DEC_AD_RE, '&').replace(DEC_EQ_RE, '=')
 }
 

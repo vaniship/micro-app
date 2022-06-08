@@ -95,8 +95,8 @@ export default class SandBox implements SandBoxInterface {
   private recordUmdInjectedValues?: Map<PropertyKey, unknown>
   // sandbox state
   private active = false
-  proxyWindow: WindowProxy & MicroAppWindowDataType // Proxy
-  microAppWindow = {} as MicroAppWindowType // Proxy target
+  public proxyWindow: WindowProxy & MicroAppWindowDataType // Proxy
+  public microAppWindow = {} as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string, useMemoryRouter = true) {
     // get scopeProperties and escapeProperties from plugins
@@ -465,7 +465,7 @@ export default class SandBox implements SandBoxInterface {
     )
   }
 
-  setRouteInfoForKeepAliveApp (): void {
+  public setRouteInfoForKeepAliveApp (): void {
     updateBrowserURLWithLocation(
       this.proxyWindow.__MICRO_APP_NAME__,
       this.proxyWindow.__MICRO_APP_URL__,
@@ -473,7 +473,7 @@ export default class SandBox implements SandBoxInterface {
     )
   }
 
-  removeRouteInfoForKeepAliveApp (): void {
+  public removeRouteInfoForKeepAliveApp (): void {
     removeStateAndPathFromBrowser(
       this.proxyWindow.__MICRO_APP_NAME__,
       this.proxyWindow.__MICRO_APP_URL__,

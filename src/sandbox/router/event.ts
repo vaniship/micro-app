@@ -4,6 +4,7 @@ import { getActiveApps } from '../../micro_app'
 import { formatEventName } from '../effect'
 import { getMicroPathFromURL, getMicroState } from './core'
 import { updateLocation } from './location'
+import globalEnv from '../../libs/global_env'
 
 type PopStateListener = (this: Window, e: PopStateEvent) => void
 
@@ -67,4 +68,12 @@ export function addHistoryListener (rawWindow: Window, appName: string): Callabl
   return () => {
     rawWindow.removeEventListener('popstate', popStateHandler)
   }
+}
+
+/**
+ * dispatch pure PopStateEvent
+ * simulate location behavior
+ */
+export function dispatchPurePopStateEvent (): void {
+  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
 }

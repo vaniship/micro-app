@@ -204,6 +204,7 @@ declare module '@micro-app/types' {
   type CallableFunctionForInteract = CallableFunction & { __APP_NAME__?: string, __AUTO_TRIGGER__?: boolean }
 
   interface MicroLocation extends Location, URL {
+    // shadowLocation is the current location information (href, pathname, search, hash)
     shadowLocation: URL
   }
   type MicroHistory = ProxyHandler<History>
@@ -233,6 +234,25 @@ declare module '@micro-app/types' {
   type LocationQuery = {
     hashQuery?: LocationQueryObject,
     searchQuery?: LocationQueryObject
+  }
+
+  interface CurrentRoute {
+    [appName: string]: MicroLocation,
+  }
+
+  // Router API for developer
+  interface Router {
+    readonly currentRoute?: CurrentRoute
+    /**
+     * encodeURI of microApp path
+     * @param path url path
+     */
+    encode(path: string): string
+    /**
+     * decodeURI of microApp path
+     * @param path url path
+     */
+    decode(path: string): ReturnType<Router['encode']>
   }
 }
 
