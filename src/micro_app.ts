@@ -1,4 +1,12 @@
-import type { OptionsType, MicroAppConfigType, lifeCyclesType, plugins, fetchType, AppInterface } from '@micro-app/types'
+import type {
+  OptionsType,
+  MicroAppConfigType,
+  lifeCyclesType,
+  plugins,
+  fetchType,
+  AppInterface,
+  Router,
+} from '@micro-app/types'
 import { defineElement } from './micro_app_element'
 import preFetch, { getGlobalAssets } from './prefetch'
 import {
@@ -14,6 +22,7 @@ import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
 import { appStates, keepAliveStates } from './constants'
+import { router } from './sandbox/router'
 
 /**
  * if app not prefetch & not unmount, then app is active
@@ -136,6 +145,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
   plugins?: plugins
   fetch?: fetchType
   preFetch = preFetch
+  router: Router = router
   start (options?: OptionsType): void {
     if (!isBrowser || !window.customElements) {
       return logError('micro-app is not supported in this environment')

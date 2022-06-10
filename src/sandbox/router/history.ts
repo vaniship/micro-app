@@ -5,7 +5,7 @@ import type {
   HistoryProxyValue,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import { isString, logError } from '../../libs/utils'
+import { isString, logError, createURL } from '../../libs/utils'
 import { updateLocation } from './location'
 import { setMicroPathToURL, setMicroState, getMicroState } from './core'
 
@@ -23,7 +23,7 @@ export function createMicroHistory (
       // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
       if ((methodName === 'pushState' || methodName === 'replaceState') && rests[2] && isString(rests[2])) {
         try {
-          const targetLocation = new URL('' + rests[2], base) as MicroLocation
+          const targetLocation = createURL(rests[2], base) as MicroLocation
           if (targetLocation.origin === microLocation.origin) {
             targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
             const setMicroPathResult = setMicroPathToURL(appName, targetLocation)

@@ -135,6 +135,18 @@ export default class App extends React.Component {
     })
   }
 
+  jumpToHome = () => {
+    microApp.router.push({name: this.state.name, path: '/micro-app/react16/'})
+  }
+
+  jumpToPage2 = () => {
+    microApp.router.push({name: this.state.name, path: '/micro-app/react16/page2'})
+  }
+
+  jumpToInline = () => {
+    microApp.router.push({name: this.state.name, path: '/micro-app/react16/inline'})
+  }
+
   handleGlobalDataForBaseApp = (data) => {
     console.log(`这是全局数据--基座应用-${this.state.name}`, data)
   }
@@ -167,6 +179,9 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
             <Button type="primary" onClick={this.handleModal}>modal内嵌应用</Button>
             <Button type="primary" onClick={this.handleUnmountMySelf}>主动卸载应用</Button>
+            <Button type="primary" onClick={this.jumpToHome}>基座控制子应用跳转home</Button>
+            <Button type="primary" onClick={this.jumpToPage2}>基座控制子应用跳转page2</Button>
+            <Button type="primary" onClick={this.jumpToInline}>基座控制子应用跳转inline</Button>
             <Button type="primary" onClick={this.changeTestNum}>{this.state.testNum}</Button>
           </Col>
           <Col span={18} className='app-con-react16'>
@@ -188,9 +203,9 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseRoute='/micro-app/demo/react16'
-                  // keep-alive
+                  keep-alive
                   // destroy
-                  keep-route-state
+                  // keep-route-state
                   // disable-memory-router
                   // inline
                   // disableSandbox

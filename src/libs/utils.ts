@@ -116,6 +116,9 @@ export function defer (fn: Func, ...args: any[]): void {
   Promise.resolve().then(fn.bind(null, ...args))
 }
 
+export function createURL (path: string | URL, base?: string): URL {
+  return base ? new URL('' + path, base) : new URL('' + path)
+}
 /**
  * Add address protocol
  * @param url address
@@ -134,7 +137,7 @@ export function formatAppURL (url: string | null, appName: string | null = null)
   if (!isString(url) || !url) return ''
 
   try {
-    const { origin, pathname, search } = new URL(addProtocol(url))
+    const { origin, pathname, search } = createURL(addProtocol(url))
     // If it ends with .html/.node/.php/.net/.etc, don’t need to add /
     if (/\.(\w+)$/.test(pathname)) {
       return `${origin}${pathname}${search}`
@@ -155,6 +158,7 @@ export function formatAppURL (url: string | null, appName: string | null = null)
  * 3. event_center -> EventCenterForBaseApp -> all methods
  * 4. preFetch
  * 5. plugins
+ * 6. router api (push, replace)
  */
 export function formatAppName (name: string | null): string {
   if (!isString(name) || !name) return ''
@@ -166,7 +170,7 @@ export function formatAppName (name: string | null): string {
  * @param url app.url
  */
 export function getEffectivePath (url: string): string {
-  const { origin, pathname } = new URL(url)
+  const { origin, pathname } = createURL(url)
   if (/\.(\w+)$/.test(pathname)) {
     const fullPath = `${origin}${pathname}`
     const pathArr = fullPath.split('/')
@@ -189,7 +193,7 @@ export function CompletionPath (path: string, baseURI: string): string {
     /^(data|blob):/.test(path)
   ) return path
 
-  return new URL(path, getEffectivePath(addProtocol(baseURI))).toString()
+  return createURL(path, getEffectivePath(addProtocol(baseURI))).toString()
 }
 
 /**

@@ -197,6 +197,7 @@ declare module '@micro-app/types' {
     plugins?: plugins
     fetch?: fetchType
     preFetch(apps: prefetchParamList): void
+    router: Router // eslint-disable-line
     start(options?: OptionsType): void
   }
 
@@ -240,6 +241,15 @@ declare module '@micro-app/types' {
     [appName: string]: MicroLocation,
   }
 
+  interface RouterTarget {
+    name: string
+    path: string
+    state?: unknown
+    replace?: boolean
+  }
+
+  type navigationMethod = (to: RouterTarget) => void
+
   // Router API for developer
   interface Router {
     readonly currentRoute?: CurrentRoute
@@ -253,6 +263,19 @@ declare module '@micro-app/types' {
      * @param path url path
      */
     decode(path: string): ReturnType<Router['encode']>
+    /**
+     * Navigate to a new URL by pushing an entry in the history
+     * stack.
+     * @param to - Route location to navigate to
+     */
+    push: navigationMethod
+    /**
+     * Navigate to a new URL by replacing the current entry in
+     * the history stack.
+     *
+     * @param to - Route location to navigate to
+     */
+    replace: navigationMethod
   }
 }
 

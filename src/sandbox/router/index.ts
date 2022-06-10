@@ -18,6 +18,7 @@ import {
   createMicroHistory,
   updateBrowserURL,
 } from './history'
+import { createURL } from '../../libs/utils'
 export { addHistoryListener } from './event'
 export { router } from './api'
 
@@ -83,7 +84,7 @@ export function clearRouteStateFromURL (
   keepRouteState: boolean,
 ): void {
   if (!keepRouteState) {
-    const { pathname, search, hash } = new URL(url)
+    const { pathname, search, hash } = createURL(url)
     updateLocation(pathname + search + hash, url, microLocation)
   }
   removeStateAndPathFromBrowser(appName, url)

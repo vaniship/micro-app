@@ -2,9 +2,10 @@
 /** @jsx jsxCustomEvent */
 import jsxCustomEvent from '@micro-zoe/micro-app/polyfill/jsx-custom-event'
 import { useState } from 'react'
-import { Spin } from 'antd'
+import { Spin, Button, Col } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
 import config from '../../config'
+import microApp from '@micro-zoe/micro-app'
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
@@ -12,8 +13,20 @@ function Vue3 () {
   const [showLoading, hideLoading] = useState(true)
   const [data, changeData] = useState({from: '来自基座的初始化数据'})
 
+  function jumpToHome () {
+    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/'})
+  }
+
+  function jumpToPage2 () {
+    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/page2'})
+  }
+
   return (
     <div>
+      <Col span={6} className='btn-con'>
+        <Button type="primary" onClick={jumpToHome}>基座控制子应用跳转home</Button>
+        <Button type="primary" onClick={jumpToPage2}>基座控制子应用跳转page2</Button>
+      </Col>
       {
         showLoading && <Spin indicator={antIcon} />
       }

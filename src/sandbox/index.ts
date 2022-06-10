@@ -60,6 +60,7 @@ export type MicroAppWindowDataType = {
 }
 
 export type MicroAppWindowType = Window & MicroAppWindowDataType
+export type proxyWindow = WindowProxy & MicroAppWindowDataType
 
 // Variables that can escape to rawWindow
 const staticEscapeProperties: PropertyKey[] = [
@@ -95,7 +96,7 @@ export default class SandBox implements SandBoxInterface {
   private recordUmdInjectedValues?: Map<PropertyKey, unknown>
   // sandbox state
   private active = false
-  public proxyWindow: WindowProxy & MicroAppWindowDataType // Proxy
+  public proxyWindow: proxyWindow // Proxy
   public microAppWindow = {} as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string, useMemoryRouter = true) {
@@ -116,7 +117,6 @@ export default class SandBox implements SandBoxInterface {
         this.initRouteState()
         // unique listener of popstate event for sub app
         this.removeHistoryListener = addHistoryListener(
-          globalEnv.rawWindow,
           this.proxyWindow.__MICRO_APP_NAME__,
         )
       } else {

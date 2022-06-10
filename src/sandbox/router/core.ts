@@ -11,6 +11,7 @@ import {
   isString,
   isUndefined,
   isPlainObject,
+  createURL,
 } from '../../libs/utils'
 
 // set micro app state to origin state
@@ -28,11 +29,11 @@ export function setMicroState (
   }
 
   /**
-   * vue-router4 will execute the replace method to replace the URL base on history.state.current before push
+   * vue-router4 will call replace method to replace the URL base on history.state.current before push
    * add the latest search & hash to history.state.current to avoid this problem
    */
   if (rawState?.current) {
-    additionalState.current = (new URL(rawState.current, base)).pathname + searchHash
+    additionalState.current = (createURL(rawState.current, base)).pathname + searchHash
   }
 
   // create new state object
@@ -53,7 +54,7 @@ export function removeMicroState (appName: string, rawState: MicroState, url: st
   let coverState = null
   if (rawState?.current) {
     coverState = {
-      current: removeMicroPathFromURL(appName, new URL(rawState.current, url) as MicroLocation)
+      current: removeMicroPathFromURL(appName, createURL(rawState.current, url) as MicroLocation)
     }
   }
 

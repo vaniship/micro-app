@@ -14,7 +14,7 @@ export default defineConfig({
     hmr: true,
   },
   history: {
-    type: 'hash', // browser
+    type: 'browser', // browser hash
   },
   locale: {
     // default zh-CN
