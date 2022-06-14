@@ -48,7 +48,7 @@ export function initRouteStateWithURL (
 ): void {
   const microPath = getMicroPathFromURL(appName)
   if (microPath) {
-    updateLocation(microPath, url, microLocation)
+    updateLocation(appName, microPath, url, microLocation)
   } else {
     updateBrowserURLWithLocation(appName, url, microLocation)
   }
@@ -85,7 +85,7 @@ export function clearRouteStateFromURL (
 ): void {
   if (!keepRouteState) {
     const { pathname, search, hash } = createURL(url)
-    updateLocation(pathname + search + hash, url, microLocation)
+    updateLocation(appName, pathname + search + hash, url, microLocation)
   }
   removeStateAndPathFromBrowser(appName, url)
 }

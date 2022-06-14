@@ -23,7 +23,7 @@ export function createMicroHistory (
       // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
       if ((methodName === 'pushState' || methodName === 'replaceState') && rests[2] && isString(rests[2])) {
         try {
-          const targetLocation = createURL(rests[2], base) as MicroLocation
+          const targetLocation = createURL(rests[2], base)
           if (targetLocation.origin === microLocation.origin) {
             targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
             const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
@@ -40,7 +40,7 @@ export function createMicroHistory (
 
       rawHistory[methodName].apply(rawHistory, rests)
 
-      if (targetPath) updateLocation(targetPath, base, microLocation)
+      if (targetPath) updateLocation(appName, targetPath, base, microLocation)
 
       // console.log(5555555, microLocation, base)
     }

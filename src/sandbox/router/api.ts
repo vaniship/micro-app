@@ -1,7 +1,11 @@
 import type {
+  Func,
   Router,
   RouterTarget,
   navigationMethod,
+  MicroLocation,
+  routerGuard,
+  GuardLocation,
 } from '@micro-app/types'
 import {
   encodeMicroPath,
@@ -11,13 +15,16 @@ import {
   logError,
   formatAppName,
   createURL,
+  isFunction,
+  isPlainObject,
 } from '../../libs/utils'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
 import { dispatchPopStateEventToMicroApp } from './event'
+import globalEnv from '../../libs/global_env'
 
 /**
- * path需要注意的是两点：1、子应用的base也要加上 2、对于hash路由，要带上hash，如果开发者不知道具体地址如何写，那么单独运行子应用，跳转到对应的页面，复制浏览器地址到path
+ * path需要注意的是两点：1、子应用的base也要加上 2、对于hash路由，要带上hash，如果开发者不知道具体地址如何写，那么单独运行子应用，跳转到对应的页面，复制浏览器地址
  * path 为子应用除域名外的全量地址(可以带上域名)
  * 相同的地址是否需要继续跳转？？？
  */
@@ -44,17 +51,50 @@ function createNavigationMethod (replace: boolean): navigationMethod {
   }
 }
 
+function createRawHistoryMethod (methodName: string): Func {
+  return function (...rests: unknown[]): void {
+    return globalEnv.rawWindow.history[methodName](...rests)
+  }
+}
+
+/**
+ * global hook for router
+ * update router information base on microLocation
+ * @param appName app name
+ * @param microLocation location of microApp
+ */
+export function executeNavigationGuard (
+  appName: string,
+  to: GuardLocation,
+  from?: GuardLocation,
+): void {
+  router.current.set(appName, to)
+
+  if (from) {
+    alert(from)
+  }
+}
+
+function registerNavigationGuard (guardName: string) {
+  return function (guard: routerGuard) {
+    if (isFunction(guard)) {
+      alert(guardName)
+    } else if (isPlainObject(guard)) {
+      alert(guardName)
+    }
+  }
+}
+
 // Router API for developer
 export const router: Router = {
-  currentRoute: {},
+  current: new Map<string, MicroLocation>(),
   encode: encodeMicroPath,
   decode: decodeMicroPath,
   push: createNavigationMethod(false),
   replace: createNavigationMethod(true),
-  // go:
-  // back:
-  // forward:
-  // beforeEach:
-  // afterEach:
-  // onError:
+  go: createRawHistoryMethod('go'),
+  back: createRawHistoryMethod('back'),
+  forward: createRawHistoryMethod('forward'),
+  beforeEach: registerNavigationGuard('beforeEach'),
+  afterEach: registerNavigationGuard('afterEach'),
 }

@@ -29,7 +29,7 @@ export function addHistoryListener (appName: string): CallableFunction {
       // Do not attach micro info to url when microPath is empty
       if (microPath) {
         const oldHash = proxyWindow.location.hash
-        updateLocation(microPath, app.url, proxyWindow.location as MicroLocation)
+        updateLocation(appName, microPath, app.url, proxyWindow.location as MicroLocation)
         isHashChange = proxyWindow.location.hash !== oldHash
       }
 

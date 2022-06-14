@@ -101,8 +101,8 @@ export default class App extends React.Component {
 
   changeNameUrl = () => {
     this.setState({
-      name: 'vue2',
-      url: `${config.vue2}micro-app/vue2`,
+      name: 'react16',
+      url: `${config.react16}micro-app/react16/?a=2`,
     })
   }
 
@@ -147,6 +147,26 @@ export default class App extends React.Component {
     microApp.router.push({name: this.state.name, path: '/micro-app/react16/inline'})
   }
 
+  useRouterGo = () => {
+    microApp.router.go(-1)
+  }
+
+  useRouterBack = () => {
+    microApp.router.back()
+  }
+
+  useRouterForward = () => {
+    microApp.router.forward()
+  }
+
+  useCurrentRoute = () => {
+    console.log('router.current', microApp.router.current.get('react16'))
+
+    // setTimeout(() => {
+    //   microApp.router.current.get('react16').assign('?b=222')
+    // }, 3000);
+  }
+
   handleGlobalDataForBaseApp = (data) => {
     console.log(`这是全局数据--基座应用-${this.state.name}`, data)
   }
@@ -160,6 +180,16 @@ export default class App extends React.Component {
     })
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
+
+    microApp.router.beforeEach((to, from, appName) => {
+
+    })
+
+    microApp.router.beforeEach({
+      appName (to, from) {
+
+      }
+    })
   }
 
   componentWillUnmount ()  {
@@ -182,6 +212,10 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.jumpToHome}>基座控制子应用跳转home</Button>
             <Button type="primary" onClick={this.jumpToPage2}>基座控制子应用跳转page2</Button>
             <Button type="primary" onClick={this.jumpToInline}>基座控制子应用跳转inline</Button>
+            <Button type="primary" onClick={this.useRouterGo}>基座调用router.go</Button>
+            <Button type="primary" onClick={this.useRouterBack}>基座调用router.back</Button>
+            <Button type="primary" onClick={this.useRouterForward}>基座调用router.forward</Button>
+            <Button type="primary" onClick={this.useCurrentRoute}>基座调用router.current</Button>
             <Button type="primary" onClick={this.changeTestNum}>{this.state.testNum}</Button>
           </Col>
           <Col span={18} className='app-con-react16'>

@@ -204,9 +204,14 @@ declare module '@micro-app/types' {
   // special CallableFunction for interact
   type CallableFunctionForInteract = CallableFunction & { __APP_NAME__?: string, __AUTO_TRIGGER__?: boolean }
 
+  interface ShadowLocation {
+    [k: string]: string
+  }
+
   interface MicroLocation extends Location, URL {
     // shadowLocation is the current location information (href, pathname, search, hash)
-    shadowLocation: URL
+    shadowLocation: ShadowLocation
+    [key: string]: any
   }
   type MicroHistory = ProxyHandler<History>
   type MicroState = any
@@ -237,9 +242,9 @@ declare module '@micro-app/types' {
     searchQuery?: LocationQueryObject
   }
 
-  interface CurrentRoute {
-    [appName: string]: MicroLocation,
-  }
+  type GuardLocation = Record<keyof URL, any>
+
+  type CurrentRoute = Map<string, GuardLocation>
 
   interface RouterTarget {
     name: string
@@ -250,9 +255,16 @@ declare module '@micro-app/types' {
 
   type navigationMethod = (to: RouterTarget) => void
 
+  interface accurateGuard {
+    [appName: string]: (to: MicroLocation, from: MicroLocation) => void
+  }
+
+  type routerGuard = (to: GuardLocation, from: GuardLocation, appName: string) => void | accurateGuard
+
   // Router API for developer
   interface Router {
-    readonly currentRoute?: CurrentRoute
+    // current route of all apps
+    readonly current: CurrentRoute
     /**
      * encodeURI of microApp path
      * @param path url path
@@ -276,6 +288,24 @@ declare module '@micro-app/types' {
      * @param to - Route location to navigate to
      */
     replace: navigationMethod
+    /**
+     * Move forward or backward through the history. calling `history.go()`.
+     *
+     * @param delta - The position in the history to which you want to move,
+     * relative to the current page
+     */
+    go: Func
+    // Go back in history if possible by calling `history.back()`.
+    back: Func
+    // Go forward in history if possible by calling `history.forward()`.
+    forward: Func
+    /**
+     * Add a navigation guard that executes before any navigation
+     * @param guard global hook for
+     */
+    beforeEach(guard: routerGuard): void
+
+    afterEach(guard: routerGuard): void
   }
 }
 

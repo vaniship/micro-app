@@ -54,7 +54,7 @@ export function removeMicroState (appName: string, rawState: MicroState, url: st
   let coverState = null
   if (rawState?.current) {
     coverState = {
-      current: removeMicroPathFromURL(appName, createURL(rawState.current, url) as MicroLocation)
+      current: removeMicroPathFromURL(appName, createURL(rawState.current, url))
     }
   }
 

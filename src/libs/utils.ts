@@ -1,5 +1,5 @@
 /* eslint-disable no-new-func, indent, @typescript-eslint/explicit-module-boundary-types */
-import type { Func, LocationQueryObject, LocationQueryValue } from '@micro-app/types'
+import type { Func, LocationQueryObject, LocationQueryValue, MicroLocation } from '@micro-app/types'
 
 export const version = '__MICRO_APP_VERSION__'
 
@@ -116,8 +116,8 @@ export function defer (fn: Func, ...args: any[]): void {
   Promise.resolve().then(fn.bind(null, ...args))
 }
 
-export function createURL (path: string | URL, base?: string): URL {
-  return base ? new URL('' + path, base) : new URL('' + path)
+export function createURL (path: string | URL, base?: string): MicroLocation {
+  return (base ? new URL('' + path, base) : new URL('' + path)) as MicroLocation
 }
 /**
  * Add address protocol
