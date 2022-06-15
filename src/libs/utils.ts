@@ -441,3 +441,23 @@ export function stringifyQuery (queryObject: LocationQueryObject): string {
 }
 
 export const noop = () => {}
+
+/**
+ * Create a list of callbacks that can be reset.
+ * Used to create before and after navigation guards list
+ */
+export function useCallbacks<T> () {
+  const handlers: Set<T> = new Set()
+
+  function add (handler: T): () => void {
+    handlers.add(handler)
+    return () => {
+      if (handlers.has(handler)) handlers.delete(handler)
+    }
+  }
+
+  return {
+    add,
+    list: () => handlers,
+  }
+}

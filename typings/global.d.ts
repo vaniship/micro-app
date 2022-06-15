@@ -255,11 +255,13 @@ declare module '@micro-app/types' {
 
   type navigationMethod = (to: RouterTarget) => void
 
-  interface accurateGuard {
-    [appName: string]: (to: MicroLocation, from: MicroLocation) => void
+  interface AccurateGuard {
+    [appName: string]: (to: GuardLocation, from: GuardLocation) => void
   }
 
-  type routerGuard = (to: GuardLocation, from: GuardLocation, appName: string) => void | accurateGuard
+  type GlobalNormalGuard = ((appName: string, to: GuardLocation, from: GuardLocation) => void)
+
+  type RouterGuard = AccurateGuard | GlobalNormalGuard
 
   // Router API for developer
   interface Router {
@@ -303,9 +305,9 @@ declare module '@micro-app/types' {
      * Add a navigation guard that executes before any navigation
      * @param guard global hook for
      */
-    beforeEach(guard: routerGuard): void
+    beforeEach(guard: RouterGuard): void
 
-    afterEach(guard: routerGuard): void
+    afterEach(guard: RouterGuard): void
   }
 }
 

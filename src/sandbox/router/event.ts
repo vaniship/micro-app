@@ -26,7 +26,7 @@ export function addHistoryListener (appName: string): CallableFunction {
       let isHashChange = false
       // for hashChangeEvent
       const oldHref = proxyWindow.location.href
-      // Do not attach micro info to url when microPath is empty
+      // Do not attach micro state to url when microPath is empty
       if (microPath) {
         const oldHash = proxyWindow.location.hash
         updateLocation(appName, microPath, app.url, proxyWindow.location as MicroLocation)

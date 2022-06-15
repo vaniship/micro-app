@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   Form,
   Select,
@@ -56,6 +56,10 @@ const Page2 = () => {
   const testClick = () => {
     console.log(444444444)
   }
+
+  useEffect(() => {
+    console.log('react16 page2 useEffect')
+  }, [])
 
   return (
     <div>

@@ -13,6 +13,7 @@ import {
 import {
   createMicroLocation,
   updateLocation,
+  autoTriggerNavigationGuard,
 } from './location'
 import {
   createMicroHistory,
@@ -48,7 +49,7 @@ export function initRouteStateWithURL (
 ): void {
   const microPath = getMicroPathFromURL(appName)
   if (microPath) {
-    updateLocation(appName, microPath, url, microLocation)
+    updateLocation(appName, microPath, url, microLocation, 'init')
   } else {
     updateBrowserURLWithLocation(appName, url, microLocation)
   }
@@ -65,9 +66,16 @@ export function updateBrowserURLWithLocation (
 ): void {
   const setMicroPathResult = setMicroPathToURL(appName, microLocation)
   updateBrowserURL(
-    setMicroState(appName, globalEnv.rawWindow.history.state, null, url, setMicroPathResult.searchHash),
+    setMicroState(
+      appName,
+      globalEnv.rawWindow.history.state,
+      null,
+      url,
+      setMicroPathResult.searchHash,
+    ),
     setMicroPathResult.fullPath,
   )
+  autoTriggerNavigationGuard(appName, microLocation)
 }
 
 /**
@@ -85,7 +93,7 @@ export function clearRouteStateFromURL (
 ): void {
   if (!keepRouteState) {
     const { pathname, search, hash } = createURL(url)
-    updateLocation(appName, pathname + search + hash, url, microLocation)
+    updateLocation(appName, pathname + search + hash, url, microLocation, 'clear')
   }
   removeStateAndPathFromBrowser(appName, url)
 }

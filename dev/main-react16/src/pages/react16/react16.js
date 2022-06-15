@@ -181,13 +181,23 @@ export default class App extends React.Component {
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
 
-    microApp.router.beforeEach((to, from, appName) => {
-
+    this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
+      console.log('全局 beforeEach: ', to, from, appName)
     })
 
-    microApp.router.beforeEach({
-      appName (to, from) {
+    this.releaseBeforeEach2 = microApp.router.beforeEach({
+      react16 (to, from) {
+        console.log('指定 beforeEach: ', to, from)
+      }
+    })
 
+    this.releaseAfterEach1 = microApp.router.afterEach((to, from, appName) => {
+      console.log('全局 afterEach: ', to, from, appName)
+    })
+
+    this.releaseAfterEach2 = microApp.router.afterEach({
+      react16 (to, from) {
+        console.log('指定 afterEach: ', to, from)
       }
     })
   }
@@ -195,6 +205,10 @@ export default class App extends React.Component {
   componentWillUnmount ()  {
     microApp.clearDataListener(this.state.name)
     microApp.removeGlobalDataListener(this.handleGlobalDataForBaseApp)
+    this.releaseBeforeEach1()
+    this.releaseBeforeEach2()
+    this.releaseAfterEach1()
+    this.releaseAfterEach2()
   }
 
   render () {
@@ -237,9 +251,9 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseRoute='/micro-app/demo/react16'
-                  keep-alive
+                  // keep-alive
                   // destroy
-                  // keep-route-state
+                  keep-route-state
                   // disable-memory-router
                   // inline
                   // disableSandbox

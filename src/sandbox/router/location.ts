@@ -144,27 +144,19 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
     }
   }
 
-  const assign = createLocationMethod('assign')
-
-  const replace = createLocationMethod('replace')
-
-  const reload = (forcedReload?: boolean): void => rawLocation.reload(forcedReload)
-
-  oAssign(microLocation, {
-    assign,
-    replace,
-    reload,
+  return oAssign(microLocation, {
+    assign: createLocationMethod('assign'),
+    replace: createLocationMethod('replace'),
+    reload: (forcedReload?: boolean): void => rawLocation.reload(forcedReload),
     shadowLocation,
   })
-
-  executeNavigationGuard(appName, createGuardLocation(appName, microLocation))
-
-  return microLocation
 }
 
-// origin is readonly, so we ignore it
-const locationKeys: ReadonlyArray<keyof URL> = ['href', 'pathname', 'search', 'hash', 'host', 'hostname', 'port', 'protocol', 'search']
 const shadowLocationKeys: ReadonlyArray<keyof URL> = ['href', 'pathname', 'search', 'hash']
+// origin is readonly, so we ignore when updateLocation
+const locationKeys: ReadonlyArray<keyof URL> = [...shadowLocationKeys, 'host', 'hostname', 'port', 'protocol', 'search']
+// origin is necessary for guardLocation
+const guardLocationKeys: ReadonlyArray<keyof URL> = [...locationKeys, 'origin']
 
 /**
  * create guardLocation by microLocation, used for router guard
@@ -172,8 +164,13 @@ const shadowLocationKeys: ReadonlyArray<keyof URL> = ['href', 'pathname', 'searc
 function createGuardLocation (appName: string, microLocation: MicroLocation): GuardLocation {
   const guardLocation = oAssign({ name: appName }, microLocation) as GuardLocation
   // The prototype values on the URL needs to be manually transferred
-  for (const key of locationKeys) guardLocation[key] = microLocation[key]
+  for (const key of guardLocationKeys) guardLocation[key] = microLocation[key]
   return guardLocation
+}
+
+// for updateBrowserURLWithLocation when initial
+export function autoTriggerNavigationGuard (appName: string, microLocation: MicroLocation): void {
+  executeNavigationGuard(appName, createGuardLocation(appName, microLocation), createGuardLocation(appName, microLocation))
 }
 
 /**
@@ -185,12 +182,14 @@ function createGuardLocation (appName: string, microLocation: MicroLocation): Gu
  * @param path target path
  * @param base base url
  * @param microLocation micro app location
+ * @param type init clear normal
  */
 export function updateLocation (
   appName: string,
   path: string,
   base: string,
   microLocation: MicroLocation,
+  type?: string,
 ): void {
   const newLocation = createURL(path, base)
   // record old values of microLocation to `from`
@@ -209,10 +208,8 @@ export function updateLocation (
   const to = createGuardLocation(appName, microLocation)
   const newFullPath = to.pathname + to.search + to.hash
 
-  // console.log(22222, oldFullPath, newFullPath)
-  // The hook called only when the url changes
-  if (oldFullPath !== newFullPath) {
-    // console.log(333333, to, from)
-    executeNavigationGuard(appName, to)
+  // The hook called only when fullPath changed
+  if (type === 'init' || (oldFullPath !== newFullPath && type !== 'clear')) {
+    executeNavigationGuard(appName, to, from)
   }
 }

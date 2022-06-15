@@ -9,9 +9,10 @@ import {
   rebuildDataCenterSnapshot,
   recordDataCenterSnapshot,
 } from '../interact'
-import globalEnv, {
+import globalEnv from '../libs/global_env'
+import {
   listenUmountOfNestedApp,
-} from '../libs/global_env'
+} from '../libs/nest_app'
 import {
   getEffectivePath,
   isArray,
