@@ -3,7 +3,7 @@ import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
 import { formatEventName } from '../effect'
 import { getMicroPathFromURL, getMicroState } from './core'
-import { updateLocation } from './location'
+import { updateMicroLocation } from './location'
 import globalEnv from '../../libs/global_env'
 
 type PopStateListener = (this: Window, e: PopStateEvent) => void
@@ -29,7 +29,7 @@ export function addHistoryListener (appName: string): CallableFunction {
       // Do not attach micro state to url when microPath is empty
       if (microPath) {
         const oldHash = proxyWindow.location.hash
-        updateLocation(appName, microPath, app.url, proxyWindow.location as MicroLocation)
+        updateMicroLocation(appName, microPath, app.url, proxyWindow.location as MicroLocation)
         isHashChange = proxyWindow.location.hash !== oldHash
       }
 
@@ -49,6 +49,12 @@ export function addHistoryListener (appName: string): CallableFunction {
   }
 }
 
+/**
+ * dispatch formatted popstate event to microApp
+ * @param appName app name
+ * @param proxyWindow sandbox window
+ * @param eventState history.state
+ */
 export function dispatchPopStateEventToMicroApp (
   appName: string,
   proxyWindow: WindowProxy,
@@ -66,6 +72,12 @@ export function dispatchPopStateEventToMicroApp (
   typeof proxyWindow.onpopstate === 'function' && proxyWindow.onpopstate(newPopStateEvent)
 }
 
+/**
+ * dispatch formatted hashchange event to microApp
+ * @param appName app name
+ * @param proxyWindow sandbox window
+ * @param oldHref old href
+ */
 export function dispatchHashChangeEventToMicroApp (
   appName: string,
   proxyWindow: WindowProxy,
@@ -86,9 +98,8 @@ export function dispatchHashChangeEventToMicroApp (
 }
 
 /**
- * dispatch pure PopStateEvent
- * simulate location behavior
+ * dispatch native PopStateEvent, simulate location behavior
  */
-export function dispatchPurePopStateEvent (): void {
+export function dispatchNativePopStateEvent (): void {
   globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
 }

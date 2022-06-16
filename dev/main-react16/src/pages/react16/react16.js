@@ -205,10 +205,10 @@ export default class App extends React.Component {
   componentWillUnmount ()  {
     microApp.clearDataListener(this.state.name)
     microApp.removeGlobalDataListener(this.handleGlobalDataForBaseApp)
-    this.releaseBeforeEach1()
-    this.releaseBeforeEach2()
-    this.releaseAfterEach1()
-    this.releaseAfterEach2()
+    this.releaseBeforeEach1?.()
+    this.releaseBeforeEach2?.()
+    this.releaseAfterEach1?.()
+    this.releaseAfterEach2?.()
   }
 
   render () {
@@ -255,7 +255,7 @@ export default class App extends React.Component {
                   // destroy
                   keep-route-state
                   // disable-memory-router
-                  // inline
+                  inline
                   // disableSandbox
                   // disable-sandbox
                   // disableScopecss

@@ -34,9 +34,12 @@ export interface RouterApi {
 
 function createRouterApi (): RouterApi {
   /**
-   * path需要注意的是两点：1、子应用的base也要加上 2、对于hash路由，要带上hash，如果开发者不知道具体地址如何写，那么单独运行子应用，跳转到对应的页面，复制浏览器地址
-   * path 为子应用除域名外的全量地址(可以带上域名)
-   * 相同的地址是否需要继续跳转？？？
+   * create method of router.push/replace
+   * NOTE:
+   * 1. The same fullPath will be blocked
+   * 2. name & path is required
+   * 3. path is fullPath except for the domain (the domain can be taken, but not valid)
+   * @param replace use router.replace?
    */
   function createNavigationMethod (replace: boolean): navigationMethod {
     return function (to: RouterTarget): void {
@@ -61,7 +64,7 @@ function createRouterApi (): RouterApi {
     }
   }
 
-  // create method of history.go/back/forward
+  // create method of router.go/back/forward
   function createRawHistoryMethod (methodName: string): Func {
     return function (...rests: unknown[]): void {
       return globalEnv.rawWindow.history[methodName](...rests)

@@ -44,6 +44,7 @@ import createMicroRouter, {
   addHistoryListener,
   removeStateAndPathFromBrowser,
   updateBrowserURLWithLocation,
+  router,
 } from './router'
 
 export type MicroAppWindowDataType = {
@@ -335,6 +336,7 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
       removeDomScope,
       pureCreateElement,
+      router,
     })
     microAppWindow.rawWindow = globalEnv.rawWindow
     microAppWindow.rawDocument = globalEnv.rawDocument

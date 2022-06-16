@@ -6,7 +6,7 @@ import type {
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { isString, logError, createURL } from '../../libs/utils'
-import { updateLocation } from './location'
+import { updateMicroLocation } from './location'
 import { setMicroPathToURL, setMicroState, getMicroState } from './core'
 
 // history of micro app
@@ -40,7 +40,7 @@ export function createMicroHistory (
 
       rawHistory[methodName].apply(rawHistory, rests)
 
-      if (targetPath) updateLocation(appName, targetPath, base, microLocation)
+      if (targetPath) updateMicroLocation(appName, targetPath, base, microLocation)
 
       // console.log(5555555, microLocation, base)
     }
@@ -61,7 +61,20 @@ export function createMicroHistory (
   })
 }
 
-// update browser url when child app mount/unmount
+/**
+ * update browser url base on child location
+ * @param state history.state
+ * @param fullPath full path
+ */
 export function updateBrowserURL (state: MicroState, fullPath: string): void {
-  globalEnv.rawWindow.history.replaceState(state, null, fullPath)
+  globalEnv.rawWindow.history.replaceState(state, '', fullPath)
+}
+
+/**
+ * navigate to new path base on native method of history
+ * @param methodName pushState/replaceState
+ * @param fullPath full path
+ */
+export function nativeHistoryNavigate (methodName: string, fullPath: string): void {
+  globalEnv.rawWindow.history[methodName](null, '', fullPath)
 }

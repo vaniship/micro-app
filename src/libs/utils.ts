@@ -443,8 +443,7 @@ export function stringifyQuery (queryObject: LocationQueryObject): string {
 export const noop = () => {}
 
 /**
- * Create a list of callbacks that can be reset.
- * Used to create before and after navigation guards list
+ * Register or unregister callback functions
  */
 export function useCallbacks<T> () {
   const handlers: Set<T> = new Set()

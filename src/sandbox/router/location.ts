@@ -3,157 +3,12 @@ import type { MicroLocation, GuardLocation, ShadowLocation } from '@micro-app/ty
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, rawDefineProperties, createURL } from '../../libs/utils'
 import { setMicroPathToURL } from './core'
-import { dispatchPurePopStateEvent } from './event'
+import { dispatchNativePopStateEvent } from './event'
 import { executeNavigationGuard } from './api'
-
-/**
- * Create location for micro app
- * Each microApp has only one location object, it is a reference type
- * @param appName app name
- * @param url app url
- */
-export function createMicroLocation (appName: string, url: string): MicroLocation {
-  const rawWindow = globalEnv.rawWindow
-  const rawLocation = rawWindow.location
-  // microLocation is the location of child app, it is globally unique
-  const microLocation = createURL(url)
-  // shadowLocation is the current location information (href, pathname, search, hash)
-  const shadowLocation: ShadowLocation = {
-    href: microLocation.href,
-    pathname: microLocation.pathname,
-    search: microLocation.search,
-    hash: microLocation.hash,
-  }
-
-  /**
-   * Common handler for href, assign, replace
-   * It is mainly used to deal with special scenes about hash
-   * @param value target path
-   * @param methodName pushState/replaceState
-   * @returns origin value or formatted value
-   */
-  const commonHandle = (value: string | URL, methodName: string): string | URL | undefined => {
-    const targetLocation = createURL(value, url)
-    if (targetLocation.origin === microLocation.origin) {
-      const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
-      /**
-       * change hash with location.href = xxx will not trigger the browser reload
-       * so we use pushState & reload to imitate href behavior
-       * NOTE:
-       *    1. if child app only change hash, it should not trigger browser reload
-       *    2. if address is same and has hash, it should not add route stack
-       */
-      if (
-        targetLocation.pathname === shadowLocation.pathname &&
-        targetLocation.search === shadowLocation.search
-      ) {
-        if (targetLocation.hash !== shadowLocation.hash) {
-          rawWindow.history[methodName](null, '', setMicroPathResult.fullPath)
-        }
-
-        if (targetLocation.hash) {
-          dispatchPurePopStateEvent()
-        } else {
-          rawLocation.reload()
-        }
-        return void 0
-      } else if (setMicroPathResult.attach2Hash) {
-        rawWindow.history[methodName](null, '', setMicroPathResult.fullPath)
-        rawLocation.reload()
-        return void 0
-      }
-
-      value = setMicroPathResult.fullPath
-    }
-
-    return value
-  }
-
-  /**
-   * Special processing for four keys: href, pathname, search and hash
-   * They take values from shadowLocation, and require special operations when assigning values
-   */
-  rawDefineProperties(microLocation, {
-    href: {
-      enumerable: true,
-      configurable: true,
-      get: (): string => shadowLocation.href,
-      set: (value: string): void => {
-        const formattedValue = commonHandle(value, 'pushState')
-        if (formattedValue) rawLocation.href = formattedValue
-      }
-    },
-    pathname: {
-      enumerable: true,
-      configurable: true,
-      get: (): string => shadowLocation.pathname,
-      set: (value: string): void => {
-        const targetPath = ('/' + value).replace(/^\/+/, '/') + shadowLocation.search + shadowLocation.hash
-        const targetLocation = createURL(targetPath, url)
-        // When the browser url has a hash value, the same pathname will not trigger the browser refresh
-        if (targetLocation.pathname === shadowLocation.pathname && shadowLocation.hash) {
-          dispatchPurePopStateEvent()
-        } else {
-          // When the value is the same, no new route stack will be added
-          // Special scenes such as: /path ==> /path#hash, /path ==> /path?query
-          const methodName = targetLocation.pathname === shadowLocation.pathname ? 'replaceState' : 'pushState'
-          rawWindow.history[methodName](null, '', setMicroPathToURL(appName, targetLocation).fullPath)
-          rawLocation.reload()
-        }
-      }
-    },
-    search: {
-      enumerable: true,
-      configurable: true,
-      get: (): string => shadowLocation.search,
-      set: (value: string): void => {
-        const targetPath = shadowLocation.pathname + ('?' + value).replace(/^\?+/, '?') + shadowLocation.hash
-        const targetLocation = createURL(targetPath, url)
-        // When the browser url has a hash value, the same search will not trigger the browser refresh
-        if (targetLocation.search === shadowLocation.search && shadowLocation.hash) {
-          dispatchPurePopStateEvent()
-        } else {
-          // When the value is the same, no new route stack will be added
-          // Special scenes such as: ?query ==> ?query#hash
-          const methodName = targetLocation.search === shadowLocation.search ? 'replaceState' : 'pushState'
-          rawWindow.history[methodName](null, '', setMicroPathToURL(appName, targetLocation).fullPath)
-          rawLocation.reload()
-        }
-      }
-    },
-    hash: {
-      enumerable: true,
-      configurable: true,
-      get: (): string => shadowLocation.hash,
-      set: (value: string): void => {
-        const targetPath = shadowLocation.pathname + shadowLocation.search + ('#' + value).replace(/^#+/, '#')
-        const targetLocation = createURL(targetPath, url)
-        // The same hash will not trigger popStateEvent
-        if (targetLocation.hash !== shadowLocation.hash) {
-          rawWindow.history.pushState(null, '', setMicroPathToURL(appName, targetLocation).fullPath)
-          dispatchPurePopStateEvent()
-        }
-      }
-    },
-  })
-
-  const createLocationMethod = (locationMethodName: string) => {
-    return function (value: string | URL) {
-      const formattedValue = commonHandle(value, locationMethodName === 'assign' ? 'pushState' : 'replaceState')
-      if (formattedValue) rawLocation[locationMethodName](formattedValue)
-    }
-  }
-
-  return oAssign(microLocation, {
-    assign: createLocationMethod('assign'),
-    replace: createLocationMethod('replace'),
-    reload: (forcedReload?: boolean): void => rawLocation.reload(forcedReload),
-    shadowLocation,
-  })
-}
+import { nativeHistoryNavigate } from './history'
 
 const shadowLocationKeys: ReadonlyArray<keyof URL> = ['href', 'pathname', 'search', 'hash']
-// origin is readonly, so we ignore when updateLocation
+// origin is readonly, so we ignore when updateMicroLocation
 const locationKeys: ReadonlyArray<keyof URL> = [...shadowLocationKeys, 'host', 'hostname', 'port', 'protocol', 'search']
 // origin is necessary for guardLocation
 const guardLocationKeys: ReadonlyArray<keyof URL> = [...locationKeys, 'origin']
@@ -184,7 +39,7 @@ export function autoTriggerNavigationGuard (appName: string, microLocation: Micr
  * @param microLocation micro app location
  * @param type init clear normal
  */
-export function updateLocation (
+export function updateMicroLocation (
   appName: string,
   path: string,
   base: string,
@@ -212,4 +67,154 @@ export function updateLocation (
   if (type === 'init' || (oldFullPath !== newFullPath && type !== 'clear')) {
     executeNavigationGuard(appName, to, from)
   }
+}
+
+/**
+ * Create location for micro app
+ * Each microApp has only one location object, it is a reference type
+ * @param appName app name
+ * @param url app url
+ */
+export function createMicroLocation (appName: string, url: string): MicroLocation {
+  const rawWindow = globalEnv.rawWindow
+  const rawLocation = rawWindow.location
+  // microLocation is the location of child app, it is globally unique
+  const microLocation = createURL(url)
+  // shadowLocation is the current location information (href, pathname, search, hash)
+  const shadowLocation: ShadowLocation = {
+    href: microLocation.href,
+    pathname: microLocation.pathname,
+    search: microLocation.search,
+    hash: microLocation.hash,
+  }
+
+  /**
+   * Common handler for href, assign, replace
+   * It is mainly used to deal with special scenes about hash
+   * @param value target path
+   * @param methodName pushState/replaceState
+   * @returns origin value or formatted value
+   */
+  const commonHandler = (value: string | URL, methodName: string): string | URL | undefined => {
+    const targetLocation = createURL(value, url)
+    // Even if the origin is the same, developers still have the possibility of want to jump to a new page
+    if (targetLocation.origin === microLocation.origin) {
+      const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
+      /**
+       * change hash with location.href will not trigger the browser reload
+       * so we use pushState & reload to imitate href behavior
+       * NOTE:
+       *    1. if child app only change hash, it should not trigger browser reload
+       *    2. if address is same and has hash, it should not add route stack
+       */
+      if (
+        targetLocation.pathname === shadowLocation.pathname &&
+        targetLocation.search === shadowLocation.search
+      ) {
+        if (targetLocation.hash !== shadowLocation.hash) {
+          nativeHistoryNavigate(methodName, setMicroPathResult.fullPath)
+        }
+
+        if (targetLocation.hash) {
+          dispatchNativePopStateEvent()
+        } else {
+          rawLocation.reload()
+        }
+        return void 0
+      /**
+       * when baseApp is hash router, address change of child can not reload browser
+       * so we imitate behavior of browser (reload)
+       */
+      } else if (setMicroPathResult.isAttach2Hash) {
+        nativeHistoryNavigate(methodName, setMicroPathResult.fullPath)
+        rawLocation.reload()
+        return void 0
+      }
+
+      value = setMicroPathResult.fullPath
+    }
+
+    return value
+  }
+
+  /**
+   * create location PropertyDescriptor (href, pathname, search, hash)
+   * @param key property name
+   * @param setter setter of location property
+   */
+  function createPropertyDescriptor (key: string, setter: (v: string) => void): PropertyDescriptor {
+    return {
+      enumerable: true,
+      configurable: true,
+      get: (): string => shadowLocation[key],
+      set: setter,
+    }
+  }
+
+  /**
+   * common handler for location.pathname & location.search
+   * @param targetPath target fullPath
+   * @param key pathname/search
+   */
+  function handleForPathNameAndSearch (targetPath: string, key: string) {
+    const targetLocation = createURL(targetPath, url)
+    // When the browser url has a hash value, the same pathname/search will not refresh browser
+    if (targetLocation[key] === shadowLocation[key] && shadowLocation.hash) {
+      dispatchNativePopStateEvent()
+    } else {
+      /**
+       * When the value is the same, no new route stack will be added
+       * Special scenes such as:
+       * pathname: /path ==> /path#hash, /path ==> /path?query
+       * search: ?query ==> ?query#hash
+       */
+      nativeHistoryNavigate(
+        targetLocation[key] === shadowLocation[key] ? 'replaceState' : 'pushState',
+        setMicroPathToURL(appName, targetLocation).fullPath,
+      )
+      rawLocation.reload()
+    }
+  }
+
+  /**
+   * Special processing for four keys: href, pathname, search and hash
+   * They take values from shadowLocation, and require special operations when assigning values
+   */
+  rawDefineProperties(microLocation, {
+    href: createPropertyDescriptor('href', (value: string): void => {
+      const targetPath = commonHandler(value, 'pushState')
+      if (targetPath) rawLocation.href = targetPath
+    }),
+    pathname: createPropertyDescriptor('pathname', (value: string): void => {
+      const targetPath = ('/' + value).replace(/^\/+/, '/') + shadowLocation.search + shadowLocation.hash
+      handleForPathNameAndSearch(targetPath, 'pathname')
+    }),
+    search: createPropertyDescriptor('search', (value: string): void => {
+      const targetPath = shadowLocation.pathname + ('?' + value).replace(/^\?+/, '?') + shadowLocation.hash
+      handleForPathNameAndSearch(targetPath, 'search')
+    }),
+    hash: createPropertyDescriptor('hash', (value: string): void => {
+      const targetPath = shadowLocation.pathname + shadowLocation.search + ('#' + value).replace(/^#+/, '#')
+      const targetLocation = createURL(targetPath, url)
+      // The same hash will not trigger popStateEvent
+      if (targetLocation.hash !== shadowLocation.hash) {
+        nativeHistoryNavigate('pushState', setMicroPathToURL(appName, targetLocation).fullPath)
+        dispatchNativePopStateEvent()
+      }
+    }),
+  })
+
+  const createLocationMethod = (locationMethodName: string) => {
+    return function (value: string | URL) {
+      const targetPath = commonHandler(value, locationMethodName === 'assign' ? 'pushState' : 'replaceState')
+      if (targetPath) rawLocation[locationMethodName](targetPath)
+    }
+  }
+
+  return oAssign(microLocation, {
+    assign: createLocationMethod('assign'),
+    replace: createLocationMethod('replace'),
+    reload: (forcedReload?: boolean): void => rawLocation.reload(forcedReload),
+    shadowLocation,
+  })
 }

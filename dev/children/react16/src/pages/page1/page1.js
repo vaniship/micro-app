@@ -48,6 +48,10 @@ function download (e) {
   }
 }
 
+function controlVue22Nav (path) {
+  window.microApp.router.push({name: 'vue22', path})
+}
+
 
 function Page1() {
   return (
@@ -91,7 +95,15 @@ function Page1() {
         <p>styled-component👇</p>
         <StyledButton>按钮</StyledButton>
       </div>
-      <a href={`${process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3001'}/micro-app/react16/static/media/logo.6ce24c58.svg`} download="w3logo" onClick={download}>下载</a>
+      <div>
+        <a href={`${process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3001'}/micro-app/react16/static/media/logo.6ce24c58.svg`} download="w3logo" onClick={download}>下载</a>
+      </div>
+      <div onClick={controlVue22Nav.bind(this, '/micro-app/vue2/#/')}>
+        控制子应用vue22跳转home
+      </div>
+      <div onClick={controlVue22Nav.bind(this, '/micro-app/vue2/#/page2')}>
+        控制子应用vue22跳转page2
+      </div>
     </div>
   );
 }

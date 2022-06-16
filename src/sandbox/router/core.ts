@@ -106,7 +106,7 @@ export function getMicroPathFromURL (appName: string): string | null {
 type setMicroPathResult = {
   fullPath: string,
   searchHash: string,
-  attach2Hash: boolean,
+  isAttach2Hash: boolean,
 }
 
 // 将name=encodeUrl地址插入到浏览器url上
@@ -119,10 +119,10 @@ export function setMicroPathToURL (appName: string, microLocation: MicroLocation
     microLocation.hash
   )
 
-  let attach2Hash = false // 基座是否是hash模式，这个其实也不准，只是表示参数加到了hash上
+  let isAttach2Hash = false // 基座是否是hash模式，这个其实也不准，只是表示参数加到了hash上
   // hash存在且search不存在，则认为是hash路由
   if (hash && !search) {
-    attach2Hash = true
+    isAttach2Hash = true
     if (queryObject.hashQuery) {
       queryObject.hashQuery[formatQueryAppName(appName)] = encodedMicroPath
     } else {
@@ -146,7 +146,7 @@ export function setMicroPathToURL (appName: string, microLocation: MicroLocation
   return {
     fullPath: pathname + search + hash,
     searchHash: search + hash,
-    attach2Hash,
+    isAttach2Hash,
   }
 }
 

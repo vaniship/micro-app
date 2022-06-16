@@ -177,7 +177,7 @@ describe('main process', () => {
    * ]
    */
   test('render an unstable app with special attribute', async () => {
-    const microAppElement3 = document.createElement('micro-app')
+    const microAppElement3 = document.createElement('micro-app') as any
     expect(microAppElement3.data).toBeNull()
     // @ts-ignore
     microAppElement3.setAttribute('data', { count: 'count-1' })
