@@ -1,4 +1,4 @@
-import type { Func, AppInterface } from '@micro-app/types'
+import type { Func, AppInterface, NormalKey } from '@micro-app/types'
 import { appInstanceMap } from '../create_app'
 import {
   CompletionPath,
@@ -412,11 +412,10 @@ export function patchSetAttribute (): void {
   Element.prototype.setAttribute = function setAttribute (key: string, value: string): void {
     if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
       if (isPlainObject(value)) {
-        const cloneValue: Record<PropertyKey, unknown> = {}
-        Object.getOwnPropertyNames(value).forEach((propertyKey: PropertyKey) => {
-          if (!(isString(propertyKey) && propertyKey.indexOf('__') === 0)) {
-            // @ts-ignore
-            cloneValue[propertyKey] = value[propertyKey]
+        const cloneValue: Record<NormalKey, unknown> = {}
+        Object.getOwnPropertyNames(value).forEach((key: NormalKey) => {
+          if (!(isString(key) && key.indexOf('__') === 0)) {
+            cloneValue[key] = value[key]
           }
         })
         this.data = cloneValue

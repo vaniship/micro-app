@@ -17,6 +17,16 @@ export const globalThis = (typeof global !== 'undefined')
       )
   )
 
+// Array.isArray
+export const isArray = Array.isArray
+// Object.assign
+export const assign = Object.assign
+
+// Object prototype methods
+export const rawDefineProperty = Object.defineProperty
+export const rawDefineProperties = Object.defineProperties
+export const rawHasOwnProperty = Object.prototype.hasOwnProperty
+
 // is Undefined
 export function isUndefined (target: unknown): target is undefined {
   return target === undefined
@@ -38,38 +48,29 @@ export function isBoolean (target: unknown): target is boolean {
 }
 
 // is function
-export function isFunction (target: unknown): boolean {
+export function isFunction (target: unknown): target is Function {
   return typeof target === 'function'
 }
 
-// is Array
-export const isArray = Array.isArray
-export const assign = Object.assign
-
 // is PlainObject
-export function isPlainObject (target: unknown): boolean {
+export function isPlainObject (target: unknown): target is Record<PropertyKey, unknown> {
   return toString.call(target) === '[object Object]'
 }
 
 // is Promise
-export function isPromise (target: unknown): boolean {
+export function isPromise (target: unknown): target is Promise<unknown> {
   return toString.call(target) === '[object Promise]'
 }
 
 // is bind function
-export function isBoundFunction (target: any): boolean {
+export function isBoundFunction (target: unknown): target is Function {
   return isFunction(target) && target.name.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
 }
 
 // is ShadowRoot
-export function isShadowRoot (target: unknown): boolean {
+export function isShadowRoot (target: unknown): target is ShadowRoot {
   return typeof ShadowRoot !== 'undefined' && target instanceof ShadowRoot
 }
-
-export const rawDefineProperty = Object.defineProperty
-
-export const rawDefineProperties = Object.defineProperties
-export const rawHasOwnProperty = Object.prototype.hasOwnProperty
 
 /**
  * format error log
@@ -79,7 +80,7 @@ export const rawHasOwnProperty = Object.prototype.hasOwnProperty
 export function logError (
   msg: unknown,
   appName: string | null = null,
-  ...rest: any[]
+  ...rest: unknown[]
 ): void {
   const appNameTip = appName && isString(appName) ? ` app ${appName}:` : ''
   if (isString(msg)) {
@@ -97,7 +98,7 @@ export function logError (
 export function logWarn (
   msg: unknown,
   appName: string | null = null,
-  ...rest: any[]
+  ...rest: unknown[]
 ): void {
   const appNameTip = appName && isString(appName) ? ` app ${appName}:` : ''
   if (isString(msg)) {
@@ -112,7 +113,7 @@ export function logWarn (
  * @param fn callback
  * @param args params
  */
-export function defer (fn: Func, ...args: any[]): void {
+export function defer (fn: Func, ...args: unknown[]): void {
   Promise.resolve().then(fn.bind(null, ...args))
 }
 

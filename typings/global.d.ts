@@ -1,6 +1,8 @@
 declare module '@micro-app/types' {
   type AttrType = string | null
 
+  type NormalKey = string | number
+
   type Func = (...rest: any[]) => void
 
   type microAppWindowType = Window & any

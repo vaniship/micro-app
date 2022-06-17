@@ -153,9 +153,10 @@ yarn start # 访问 http://localhost:3000
 </details>
 
 # 贡献者们
-<a href="https://github.com/micro-zoe/micro-app/graphs/contributors"><img src="https://micro-zoe.com/contributors.svg?height=55&people=13" /></a>
-<!-- opencollective is inaccurate  -->
-<!-- <a href="https://github.com/micro-zoe/micro-app/graphs/contributors"><img src="https://opencollective.com/micro-app/contributors.svg?width=890&button=false" /></a> -->
+<a href="https://github.com/micro-zoe/micro-app/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=micro-zoe/micro-app" />
+</a>
+
 
 # License
 [MIT License](https://github.com/micro-zoe/micro-app/blob/master/LICENSE)

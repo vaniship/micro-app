@@ -369,7 +369,7 @@ function bindScope (
   info: sourceScriptInfo,
 ): string {
   if (isPlainObject(microApp.plugins)) {
-    code = usePlugins(url, code, app.name, microApp.plugins!, info)
+    code = usePlugins(url, code, app.name, microApp.plugins, info)
   }
 
   if (app.sandBox && !info.module) {
@@ -401,7 +401,7 @@ function processCode (configs: plugins['global'], code: string, url: string, inf
 
   return configs.reduce((preCode, config) => {
     if (isPlainObject(config) && isFunction(config.loader)) {
-      return config.loader!(preCode, url, config.options, info)
+      return config.loader(preCode, url, config.options, info)
     }
 
     return preCode

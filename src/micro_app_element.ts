@@ -21,6 +21,7 @@ import { patchSetAttribute } from './source/patch'
 import microApp from './micro_app'
 import dispatchLifecyclesEvent from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
+import { getNoHashMicroPathFromURL } from './sandbox'
 
 /**
  * define element
@@ -136,11 +137,7 @@ export function defineElement (tagName: string): void {
         this.attachShadow({ mode: 'open' })
       }
 
-      if (this.getDisposeResult('ssr')) {
-        this.ssrUrl = CompletionPath(globalEnv.rawWindow.location.pathname, this.appUrl)
-      } else if (this.ssrUrl) {
-        this.ssrUrl = ''
-      }
+      this.updateSsrUrl(this.appUrl)
 
       if (appInstanceMap.has(this.appName)) {
         const app = appInstanceMap.get(this.appName)!
@@ -224,14 +221,9 @@ export function defineElement (tagName: string): void {
       existApp: AppInterface | undefined,
     ): void {
       /**
-       * change ssrUrl in ssr mode
        * do not add judgment of formatAttrUrl === this.appUrl
        */
-      if (this.getDisposeResult('ssr')) {
-        this.ssrUrl = CompletionPath(globalEnv.rawWindow.location.pathname, formatAttrUrl)
-      } else if (this.ssrUrl) {
-        this.ssrUrl = ''
-      }
+      this.updateSsrUrl(formatAttrUrl)
 
       this.appName = formatAttrName
       this.appUrl = formatAttrUrl
@@ -295,7 +287,7 @@ export function defineElement (tagName: string): void {
         this.shadowRoot ?? this,
         this.getDisposeResult('inline'),
         this.getBaseRouteCompatible(),
-        this.getDisposeResult('keep-route-state'),
+        this.getDisposeResult('keep-router-state'),
       ))
     }
 
@@ -319,7 +311,7 @@ export function defineElement (tagName: string): void {
         useSandbox: !this.getDisposeResult('disableSandbox'),
         useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
         baseroute: this.getBaseRouteCompatible(),
-        keepRouteState: this.getDisposeResult('keep-route-state'),
+        keepRouteState: this.getDisposeResult('keep-router-state'),
       })
 
       appInstanceMap.set(this.appName, instance)
@@ -407,6 +399,22 @@ export function defineElement (tagName: string): void {
      */
     private getKeepAliveModeResult (): boolean {
       return this.getDisposeResult('keep-alive') && !this.getDestroyCompatibleResult()
+    }
+
+    /**
+     * change ssrUrl in ssr mode
+     */
+    private updateSsrUrl (baseUrl: string): void {
+      if (this.getDisposeResult('ssr')) {
+        if (this.getDisposeResult('disable-memory-router')) {
+          const rawLocation = globalEnv.rawWindow.location
+          this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)
+        } else {
+          this.ssrUrl = getNoHashMicroPathFromURL(this.appName, baseUrl)
+        }
+      } else if (this.ssrUrl) {
+        this.ssrUrl = ''
+      }
     }
 
     /**

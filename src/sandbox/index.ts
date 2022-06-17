@@ -46,6 +46,7 @@ import createMicroRouter, {
   updateBrowserURLWithLocation,
   router,
 } from './router'
+export { getNoHashMicroPathFromURL } from './router'
 
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean
@@ -192,8 +193,8 @@ export default class SandBox implements SandBoxInterface {
   private getSpecialProperties (appName: string): void {
     if (!isPlainObject(microApp.plugins)) return
 
-    this.commonActionForSpecialProperties(microApp.plugins!.global)
-    this.commonActionForSpecialProperties(microApp.plugins!.modules?.[appName])
+    this.commonActionForSpecialProperties(microApp.plugins.global)
+    this.commonActionForSpecialProperties(microApp.plugins.modules?.[appName])
   }
 
   // common action for global plugins and module plugins
@@ -202,10 +203,10 @@ export default class SandBox implements SandBoxInterface {
       for (const plugin of plugins) {
         if (isPlainObject(plugin)) {
           if (isArray(plugin.scopeProperties)) {
-            this.scopeProperties = this.scopeProperties.concat(plugin.scopeProperties!)
+            this.scopeProperties = this.scopeProperties.concat(plugin.scopeProperties)
           }
           if (isArray(plugin.escapeProperties)) {
-            this.escapeProperties = this.escapeProperties.concat(plugin.escapeProperties!)
+            this.escapeProperties = this.escapeProperties.concat(plugin.escapeProperties)
           }
         }
       }

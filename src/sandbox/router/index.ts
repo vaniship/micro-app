@@ -20,8 +20,10 @@ import {
   updateBrowserURL,
 } from './history'
 import { createURL } from '../../libs/utils'
-export { addHistoryListener } from './event'
+import { clearCurrentWhenUnmount } from './api'
 export { router } from './api'
+export { addHistoryListener } from './event'
+export { getNoHashMicroPathFromURL } from './core'
 
 // 所谓路由系统，无非两种操作：读、写
 // 读是通过location，写是通过replace/pushState
@@ -79,11 +81,11 @@ export function updateBrowserURLWithLocation (
 }
 
 /**
- * In any case, microPath & microState will be removed from browser, but location will be initialized only when keep-route-state is false
+ * In any case, microPath & microState will be removed from browser, but location will be initialized only when keep-router-state is false
  * @param appName app name
  * @param url app url
  * @param microLocation location of microApp
- * @param keepRouteState keep-route-state is only used to control whether to clear the location of microApp
+ * @param keepRouteState keep-router-state is only used to control whether to clear the location of microApp
  */
 export function clearRouteStateFromURL (
   appName: string,
@@ -96,6 +98,7 @@ export function clearRouteStateFromURL (
     updateMicroLocation(appName, pathname + search + hash, url, microLocation, 'clear')
   }
   removeStateAndPathFromBrowser(appName, url)
+  clearCurrentWhenUnmount(appName)
 }
 
 /**

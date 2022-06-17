@@ -62,19 +62,19 @@ export function createMicroHistory (
 }
 
 /**
+ * navigate to new path base on native method of history
+ * @param methodName pushState/replaceState
+ * @param fullPath full path
+ */
+export function nativeHistoryNavigate (methodName: string, fullPath: string, state: unknown = null): void {
+  globalEnv.rawWindow.history[methodName](state, '', fullPath)
+}
+
+/**
  * update browser url base on child location
  * @param state history.state
  * @param fullPath full path
  */
 export function updateBrowserURL (state: MicroState, fullPath: string): void {
-  globalEnv.rawWindow.history.replaceState(state, '', fullPath)
-}
-
-/**
- * navigate to new path base on native method of history
- * @param methodName pushState/replaceState
- * @param fullPath full path
- */
-export function nativeHistoryNavigate (methodName: string, fullPath: string): void {
-  globalEnv.rawWindow.history[methodName](null, '', fullPath)
+  nativeHistoryNavigate('replaceState', fullPath, state)
 }

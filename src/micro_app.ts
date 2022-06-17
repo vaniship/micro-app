@@ -190,7 +190,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
       options.globalAssets && getGlobalAssets(options.globalAssets)
 
       if (isPlainObject(options.plugins)) {
-        const modules = options.plugins!.modules
+        const modules = options.plugins.modules
         if (isPlainObject(modules)) {
           for (const appName in modules) {
             const formattedAppName = formatAppName(appName)

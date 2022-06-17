@@ -38,7 +38,7 @@ export default function preFetch (apps: prefetchParamList): void {
     return logError('preFetch is only supported in browser environment')
   }
   requestIdleCallback(() => {
-    isFunction(apps) && (apps = (apps as Function)())
+    isFunction(apps) && (apps = apps())
 
     if (isArray(apps)) {
       apps.reduce((pre, next) => pre.then(() => preFetchInSerial(next)), Promise.resolve())

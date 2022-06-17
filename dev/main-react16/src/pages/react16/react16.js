@@ -253,7 +253,7 @@ export default class App extends React.Component {
                   baseRoute='/micro-app/demo/react16'
                   // keep-alive
                   // destroy
-                  keep-route-state
+                  keep-router-state
                   // disable-memory-router
                   inline
                   // disableSandbox

@@ -184,3 +184,13 @@ function getQueryObjectFromURL (search: string, hash: string): LocationQuery {
 
   return queryObject
 }
+
+/**
+ * get microApp path from browser URL without hash
+ */
+export function getNoHashMicroPathFromURL (appName: string, baseUrl: string): string {
+  const microPath = getMicroPathFromURL(appName)
+  if (!microPath) return ''
+  const formatLocation = createURL(microPath, baseUrl)
+  return formatLocation.origin + formatLocation.pathname + formatLocation.search
+}
