@@ -100,6 +100,6 @@ export function dispatchHashChangeEventToMicroApp (
 /**
  * dispatch native PopStateEvent, simulate location behavior
  */
-export function dispatchNativePopStateEvent (): void {
-  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+export function dispatchNativePopStateEvent (state: unknown = null): void {
+  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state }))
 }

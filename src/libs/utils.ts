@@ -444,9 +444,9 @@ export function stringifyQuery (queryObject: LocationQueryObject): string {
 export const noop = () => {}
 
 /**
- * Register or unregister callback functions
+ * Register or unregister callback/guard with Set
  */
-export function useCallbacks<T> () {
+export function useSetRecord<T> () {
   const handlers: Set<T> = new Set()
 
   function add (handler: T): () => void {
@@ -459,5 +459,27 @@ export function useCallbacks<T> () {
   return {
     add,
     list: () => handlers,
+  }
+}
+
+/**
+ * record data with Map
+ */
+export function useMapRecord<T> () {
+  const data: Map<PropertyKey, T> = new Map()
+
+  function add (key: PropertyKey, target: T): () => void {
+    data.set(key, target)
+    return () => {
+      if (data.has(key)) data.delete(key)
+    }
+  }
+
+  return {
+    add,
+    get: (key: PropertyKey) => data.get(key),
+    delete: (key: PropertyKey) => {
+      if (data.has(key)) data.delete(key)
+    }
   }
 }

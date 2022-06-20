@@ -19,13 +19,13 @@ import {
   createURL,
   isFunction,
   isPlainObject,
-  useCallbacks,
+  useSetRecord,
   requestIdleCallback,
   isString,
 } from '../../libs/utils'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
-import { dispatchPopStateEventToMicroApp } from './event'
+import { dispatchNativePopStateEvent } from './event'
 import globalEnv from '../../libs/global_env'
 
 import { nativeHistoryNavigate } from './history'
@@ -38,6 +38,35 @@ export interface RouterApi {
 
 function createRouterApi (): RouterApi {
   /**
+   * common handler for router.push/router.replace method
+   * @param appName app name
+   * @param methodName replaceState/pushState
+   * @param baseURL base url
+   * @param targetLocation target location
+   * @param state to.state
+   */
+  function navigateWithRawHistory (
+    appName: string,
+    methodName: string,
+    baseURL: string,
+    targetLocation: MicroLocation,
+    state: unknown,
+  ): void {
+    const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
+    nativeHistoryNavigate(
+      methodName,
+      setMicroPathResult.fullPath,
+      setMicroState(
+        appName,
+        globalEnv.rawWindow.history.state,
+        state ?? null,
+        baseURL,
+        setMicroPathResult.searchHash,
+      ),
+    )
+    dispatchNativePopStateEvent(globalEnv.rawWindow.history.state)
+  }
+  /**
    * create method of router.push/replace
    * NOTE:
    * 1. The same fullPath will be blocked
@@ -48,21 +77,20 @@ function createRouterApi (): RouterApi {
   function createNavigationMethod (replace: boolean): navigationMethod {
     return function (to: RouterTarget): void {
       const appName = formatAppName(to.name)
+      // console.log(3333333, appInstanceMap.get(appName))
       if (appName && isString(to.path)) {
         const app = appInstanceMap.get(appName)
         if (app && !app.sandBox) return logError(`navigation failed, sandBox of app ${appName} is closed`)
         // active apps, include hidden keep-alive
         if (getActiveApps().includes(appName)) {
-          const proxyWindow = app!.sandBox!.proxyWindow
-          const microLocation = proxyWindow.location
+          const microLocation = app!.sandBox!.proxyWindow.location
           const currentFullPath = microLocation.pathname + microLocation.search + microLocation.hash
           const targetLocation = createURL(to.path, app!.url)
           // Only get path data, even if the origin is different from microApp
-          const targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-          if (currentFullPath !== targetPath) {
+          const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+          if (currentFullPath !== targetFullPath) {
             const methodName = (replace && to.replace !== false) || to.replace === true ? 'replaceState' : 'pushState'
-            proxyWindow.history[methodName](to.state ?? null, '', targetPath)
-            dispatchPopStateEventToMicroApp(appName, proxyWindow, null)
+            navigateWithRawHistory(appName, methodName, microLocation.origin, targetLocation, to.state)
           }
         } else {
           /**
@@ -71,19 +99,14 @@ function createRouterApi (): RouterApi {
            * use base app location.origin as baseURL
            */
           const targetLocation = createURL(to.path, location.origin)
-          const targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-          if (getMicroPathFromURL(appName) !== targetPath) {
-            const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
-            nativeHistoryNavigate(
+          const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+          if (getMicroPathFromURL(appName) !== targetFullPath) {
+            navigateWithRawHistory(
+              appName,
               to.replace === false ? 'pushState' : 'replaceState',
-              setMicroPathResult.fullPath,
-              setMicroState(
-                appName,
-                globalEnv.rawWindow.history.state,
-                to.state ?? null,
-                location.origin,
-                setMicroPathResult.searchHash,
-              ),
+              location.origin,
+              targetLocation,
+              to.state,
             )
           }
         }
@@ -100,8 +123,8 @@ function createRouterApi (): RouterApi {
     }
   }
 
-  const beforeGuards = useCallbacks<RouterGuard>()
-  const afterGuards = useCallbacks<RouterGuard>()
+  const beforeGuards = useSetRecord<RouterGuard>()
+  const afterGuards = useSetRecord<RouterGuard>()
 
   /**
    * run all of beforeEach/afterEach guards
@@ -163,7 +186,8 @@ function createRouterApi (): RouterApi {
     afterEach: afterGuards.add,
     // attachToURL: 将指定的子应用路由信息添加到浏览器地址上
     // attachAllToURL: 将所有正在运行的子应用路由信息添加到浏览器地址上
-    // defaultPage / defaultPath  defaultPage吧，更鲜明，defaultPath感觉和之前的baseRoute差不多
+    // setDefaultPage:
+    // removeDefaultPage
   }
 
   return { router, executeNavigationGuard, clearCurrentWhenUnmount }
