@@ -20,8 +20,10 @@ import {
   isFunction,
   isPlainObject,
   useSetRecord,
+  useMapRecord,
   requestIdleCallback,
   isString,
+  noopFalse,
 } from '../../libs/utils'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
@@ -83,12 +85,11 @@ function createRouterApi (): RouterApi {
         if (app && !app.sandBox) return logError(`navigation failed, sandBox of app ${appName} is closed`)
         // active apps, include hidden keep-alive
         if (getActiveApps().includes(appName)) {
-          const microLocation = app!.sandBox!.proxyWindow.location
-          const currentFullPath = microLocation.pathname + microLocation.search + microLocation.hash
+          const microLocation = app!.sandBox!.proxyWindow.location as MicroLocation
           const targetLocation = createURL(to.path, app!.url)
           // Only get path data, even if the origin is different from microApp
           const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-          if (currentFullPath !== targetFullPath) {
+          if (microLocation.fullPath !== targetFullPath || getMicroPathFromURL(appName) !== targetFullPath) {
             const methodName = (replace && to.replace !== false) || to.replace === true ? 'replaceState' : 'pushState'
             navigateWithRawHistory(appName, methodName, microLocation.origin, targetLocation, to.state)
           }
@@ -172,6 +173,28 @@ function createRouterApi (): RouterApi {
     router.current.delete(appName)
   }
 
+  // defaultPage data
+  const defaultPageRecord = useMapRecord<string>()
+
+  /**
+   * defaultPage只在子应用初始化时生效，且优先级比浏览器上的子应用路由地址低
+   * @param appName app name
+   * @param path page path
+   */
+  function setDefaultPage (appName: string, path: string): () => boolean {
+    appName = formatAppName(appName)
+    if (!appName) return noopFalse
+
+    return defaultPageRecord.add(appName, path)
+  }
+
+  function removeDefaultPage (appName: string): boolean {
+    appName = formatAppName(appName)
+    if (!appName) return false
+
+    return defaultPageRecord.delete(appName)
+  }
+
   // Router API for developer
   const router: Router = {
     current: new Map<string, MicroLocation>(),
@@ -186,11 +209,20 @@ function createRouterApi (): RouterApi {
     afterEach: afterGuards.add,
     // attachToURL: 将指定的子应用路由信息添加到浏览器地址上
     // attachAllToURL: 将所有正在运行的子应用路由信息添加到浏览器地址上
-    // setDefaultPage:
-    // removeDefaultPage
+    setDefaultPage,
+    removeDefaultPage,
+    getDefaultPage: defaultPageRecord.get,
   }
 
-  return { router, executeNavigationGuard, clearCurrentWhenUnmount }
+  return {
+    router,
+    executeNavigationGuard,
+    clearCurrentWhenUnmount,
+  }
 }
 
-export const { router, executeNavigationGuard, clearCurrentWhenUnmount } = createRouterApi()
+export const {
+  router,
+  executeNavigationGuard,
+  clearCurrentWhenUnmount,
+} = createRouterApi()

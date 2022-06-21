@@ -9,6 +9,7 @@ import {
   isString,
   isFunction,
   CompletionPath,
+  createURL,
 } from './libs/utils'
 import {
   ObservedAttrName,
@@ -21,7 +22,7 @@ import { patchSetAttribute } from './source/patch'
 import microApp from './micro_app'
 import dispatchLifecyclesEvent from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
-import { getNoHashMicroPathFromURL } from './sandbox'
+import { getNoHashMicroPathFromURL, router } from './sandbox'
 
 /**
  * define element
@@ -288,6 +289,7 @@ export function defineElement (tagName: string): void {
         this.getDisposeResult('inline'),
         this.getBaseRouteCompatible(),
         this.getDisposeResult('keep-router-state'),
+        this.getDefaultPageValue(),
       ))
     }
 
@@ -312,6 +314,7 @@ export function defineElement (tagName: string): void {
         useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
         baseroute: this.getBaseRouteCompatible(),
         keepRouteState: this.getDisposeResult('keep-router-state'),
+        defaultPage: this.getDefaultPageValue(),
       })
 
       appInstanceMap.set(this.appName, instance)
@@ -335,7 +338,7 @@ export function defineElement (tagName: string): void {
     }
 
     // hidden app when disconnectedCallback called with keep-alive
-    private handleHiddenKeepAliveApp () {
+    private handleHiddenKeepAliveApp (): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
@@ -345,7 +348,7 @@ export function defineElement (tagName: string): void {
     }
 
     // show app when connectedCallback called with keep-alive
-    private handleShowKeepAliveApp (app: AppInterface) {
+    private handleShowKeepAliveApp (app: AppInterface): void {
       // must be async
       defer(() => app.showKeepAliveApp(this.shadowRoot ?? this))
     }
@@ -410,11 +413,28 @@ export function defineElement (tagName: string): void {
           const rawLocation = globalEnv.rawWindow.location
           this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)
         } else {
-          this.ssrUrl = getNoHashMicroPathFromURL(this.appName, baseUrl)
+          // get path from browser URL
+          let targetPath = getNoHashMicroPathFromURL(this.appName, baseUrl)
+          const defaultPagePath = this.getDefaultPageValue()
+          if (!targetPath && defaultPagePath) {
+            const targetLocation = createURL(defaultPagePath, baseUrl)
+            targetPath = targetLocation.origin + targetLocation.pathname + targetLocation.search
+          }
+          this.ssrUrl = targetPath
         }
       } else if (this.ssrUrl) {
         this.ssrUrl = ''
       }
+    }
+
+    /**
+     * get config of default page
+     */
+    private getDefaultPageValue (): string {
+      return router.getDefaultPage(this.appName) ??
+      this.getAttribute('default-page') ??
+      this.getAttribute('defaultPage') ??
+      ''
     }
 
     /**

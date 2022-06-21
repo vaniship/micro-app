@@ -38,6 +38,7 @@ export interface CreateAppParam {
   baseroute?: string
   keepRouteState?: boolean
   container?: HTMLElement | ShadowRoot
+  defaultPage?: string
 }
 
 export default class CreateApp implements AppInterface {
@@ -63,6 +64,7 @@ export default class CreateApp implements AppInterface {
   keepRouteState: boolean
   source: sourceType
   sandBox: SandBoxInterface | null = null
+  defaultPage: string
 
   constructor ({
     name,
@@ -75,6 +77,7 @@ export default class CreateApp implements AppInterface {
     useMemoryRouter,
     baseroute,
     keepRouteState,
+    defaultPage,
   }: CreateAppParam) {
     this.container = container ?? null
     this.inline = inline ?? false
@@ -87,6 +90,8 @@ export default class CreateApp implements AppInterface {
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
     this.useMemoryRouter = this.useSandbox && useMemoryRouter
+    this.defaultPage = defaultPage ?? ''
+
     this.source = {
       links: new Map<string, sourceLinkInfo>(),
       scripts: new Map<string, sourceScriptInfo>(),
@@ -147,12 +152,14 @@ export default class CreateApp implements AppInterface {
     inline?: boolean,
     baseroute?: string,
     keepRouteState?: boolean,
+    defaultPage?: string,
   ): void {
     if (isBoolean(inline)) this.inline = inline
     // keepRouteState effective on unmount
     if (isBoolean(keepRouteState)) this.keepRouteState = keepRouteState
     this.container = this.container ?? container!
     this.baseroute = baseroute ?? this.baseroute
+    this.defaultPage = defaultPage ?? this.defaultPage
 
     if (this.loadSourceLevel !== 2) {
       this.state = appStates.LOADING_SOURCE_CODE
@@ -169,7 +176,7 @@ export default class CreateApp implements AppInterface {
 
     cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
 
-    this.sandBox?.start(this.baseroute, this.useMemoryRouter)
+    this.sandBox?.start(this.baseroute, this.useMemoryRouter, this.defaultPage)
 
     let umdHookMountResult: any // result of mount function
 

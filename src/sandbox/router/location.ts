@@ -1,17 +1,17 @@
 /* eslint-disable no-void */
 import type { MicroLocation, GuardLocation, ShadowLocation } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import { assign as oAssign, rawDefineProperties, createURL } from '../../libs/utils'
+import { assign as oAssign, rawDefineProperties, createURL, noop } from '../../libs/utils'
 import { setMicroPathToURL } from './core'
 import { dispatchNativePopStateEvent } from './event'
 import { executeNavigationGuard } from './api'
 import { nativeHistoryNavigate } from './history'
 
-const shadowLocationKeys: ReadonlyArray<keyof URL> = ['href', 'pathname', 'search', 'hash']
+const shadowLocationKeys: ReadonlyArray<keyof MicroLocation> = ['href', 'pathname', 'search', 'hash']
 // origin is readonly, so we ignore when updateMicroLocation
-const locationKeys: ReadonlyArray<keyof URL> = [...shadowLocationKeys, 'host', 'hostname', 'port', 'protocol', 'search']
-// origin is necessary for guardLocation
-const guardLocationKeys: ReadonlyArray<keyof URL> = [...locationKeys, 'origin']
+const locationKeys: ReadonlyArray<keyof MicroLocation> = [...shadowLocationKeys, 'host', 'hostname', 'port', 'protocol', 'search']
+// origin, fullPath is necessary for guardLocation
+const guardLocationKeys: ReadonlyArray<keyof MicroLocation> = [...locationKeys, 'origin', 'fullPath']
 
 /**
  * create guardLocation by microLocation, used for router guard
@@ -32,12 +32,15 @@ export function autoTriggerNavigationGuard (appName: string, microLocation: Micr
  * There are three situations that trigger location update:
  * 1. pushState/replaceState
  * 2. popStateEvent
- * 3. params on browser url when init sub app
+ * 3. query on browser url when init sub app
+ * 4. set defaultPage when when init sub app
+ * NOTE:
+ * 1. update browser URL, and then update microLocation
  * @param appName app name
  * @param path target path
  * @param base base url
  * @param microLocation micro app location
- * @param type init clear normal
+ * @param type auto prevent
  */
 export function updateMicroLocation (
   appName: string,
@@ -49,7 +52,6 @@ export function updateMicroLocation (
   const newLocation = createURL(path, base)
   // record old values of microLocation to `from`
   const from = createGuardLocation(appName, microLocation)
-  const oldFullPath = from.pathname + from.search + from.hash
   for (const key of locationKeys) {
     if (shadowLocationKeys.includes(key)) {
       // reference of shadowLocation
@@ -61,10 +63,9 @@ export function updateMicroLocation (
   }
   // update latest values of microLocation to `to`
   const to = createGuardLocation(appName, microLocation)
-  const newFullPath = to.pathname + to.search + to.hash
 
   // The hook called only when fullPath changed
-  if (type === 'init' || (oldFullPath !== newFullPath && type !== 'clear')) {
+  if (type === 'auto' || (from.fullPath !== to.fullPath && type !== 'prevent')) {
     executeNavigationGuard(appName, to, from)
   }
 }
@@ -142,11 +143,14 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
    * @param key property name
    * @param setter setter of location property
    */
-  function createPropertyDescriptor (key: string, setter: (v: string) => void): PropertyDescriptor {
+  function createPropertyDescriptor (
+    getter: () => string,
+    setter: (v: string) => void,
+  ): PropertyDescriptor {
     return {
       enumerable: true,
       configurable: true,
-      get: (): string => shadowLocation[key],
+      get: getter,
       set: setter,
     }
   }
@@ -181,27 +185,43 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
    * They take values from shadowLocation, and require special operations when assigning values
    */
   rawDefineProperties(microLocation, {
-    href: createPropertyDescriptor('href', (value: string): void => {
-      const targetPath = commonHandler(value, 'pushState')
-      if (targetPath) rawLocation.href = targetPath
-    }),
-    pathname: createPropertyDescriptor('pathname', (value: string): void => {
-      const targetPath = ('/' + value).replace(/^\/+/, '/') + shadowLocation.search + shadowLocation.hash
-      handleForPathNameAndSearch(targetPath, 'pathname')
-    }),
-    search: createPropertyDescriptor('search', (value: string): void => {
-      const targetPath = shadowLocation.pathname + ('?' + value).replace(/^\?+/, '?') + shadowLocation.hash
-      handleForPathNameAndSearch(targetPath, 'search')
-    }),
-    hash: createPropertyDescriptor('hash', (value: string): void => {
-      const targetPath = shadowLocation.pathname + shadowLocation.search + ('#' + value).replace(/^#+/, '#')
-      const targetLocation = createURL(targetPath, url)
-      // The same hash will not trigger popStateEvent
-      if (targetLocation.hash !== shadowLocation.hash) {
-        nativeHistoryNavigate('pushState', setMicroPathToURL(appName, targetLocation).fullPath)
-        dispatchNativePopStateEvent()
+    href: createPropertyDescriptor(
+      (): string => shadowLocation.href,
+      (value: string): void => {
+        const targetPath = commonHandler(value, 'pushState')
+        if (targetPath) rawLocation.href = targetPath
       }
-    }),
+    ),
+    pathname: createPropertyDescriptor(
+      (): string => shadowLocation.pathname,
+      (value: string): void => {
+        const targetPath = ('/' + value).replace(/^\/+/, '/') + shadowLocation.search + shadowLocation.hash
+        handleForPathNameAndSearch(targetPath, 'pathname')
+      }
+    ),
+    search: createPropertyDescriptor(
+      (): string => shadowLocation.search,
+      (value: string): void => {
+        const targetPath = shadowLocation.pathname + ('?' + value).replace(/^\?+/, '?') + shadowLocation.hash
+        handleForPathNameAndSearch(targetPath, 'search')
+      }
+    ),
+    hash: createPropertyDescriptor(
+      (): string => shadowLocation.hash,
+      (value: string): void => {
+        const targetPath = shadowLocation.pathname + shadowLocation.search + ('#' + value).replace(/^#+/, '#')
+        const targetLocation = createURL(targetPath, url)
+        // The same hash will not trigger popStateEvent
+        if (targetLocation.hash !== shadowLocation.hash) {
+          nativeHistoryNavigate('pushState', setMicroPathToURL(appName, targetLocation).fullPath)
+          dispatchNativePopStateEvent()
+        }
+      }
+    ),
+    fullPath: createPropertyDescriptor(
+      (): string => shadowLocation.pathname + shadowLocation.search + shadowLocation.hash,
+      noop,
+    ),
   })
 
   const createLocationMethod = (locationMethodName: string) => {

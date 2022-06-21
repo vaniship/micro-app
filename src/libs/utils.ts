@@ -17,6 +17,9 @@ export const globalThis = (typeof global !== 'undefined')
       )
   )
 
+export const noop = () => {}
+export const noopFalse = () => false
+
 // Array.isArray
 export const isArray = Array.isArray
 // Object.assign
@@ -441,18 +444,17 @@ export function stringifyQuery (queryObject: LocationQueryObject): string {
   return result
 }
 
-export const noop = () => {}
-
 /**
  * Register or unregister callback/guard with Set
  */
 export function useSetRecord<T> () {
   const handlers: Set<T> = new Set()
 
-  function add (handler: T): () => void {
+  function add (handler: T): () => boolean {
     handlers.add(handler)
-    return () => {
-      if (handlers.has(handler)) handlers.delete(handler)
+    return (): boolean => {
+      if (handlers.has(handler)) return handlers.delete(handler)
+      return false
     }
   }
 
@@ -468,18 +470,20 @@ export function useSetRecord<T> () {
 export function useMapRecord<T> () {
   const data: Map<PropertyKey, T> = new Map()
 
-  function add (key: PropertyKey, target: T): () => void {
-    data.set(key, target)
-    return () => {
-      if (data.has(key)) data.delete(key)
+  function add (key: PropertyKey, value: T): () => boolean {
+    data.set(key, value)
+    return (): boolean => {
+      if (data.has(key)) return data.delete(key)
+      return false
     }
   }
 
   return {
     add,
     get: (key: PropertyKey) => data.get(key),
-    delete: (key: PropertyKey) => {
-      if (data.has(key)) data.delete(key)
+    delete: (key: PropertyKey): boolean => {
+      if (data.has(key)) return data.delete(key)
+      return false
     }
   }
 }

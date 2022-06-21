@@ -48,12 +48,13 @@ export function initRouteStateWithURL (
   appName: string,
   url: string,
   microLocation: MicroLocation,
+  defaultPage?: string,
 ): void {
   const microPath = getMicroPathFromURL(appName)
   if (microPath) {
-    updateMicroLocation(appName, microPath, url, microLocation, 'init')
+    updateMicroLocation(appName, microPath, url, microLocation, 'auto')
   } else {
-    updateBrowserURLWithLocation(appName, url, microLocation)
+    updateBrowserURLWithLocation(appName, url, microLocation, defaultPage)
   }
 }
 
@@ -65,7 +66,11 @@ export function updateBrowserURLWithLocation (
   appName: string,
   url: string,
   microLocation: MicroLocation,
+  defaultPage?: string,
 ): void {
+  if (defaultPage) {
+    updateMicroLocation(appName, defaultPage, url, microLocation, 'prevent')
+  }
   const setMicroPathResult = setMicroPathToURL(appName, microLocation)
   updateBrowserURL(
     setMicroState(
@@ -77,6 +82,7 @@ export function updateBrowserURLWithLocation (
     ),
     setMicroPathResult.fullPath,
   )
+  // trigger guards after change browser URL
   autoTriggerNavigationGuard(appName, microLocation)
 }
 
@@ -95,7 +101,7 @@ export function clearRouteStateFromURL (
 ): void {
   if (!keepRouteState) {
     const { pathname, search, hash } = createURL(url)
-    updateMicroLocation(appName, pathname + search + hash, url, microLocation, 'clear')
+    updateMicroLocation(appName, pathname + search + hash, url, microLocation, 'prevent')
   }
   removeStateAndPathFromBrowser(appName, url)
   clearCurrentWhenUnmount(appName)

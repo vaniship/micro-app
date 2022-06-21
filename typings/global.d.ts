@@ -10,7 +10,11 @@ declare module '@micro-app/types' {
   interface SandBoxInterface {
     proxyWindow: WindowProxy
     microAppWindow: Window // Proxy target
-    start (baseRoute: string, useMemoryRouter: boolean): void
+    start (
+      baseRoute: string,
+      useMemoryRouter: boolean,
+      defaultPage: string,
+    ): void
     stop (keepRouteState: boolean): void
     // record umd snapshot before the first execution of umdHookMount
     recordUmdSnapshot (): void
@@ -60,6 +64,7 @@ declare module '@micro-app/types' {
     source: sourceType // sources of css, js, html
     sandBox: SandBoxInterface | null // sandbox
     umdMode: boolean // is umd mode
+    defaultPage: string // default page when mount
 
     // Load resources
     loadSourceCode (): void
@@ -76,6 +81,7 @@ declare module '@micro-app/types' {
       inline?: boolean,
       baseroute?: string,
       keepRouteState?: boolean,
+      defaultPage?: string,
     ): void
 
     // unmount app
@@ -213,6 +219,7 @@ declare module '@micro-app/types' {
   interface MicroLocation extends Location, URL {
     // shadowLocation is the current location information (href, pathname, search, hash)
     shadowLocation: ShadowLocation
+    fullPath: string
     [key: string]: any
   }
   type MicroHistory = ProxyHandler<History>
@@ -244,7 +251,7 @@ declare module '@micro-app/types' {
     searchQuery?: LocationQueryObject
   }
 
-  type GuardLocation = Record<keyof URL, any>
+  type GuardLocation = Record<keyof MicroLocation, any>
 
   type CurrentRoute = Map<string, GuardLocation>
 
@@ -299,17 +306,28 @@ declare module '@micro-app/types' {
      * relative to the current page
      */
     go: Func
-    // Go back in history if possible by calling `history.back()`.
+    /**
+     * Go back in history if possible by calling `history.back()`.
+     */
     back: Func
-    // Go forward in history if possible by calling `history.forward()`.
+    /**
+     * Go forward in history if possible by calling `history.forward()`.
+     */
     forward: Func
     /**
      * Add a navigation guard that executes before any navigation
      * @param guard global hook for
      */
-    beforeEach(guard: RouterGuard): void
+    beforeEach(guard: RouterGuard): () => boolean
+    /**
+     * Add a navigation guard that executes after any navigation
+     * @param guard global hook for
+     */
+    afterEach(guard: RouterGuard): () => boolean
 
-    afterEach(guard: RouterGuard): void
+    setDefaultPage(appName: string, path: string): () => boolean
+    removeDefaultPage(appName: string): boolean
+    getDefaultPage(key: PropertyKey): string | undefined
   }
 }
 

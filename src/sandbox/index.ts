@@ -46,7 +46,7 @@ import createMicroRouter, {
   updateBrowserURLWithLocation,
   router,
 } from './router'
-export { getNoHashMicroPathFromURL } from './router'
+export { router, getNoHashMicroPathFromURL } from './router'
 
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean
@@ -113,11 +113,15 @@ export default class SandBox implements SandBoxInterface {
     assign(this, effect(this.microAppWindow))
   }
 
-  public start (baseRoute: string, useMemoryRouter = true): void {
+  public start (
+    baseRoute: string,
+    useMemoryRouter = true,
+    defaultPage = '',
+  ): void {
     if (!this.active) {
       this.active = true
       if (useMemoryRouter) {
-        this.initRouteState()
+        this.initRouteState(defaultPage)
         // unique listener of popstate event for sub app
         this.removeHistoryListener = addHistoryListener(
           this.proxyWindow.__MICRO_APP_NAME__,
@@ -452,11 +456,12 @@ export default class SandBox implements SandBoxInterface {
     })
   }
 
-  private initRouteState (): void {
+  private initRouteState (defaultPage: string): void {
     initRouteStateWithURL(
       this.proxyWindow.__MICRO_APP_NAME__,
       this.proxyWindow.__MICRO_APP_URL__,
       this.proxyWindow.location as MicroLocation,
+      defaultPage,
     )
   }
 
