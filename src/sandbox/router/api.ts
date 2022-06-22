@@ -83,7 +83,7 @@ function createRouterApi (): RouterApi {
       if (appName && isString(to.path)) {
         const app = appInstanceMap.get(appName)
         if (app && !app.sandBox) return logError(`navigation failed, sandBox of app ${appName} is closed`)
-        // active apps, include hidden keep-alive
+        // active apps, include hidden keep-alive app
         if (getActiveApps().includes(appName)) {
           const microLocation = app!.sandBox!.proxyWindow.location as MicroLocation
           const targetLocation = createURL(to.path, app!.url)
@@ -96,16 +96,16 @@ function createRouterApi (): RouterApi {
         } else {
           /**
            * app not exit or unmounted, update browser URL with replaceState
-           *
            * use base app location.origin as baseURL
            */
-          const targetLocation = createURL(to.path, location.origin)
+          const rawLocation = globalEnv.rawWindow.location
+          const targetLocation = createURL(to.path, rawLocation.origin)
           const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
           if (getMicroPathFromURL(appName) !== targetFullPath) {
             navigateWithRawHistory(
               appName,
               to.replace === false ? 'pushState' : 'replaceState',
-              location.origin,
+              rawLocation.origin,
               targetLocation,
               to.state,
             )

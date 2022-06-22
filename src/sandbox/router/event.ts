@@ -9,7 +9,7 @@ import globalEnv from '../../libs/global_env'
 type PopStateListener = (this: Window, e: PopStateEvent) => void
 
 /**
- * listen & release popstate event
+ * dispatch PopStateEvent & HashChangeEvent to child app
  * each child app will listen for popstate event when sandbox start
  * and release it when sandbox stop
  * @param appName app name
