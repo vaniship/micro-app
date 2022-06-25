@@ -5,7 +5,7 @@ import { assign as oAssign, rawDefineProperties, createURL, noop } from '../../l
 import { setMicroPathToURL } from './core'
 import { dispatchNativePopStateEvent } from './event'
 import { executeNavigationGuard } from './api'
-import { nativeHistoryNavigate } from './history'
+import { nativeHistoryNavigate, navigateWithPopStateEvent } from './history'
 
 const shadowLocationKeys: ReadonlyArray<keyof MicroLocation> = ['href', 'pathname', 'search', 'hash']
 // origin is readonly, so we ignore when updateMicroLocation
@@ -45,11 +45,10 @@ export function autoTriggerNavigationGuard (appName: string, microLocation: Micr
 export function updateMicroLocation (
   appName: string,
   path: string,
-  base: string,
   microLocation: MicroLocation,
   type?: string,
 ): void {
-  const newLocation = createURL(path, base)
+  const newLocation = createURL(path, microLocation.href)
   // record old values of microLocation to `from`
   const from = createGuardLocation(appName, microLocation)
   for (const key of locationKeys) {
@@ -97,7 +96,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
    * @returns origin value or formatted value
    */
   const commonHandler = (value: string | URL, methodName: string): string | URL | undefined => {
-    const targetLocation = createURL(value, url)
+    const targetLocation = createURL(value, microLocation.href)
     // Even if the origin is the same, developers still have the possibility of want to jump to a new page
     if (targetLocation.origin === microLocation.origin) {
       const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
@@ -213,8 +212,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         const targetLocation = createURL(targetPath, url)
         // The same hash will not trigger popStateEvent
         if (targetLocation.hash !== shadowLocation.hash) {
-          nativeHistoryNavigate('pushState', setMicroPathToURL(appName, targetLocation).fullPath)
-          dispatchNativePopStateEvent()
+          navigateWithPopStateEvent('pushState', setMicroPathToURL(appName, targetLocation).fullPath)
         }
       }
     ),

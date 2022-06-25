@@ -16,8 +16,9 @@ type PopStateListener = (this: Window, e: PopStateEvent) => void
  * @returns release callback
  */
 export function addHistoryListener (appName: string): CallableFunction {
+  const rawWindow = globalEnv.rawWindow
   // handle popstate event and distribute to child app
-  const popStateHandler: PopStateListener = (e: PopStateEvent): void => {
+  const popStateHandler: PopStateListener = (): void => {
     // exclude hidden keep-alive app
     if (getActiveApps(true).includes(appName)) {
       const microPath = getMicroPathFromURL(appName)
@@ -29,23 +30,23 @@ export function addHistoryListener (appName: string): CallableFunction {
       // Do not attach micro state to url when microPath is empty
       if (microPath) {
         const oldHash = proxyWindow.location.hash
-        updateMicroLocation(appName, microPath, app.url, proxyWindow.location as MicroLocation)
+        updateMicroLocation(appName, microPath, proxyWindow.location as MicroLocation)
         isHashChange = proxyWindow.location.hash !== oldHash
       }
 
       // console.log(333333, microPath, proxyWindow.location)
 
-      dispatchPopStateEventToMicroApp(appName, proxyWindow, e.state)
+      dispatchPopStateEventToMicroApp(appName, proxyWindow, rawWindow.history.state)
 
       // send HashChangeEvent when hash change
       if (isHashChange) dispatchHashChangeEventToMicroApp(appName, proxyWindow, oldHref)
     }
   }
 
-  globalEnv.rawWindow.addEventListener('popstate', popStateHandler)
+  rawWindow.addEventListener('popstate', popStateHandler)
 
   return () => {
-    globalEnv.rawWindow.removeEventListener('popstate', popStateHandler)
+    rawWindow.removeEventListener('popstate', popStateHandler)
   }
 }
 
@@ -100,6 +101,6 @@ export function dispatchHashChangeEventToMicroApp (
 /**
  * dispatch native PopStateEvent, simulate location behavior
  */
-export function dispatchNativePopStateEvent (state: unknown = null): void {
-  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state }))
+export function dispatchNativePopStateEvent (): void {
+  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
 }

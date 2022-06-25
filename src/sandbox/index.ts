@@ -459,7 +459,6 @@ export default class SandBox implements SandBoxInterface {
   private initRouteState (defaultPage: string): void {
     initRouteStateWithURL(
       this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.__MICRO_APP_URL__,
       this.proxyWindow.location as MicroLocation,
       defaultPage,
     )
@@ -477,7 +476,6 @@ export default class SandBox implements SandBoxInterface {
   public setRouteInfoForKeepAliveApp (): void {
     updateBrowserURLWithLocation(
       this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.__MICRO_APP_URL__,
       this.proxyWindow.location as MicroLocation,
     )
   }
@@ -485,7 +483,6 @@ export default class SandBox implements SandBoxInterface {
   public removeRouteInfoForKeepAliveApp (): void {
     removeStateAndPathFromBrowser(
       this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.__MICRO_APP_URL__,
     )
   }
 }

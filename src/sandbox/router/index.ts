@@ -18,6 +18,7 @@ import {
 import {
   createMicroHistory,
   updateBrowserURL,
+  rewriteHistoryState,
 } from './history'
 import { createURL } from '../../libs/utils'
 import { clearCurrentWhenUnmount } from './api'
@@ -35,26 +36,25 @@ export { getNoHashMicroPathFromURL } from './core'
  * @returns MicroRouter
  */
 export default function createMicroRouter (appName: string, url: string): MicroRouter {
+  rewriteHistoryState()
   const microLocation = createMicroLocation(appName, url)
-
   return {
     microLocation,
-    microHistory: createMicroHistory(appName, url, microLocation),
+    microHistory: createMicroHistory(appName, microLocation),
   }
 }
 
 // 当沙箱执行start, 或者隐藏的keep-alive应用重新渲染时时才根据浏览器url更新location 或者 将参数更新到url上
 export function initRouteStateWithURL (
   appName: string,
-  url: string,
   microLocation: MicroLocation,
   defaultPage?: string,
 ): void {
   const microPath = getMicroPathFromURL(appName)
   if (microPath) {
-    updateMicroLocation(appName, microPath, url, microLocation, 'auto')
+    updateMicroLocation(appName, microPath, microLocation, 'auto')
   } else {
-    updateBrowserURLWithLocation(appName, url, microLocation, defaultPage)
+    updateBrowserURLWithLocation(appName, microLocation, defaultPage)
   }
 }
 
@@ -64,12 +64,11 @@ export function initRouteStateWithURL (
  */
 export function updateBrowserURLWithLocation (
   appName: string,
-  url: string,
   microLocation: MicroLocation,
   defaultPage?: string,
 ): void {
   if (defaultPage) {
-    updateMicroLocation(appName, defaultPage, url, microLocation, 'prevent')
+    updateMicroLocation(appName, defaultPage, microLocation, 'prevent')
   }
   const setMicroPathResult = setMicroPathToURL(appName, microLocation)
   updateBrowserURL(
@@ -77,8 +76,6 @@ export function updateBrowserURLWithLocation (
       appName,
       globalEnv.rawWindow.history.state,
       null,
-      url,
-      setMicroPathResult.searchHash,
     ),
     setMicroPathResult.fullPath,
   )
@@ -101,9 +98,9 @@ export function clearRouteStateFromURL (
 ): void {
   if (!keepRouteState) {
     const { pathname, search, hash } = createURL(url)
-    updateMicroLocation(appName, pathname + search + hash, url, microLocation, 'prevent')
+    updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
   }
-  removeStateAndPathFromBrowser(appName, url)
+  removeStateAndPathFromBrowser(appName)
   clearCurrentWhenUnmount(appName)
 }
 
@@ -111,9 +108,9 @@ export function clearRouteStateFromURL (
  * remove microState from history.state and remove microPath from browserURL
  * called on sandbox.stop or hidden of keep-alive app
  */
-export function removeStateAndPathFromBrowser (appName: string, url: string): void {
+export function removeStateAndPathFromBrowser (appName: string): void {
   updateBrowserURL(
-    removeMicroState(appName, globalEnv.rawWindow.history.state, url),
+    removeMicroState(appName, globalEnv.rawWindow.history.state),
     removeMicroPathFromURL(appName),
   )
 }

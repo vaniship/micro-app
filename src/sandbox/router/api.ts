@@ -27,10 +27,8 @@ import {
 } from '../../libs/utils'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
-import { dispatchNativePopStateEvent } from './event'
 import globalEnv from '../../libs/global_env'
-
-import { nativeHistoryNavigate } from './history'
+import { navigateWithPopStateEvent } from './history'
 
 export interface RouterApi {
   router: Router,
@@ -43,30 +41,25 @@ function createRouterApi (): RouterApi {
    * common handler for router.push/router.replace method
    * @param appName app name
    * @param methodName replaceState/pushState
-   * @param baseURL base url
    * @param targetLocation target location
    * @param state to.state
    */
   function navigateWithRawHistory (
     appName: string,
     methodName: string,
-    baseURL: string,
     targetLocation: MicroLocation,
     state: unknown,
   ): void {
     const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
-    nativeHistoryNavigate(
+    navigateWithPopStateEvent(
       methodName,
       setMicroPathResult.fullPath,
       setMicroState(
         appName,
         globalEnv.rawWindow.history.state,
         state ?? null,
-        baseURL,
-        setMicroPathResult.searchHash,
       ),
     )
-    dispatchNativePopStateEvent(globalEnv.rawWindow.history.state)
   }
   /**
    * create method of router.push/replace
@@ -86,12 +79,12 @@ function createRouterApi (): RouterApi {
         // active apps, include hidden keep-alive app
         if (getActiveApps().includes(appName)) {
           const microLocation = app!.sandBox!.proxyWindow.location as MicroLocation
-          const targetLocation = createURL(to.path, app!.url)
+          const targetLocation = createURL(to.path, microLocation.href)
           // Only get path data, even if the origin is different from microApp
           const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
           if (microLocation.fullPath !== targetFullPath || getMicroPathFromURL(appName) !== targetFullPath) {
             const methodName = (replace && to.replace !== false) || to.replace === true ? 'replaceState' : 'pushState'
-            navigateWithRawHistory(appName, methodName, microLocation.origin, targetLocation, to.state)
+            navigateWithRawHistory(appName, methodName, targetLocation, to.state)
           }
         } else {
           /**
@@ -105,7 +98,6 @@ function createRouterApi (): RouterApi {
             navigateWithRawHistory(
               appName,
               to.replace === false ? 'pushState' : 'replaceState',
-              rawLocation.origin,
               targetLocation,
               to.state,
             )

@@ -19,8 +19,6 @@ export function setMicroState (
   appName: string,
   rawState: MicroState,
   microState: MicroState,
-  base: string,
-  searchHash: string
 ): MicroState {
   const additionalState: Record<string, any> = {
     microAppState: assign({}, rawState?.microAppState, {
@@ -28,20 +26,12 @@ export function setMicroState (
     })
   }
 
-  /**
-   * vue-router4 will call replace method to replace the URL base on history.state.current before push
-   * add the latest search & hash to history.state.current to avoid this problem
-   */
-  if (rawState?.current) {
-    additionalState.current = (createURL(rawState.current, base)).pathname + searchHash
-  }
-
   // create new state object
   return assign({}, rawState, additionalState)
 }
 
 // delete micro app state form origin state
-export function removeMicroState (appName: string, rawState: MicroState, url: string): MicroState {
+export function removeMicroState (appName: string, rawState: MicroState): MicroState {
   if (isPlainObject(rawState?.microAppState)) {
     if (!isUndefined(rawState.microAppState[appName])) {
       delete rawState.microAppState[appName]
@@ -51,15 +41,8 @@ export function removeMicroState (appName: string, rawState: MicroState, url: st
     }
   }
 
-  let coverState = null
-  if (rawState?.current) {
-    coverState = {
-      current: removeMicroPathFromURL(appName, createURL(rawState.current, url))
-    }
-  }
-
   // 生成新的state对象
-  return assign({}, rawState, coverState)
+  return assign({}, rawState)
 }
 
 // get micro app state form origin state
