@@ -3,9 +3,9 @@ import type { MicroLocation, GuardLocation, ShadowLocation } from '@micro-app/ty
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, rawDefineProperties, createURL, noop } from '../../libs/utils'
 import { setMicroPathToURL } from './core'
-import { dispatchNativePopStateEvent } from './event'
+import { dispatchNativeEvent } from './event'
 import { executeNavigationGuard } from './api'
-import { nativeHistoryNavigate, navigateWithPopStateEvent } from './history'
+import { nativeHistoryNavigate, navigateWithNativeEvent } from './history'
 
 const shadowLocationKeys: ReadonlyArray<keyof MicroLocation> = ['href', 'pathname', 'search', 'hash']
 // origin is readonly, so we ignore when updateMicroLocation
@@ -111,12 +111,14 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         targetLocation.pathname === shadowLocation.pathname &&
         targetLocation.search === shadowLocation.search
       ) {
+        let oldHref = null
         if (targetLocation.hash !== shadowLocation.hash) {
+          if (setMicroPathResult.isAttach2Hash) oldHref = rawLocation.href
           nativeHistoryNavigate(methodName, setMicroPathResult.fullPath)
         }
 
         if (targetLocation.hash) {
-          dispatchNativePopStateEvent()
+          dispatchNativeEvent(oldHref)
         } else {
           rawLocation.reload()
         }
@@ -163,7 +165,8 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
     const targetLocation = createURL(targetPath, url)
     // When the browser url has a hash value, the same pathname/search will not refresh browser
     if (targetLocation[key] === shadowLocation[key] && shadowLocation.hash) {
-      dispatchNativePopStateEvent()
+      // The href has not changed, not need to dispatch hashchange event
+      dispatchNativeEvent()
     } else {
       /**
        * When the value is the same, no new route stack will be added
@@ -212,7 +215,10 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         const targetLocation = createURL(targetPath, url)
         // The same hash will not trigger popStateEvent
         if (targetLocation.hash !== shadowLocation.hash) {
-          navigateWithPopStateEvent('pushState', setMicroPathToURL(appName, targetLocation).fullPath)
+          navigateWithNativeEvent(
+            'pushState',
+            setMicroPathToURL(appName, targetLocation),
+          )
         }
       }
     ),

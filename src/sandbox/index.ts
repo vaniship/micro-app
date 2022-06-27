@@ -481,8 +481,6 @@ export default class SandBox implements SandBoxInterface {
   }
 
   public removeRouteInfoForKeepAliveApp (): void {
-    removeStateAndPathFromBrowser(
-      this.proxyWindow.__MICRO_APP_NAME__,
-    )
+    removeStateAndPathFromBrowser(this.proxyWindow.__MICRO_APP_NAME__)
   }
 }

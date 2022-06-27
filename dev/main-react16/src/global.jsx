@@ -128,3 +128,11 @@ microApp.start({
 //     console.log('unmountAllApps方法 -- 主动卸载所有应用成功')
 //   })
 // }, 10000)
+
+window.addEventListener('popstate', (e) => {
+  console.log('popstate', e)
+})
+
+window.addEventListener('hashchange', (e) => {
+  console.log('hashchange', e, e.newURL, e.oldURL)
+})

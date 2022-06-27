@@ -7,6 +7,7 @@ import { updateMicroLocation } from './location'
 import globalEnv from '../../libs/global_env'
 
 type PopStateListener = (this: Window, e: PopStateEvent) => void
+type MicroPopStateEvent = PopStateEvent & { onlyForParent?: boolean }
 
 /**
  * dispatch PopStateEvent & HashChangeEvent to child app
@@ -18,9 +19,9 @@ type PopStateListener = (this: Window, e: PopStateEvent) => void
 export function addHistoryListener (appName: string): CallableFunction {
   const rawWindow = globalEnv.rawWindow
   // handle popstate event and distribute to child app
-  const popStateHandler: PopStateListener = (): void => {
+  const popStateHandler: PopStateListener = (e: MicroPopStateEvent): void => {
     // exclude hidden keep-alive app
-    if (getActiveApps(true).includes(appName)) {
+    if (getActiveApps(true).includes(appName) && !e.onlyForParent) {
       const microPath = getMicroPathFromURL(appName)
       const app = appInstanceMap.get(appName)!
       const proxyWindow = app.sandBox!.proxyWindow
@@ -101,6 +102,33 @@ export function dispatchHashChangeEventToMicroApp (
 /**
  * dispatch native PopStateEvent, simulate location behavior
  */
-export function dispatchNativePopStateEvent (): void {
+function dispatchNativePopStateEvent (): void {
   globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+}
+
+/**
+ * dispatch hashchange event to browser
+ * @param oldHref old href of rawWindow.location
+ */
+function dispatchNativeHashChangeEvent (oldHref: string): void {
+  const newHashChangeEvent = new HashChangeEvent(
+    'hashchange',
+    {
+      newURL: globalEnv.rawWindow.location.href,
+      oldURL: oldHref,
+    }
+  )
+
+  globalEnv.rawWindow.dispatchEvent(newHashChangeEvent)
+}
+
+/**
+ * dispatch popstate & hashchange event to browser
+ * @param oldHref old href of rawWindow.location
+ */
+export function dispatchNativeEvent (oldHref?: string): void {
+  dispatchNativePopStateEvent()
+  if (oldHref) {
+    dispatchNativeHashChangeEvent(oldHref)
+  }
 }

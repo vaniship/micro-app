@@ -28,7 +28,7 @@ import {
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
 import globalEnv from '../../libs/global_env'
-import { navigateWithPopStateEvent } from './history'
+import { navigateWithNativeEvent } from './history'
 
 export interface RouterApi {
   router: Router,
@@ -50,10 +50,9 @@ function createRouterApi (): RouterApi {
     targetLocation: MicroLocation,
     state: unknown,
   ): void {
-    const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
-    navigateWithPopStateEvent(
+    navigateWithNativeEvent(
       methodName,
-      setMicroPathResult.fullPath,
+      setMicroPathToURL(appName, targetLocation),
       setMicroState(
         appName,
         globalEnv.rawWindow.history.state,

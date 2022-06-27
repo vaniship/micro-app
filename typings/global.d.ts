@@ -222,6 +222,7 @@ declare module '@micro-app/types' {
     fullPath: string
     [key: string]: any
   }
+
   type MicroHistory = ProxyHandler<History>
   type MicroState = any
   type HistoryProxyValue =
@@ -328,6 +329,12 @@ declare module '@micro-app/types' {
     setDefaultPage(appName: string, path: string): () => boolean
     removeDefaultPage(appName: string): boolean
     getDefaultPage(key: PropertyKey): string | undefined
+  }
+
+  // result of add/remove microApp path on browser url
+  type HandleMicroPathResult = {
+    fullPath: string,
+    isAttach2Hash: boolean,
   }
 }
 

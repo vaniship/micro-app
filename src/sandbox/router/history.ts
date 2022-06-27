@@ -3,53 +3,39 @@ import type {
   MicroLocation,
   MicroHistory,
   HistoryProxyValue,
+  HandleMicroPathResult,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import { isString, logError, createURL, isPlainObject, isURL, assign } from '../../libs/utils'
-import { updateMicroLocation } from './location'
+import { isString, createURL, isPlainObject, isURL, assign, isFunction } from '../../libs/utils'
 import { setMicroPathToURL, setMicroState, getMicroState } from './core'
-import { dispatchNativePopStateEvent } from './event'
+import { dispatchNativeEvent } from './event'
 
 // history of micro app
 export function createMicroHistory (appName: string, microLocation: MicroLocation): MicroHistory {
-  const rawHistory = globalEnv.rawWindow.history
+  const rawWindow = globalEnv.rawWindow
+  const rawHistory = rawWindow.history
   function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
-    return (...rests: unknown[]) => {
+    return function (...rests: unknown[]): void {
       // console.log(444444444, rests[0], rests[1], rests[2], methodName)
-      let targetPath = null
       // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
       if (
         (methodName === 'pushState' || methodName === 'replaceState') &&
         (isString(rests[2]) || isURL(rests[2]))
       ) {
-        try {
-          const targetLocation = createURL(rests[2], microLocation.href)
-          if (targetLocation.origin === microLocation.origin) {
-            targetPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-            const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
-            rests = [
-              setMicroState(appName, rawHistory.state, rests[0]),
-              rests[1],
-              setMicroPathResult.fullPath,
-            ]
-          }
-        } catch (e) {
-          logError(e, appName)
+        const targetLocation = createURL(rests[2], microLocation.href)
+        if (targetLocation.origin === microLocation.origin) {
+          navigateWithNativeEvent(
+            methodName,
+            setMicroPathToURL(appName, targetLocation),
+            setMicroState(appName, rawHistory.state, rests[0]),
+            rests[1] as string,
+          )
+        } else {
+          rawHistory[methodName].apply(rawHistory, rests)
         }
+      } else {
+        rawHistory[methodName].apply(rawHistory, rests)
       }
-
-      rawHistory[methodName].apply(rawHistory, rests)
-
-      if (targetPath && targetPath !== microLocation.fullPath) {
-        /**
-         * microRoute query may be lost from browserURL after the main app handles the popstate event
-         * so we manually trigger the microLocation update
-         */
-        updateMicroLocation(appName, targetPath, microLocation)
-        dispatchNativePopStateEvent()
-      }
-
-      // console.log(5555555, microLocation, base)
     }
   }
 
@@ -57,7 +43,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
     get (target: History, key: PropertyKey): HistoryProxyValue {
       if (key === 'state') {
         return getMicroState(appName, rawHistory.state)
-      } else if (typeof Reflect.get(target, key) === 'function') {
+      } else if (isFunction(Reflect.get(target, key))) {
         return getMicroHistoryMethod(key)
       }
       return Reflect.get(target, key)
@@ -72,35 +58,56 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
  * navigate to new path base on native method of history
  * @param methodName pushState/replaceState
  * @param fullPath full path
- * @param state history.state
+ * @param state history.state, default is null
+ * @param title history.title, default is ''
  */
-export function nativeHistoryNavigate (methodName: string, fullPath: string, state: unknown = null): void {
-  globalEnv.rawWindow.history[methodName](state, '', fullPath)
+export function nativeHistoryNavigate (
+  methodName: string,
+  fullPath: string,
+  state: unknown = null,
+  title = '',
+): void {
+  globalEnv.rawWindow.history[methodName](state, title, fullPath)
 }
 
 /**
  * navigate to new path, and dispatch pure popstate event to browser
  * used to trigger base app router update
  * @param methodName pushState/replaceState
- * @param fullPath full path
- * @param state history.state
+ * @param result result of add/remove microApp path on browser url
+ * @param state history.state, not required
+ * @param title history.title, not required
  */
-export function navigateWithPopStateEvent (methodName: string, fullPath: string, state: unknown = null): void {
-  nativeHistoryNavigate(methodName, fullPath, state)
-  dispatchNativePopStateEvent()
+export function navigateWithNativeEvent (
+  methodName: string,
+  result: HandleMicroPathResult,
+  state?: unknown,
+  title?: string,
+): void {
+  const rawLocation = globalEnv.rawWindow.location
+  const oldFullPath = rawLocation.pathname + rawLocation.search + rawLocation.hash
+  const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
+  // console.log(4444444, oldFullPath, result.fullPath, window.__MICRO_APP_ENVIRONMENT__)
+  // navigate
+  nativeHistoryNavigate(methodName, result.fullPath, state, title)
+  if (oldFullPath !== result.fullPath) dispatchNativeEvent(oldHref)
 }
 
 /**
- * update browser url base on child location
+ * update browser url when mount/unmount/hidden/show
+ * @param result result of add/remove microApp path on browser url
  * @param state history.state
- * @param fullPath full path
  */
-export function updateBrowserURL (state: MicroState, fullPath: string): void {
-  navigateWithPopStateEvent('replaceState', fullPath, state)
+export function updateBrowserURL (
+  result: HandleMicroPathResult,
+  state: MicroState,
+): void {
+  navigateWithNativeEvent('replaceState', result, state)
 }
 
 /**
- * When the old and new path are the same, keep the microAppState in history.state
+ * When path is same, keep the microAppState in history.state
+ * Fix bug of missing microAppState in next.js & angular
  * @param method history.pushState/replaceState
  */
 function patchHistoryState (method: History['pushState' | 'replaceState']): CallableFunction {

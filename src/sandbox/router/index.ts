@@ -67,17 +67,16 @@ export function updateBrowserURLWithLocation (
   microLocation: MicroLocation,
   defaultPage?: string,
 ): void {
-  if (defaultPage) {
-    updateMicroLocation(appName, defaultPage, microLocation, 'prevent')
-  }
-  const setMicroPathResult = setMicroPathToURL(appName, microLocation)
+  // update microLocation with defaultPage
+  if (defaultPage) updateMicroLocation(appName, defaultPage, microLocation, 'prevent')
+  // attach microApp route info to browser URL
   updateBrowserURL(
+    setMicroPathToURL(appName, microLocation),
     setMicroState(
       appName,
       globalEnv.rawWindow.history.state,
       null,
     ),
-    setMicroPathResult.fullPath,
   )
   // trigger guards after change browser URL
   autoTriggerNavigationGuard(appName, microLocation)
@@ -110,7 +109,7 @@ export function clearRouteStateFromURL (
  */
 export function removeStateAndPathFromBrowser (appName: string): void {
   updateBrowserURL(
-    removeMicroState(appName, globalEnv.rawWindow.history.state),
     removeMicroPathFromURL(appName),
+    removeMicroState(appName, globalEnv.rawWindow.history.state),
   )
 }

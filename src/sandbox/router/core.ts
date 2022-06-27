@@ -2,6 +2,7 @@ import type {
   MicroLocation,
   MicroState,
   LocationQuery,
+  HandleMicroPathResult,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import {
@@ -86,14 +87,8 @@ export function getMicroPathFromURL (appName: string): string | null {
   return isString(microPath) ? decodeMicroPath(microPath) : null
 }
 
-type setMicroPathResult = {
-  fullPath: string,
-  searchHash: string,
-  isAttach2Hash: boolean,
-}
-
 // 将name=encodeUrl地址插入到浏览器url上
-export function setMicroPathToURL (appName: string, microLocation: MicroLocation): setMicroPathResult {
+export function setMicroPathToURL (appName: string, microLocation: MicroLocation): HandleMicroPathResult {
   let { pathname, search, hash } = globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(search, hash)
   const encodedMicroPath = encodeMicroPath(
@@ -128,17 +123,18 @@ export function setMicroPathToURL (appName: string, microLocation: MicroLocation
 
   return {
     fullPath: pathname + search + hash,
-    searchHash: search + hash,
     isAttach2Hash,
   }
 }
 
 // 将name=encodeUrl的参数从浏览器url上删除
-export function removeMicroPathFromURL (appName: string, targetLocation?: MicroLocation): string {
+export function removeMicroPathFromURL (appName: string, targetLocation?: MicroLocation): HandleMicroPathResult {
   let { pathname, search, hash } = targetLocation || globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(search, hash)
 
+  let isAttach2Hash = false
   if (queryObject.hashQuery?.[formatQueryAppName(appName)]) {
+    isAttach2Hash = true
     delete queryObject.hashQuery?.[formatQueryAppName(appName)]
     const hashQueryStr = stringifyQuery(queryObject.hashQuery)
     hash = hash.slice(0, hash.indexOf('?') + Number(Boolean(hashQueryStr))) + hashQueryStr
@@ -148,7 +144,10 @@ export function removeMicroPathFromURL (appName: string, targetLocation?: MicroL
     search = searchQueryStr ? '?' + searchQueryStr : ''
   }
 
-  return pathname + search + hash
+  return {
+    fullPath: pathname + search + hash,
+    isAttach2Hash,
+  }
 }
 
 /**

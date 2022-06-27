@@ -133,6 +133,7 @@ export default class App extends React.Component {
     this.setState({
       testNum: this.state.testNum + 1,
     })
+    console.log(33333, this.props.history)
   }
 
   jumpToHome = () => {
