@@ -29,13 +29,14 @@ export function autoTriggerNavigationGuard (appName: string, microLocation: Micr
 }
 
 /**
- * There are three situations that trigger location update:
+ * The following scenes will trigger location update:
  * 1. pushState/replaceState
  * 2. popStateEvent
  * 3. query on browser url when init sub app
  * 4. set defaultPage when when init sub app
  * NOTE:
- * 1. update browser URL, and then update microLocation
+ * 1. update browser URL first, and then update microLocation
+ * 2. the same fullPath will not trigger router guards
  * @param appName app name
  * @param path target path
  * @param base base url
@@ -70,8 +71,8 @@ export function updateMicroLocation (
 }
 
 /**
- * Create location for micro app
- * Each microApp has only one location object, it is a reference type
+ * Create location for microApp, each microApp has only one location object, it is a reference type
+ * MDN https://developer.mozilla.org/en-US/docs/Web/API/Location
  * @param appName app name
  * @param url app url
  */
@@ -118,7 +119,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         }
 
         if (targetLocation.hash) {
-          dispatchNativeEvent(oldHref)
+          dispatchNativeEvent(false, oldHref)
         } else {
           rawLocation.reload()
         }
@@ -166,7 +167,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
     // When the browser url has a hash value, the same pathname/search will not refresh browser
     if (targetLocation[key] === shadowLocation[key] && shadowLocation.hash) {
       // The href has not changed, not need to dispatch hashchange event
-      dispatchNativeEvent()
+      dispatchNativeEvent(false)
     } else {
       /**
        * When the value is the same, no new route stack will be added
@@ -218,6 +219,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
           navigateWithNativeEvent(
             'pushState',
             setMicroPathToURL(appName, targetLocation),
+            false,
           )
         }
       }

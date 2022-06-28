@@ -26,11 +26,9 @@ export { router } from './api'
 export { addHistoryListener } from './event'
 export { getNoHashMicroPathFromURL } from './core'
 
-// 所谓路由系统，无非两种操作：读、写
-// 读是通过location，写是通过replace/pushState
 /**
  * The router system has two operations: read and write
- * Read through location and write through replaceState/pushState/location
+ * Read through location and write through history & location
  * @param appName app name
  * @param url app url
  * @returns MicroRouter

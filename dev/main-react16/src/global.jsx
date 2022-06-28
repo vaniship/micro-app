@@ -130,9 +130,15 @@ microApp.start({
 // }, 10000)
 
 window.addEventListener('popstate', (e) => {
-  console.log('popstate', e)
+  // const a = document.createElement('div')
+  //   a.innerHTML = '55555555'
+  //   document.body.appendChild(a)
+  console.log('popstate', e, window.location.href)
 })
 
 window.addEventListener('hashchange', (e) => {
+  // const a = document.createElement('div')
+  //   a.innerHTML = '666666666'
+  //   document.body.appendChild(a)
   console.log('hashchange', e, e.newURL, e.oldURL)
 })

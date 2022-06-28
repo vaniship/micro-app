@@ -268,15 +268,15 @@ setTimeout(() => {
 }, 0);
 
 
-// setTimeout(() => {
-//   // window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
-//   // window.location.pathname = '/micro-app/react16/page2#fff'
-//   // window.location.assign('http://localhost:3001/micro-app/react16/page2#eee')
-//   // window.location.replace('http://localhost:3001/micro-app/react16/page2#eee')
-//   console.log(111111, window.location)
+setTimeout(() => {
+  // window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
+  // window.location.pathname = '/micro-app/react16/page2#fff'
+  // window.location.assign('http://localhost:3001/micro-app/react16/page2#eee')
+  // window.location.replace('http://localhost:3001/micro-app/react16/page2#eee')
+  console.log(111111, window.location)
 
-//   // window.history.scrollRestoration = 'manual'
-// }, 5000);
+  // window.history.scrollRestoration = 'manual'
+}, 5000);
 
 window.addEventListener('popstate', (e) => {
   console.log('子应用 popstate', e)

@@ -105,6 +105,12 @@ export default {
       }
     };
   },
+  created () {
+    console.log('vue2 page2 created')
+  },
+  mounted () {
+    console.log('vue2 page2 mounted')
+  },
   methods: {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {

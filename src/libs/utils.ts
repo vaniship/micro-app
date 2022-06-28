@@ -124,15 +124,16 @@ export function defer (fn: Func, ...args: unknown[]): void {
   Promise.resolve().then(fn.bind(null, ...args))
 }
 
-// export const createURL = (function (): (p: string | URL, b?: string) => MicroLocation {
-//   class Location extends URL {}
-//   return (path: string | URL, base?: string): MicroLocation => {
-//     return (base ? new Location('' + path, base) : new Location('' + path)) as MicroLocation
-//   }
-// })()
-export function createURL (path: string | URL, base?: string): MicroLocation {
-  return (base ? new URL('' + path, base) : new URL('' + path)) as MicroLocation
-}
+/**
+ * create URL as MicroLocation
+ */
+export const createURL = (function (): (p: string | URL, b?: string) => MicroLocation {
+  class Location extends URL {}
+  return (path: string | URL, base?: string): MicroLocation => {
+    return (base ? new Location('' + path, base) : new Location('' + path)) as MicroLocation
+  }
+})()
+
 /**
  * Add address protocol
  * @param url address

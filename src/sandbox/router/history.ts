@@ -9,15 +9,18 @@ import globalEnv from '../../libs/global_env'
 import { isString, createURL, isPlainObject, isURL, assign, isFunction } from '../../libs/utils'
 import { setMicroPathToURL, setMicroState, getMicroState } from './core'
 import { dispatchNativeEvent } from './event'
+import { updateMicroLocation } from './location'
 
-// history of micro app
+/**
+ * create proxyHistory for microApp
+ * MDN https://developer.mozilla.org/en-US/docs/Web/API/History
+ * @param appName app name
+ * @param microLocation microApp location
+ */
 export function createMicroHistory (appName: string, microLocation: MicroLocation): MicroHistory {
-  const rawWindow = globalEnv.rawWindow
-  const rawHistory = rawWindow.history
+  const rawHistory = globalEnv.rawWindow.history
   function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
     return function (...rests: unknown[]): void {
-      // console.log(444444444, rests[0], rests[1], rests[2], methodName)
-      // 对pushState/replaceState的state和path进行格式化，这里最关键的一步！！
       if (
         (methodName === 'pushState' || methodName === 'replaceState') &&
         (isString(rests[2]) || isURL(rests[2]))
@@ -27,9 +30,14 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
           navigateWithNativeEvent(
             methodName,
             setMicroPathToURL(appName, targetLocation),
+            true,
             setMicroState(appName, rawHistory.state, rests[0]),
             rests[1] as string,
           )
+          const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+          if (targetFullPath !== microLocation.fullPath) {
+            updateMicroLocation(appName, targetFullPath, microLocation)
+          }
         } else {
           rawHistory[methodName].apply(rawHistory, rests)
         }
@@ -71,26 +79,31 @@ export function nativeHistoryNavigate (
 }
 
 /**
- * navigate to new path, and dispatch pure popstate event to browser
- * used to trigger base app router update
+ * Navigate to new path, and dispatch native popStateEvent/hashChangeEvent to browser
+ * Use scenes:
+ * 1. mount/unmount through updateBrowserURL with limited popstateEvent
+ * 2. proxyHistory.pushState/replaceState with limited popstateEvent
+ * 3. api microApp.router.push/replace
+ * 4. proxyLocation.hash = xxx
  * @param methodName pushState/replaceState
  * @param result result of add/remove microApp path on browser url
+ * @param onlyForBrowser only dispatch event to browser
  * @param state history.state, not required
  * @param title history.title, not required
  */
 export function navigateWithNativeEvent (
   methodName: string,
   result: HandleMicroPathResult,
+  onlyForBrowser: boolean,
   state?: unknown,
   title?: string,
 ): void {
   const rawLocation = globalEnv.rawWindow.location
   const oldFullPath = rawLocation.pathname + rawLocation.search + rawLocation.hash
   const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
-  // console.log(4444444, oldFullPath, result.fullPath, window.__MICRO_APP_ENVIRONMENT__)
-  // navigate
+  // navigate with native history method
   nativeHistoryNavigate(methodName, result.fullPath, state, title)
-  if (oldFullPath !== result.fullPath) dispatchNativeEvent(oldHref)
+  if (oldFullPath !== result.fullPath) dispatchNativeEvent(onlyForBrowser, oldHref)
 }
 
 /**
@@ -102,7 +115,7 @@ export function updateBrowserURL (
   result: HandleMicroPathResult,
   state: MicroState,
 ): void {
-  navigateWithNativeEvent('replaceState', result, state)
+  navigateWithNativeEvent('replaceState', result, true, state)
 }
 
 /**

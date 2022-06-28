@@ -5,9 +5,10 @@ import { formatEventName } from '../effect'
 import { getMicroPathFromURL, getMicroState } from './core'
 import { updateMicroLocation } from './location'
 import globalEnv from '../../libs/global_env'
+import { removeDomScope } from '../../libs/utils'
 
 type PopStateListener = (this: Window, e: PopStateEvent) => void
-type MicroPopStateEvent = PopStateEvent & { onlyForParent?: boolean }
+type MicroPopStateEvent = PopStateEvent & { onlyForBrowser?: boolean }
 
 /**
  * dispatch PopStateEvent & HashChangeEvent to child app
@@ -21,7 +22,7 @@ export function addHistoryListener (appName: string): CallableFunction {
   // handle popstate event and distribute to child app
   const popStateHandler: PopStateListener = (e: MicroPopStateEvent): void => {
     // exclude hidden keep-alive app
-    if (getActiveApps(true).includes(appName) && !e.onlyForParent) {
+    if (getActiveApps(true).includes(appName) && !e.onlyForBrowser) {
       const microPath = getMicroPathFromURL(appName)
       const app = appInstanceMap.get(appName)!
       const proxyWindow = app.sandBox!.proxyWindow
@@ -35,12 +36,14 @@ export function addHistoryListener (appName: string): CallableFunction {
         isHashChange = proxyWindow.location.hash !== oldHash
       }
 
-      // console.log(333333, microPath, proxyWindow.location)
-
+      // dispatch formatted popStateEvent to child
       dispatchPopStateEventToMicroApp(appName, proxyWindow, rawWindow.history.state)
 
-      // send HashChangeEvent when hash change
+      // dispatch formatted hashChangeEvent to child when hash change
       if (isHashChange) dispatchHashChangeEventToMicroApp(appName, proxyWindow, oldHref)
+
+      // clear element scope before trigger event of next app
+      removeDomScope()
     }
   }
 
@@ -101,9 +104,12 @@ export function dispatchHashChangeEventToMicroApp (
 
 /**
  * dispatch native PopStateEvent, simulate location behavior
+ * @param onlyForBrowser only dispatch PopStateEvent to browser
  */
-function dispatchNativePopStateEvent (): void {
-  globalEnv.rawWindow.dispatchEvent(new PopStateEvent('popstate', { state: null }))
+function dispatchNativePopStateEvent (onlyForBrowser: boolean): void {
+  const event = new PopStateEvent('popstate', { state: null }) as MicroPopStateEvent
+  if (onlyForBrowser) event.onlyForBrowser = true
+  globalEnv.rawWindow.dispatchEvent(event)
 }
 
 /**
@@ -124,10 +130,13 @@ function dispatchNativeHashChangeEvent (oldHref: string): void {
 
 /**
  * dispatch popstate & hashchange event to browser
+ * @param onlyForBrowser only dispatch event to browser
  * @param oldHref old href of rawWindow.location
  */
-export function dispatchNativeEvent (oldHref?: string): void {
-  dispatchNativePopStateEvent()
+export function dispatchNativeEvent (onlyForBrowser: boolean, oldHref?: string): void {
+  // clear element scope before dispatch global event
+  removeDomScope()
+  dispatchNativePopStateEvent(onlyForBrowser)
   if (oldHref) {
     dispatchNativeHashChangeEvent(oldHref)
   }

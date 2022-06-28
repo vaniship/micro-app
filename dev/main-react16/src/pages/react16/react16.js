@@ -133,7 +133,7 @@ export default class App extends React.Component {
     this.setState({
       testNum: this.state.testNum + 1,
     })
-    console.log(33333, this.props.history)
+    // console.log(33333, this.props.history)
   }
 
   jumpToHome = () => {
@@ -183,6 +183,9 @@ export default class App extends React.Component {
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
 
     this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
+      // const a = document.createElement('div')
+      // a.innerHTML = '44444444'
+      // document.body.appendChild(a)
       console.log('全局 beforeEach: ', to, from, appName)
     })
 

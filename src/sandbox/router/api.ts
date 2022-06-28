@@ -24,6 +24,7 @@ import {
   requestIdleCallback,
   isString,
   noopFalse,
+  removeDomScope,
 } from '../../libs/utils'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
@@ -53,12 +54,15 @@ function createRouterApi (): RouterApi {
     navigateWithNativeEvent(
       methodName,
       setMicroPathToURL(appName, targetLocation),
+      false,
       setMicroState(
         appName,
         globalEnv.rawWindow.history.state,
         state ?? null,
       ),
     )
+    // clear element scope after navigate
+    removeDomScope()
   }
   /**
    * create method of router.push/replace
@@ -120,6 +124,10 @@ function createRouterApi (): RouterApi {
 
   /**
    * run all of beforeEach/afterEach guards
+   * NOTE:
+   * 1. Modify browser url first, and then run guards,
+   *    consistent with the browser forward & back button
+   * 2. Note the element binding
    * @param appName app name
    * @param to target location
    * @param from old location
@@ -131,6 +139,8 @@ function createRouterApi (): RouterApi {
     from: GuardLocation,
     guards: Set<RouterGuard>,
   ) {
+    // clear element scope before execute function of parent
+    removeDomScope()
     for (const guard of guards) {
       if (isFunction(guard)) {
         guard(appName, to, from)
