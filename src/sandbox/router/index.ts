@@ -21,7 +21,7 @@ import {
   rewriteHistoryState,
 } from './history'
 import { createURL } from '../../libs/utils'
-import { clearCurrentWhenUnmount } from './api'
+import { clearRouterWhenUnmount } from './api'
 export { router } from './api'
 export { addHistoryListener } from './event'
 export { getNoHashMicroPathFromURL } from './core'
@@ -98,7 +98,7 @@ export function clearRouteStateFromURL (
     updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
   }
   removeStateAndPathFromBrowser(appName)
-  clearCurrentWhenUnmount(appName)
+  clearRouterWhenUnmount(appName)
 }
 
 /**

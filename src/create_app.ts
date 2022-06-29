@@ -8,7 +8,7 @@ import type {
 } from '@micro-app/types'
 import extractHtml from './source'
 import { execScripts } from './source/scripts'
-import { appStates, lifeCycles, keepAliveStates } from './constants'
+import { appStates, lifeCycles, keepAliveStates } from './libs/constants'
 import SandBox from './sandbox'
 import {
   isFunction,
@@ -42,7 +42,7 @@ export interface CreateAppParam {
 }
 
 export default class CreateApp implements AppInterface {
-  private state: string = appStates.NOT_LOADED
+  private state: string = appStates.CREATED
   private keepAliveState: string | null = null
   private keepAliveContainer: HTMLElement | null = null
   private loadSourceLevel: -1|0|1|2 = 0
@@ -102,7 +102,7 @@ export default class CreateApp implements AppInterface {
 
   // Load resources
   loadSourceCode (): void {
-    this.state = appStates.LOADING_SOURCE_CODE
+    this.state = appStates.LOADING
     extractHtml(this)
   }
 
@@ -117,7 +117,7 @@ export default class CreateApp implements AppInterface {
         this.prefetchResolve?.()
         this.prefetchResolve = null
       } else if (appStates.UNMOUNT !== this.state) {
-        this.state = appStates.LOAD_SOURCE_FINISHED
+        this.state = appStates.LOADED
         this.mount()
       }
     }
@@ -136,7 +136,7 @@ export default class CreateApp implements AppInterface {
 
     if (appStates.UNMOUNT !== this.state) {
       this.onerror(e)
-      this.state = appStates.LOAD_SOURCE_ERROR
+      this.state = appStates.LOAD_FAILED
     }
   }
 
@@ -162,7 +162,7 @@ export default class CreateApp implements AppInterface {
     this.defaultPage = defaultPage ?? this.defaultPage
 
     if (this.loadSourceLevel !== 2) {
-      this.state = appStates.LOADING_SOURCE_CODE
+      this.state = appStates.LOADING
       return
     }
 
@@ -251,7 +251,7 @@ export default class CreateApp implements AppInterface {
    * @param unmountcb callback of unmount
    */
   unmount (destroy: boolean, unmountcb?: CallableFunction): void {
-    if (this.state === appStates.LOAD_SOURCE_ERROR) {
+    if (this.state === appStates.LOAD_FAILED) {
       destroy = true
     }
 

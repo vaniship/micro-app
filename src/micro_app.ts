@@ -21,7 +21,7 @@ import {
 import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
-import { appStates, keepAliveStates } from './constants'
+import { appStates, keepAliveStates } from './libs/constants'
 import { router } from './sandbox'
 
 /**

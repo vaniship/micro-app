@@ -24,7 +24,7 @@ import {
 } from './load_event'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
-import { globalKeyToBeCached } from '../constants'
+import { globalKeyToBeCached } from '../libs/constants'
 
 type moduleCallBack = Func & { moduleCount?: number, errorCount?: number }
 

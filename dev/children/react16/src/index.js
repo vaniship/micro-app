@@ -222,7 +222,7 @@ window.addEventListener('unmount', function () {
 
 // ----------------------分割线--接口相关--------------------- //
 // 测试proxy代理
-fetch('http://localhost:3001/sugrec').then((res) => {
+fetch('/sugrec').then((res) => {
   return res.json()
 }).then((data) => {
   console.log('proxy代理 https://www.baidu.com/sugrec 返回数据', data)
@@ -259,13 +259,13 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
   document.body.appendChild(unBoundDom2)
 }
 
-// 注意：！！！！ 无论任何使用window.xx的情况都会重新触发元素绑定
-const _window = new Function('return window')()
+// // 注意：！！！！ 无论任何使用window.xx的情况都会重新触发元素绑定
+// const _window = new Function('return window')()
 
-setTimeout(() => {
-  // window.microApp.removeDomScope()
-  console.log(_window.document.getElementById('root'))
-}, 0);
+// setTimeout(() => {
+//   // window.microApp.removeDomScope()
+//   console.log(_window.document.getElementById('root'))
+// }, 0);
 
 
 setTimeout(() => {

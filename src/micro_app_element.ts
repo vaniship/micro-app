@@ -16,7 +16,7 @@ import {
   appStates,
   lifeCycles,
   keepAliveStates,
-} from './constants'
+} from './libs/constants'
 import CreateApp, { appInstanceMap } from './create_app'
 import { patchSetAttribute } from './source/patch'
 import microApp from './micro_app'
@@ -296,7 +296,7 @@ export function defineElement (tagName: string): void {
     // create app instance
     private handleCreateApp (): void {
       /**
-       * actions for destory old app
+       * actions for destroy old app
        * fix of unmounted umd app with disableSandbox
        */
       if (appInstanceMap.has(this.appName)) {
@@ -324,7 +324,7 @@ export function defineElement (tagName: string): void {
      * unmount app
      * @param destroy delete cache resources when unmount
      */
-    private handleUnmount (destroy: boolean, unmountcb?: CallableFunction): void {
+    private handleUnmount (destroy: boolean, unmountCb?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
@@ -332,7 +332,7 @@ export function defineElement (tagName: string): void {
       ) {
         app.unmount(
           destroy,
-          unmountcb,
+          unmountCb,
         )
       }
     }

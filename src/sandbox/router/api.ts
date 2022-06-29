@@ -34,7 +34,7 @@ import { navigateWithNativeEvent } from './history'
 export interface RouterApi {
   router: Router,
   executeNavigationGuard: (appName: string, to: GuardLocation, from: GuardLocation) => void
-  clearCurrentWhenUnmount: (appName: string) => void
+  clearRouterWhenUnmount: (appName: string) => void
 }
 
 function createRouterApi (): RouterApi {
@@ -170,7 +170,7 @@ function createRouterApi (): RouterApi {
     })
   }
 
-  function clearCurrentWhenUnmount (appName: string): void {
+  function clearRouterWhenUnmount (appName: string): void {
     router.current.delete(appName)
   }
 
@@ -218,12 +218,12 @@ function createRouterApi (): RouterApi {
   return {
     router,
     executeNavigationGuard,
-    clearCurrentWhenUnmount,
+    clearRouterWhenUnmount,
   }
 }
 
 export const {
   router,
   executeNavigationGuard,
-  clearCurrentWhenUnmount,
+  clearRouterWhenUnmount,
 } = createRouterApi()
