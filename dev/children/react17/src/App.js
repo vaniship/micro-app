@@ -4,7 +4,7 @@ import './App.css';
 
 function App() {
   const testClick = () => {
-    console.log(444444444)
+    console.log('react17: test click')
   }
   return (
     <div className="App">

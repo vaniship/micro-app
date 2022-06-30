@@ -67,7 +67,7 @@ export type proxyWindow = WindowProxy & MicroAppWindowDataType
 
 // Variables that can escape to rawWindow
 const staticEscapeProperties: PropertyKey[] = [
-  '__REACT_ERROR_OVERLAY_GLOBAL_HOOK__', // child react in non-react parent
+  '__REACT_ERROR_OVERLAY_GLOBAL_HOOK__', // react child in non-react env
   'System',
   '__cjsWrapper',
 ]
@@ -348,7 +348,8 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow.rawDocument = globalEnv.rawDocument
     microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
     this.setMappingPropertiesWithRawDescriptor(microAppWindow)
-    this.setHijackProperties(microAppWindow, appName, url)
+    this.setHijackProperties(microAppWindow, appName)
+    // this.patchHijackRequest(microAppWindow, appName, url)
     if (useMemoryRouter) this.setRouterApi(microAppWindow, appName, url)
   }
 
@@ -397,30 +398,8 @@ export default class SandBox implements SandBoxInterface {
   }
 
   // set hijack Properties to microAppWindow
-  private setHijackProperties (microAppWindow: microAppWindowType, appName: string, url: string): void {
+  private setHijackProperties (microAppWindow: microAppWindowType, appName: string): void {
     let modifiedEval: unknown, modifiedImage: unknown
-    function EventSource (...rests: any[]) {
-      // console.log('EventSource', rests)
-      if (typeof rests[0] === 'string') {
-        rests[0] = (new URL(rests[0], url)).toString()
-      }
-      return new globalEnv.rawWindow.EventSource(rests)
-    }
-    function fetch (...rests: any[]) {
-      // console.log('fetch', rests)
-      if (typeof rests[0] === 'string') {
-        rests[0] = (new URL(rests[0], url)).toString()
-      }
-      return globalEnv.rawWindow.fetch(rests)
-    }
-    const rawXMLHttpRequest = globalEnv.rawWindow.XMLHttpRequest
-    class XMLHttpRequest extends rawXMLHttpRequest {
-      open (method: string, reqUrl: string) {
-        // console.log('XMLHttpRequest', method, reqUrl)
-        reqUrl = (new URL(reqUrl, url)).toString()
-        super.open(method, reqUrl)
-      }
-    }
     rawDefineProperties(microAppWindow, {
       document: {
         configurable: false,
@@ -452,38 +431,66 @@ export default class SandBox implements SandBoxInterface {
           modifiedImage = value
         },
       },
-      EventSource: {
-        configurable: true,
-        enumerable: false,
-        get () {
-          return EventSource
-        },
-        set: (value) => {
-          modifiedImage = value
-        },
-      },
-      fetch: {
-        configurable: true,
-        enumerable: false,
-        get () {
-          return fetch
-        },
-        set: (value) => {
-          modifiedImage = value
-        },
-      },
-      XMLHttpRequest: {
-        configurable: true,
-        enumerable: false,
-        get () {
-          return XMLHttpRequest
-        },
-        set: (value) => {
-          modifiedImage = value
-        },
-      },
     })
   }
+
+  // private patchHijackRequest (microAppWindow: microAppWindowType, appName: string, url: string) {
+  //   let modifiedImage: unknown
+  //   function EventSource (...rests: any[]) {
+  //     console.log(appName + ' EventSource', rests)
+  //     if (typeof rests[0] === 'string') {
+  //       rests[0] = (new URL(rests[0], url)).toString()
+  //     }
+  //     return new globalEnv.rawWindow.EventSource(...rests)
+  //   }
+  //   function patchFetch (...rests: any[]) {
+  //     console.log(appName + ' fetch', rests)
+  //     if (typeof rests[0] === 'string') {
+  //       rests[0] = (new URL(rests[0], url)).toString()
+  //     }
+  //     return globalEnv.rawWindow.fetch(...rests)
+  //   }
+  //   const rawXMLHttpRequest = globalEnv.rawWindow.XMLHttpRequest
+  //   class XMLHttpRequest extends rawXMLHttpRequest {
+  //     open (method: string, reqUrl: string) {
+  //       console.log(appName + ' XMLHttpRequest', method, reqUrl)
+  //       reqUrl = (new URL(reqUrl, url)).toString()
+  //       super.open(method, reqUrl)
+  //     }
+  //   }
+  //   rawDefineProperties(microAppWindow, {
+  //     EventSource: {
+  //       configurable: true,
+  //       enumerable: true,
+  //       get () {
+  //         return EventSource
+  //       },
+  //       set: (value) => {
+  //         modifiedImage = value
+  //       },
+  //     },
+  //     fetch: {
+  //       configurable: true,
+  //       enumerable: true,
+  //       get () {
+  //         return patchFetch
+  //       },
+  //       set: (value) => {
+  //         modifiedImage = value
+  //       },
+  //     },
+  //     XMLHttpRequest: {
+  //       configurable: true,
+  //       enumerable: true,
+  //       get () {
+  //         return XMLHttpRequest
+  //       },
+  //       set: (value) => {
+  //         modifiedImage = value
+  //       },
+  //     },
+  //   })
+  // }
 
   // set location & history for memory router
   private setRouterApi (microAppWindow: microAppWindowType, appName: string, url: string): void {
