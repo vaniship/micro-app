@@ -24,6 +24,20 @@ declare module '@micro-app/types' {
     removeRouteInfoForKeepAliveApp (): void
   }
 
+  interface SandBoxAdapter {
+    // Variables that can only assigned to rawWindow
+    escapeSetterKeyList: PropertyKey[]
+
+    // Variables that can escape to rawWindow
+    staticEscapeProperties: PropertyKey[]
+
+    // Variables that scoped in child app
+    staticScopeProperties: PropertyKey[]
+
+    // adapter for react
+    // injectReactHRMProperty (): void
+  }
+
   type sourceLinkInfo = {
     code: string // code
     placeholder?: Comment | null // placeholder comment

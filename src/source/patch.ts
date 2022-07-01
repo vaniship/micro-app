@@ -16,6 +16,7 @@ import { extractLinkFromHtml, formatDynamicLink } from './links'
 import { extractScriptElement, runScript, runDynamicRemoteScript } from './scripts'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
+import { fixReactHMRConflict } from '../sandbox/adapter'
 
 // Record element and map element
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
@@ -125,6 +126,15 @@ function invokePrototypeMethod (
         return rawMethod.call(parent, targetChild)
       }
       return targetChild
+    }
+
+    // TODO: __DEV__
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      targetChild instanceof HTMLIFrameElement &&
+      rawMethod === globalEnv.rawAppendChild
+    ) {
+      fixReactHMRConflict(app)
     }
 
     return invokeRawMethod(rawMethod, hijackElement, targetChild, passiveChild)
