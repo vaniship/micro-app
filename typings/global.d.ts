@@ -15,7 +15,7 @@ declare module '@micro-app/types' {
       useMemoryRouter: boolean,
       defaultPage: string,
     ): void
-    stop (keepRouteState: boolean): void
+    stop (keepRouteState: boolean, clearEventSource: boolean): void
     // record umd snapshot before the first execution of umdHookMount
     recordUmdSnapshot (): void
     // rebuild umd snapshot before remount umd app

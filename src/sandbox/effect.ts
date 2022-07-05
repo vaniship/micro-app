@@ -152,8 +152,7 @@ export function releaseEffectDocumentEvent (): void {
  * Rewrite side-effect events
  * @param microAppWindow micro window
  */
-export default function effect (microAppWindow: microAppWindowType): Record<string, CallableFunction> {
-  const appName = microAppWindow.__MICRO_APP_NAME__
+export default function effect (appName: string, microAppWindow: microAppWindowType): Record<string, CallableFunction> {
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const intervalIdMap = new Map<number, timeInfo>()
   const timeoutIdMap = new Map<number, timeInfo>()

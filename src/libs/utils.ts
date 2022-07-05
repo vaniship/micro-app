@@ -127,7 +127,7 @@ export function defer (fn: Func, ...args: unknown[]): void {
 /**
  * create URL as MicroLocation
  */
-export const createURL = (function (): (p: string | URL, b?: string) => MicroLocation {
+export const createURL = (function (): (path: string | URL, base?: string) => MicroLocation {
   class Location extends URL {}
   return (path: string | URL, base?: string): MicroLocation => {
     return (base ? new Location('' + path, base) : new Location('' + path)) as MicroLocation
@@ -139,7 +139,7 @@ export const createURL = (function (): (p: string | URL, b?: string) => MicroLoc
  * @param url address
  */
 export function addProtocol (url: string): string {
-  return url.startsWith('//') ? `${location.protocol}${url}` : url
+  return url.startsWith('//') ? `${globalThis.location.protocol}${url}` : url
 }
 
 /**
@@ -244,23 +244,14 @@ export function promiseStream <T> (
   promiseList.forEach((p, i) => {
     if (isPromise(p)) {
       (p as Promise<T>).then((res: T) => {
-        successCb({
-          data: res,
-          index: i,
-        })
+        successCb({ data: res, index: i })
         isFinished()
       }).catch((err: Error) => {
-        errorCb({
-          error: err,
-          index: i,
-        })
+        errorCb({ error: err, index: i })
         isFinished()
       })
     } else {
-      successCb({
-        data: p,
-        index: i,
-      })
+      successCb({ data: p, index: i })
       isFinished()
     }
   })

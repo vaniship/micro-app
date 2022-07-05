@@ -311,8 +311,16 @@ export default class CreateApp implements AppInterface {
       cloneContainer(this.container as Element, this.source.html as Element, false)
     }
 
-    // this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
-    this.sandBox?.stop(this.keepRouteState && !destroy)
+    /**
+     * this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
+     * NOTE:
+     * 1. if destroy is true, clear route state
+     * 2. umd mode and keep-alive will not clear EventSource
+     */
+    this.sandBox?.stop(
+      this.keepRouteState && !destroy,
+      !this.umdMode || destroy,
+    )
     if (!getActiveApps().length) {
       releasePatchSetAttribute()
     }

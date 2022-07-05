@@ -42,6 +42,11 @@ export default class Adapter implements SandBoxAdapter {
   }
 }
 
+// Fix conflict of babel-polyfill@6.x
+export function fixBabelPolyfill6 (): void {
+  if (globalEnv.rawWindow._babelPolyfill) globalEnv.rawWindow._babelPolyfill = false
+}
+
 /**
  * Fix error of hot reload when parent&child created by create-react-app in development environment
  * Issue: https://github.com/micro-zoe/micro-app/issues/382
