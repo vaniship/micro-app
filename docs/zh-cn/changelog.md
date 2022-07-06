@@ -8,13 +8,46 @@
 
 ---
 
-### 1.0.0-beta.1
+### 1.0.0-alpha.1
 
-`2022-03-30`
+`2022-07-06`
 
 - **New**
 
-  - 🆕 新增了独立的路由系统 - `MemoryRouter`，简化接入步骤。
+  - 🆕 新增了`proxyRequest`，用于拦截fetch、XMLHttpRequest、EventSource请求并进行处理。
+
+- **Bug Fix**
+
+  - 🐞 修复了通过`create-react-app`创建的react应用热更新时报错的问题。
+  - 🐞 修复了子应用执行`pushState/replaceState`时`popStateEvent`事件异常触发的问题。
+
+- **Update**
+
+  - 🚀 优化了资源加载相关代码和逻辑。
+
+
+### 0.8.6
+
+`2022-06-30`
+
+- **New**
+
+  - 🆕 在 plugin 中增加 excludeChecker 和 ignoreChecker 用于主应用主动忽略子应用部分 script 和 link。
+  - 🆕 新增了`processHtml`，用于在插件中处理html。
+
+- **Update**
+
+  - 🚀 优化了资源加载相关代码和逻辑。
+  - 🚀 优化了单元测试相关代码。
+
+
+### 1.0.0-alpha.0
+
+`2022-06-30`
+
+- **New**
+
+  - 🆕 新增了独立的路由系统 - `MemoryRouter`，完善JS沙箱。
 
 - **Bug Fix**
 
