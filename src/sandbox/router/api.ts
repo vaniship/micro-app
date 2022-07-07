@@ -29,7 +29,7 @@ import {
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
 import globalEnv from '../../libs/global_env'
-import { navigateWithNativeEvent } from './history'
+import { navigateWithNativeEvent, attachRouteToBrowserURL } from './history'
 
 export interface RouterApi {
   router: Router,
@@ -75,10 +75,11 @@ function createRouterApi (): RouterApi {
   function createNavigationMethod (replace: boolean): navigationMethod {
     return function (to: RouterTarget): void {
       const appName = formatAppName(to.name)
-      // console.log(3333333, appInstanceMap.get(appName))
       if (appName && isString(to.path)) {
         const app = appInstanceMap.get(appName)
-        if (app && !app.sandBox) return logError(`navigation failed, sandBox of app ${appName} is closed`)
+        if (app && (!app.sandBox || !app.useMemoryRouter)) {
+          return logError(`navigation failed, memory router of app ${appName} is closed`)
+        }
         // active apps, include hidden keep-alive app
         if (getActiveApps().includes(appName)) {
           const microLocation = app!.sandBox!.proxyWindow.location as MicroLocation
@@ -178,7 +179,7 @@ function createRouterApi (): RouterApi {
   const defaultPageRecord = useMapRecord<string>()
 
   /**
-   * defaultPage只在子应用初始化时生效，且优先级比浏览器上的子应用路由地址低
+   * defaultPage only effect when mount, and has lower priority than query on browser url
    * @param appName app name
    * @param path page path
    */
@@ -196,6 +197,55 @@ function createRouterApi (): RouterApi {
     return defaultPageRecord.delete(appName)
   }
 
+  /**
+   * NOTE:
+   * 1. sandbox not open
+   * 2. useMemoryRouter is false
+   */
+  function commonHandlerForAttachToURL (appName: string): void {
+    const app = appInstanceMap.get(appName)!
+    if (app.sandBox && app.useMemoryRouter) {
+      attachRouteToBrowserURL(
+        setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
+        setMicroState(
+          appName,
+          globalEnv.rawWindow.history.state,
+          null,
+        ),
+      )
+    }
+  }
+
+  /**
+   * Attach specified active app router info to browser url
+   * @param appName app name
+   */
+  function attachToURL (appName: string): void {
+    appName = formatAppName(appName)
+    if (appName && getActiveApps().includes(appName)) {
+      commonHandlerForAttachToURL(appName)
+    }
+  }
+
+  /**
+   * Attach all active app router info to browser url
+   */
+  function attachAllToURL (): void {
+    getActiveApps().forEach(appName => commonHandlerForAttachToURL(appName))
+  }
+
+  /**
+   * Record base app router, let child app control base app navigation
+   */
+  let baseRouterInstance: unknown = null
+  function setBaseAppRouter (baseRouter: unknown): void {
+    baseRouterInstance = baseRouter
+  }
+
+  function getBaseAppRouter (): unknown {
+    return baseRouterInstance
+  }
+
   // Router API for developer
   const router: Router = {
     current: new Map<string, MicroLocation>(),
@@ -208,11 +258,13 @@ function createRouterApi (): RouterApi {
     forward: createRawHistoryMethod('forward'),
     beforeEach: beforeGuards.add,
     afterEach: afterGuards.add,
-    // attachToURL: 将指定的子应用路由信息添加到浏览器地址上
-    // attachAllToURL: 将所有正在运行的子应用路由信息添加到浏览器地址上
     setDefaultPage,
     removeDefaultPage,
     getDefaultPage: defaultPageRecord.get,
+    attachToURL,
+    attachAllToURL,
+    setBaseAppRouter,
+    getBaseAppRouter,
   }
 
   return {

@@ -17,7 +17,7 @@ import {
 } from './location'
 import {
   createMicroHistory,
-  updateBrowserURL,
+  attachRouteToBrowserURL,
   rewriteHistoryState,
 } from './history'
 import { createURL } from '../../libs/utils'
@@ -68,7 +68,7 @@ export function updateBrowserURLWithLocation (
   // update microLocation with defaultPage
   if (defaultPage) updateMicroLocation(appName, defaultPage, microLocation, 'prevent')
   // attach microApp route info to browser URL
-  updateBrowserURL(
+  attachRouteToBrowserURL(
     setMicroPathToURL(appName, microLocation),
     setMicroState(
       appName,
@@ -106,7 +106,7 @@ export function clearRouteStateFromURL (
  * called on sandbox.stop or hidden of keep-alive app
  */
 export function removeStateAndPathFromBrowser (appName: string): void {
-  updateBrowserURL(
+  attachRouteToBrowserURL(
     removeMicroPathFromURL(appName),
     removeMicroState(appName, globalEnv.rawWindow.history.state),
   )

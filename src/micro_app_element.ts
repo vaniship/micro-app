@@ -409,7 +409,7 @@ export function defineElement (tagName: string): void {
      */
     private updateSsrUrl (baseUrl: string): void {
       if (this.getDisposeResult('ssr')) {
-        if (this.getDisposeResult('disable-memory-router')) {
+        if (this.getDisposeResult('disable-memory-router') || this.getDisposeResult('disableSandbox')) {
           const rawLocation = globalEnv.rawWindow.location
           this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)
         } else {

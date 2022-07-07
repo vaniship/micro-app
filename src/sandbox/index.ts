@@ -11,9 +11,7 @@ import {
   recordDataCenterSnapshot,
 } from '../interact'
 import globalEnv from '../libs/global_env'
-import {
-  listenUmountOfNestedApp,
-} from '../libs/nest_app'
+import { initEnvOfNestedApp } from '../libs/nest_app'
 import {
   getEffectivePath,
   isArray,
@@ -134,7 +132,7 @@ export default class SandBox implements SandBoxInterface {
       if (++SandBox.activeCount === 1) {
         effectDocumentEvent()
         patchElementPrototypeMethods()
-        listenUmountOfNestedApp()
+        initEnvOfNestedApp()
       }
 
       fixBabelPolyfill6()

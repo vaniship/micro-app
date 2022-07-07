@@ -7,6 +7,8 @@ declare module '@micro-app/types' {
 
   type microAppWindowType = Window & any
 
+  type appName = string
+
   interface SandBoxInterface {
     proxyWindow: WindowProxy
     microAppWindow: Window // Proxy target
@@ -339,10 +341,38 @@ declare module '@micro-app/types' {
      * @param guard global hook for
      */
     afterEach(guard: RouterGuard): () => boolean
-
+    /**
+     * Add defaultPage to control the first rendered page
+     * @param appName app name
+     * @param path default page path
+     */
     setDefaultPage(appName: string, path: string): () => boolean
+    /**
+     * Clear data of defaultPage that set by setDefaultPage
+     */
     removeDefaultPage(appName: string): boolean
+    /**
+     * Get defaultPage that set by setDefaultPage
+     */
     getDefaultPage(key: PropertyKey): string | undefined
+    /**
+     * Attach specified active app router info to browser url
+     */
+    attachToURL(appName: string): void
+    /**
+     * Attach all active app router info to browser url
+     */
+    attachAllToURL(): void
+    /**
+     * Record base app router, let child app control base app navigation
+     * It is global data
+     * @param baseRouter router instance of base app
+     */
+    setBaseAppRouter(baseRouter: unknown): void
+    /**
+     * get baseRouter from cache
+     */
+    getBaseAppRouter(): unknown
   }
 
   // result of add/remove microApp path on browser url

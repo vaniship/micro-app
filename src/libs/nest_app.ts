@@ -19,7 +19,7 @@ function releaseUnmountOfNestedApp (): void {
 
 // if micro-app run in micro application, delete all next generation application when unmount event received
 // unmount event will auto release by sandbox
-export function listenUmountOfNestedApp (): void {
+export function initEnvOfNestedApp (): void {
   if (window.__MICRO_APP_ENVIRONMENT__) {
     releaseUnmountOfNestedApp()
     window.addEventListener('unmount', unmountNestedApp, false)

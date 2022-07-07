@@ -133,7 +133,7 @@ export default class App extends React.Component {
     this.setState({
       testNum: this.state.testNum + 1,
     })
-    // console.log(33333, this.props.history)
+    console.log(33333, this.props.history)
   }
 
   jumpToHome = () => {
@@ -166,6 +166,14 @@ export default class App extends React.Component {
     // setTimeout(() => {
     //   microApp.router.current.get('react16').assign('?b=222')
     // }, 3000);
+  }
+
+  useRouterAttachToURL = () => {
+    microApp.router.attachToURL(this.state.name)
+  }
+
+  useRouterAttachAllToURL = () => {
+    microApp.router.attachAllToURL()
   }
 
   handleGlobalDataForBaseApp = (data) => {
@@ -204,6 +212,8 @@ export default class App extends React.Component {
         console.log('指定 afterEach: ', to, from)
       }
     })
+
+    microApp.router.setBaseAppRouter(this.props.history)
   }
 
   componentWillUnmount ()  {
@@ -234,6 +244,8 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.useRouterBack}>基座调用router.back</Button>
             <Button type="primary" onClick={this.useRouterForward}>基座调用router.forward</Button>
             <Button type="primary" onClick={this.useCurrentRoute}>基座调用router.current</Button>
+            <Button type="primary" onClick={this.useRouterAttachToURL}>基座调用router.attachToURL</Button>
+            <Button type="primary" onClick={this.useRouterAttachAllToURL}>基座调用router.attachAllToURL</Button>
             <Button type="primary" onClick={this.changeTestNum}>{this.state.testNum}</Button>
           </Col>
           <Col span={18} className='app-con-react16'>

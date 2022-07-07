@@ -81,7 +81,7 @@ export function nativeHistoryNavigate (
 /**
  * Navigate to new path, and dispatch native popStateEvent/hashChangeEvent to browser
  * Use scenes:
- * 1. mount/unmount through updateBrowserURL with limited popstateEvent
+ * 1. mount/unmount through attachRouteToBrowserURL with limited popstateEvent
  * 2. proxyHistory.pushState/replaceState with limited popstateEvent
  * 3. api microApp.router.push/replace
  * 4. proxyLocation.hash = xxx
@@ -107,11 +107,12 @@ export function navigateWithNativeEvent (
 }
 
 /**
- * update browser url when mount/unmount/hidden/show
+ * update browser url when mount/unmount/hidden/show/attachToURL/attachAllToURL
+ * just attach microRoute info to browser, dispatch event to base app(exclude child)
  * @param result result of add/remove microApp path on browser url
  * @param state history.state
  */
-export function updateBrowserURL (
+export function attachRouteToBrowserURL (
   result: HandleMicroPathResult,
   state: MicroState,
 ): void {
