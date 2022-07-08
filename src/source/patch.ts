@@ -202,7 +202,6 @@ function commonElementHandler (
     } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
       return rawMethod.call(parent, newChild)
     }
-    return rawMethod.call(parent, newChild, passiveChild)
   } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
     const appName = getCurrentAppName()
     if (!(newChild instanceof Node) && appName) {
@@ -269,7 +268,11 @@ export function patchElementPrototypeMethods (): void {
           getMappingNode(oldChild),
         )
       }
-      return globalEnv.rawRemoveChild.call(this, oldChild) as T
+      try {
+        return globalEnv.rawRemoveChild.call(this, oldChild) as T
+      } catch {
+        return oldChild?.parentNode?.removeChild(oldChild) as T
+      }
     }
 
     return globalEnv.rawRemoveChild.call(this, oldChild) as T

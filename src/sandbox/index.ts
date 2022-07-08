@@ -28,7 +28,7 @@ import {
   assign,
 } from '../libs/utils'
 import microApp from '../micro_app'
-import bindFunctionToRawWindow from './bind_function'
+import bindFunctionToRawObject from './bind_function'
 import effect, {
   effectDocumentEvent,
   releaseEffectDocumentEvent,
@@ -126,7 +126,7 @@ export default class SandBox implements SandBoxInterface {
       this.initGlobalKeysWhenStart(
         this.microAppWindow,
         this.proxyWindow.__MICRO_APP_NAME__,
-        this.proxyWindow.__MICRO_APP_URL__
+        this.proxyWindow.__MICRO_APP_URL__,
       )
 
       if (++SandBox.activeCount === 1) {
@@ -245,7 +245,7 @@ export default class SandBox implements SandBoxInterface {
 
         const rawValue = Reflect.get(rawWindow, key)
 
-        return isFunction(rawValue) ? bindFunctionToRawWindow(rawWindow, rawValue) : rawValue
+        return isFunction(rawValue) ? bindFunctionToRawObject(rawWindow, rawValue) : rawValue
       },
       set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
         if (this.active) {
@@ -427,13 +427,15 @@ export default class SandBox implements SandBoxInterface {
   // set hijack Properties to microAppWindow
   private setHijackProperties (microAppWindow: microAppWindowType, appName: string): void {
     let modifiedEval: unknown, modifiedImage: unknown
+    const proxyDocument = this.createProxyDocument(appName)
     rawDefineProperties(microAppWindow, {
       document: {
         configurable: true,
         enumerable: true,
         get () {
           throttleDeferForSetAppName(appName)
-          return globalEnv.rawDocument
+          // return globalEnv.rawDocument
+          return proxyDocument
         },
       },
       eval: {
@@ -551,5 +553,27 @@ export default class SandBox implements SandBoxInterface {
 
   public removeRouteInfoForKeepAliveApp (): void {
     removeStateAndPathFromBrowser(this.proxyWindow.__MICRO_APP_NAME__)
+  }
+
+  private createProxyDocument (appName: string) {
+    const rawDocument = globalEnv.rawDocument
+    const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
+      const element = globalEnv.rawCreateElement.call(rawDocument, tagName, options)
+      element.__MICRO_APP_NAME__ = appName
+      return element
+    }
+
+    // @ts-ignore
+    const proxyDocument = new Proxy(rawDocument, {
+      get (_target: Document, p: string | symbol): unknown {
+        if (p === 'createElement') {
+          return createElement
+        }
+        const rawValue = Reflect.get(rawDocument, p)
+        return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
+      },
+    })
+
+    return proxyDocument
   }
 }
