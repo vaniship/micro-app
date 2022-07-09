@@ -63,3 +63,26 @@ export function fixReactHMRConflict (app: AppInterface): void {
     }
   }
 }
+
+/**
+ * reDefine parentNode of html
+ * Scenes:
+ *  1. element-ui popover.js
+ *     if (html.parentNode === document) ...
+ */
+export function throttleDeferForParentNode (proxyDocument: Document): void {
+  const html = globalEnv.rawDocument.firstElementChild
+  if (html && html.parentNode !== proxyDocument) {
+    setRootParentNode(html, proxyDocument)
+    defer(() => {
+      setRootParentNode(html, globalEnv.rawDocument)
+    })
+  }
+}
+
+export function setRootParentNode (root: Element, value: Document): void {
+  Object.defineProperty(root, 'parentNode', {
+    value,
+    configurable: true,
+  })
+}

@@ -2,12 +2,15 @@ import './public-path'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import ElementPlus from 'element-plus'
+import Antd from 'ant-design-vue';
 import 'element-plus/dist/index.css'
+import 'ant-design-vue/dist/antd.css';
 import routes from './router'
 import App from './App.vue'
 
 // const app = createApp(App)
 // app.use(ElementPlus)
+// app.use(Antd)
 // app.use(router)
 // app.mount('#app')
 
@@ -33,6 +36,7 @@ function mount () {
 
   app = createApp(App)
   app.use(ElementPlus)
+  app.use(Antd)
   app.use(router)
   app.mount('#app')
 

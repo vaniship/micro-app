@@ -189,7 +189,15 @@ function commonElementHandler (
   passiveChild: Node | null,
   rawMethod: Func,
 ) {
-  if (newChild?.__MICRO_APP_NAME__) {
+  const appName = getCurrentAppName()
+  if (
+    newChild instanceof Node &&
+    (
+      newChild.__MICRO_APP_NAME__ ||
+      (appName && !newChild.__PURE_ELEMENT__)
+    )
+  ) {
+    newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || appName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
     if (app?.container) {
       return invokePrototypeMethod(
@@ -203,7 +211,6 @@ function commonElementHandler (
       return rawMethod.call(parent, newChild)
     }
   } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
-    const appName = getCurrentAppName()
     if (!(newChild instanceof Node) && appName) {
       const app = appInstanceMap.get(appName)
       if (app?.container) {

@@ -277,6 +277,7 @@ export default class App extends React.Component {
                   // disableScopecss
                   // disable-scopecss
                   // macro
+                  // shadowDOM
                 >
                 </micro-app>
               )

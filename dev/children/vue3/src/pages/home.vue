@@ -4,8 +4,11 @@
     <HelloWorld msg="Welcome to Vue@3.0.7"/>
     <div class='msg-title'>{{microDataStr}}</div>
     <el-row justify="center">
-      <router-link to="/page2">
+      <router-link to="/element-plus">
         <el-button type="primary" plain>跳转element-plus</el-button>
+      </router-link>&emsp;
+      <router-link to="/ant-design-vue">
+        <el-button type="primary" plain>跳转ant-design-vue</el-button>
       </router-link>
     </el-row>
     <br>

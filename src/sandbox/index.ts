@@ -45,9 +45,19 @@ import createMicroRouter, {
   updateBrowserURLWithLocation,
   router,
 } from './router'
-import Adapter, { fixBabelPolyfill6 } from './adapter'
-import { createMicroFetch, useMicroEventSource, createMicroXMLHttpRequest } from './request'
-export { router, getNoHashMicroPathFromURL } from './router'
+import Adapter, {
+  fixBabelPolyfill6,
+  throttleDeferForParentNode,
+} from './adapter'
+import {
+  createMicroFetch,
+  useMicroEventSource,
+  createMicroXMLHttpRequest,
+} from './request'
+export {
+  router,
+  getNoHashMicroPathFromURL,
+} from './router'
 
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean,
@@ -236,7 +246,6 @@ export default class SandBox implements SandBoxInterface {
     return new Proxy(this.microAppWindow, {
       get: (target: microAppWindowType, key: PropertyKey): unknown => {
         throttleDeferForSetAppName(appName)
-
         if (
           Reflect.has(target, key) ||
           (isString(key) && /^__MICRO_APP_/.test(key)) ||
@@ -360,24 +369,22 @@ export default class SandBox implements SandBoxInterface {
       pureCreateElement,
       router,
     })
+    this.setProxyDocument(microAppWindow, appName)
     this.setMappingPropertiesWithRawDescriptor(microAppWindow)
     if (useMemoryRouter) this.setMicroAppRouter(microAppWindow, appName, url)
   }
 
-  /**
-   * init global properties of microAppWindow when exec sandBox.start
-   * @param microAppWindow micro window
-   * @param appName app name
-   * @param url app url
-   */
-  private initGlobalKeysWhenStart (
-    microAppWindow: microAppWindowType,
-    appName: string,
-    url: string,
-  ): void {
-    microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
-    this.setHijackProperties(microAppWindow, appName)
-    this.patchHijackRequest(microAppWindow, appName, url)
+  private setProxyDocument (microAppWindow: microAppWindowType, appName: string): void {
+    const proxyDocument = this.createProxyDocument(appName)
+    rawDefineProperty(microAppWindow, 'document', {
+      configurable: false,
+      enumerable: true,
+      get () {
+        throttleDeferForSetAppName(appName)
+        // return globalEnv.rawDocument
+        return proxyDocument
+      },
+    })
   }
 
   // properties associated with the native window
@@ -424,20 +431,26 @@ export default class SandBox implements SandBoxInterface {
     return descriptor
   }
 
+  /**
+   * init global properties of microAppWindow when exec sandBox.start
+   * @param microAppWindow micro window
+   * @param appName app name
+   * @param url app url
+   */
+  private initGlobalKeysWhenStart (
+    microAppWindow: microAppWindowType,
+    appName: string,
+    url: string,
+  ): void {
+    microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
+    this.setHijackProperty(microAppWindow, appName)
+    this.patchRequestApi(microAppWindow, appName, url)
+  }
+
   // set hijack Properties to microAppWindow
-  private setHijackProperties (microAppWindow: microAppWindowType, appName: string): void {
+  private setHijackProperty (microAppWindow: microAppWindowType, appName: string): void {
     let modifiedEval: unknown, modifiedImage: unknown
-    const proxyDocument = this.createProxyDocument(appName)
     rawDefineProperties(microAppWindow, {
-      document: {
-        configurable: true,
-        enumerable: true,
-        get () {
-          throttleDeferForSetAppName(appName)
-          // return globalEnv.rawDocument
-          return proxyDocument
-        },
-      },
       eval: {
         configurable: true,
         enumerable: false,
@@ -464,7 +477,7 @@ export default class SandBox implements SandBoxInterface {
   }
 
   // rewrite fetch, XMLHttpRequest, EventSource
-  private patchHijackRequest (microAppWindow: microAppWindowType, appName: string, url: string): void {
+  private patchRequestApi (microAppWindow: microAppWindowType, appName: string, url: string): void {
     let microFetch = createMicroFetch(url)
     let microXMLHttpRequest = createMicroXMLHttpRequest(url)
     let microEventSource = createMicroEventSource(appName, url)
@@ -555,22 +568,22 @@ export default class SandBox implements SandBoxInterface {
     removeStateAndPathFromBrowser(this.proxyWindow.__MICRO_APP_NAME__)
   }
 
-  private createProxyDocument (appName: string) {
-    const rawDocument = globalEnv.rawDocument
-    const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
-      const element = globalEnv.rawCreateElement.call(rawDocument, tagName, options)
-      element.__MICRO_APP_NAME__ = appName
-      return element
-    }
+  private createProxyDocument (appName: string): Document {
+    // const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
+    //   const element = globalEnv.rawCreateElement.call(globalEnv.rawDocument, tagName, options)
+    //   element.__MICRO_APP_NAME__ = appName
+    //   return element
+    // }
 
-    // @ts-ignore
-    const proxyDocument = new Proxy(rawDocument, {
-      get (_target: Document, p: string | symbol): unknown {
-        if (p === 'createElement') {
-          return createElement
-        }
-        const rawValue = Reflect.get(rawDocument, p)
-        return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
+    const proxyDocument = new Proxy(globalEnv.rawDocument, {
+      get (target: Document, key: PropertyKey): unknown {
+        throttleDeferForSetAppName(appName)
+        throttleDeferForParentNode(proxyDocument)
+        // if (key === 'createElement') {
+        //   return createElement
+        // }
+        const rawValue = Reflect.get(target, key)
+        return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'DOCUMENT') : rawValue
       },
     })
 

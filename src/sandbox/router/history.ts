@@ -10,6 +10,7 @@ import { isString, createURL, isPlainObject, isURL, assign, isFunction } from '.
 import { setMicroPathToURL, setMicroState, getMicroState } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
+import bindFunctionToRawObject from '../bind_function'
 
 /**
  * create proxyHistory for microApp
@@ -19,12 +20,9 @@ import { updateMicroLocation } from './location'
  */
 export function createMicroHistory (appName: string, microLocation: MicroLocation): MicroHistory {
   const rawHistory = globalEnv.rawWindow.history
-  function getMicroHistoryMethod (methodName: PropertyKey): CallableFunction {
+  function getMicroHistoryMethod (methodName: string): CallableFunction {
     return function (...rests: unknown[]): void {
-      if (
-        (methodName === 'pushState' || methodName === 'replaceState') &&
-        (isString(rests[2]) || isURL(rests[2]))
-      ) {
+      if (isString(rests[2]) || isURL(rests[2])) {
         const targetLocation = createURL(rests[2], microLocation.href)
         if (targetLocation.origin === microLocation.origin) {
           navigateWithNativeEvent(
@@ -47,17 +45,20 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
     }
   }
 
+  const pushState = getMicroHistoryMethod('pushState')
+  const replaceState = getMicroHistoryMethod('replaceState')
+
   return new Proxy(rawHistory, {
     get (target: History, key: PropertyKey): HistoryProxyValue {
       if (key === 'state') {
         return getMicroState(appName, rawHistory.state)
-      } else if (isFunction(Reflect.get(target, key))) {
-        return getMicroHistoryMethod(key)
+      } else if (key === 'pushState') {
+        return pushState
+      } else if (key === 'replaceState') {
+        return replaceState
       }
-      return Reflect.get(target, key)
-    },
-    set (target: History, key: PropertyKey, value: unknown): boolean {
-      return Reflect.set(target, key, value)
+      const rawValue = Reflect.get(target, key)
+      return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'HISTORY') : rawValue
     }
   })
 }

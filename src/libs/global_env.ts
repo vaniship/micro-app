@@ -24,6 +24,7 @@ declare global {
 
   interface Node {
     __MICRO_APP_NAME__?: string | null
+    __PURE_ELEMENT__?: boolean
     data?: unknown
   }
 

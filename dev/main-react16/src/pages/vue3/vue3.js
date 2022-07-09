@@ -17,15 +17,19 @@ function Vue3 () {
     microApp.router.push({name: 'vue3', path: '/micro-app/vue3/'})
   }
 
-  function jumpToPage2 () {
-    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/page2'})
+  function jumpToElementPlus () {
+    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/element-plus'})
+  }
+  function jumpToAntDesignVue () {
+    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/ant-design-vue'})
   }
 
   return (
     <div>
-      <Col span={6} className='btn-con'>
+      <Col span={7} className='btn-con'>
         <Button type="primary" onClick={jumpToHome}>基座控制子应用跳转home</Button>
-        <Button type="primary" onClick={jumpToPage2}>基座控制子应用跳转page2</Button>
+        <Button type="primary" onClick={jumpToElementPlus}>基座控制子应用跳转element-plus</Button>
+        <Button type="primary" onClick={jumpToAntDesignVue}>基座控制子应用跳转ant-design-vue</Button>
       </Col>
       {
         showLoading && <Spin indicator={antIcon} />
