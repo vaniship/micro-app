@@ -5,6 +5,8 @@ import {
   isString,
   createURL,
   isURL,
+  removeDomScope,
+  isConstructor,
 } from '../libs/utils'
 
 /**
@@ -16,8 +18,8 @@ import {
  * @param target proxy target
  */
 export function createMicroFetch (url: string, target?: Window['fetch']): Window['fetch'] {
-  if (!isUndefined(target) && !isFunction(target)) return target
-  const rawFetch = target || globalEnv.rawWindow.fetch
+  const rawFetch = !isUndefined(target) ? target : globalEnv.rawWindow.fetch
+  if (!isFunction(rawFetch)) return rawFetch
   return function microFetch (
     input: RequestInfo | URL | string,
     init?: RequestInit,
@@ -26,6 +28,14 @@ export function createMicroFetch (url: string, target?: Window['fetch']): Window
     if (isString(input) || isURL(input)) {
       input = createURL(input, url).toString()
     }
+    /**
+     * When fetch rewrite by baseApp, domScope still active when exec rawWindow.fetch
+     * If baseApp operate dom in fetch, it will cause error
+     * The same for XMLHttpRequest, EventSource
+     * e.g.
+     * baseApp: <script crossorigin src="https://sgm-static.jd.com/sgm-2.8.0.js" name="SGMH5" sid="6f88a6e4ba4b4ae5acef2ec22c075085" appKey="jdb-adminb2b-pc"></script>
+     */
+    removeDomScope()
     return rawFetch.call(globalEnv.rawWindow, input, init, ...rests)
   }
 }
@@ -37,13 +47,14 @@ export function createMicroFetch (url: string, target?: Window['fetch']): Window
  * @param target proxy target
  */
 export function createMicroXMLHttpRequest (url: string, target?: XMLHttpRequest): any {
-  if (!isUndefined(target) && !isFunction(target)) return target
-  const rawXMLHttpRequest = target || globalEnv.rawWindow.XMLHttpRequest
+  const rawXMLHttpRequest = !isUndefined(target) ? target : globalEnv.rawWindow.XMLHttpRequest
+  if (!isConstructor(rawXMLHttpRequest)) return rawXMLHttpRequest
   return class MicroXMLHttpRequest extends rawXMLHttpRequest {
     open (method: string, reqUrl: string, ...rests: unknown[]): void {
       if ((isString(reqUrl) && !/^f(ile|tp):\/\//.test(reqUrl)) || isURL(reqUrl)) {
         reqUrl = createURL(reqUrl, url).toString()
       }
+      removeDomScope()
       super.open(method, reqUrl, ...rests)
     }
   }
@@ -70,8 +81,8 @@ export function useMicroEventSource (): EventSourceApi {
    * @param target proxy target
    */
   function createMicroEventSource (appName: string, url: string, target?: EventSource): any {
-    if (!isUndefined(target) && !isFunction(target)) return target
-    const rawEventSource = target || globalEnv.rawWindow.EventSource
+    const rawEventSource = !isUndefined(target) ? target : globalEnv.rawWindow.EventSource
+    if (!isConstructor(rawEventSource)) return rawEventSource
     return class MicroEventSource extends rawEventSource {
       constructor (
         eventSourceUrl: string | URL,
@@ -81,6 +92,7 @@ export function useMicroEventSource (): EventSourceApi {
         if (isString(eventSourceUrl) || isURL(eventSourceUrl)) {
           eventSourceUrl = createURL(eventSourceUrl, url).toString()
         }
+        removeDomScope()
         super(eventSourceUrl, eventSourceInitDict, ...rests)
 
         if (eventSourceMap) {

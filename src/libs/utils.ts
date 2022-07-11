@@ -66,8 +66,21 @@ export function isPromise (target: unknown): target is Promise<unknown> {
 }
 
 // is bind function
-export function isBoundFunction (target: unknown): target is Function {
+export function isBoundFunction (target: unknown): boolean {
   return isFunction(target) && target.name.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
+}
+
+export function isConstructor (target: unknown): boolean {
+  if (isFunction(target)) {
+    const targetStr = target.toString()
+    return (
+      target.prototype?.constructor === target &&
+      Object.getOwnPropertyNames(target.prototype).length > 1
+    ) ||
+      /^function\s+[A-Z]/.test(targetStr) ||
+      /^class\s+/.test(targetStr)
+  }
+  return false
 }
 
 // is ShadowRoot
