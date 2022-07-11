@@ -569,19 +569,17 @@ export default class SandBox implements SandBoxInterface {
   }
 
   private createProxyDocument (appName: string): Document {
-    // const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
-    //   const element = globalEnv.rawCreateElement.call(globalEnv.rawDocument, tagName, options)
-    //   element.__MICRO_APP_NAME__ = appName
-    //   return element
-    // }
+    const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
+      const element = globalEnv.rawCreateElement.call(globalEnv.rawDocument, tagName, options)
+      element.__MICRO_APP_NAME__ = appName
+      return element
+    }
 
     const proxyDocument = new Proxy(globalEnv.rawDocument, {
       get (target: Document, key: PropertyKey): unknown {
         throttleDeferForSetAppName(appName)
         throttleDeferForParentNode(proxyDocument)
-        // if (key === 'createElement') {
-        //   return createElement
-        // }
+        if (key === 'createElement') return createElement
         const rawValue = Reflect.get(target, key)
         return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'DOCUMENT') : rawValue
       },

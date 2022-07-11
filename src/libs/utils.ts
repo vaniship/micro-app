@@ -70,6 +70,7 @@ export function isBoundFunction (target: unknown): boolean {
   return isFunction(target) && target.name.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
 }
 
+// is constructor function
 export function isConstructor (target: unknown): boolean {
   if (isFunction(target)) {
     const targetStr = target.toString()
