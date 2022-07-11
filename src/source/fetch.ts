@@ -1,6 +1,5 @@
 import { isFunction, removeDomScope } from '../libs/utils'
 import microApp from '../micro_app'
-import globalEnv from '../libs/global_env'
 
 /**
  * fetch source of html, js, css
@@ -17,9 +16,10 @@ export function fetchSource (url: string, appName: string | null = null, options
    */
   removeDomScope()
   if (isFunction(microApp.fetch)) {
-    return microApp.fetch!(url, options, appName)
+    return microApp.fetch(url, options, appName)
   }
-  return globalEnv.rawWindow.fetch(url, options).then((res: Response) => {
+  // Don’t use globalEnv.rawWindow.fetch, will cause sgm-2.8.0.js throw error in nest app
+  return window.fetch(url, options).then((res: Response) => {
     return res.text()
   })
 }

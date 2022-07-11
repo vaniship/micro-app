@@ -1,67 +1,66 @@
 <template>
   <div class="ant-design-vue-con">
-    <div>
-      <div>日期选择器</div>
-      <a-space direction="vertical">
-        <a-date-picker>
-          <template #renderExtraFooter>extra footer</template>
-        </a-date-picker>
-        <a-date-picker show-time>
-          <template #renderExtraFooter>extra footer</template>
-        </a-date-picker>
-        <a-range-picker>
-          <template #renderExtraFooter>extra footer</template>
-        </a-range-picker>
-        <a-range-picker show-time>
-          <template #renderExtraFooter>extra footer</template>
-        </a-range-picker>
-        <a-date-picker placeholder="Select month" picker="month">
-          <template #renderExtraFooter>extra footer</template>
-        </a-date-picker>
-      </a-space>
-    </div>
-    <div>
-      <div>选择器</div>
-      <a-radio-group v-model:value="size">
-        <a-radio-button value="large">Large</a-radio-button>
-        <a-radio-button value="middle">Middle</a-radio-button>
-        <a-radio-button value="small">Small</a-radio-button>
-      </a-radio-group>
-      <br />
-      <br />
-      <a-space direction="vertical">
-        <a-select
-          v-model:value="value1"
-          :size="size"
-          style="width: 200px"
-          :options="options"
-        ></a-select>
-        <a-select
-          v-model:value="value2"
-          :options="options"
-          mode="multiple"
-          :size="size"
-          placeholder="Please select"
-          style="width: 200px"
-          @popupScroll="popupScroll"
-        ></a-select>
-        <a-select
-          v-model:value="value3"
-          :options="options"
-          mode="tags"
-          :size="size"
-          placeholder="Please select"
-          style="width: 200px"
-        ></a-select>
-      </a-space>
-    </div>
-    <div>
-      <div>滑块</div>
-      <a-slider id="test" v-model:value="sliderValue1" />
-      <a-slider v-model:value="sliderValue2" range />
-    </div>
-    <br/>
-    <div>Form</div>
+    <h1>日期选择器</h1>
+    <a-space direction="vertical">
+      <a-date-picker>
+        <template #renderExtraFooter>extra footer</template>
+      </a-date-picker>
+      <a-date-picker show-time>
+        <template #renderExtraFooter>extra footer</template>
+      </a-date-picker>
+      <a-range-picker>
+        <template #renderExtraFooter>extra footer</template>
+      </a-range-picker>
+      <a-range-picker show-time>
+        <template #renderExtraFooter>extra footer</template>
+      </a-range-picker>
+      <a-date-picker placeholder="Select month" picker="month">
+        <template #renderExtraFooter>extra footer</template>
+      </a-date-picker>
+    </a-space>
+    <br />
+    <br />
+    <h1>普通选择器</h1>
+    <a-radio-group v-model:value="size">
+      <a-radio-button value="large">Large</a-radio-button>
+      <a-radio-button value="middle">Middle</a-radio-button>
+      <a-radio-button value="small">Small</a-radio-button>
+    </a-radio-group>
+    <br />
+    <br />
+    <a-space direction="vertical">
+      <a-select
+        v-model:value="value1"
+        :size="size"
+        style="width: 200px"
+        :options="options"
+      ></a-select>
+      <a-select
+        v-model:value="value2"
+        :options="options"
+        mode="multiple"
+        :size="size"
+        placeholder="Please select"
+        style="width: 200px"
+        @popupScroll="popupScroll"
+      ></a-select>
+      <a-select
+        v-model:value="value3"
+        :options="options"
+        mode="tags"
+        :size="size"
+        placeholder="Please select"
+        style="width: 200px"
+      ></a-select>
+    </a-space>
+    <br />
+    <br />
+    <h1>滑块</h1>
+    <a-slider id="test" v-model:value="sliderValue1" />
+    <a-slider v-model:value="sliderValue2" range />
+    <br />
+    <br />
+    <h1>Form</h1>
     <a-form
       :model="formState"
       name="validate_other"
@@ -204,42 +203,40 @@
         <a-button type="primary" html-type="submit">Submit</a-button>
       </a-form-item>
     </a-form>
-    <br/>
-    <div>
-      <div>Modal</div>
-      <a-button type="primary" @click="showModal">Open Modal</a-button>
-      <a-modal v-model:visible="visible" title="Basic Modal" @ok="handleOk">
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-      </a-modal>
-    </div>
-    <br/>
-    <div>
-      <div>Popover</div>
-      <a-popover title="Title" trigger="hover">
-        <template #content>
-          <p>Content</p>
-          <p>Content</p>
-        </template>
-        <a-button>Hover me</a-button>
-      </a-popover>
-      <a-popover title="Title" trigger="focus">
-        <template #content>
-          <p>Content</p>
-          <p>Content</p>
-        </template>
-        <a-button>Focus me</a-button>
-      </a-popover>
-      <a-popover title="Title" trigger="click">
-        <template #content>
-          <p>Content</p>
-          <p>Content</p>
-        </template>
-        <a-button>Click me</a-button>
-      </a-popover>
-    </div>
-    <br/>
+    <br />
+    <br />
+    <h1>Modal</h1>
+    <a-button type="primary" @click="showModal">Open Modal</a-button>
+    <a-modal v-model:visible="visible" title="Basic Modal" @ok="handleOk">
+      <p>Some contents...</p>
+      <p>Some contents...</p>
+      <p>Some contents...</p>
+    </a-modal>
+    <br />
+    <br />
+    <h1>Popover</h1>
+    <a-popover title="Title" trigger="hover">
+      <template #content>
+        <p>Content</p>
+        <p>Content</p>
+      </template>
+      <a-button>Hover me</a-button>
+    </a-popover>
+    <a-popover title="Title" trigger="focus">
+      <template #content>
+        <p>Content</p>
+        <p>Content</p>
+      </template>
+      <a-button>Focus me</a-button>
+    </a-popover>
+    <a-popover title="Title" trigger="click">
+      <template #content>
+        <p>Content</p>
+        <p>Content</p>
+      </template>
+      <a-button>Click me</a-button>
+    </a-popover>
+    <br />
   </div>
 </template>
 <script>
@@ -321,7 +318,8 @@ export default defineComponent({
     width: 50vw;
     margin: 0 auto;
     background: #fff;
-    padding: 40px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     min-height: 40vw;
 }
 
