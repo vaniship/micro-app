@@ -33,6 +33,7 @@ function Angular11 () {
         // destroy
         // inline
         // disableScopecss
+        // keep-alive
       >
       </micro-app>
     </div>

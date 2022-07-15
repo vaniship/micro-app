@@ -1,4 +1,4 @@
-import './public-path'
+// import './public-path'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import routes from './router'

@@ -14,63 +14,6 @@ const locationKeys: ReadonlyArray<keyof MicroLocation> = [...shadowLocationKeys,
 const guardLocationKeys: ReadonlyArray<keyof MicroLocation> = [...locationKeys, 'origin', 'fullPath']
 
 /**
- * create guardLocation by microLocation, used for router guard
- */
-function createGuardLocation (appName: string, microLocation: MicroLocation): GuardLocation {
-  const guardLocation = oAssign({ name: appName }, microLocation) as GuardLocation
-  // The prototype values on the URL needs to be manually transferred
-  for (const key of guardLocationKeys) guardLocation[key] = microLocation[key]
-  return guardLocation
-}
-
-// for updateBrowserURLWithLocation when initial
-export function autoTriggerNavigationGuard (appName: string, microLocation: MicroLocation): void {
-  executeNavigationGuard(appName, createGuardLocation(appName, microLocation), createGuardLocation(appName, microLocation))
-}
-
-/**
- * The following scenes will trigger location update:
- * 1. pushState/replaceState
- * 2. popStateEvent
- * 3. query on browser url when init sub app
- * 4. set defaultPage when when init sub app
- * NOTE:
- * 1. update browser URL first, and then update microLocation
- * 2. the same fullPath will not trigger router guards
- * @param appName app name
- * @param path target path
- * @param base base url
- * @param microLocation micro app location
- * @param type auto prevent
- */
-export function updateMicroLocation (
-  appName: string,
-  path: string,
-  microLocation: MicroLocation,
-  type?: string,
-): void {
-  const newLocation = createURL(path, microLocation.href)
-  // record old values of microLocation to `from`
-  const from = createGuardLocation(appName, microLocation)
-  for (const key of locationKeys) {
-    if (shadowLocationKeys.includes(key)) {
-      // reference of shadowLocation
-      microLocation.shadowLocation[key] = newLocation[key] as string
-    } else {
-      // @ts-ignore reference of microLocation
-      microLocation[key] = newLocation[key]
-    }
-  }
-  // update latest values of microLocation to `to`
-  const to = createGuardLocation(appName, microLocation)
-
-  // The hook called only when fullPath changed
-  if (type === 'auto' || (from.fullPath !== to.fullPath && type !== 'prevent')) {
-    executeNavigationGuard(appName, to, from)
-  }
-}
-
-/**
  * Create location for microApp, each microApp has only one location object, it is a reference type
  * MDN https://developer.mozilla.org/en-US/docs/Web/API/Location
  * @param appName app name
@@ -243,4 +186,61 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
     reload: (forcedReload?: boolean): void => rawLocation.reload(forcedReload),
     shadowLocation,
   })
+}
+
+/**
+ * create guardLocation by microLocation, used for router guard
+ */
+function createGuardLocation (appName: string, microLocation: MicroLocation): GuardLocation {
+  const guardLocation = oAssign({ name: appName }, microLocation) as GuardLocation
+  // The prototype values on the URL needs to be manually transferred
+  for (const key of guardLocationKeys) guardLocation[key] = microLocation[key]
+  return guardLocation
+}
+
+// for updateBrowserURLWithLocation when initial
+export function autoTriggerNavigationGuard (appName: string, microLocation: MicroLocation): void {
+  executeNavigationGuard(appName, createGuardLocation(appName, microLocation), createGuardLocation(appName, microLocation))
+}
+
+/**
+ * The following scenes will trigger location update:
+ * 1. pushState/replaceState
+ * 2. popStateEvent
+ * 3. query on browser url when init sub app
+ * 4. set defaultPage when when init sub app
+ * NOTE:
+ * 1. update browser URL first, and then update microLocation
+ * 2. the same fullPath will not trigger router guards
+ * @param appName app name
+ * @param path target path
+ * @param base base url
+ * @param microLocation micro app location
+ * @param type auto prevent
+ */
+export function updateMicroLocation (
+  appName: string,
+  path: string,
+  microLocation: MicroLocation,
+  type?: string,
+): void {
+  const newLocation = createURL(path, microLocation.href)
+  // record old values of microLocation to `from`
+  const from = createGuardLocation(appName, microLocation)
+  for (const key of locationKeys) {
+    if (shadowLocationKeys.includes(key)) {
+      // reference of shadowLocation
+      microLocation.shadowLocation[key] = newLocation[key] as string
+    } else {
+      // @ts-ignore reference of microLocation
+      microLocation[key] = newLocation[key]
+    }
+  }
+  // update latest values of microLocation to `to`
+  const to = createGuardLocation(appName, microLocation)
+
+  // The hook called only when fullPath changed
+  if (type === 'auto' || (from.fullPath !== to.fullPath && type !== 'prevent')) {
+    executeNavigationGuard(appName, to, from)
+  }
 }

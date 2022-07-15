@@ -15,6 +15,7 @@ import {
 } from './core'
 import {
   logError,
+  logWarn,
   formatAppName,
   createURL,
   isFunction,
@@ -25,16 +26,29 @@ import {
   isString,
   noopFalse,
   removeDomScope,
+  isObject,
 } from '../../libs/utils'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
 import globalEnv from '../../libs/global_env'
 import { navigateWithNativeEvent, attachRouteToBrowserURL } from './history'
+import bindFunctionToRawObject from '../bind_function'
 
 export interface RouterApi {
   router: Router,
   executeNavigationGuard: (appName: string, to: GuardLocation, from: GuardLocation) => void
   clearRouterWhenUnmount: (appName: string) => void
+}
+
+export interface CreteBaseRouter {
+  setBaseAppRouter (baseRouter: unknown): void
+  getBaseAppRouter(): unknown
+}
+
+export interface CreateDefaultPage {
+  setDefaultPage(appName: string, path: string): () => boolean
+  removeDefaultPage(appName: string): boolean
+  getDefaultPage(key: PropertyKey): string | undefined
 }
 
 function createRouterApi (): RouterApi {
@@ -175,28 +189,6 @@ function createRouterApi (): RouterApi {
     router.current.delete(appName)
   }
 
-  // defaultPage data
-  const defaultPageRecord = useMapRecord<string>()
-
-  /**
-   * defaultPage only effect when mount, and has lower priority than query on browser url
-   * @param appName app name
-   * @param path page path
-   */
-  function setDefaultPage (appName: string, path: string): () => boolean {
-    appName = formatAppName(appName)
-    if (!appName) return noopFalse
-
-    return defaultPageRecord.add(appName, path)
-  }
-
-  function removeDefaultPage (appName: string): boolean {
-    appName = formatAppName(appName)
-    if (!appName) return false
-
-    return defaultPageRecord.delete(appName)
-  }
-
   /**
    * NOTE:
    * 1. sandbox not open
@@ -234,16 +226,68 @@ function createRouterApi (): RouterApi {
     getActiveApps().forEach(appName => commonHandlerForAttachToURL(appName))
   }
 
-  /**
-   * Record base app router, let child app control base app navigation
-   */
-  let baseRouterInstance: unknown = null
-  function setBaseAppRouter (baseRouter: unknown): void {
-    baseRouterInstance = baseRouter
+  function createDefaultPageApi (): CreateDefaultPage {
+    // defaultPage data
+    const defaultPageRecord = useMapRecord<string>()
+
+    /**
+     * defaultPage only effect when mount, and has lower priority than query on browser url
+     * @param appName app name
+     * @param path page path
+     */
+    function setDefaultPage (appName: string, path: string): () => boolean {
+      appName = formatAppName(appName)
+      if (!appName || !path) {
+        if (process.env.NODE_ENV !== 'production') {
+          if (!appName) {
+            logWarn(`setDefaultPage: invalid appName "${appName}"`)
+          } else {
+            logWarn('setDefaultPage: path is required')
+          }
+        }
+        return noopFalse
+      }
+
+      return defaultPageRecord.add(appName, path)
+    }
+
+    function removeDefaultPage (appName: string): boolean {
+      appName = formatAppName(appName)
+      if (!appName) return false
+
+      return defaultPageRecord.delete(appName)
+    }
+
+    return {
+      setDefaultPage,
+      removeDefaultPage,
+      getDefaultPage: defaultPageRecord.get,
+    }
   }
 
-  function getBaseAppRouter (): unknown {
-    return baseRouterInstance
+  function createBaseRouterApi (): CreteBaseRouter {
+    /**
+     * Record base app router, let child app control base app navigation
+     */
+    let baseRouterProxy: unknown = null
+    function setBaseAppRouter (baseRouter: unknown): void {
+      if (isObject(baseRouter)) {
+        baseRouterProxy = new Proxy(baseRouter, {
+          get (target: History, key: PropertyKey): unknown {
+            removeDomScope()
+            const rawValue = Reflect.get(target, key)
+            return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'BASEROUTER') : rawValue
+          }
+        })
+      } else if (process.env.NODE_ENV !== 'production') {
+        logWarn('setBaseAppRouter: Invalid base router')
+      }
+    }
+
+    return {
+      setBaseAppRouter,
+      getBaseAppRouter: () => baseRouterProxy,
+    }
   }
 
   // Router API for developer
@@ -258,13 +302,10 @@ function createRouterApi (): RouterApi {
     forward: createRawHistoryMethod('forward'),
     beforeEach: beforeGuards.add,
     afterEach: afterGuards.add,
-    setDefaultPage,
-    removeDefaultPage,
-    getDefaultPage: defaultPageRecord.get,
     attachToURL,
     attachAllToURL,
-    setBaseAppRouter,
-    getBaseAppRouter,
+    ...createDefaultPageApi(),
+    ...createBaseRouterApi(),
   }
 
   return {

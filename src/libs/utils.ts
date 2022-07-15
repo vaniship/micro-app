@@ -60,6 +60,11 @@ export function isPlainObject (target: unknown): target is Record<PropertyKey, u
   return toString.call(target) === '[object Object]'
 }
 
+// is Object
+export function isObject (target: unknown): target is Object {
+  return typeof target === 'object'
+}
+
 // is Promise
 export function isPromise (target: unknown): target is Promise<unknown> {
   return toString.call(target) === '[object Promise]'

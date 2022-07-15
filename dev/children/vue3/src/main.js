@@ -1,4 +1,4 @@
-import './public-path'
+// import './public-path'
 import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import ElementPlus from 'element-plus'

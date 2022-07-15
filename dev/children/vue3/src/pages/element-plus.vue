@@ -3,6 +3,7 @@
     <div class="test-btn" @click='onClickTest'>
       返回首页
     </div>
+    <img src="../assets/logo.png" alt=""/>
     <h1>表单</h1>
     <el-form
       ref="ruleFormRef"
@@ -381,9 +382,48 @@
         <el-menu-item index="4">Orders</el-menu-item>
       </el-menu>
     </div>
+    <!-- <br />
+    <br />
+    <h1>虚拟化树形控件</h1>
+    <div>
+      <el-tree-v2 :data="treeV2Data" :props="props" :height="208" />
+    </div> -->
     <br />
     <br />
-    <h1>虚拟化选择器</h1>
+    <h1>骨架屏</h1>
+    <div>
+      <el-skeleton />
+      <br />
+      <el-skeleton style="--el-skeleton-circle-size: 100px">
+        <template #template>
+          <el-skeleton-item variant="circle" />
+        </template>
+      </el-skeleton>
+    </div>
+    <br />
+    <br />
+    <h1>走马灯</h1>
+    <div>
+      <el-carousel indicator-position="outside">
+        <el-carousel-item v-for="item in 4" :key="item">
+          <h3 text="2xl" justify="center">{{ item }}</h3>
+        </el-carousel-item>
+      </el-carousel>
+    </div>
+    <br />
+    <br />
+    <h1>分页</h1>
+    <div>
+      <el-pagination background layout="prev, pager, next" :total="1000" />
+    </div>
+    <br />
+    <br />
+    <h1>无限滚动</h1>
+    <div>
+      <ul v-infinite-scroll="infiniteScrollload" class="infinite-list" style="overflow: auto">
+        <li v-for="i in infiniteScrollCount" :key="i" class="infinite-list-item">{{ i }}</li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -400,6 +440,7 @@ const popoverVisible = ref(false)
 const router = useRouter()
 const onClickTest = () => {
   router.push('/')
+  // console.log(router)
 }
 
 const formSize = ref('')
@@ -591,6 +632,41 @@ const activeMenuIndex = ref('1')
 const handleMenuSelect = (key, keyPath) => {
   console.log(key, keyPath)
 }
+
+// const getTreeV2Key = (prefix, id) => {
+//   return `${prefix}-${id}`
+// }
+
+// const createTreeV2Data = (
+//   maxDeep,
+//   maxChildren,
+//   minNodesNumber,
+//   deep = 1,
+//   key = 'node'
+// ) => {
+//   let id = 0
+//   return Array.from({ length: minNodesNumber })
+//     .fill(deep)
+//     .map(() => {
+//       const childrenNumber =
+//         deep === maxDeep ? 0 : Math.round(Math.random() * maxChildren)
+//       const nodeKey = getTreeV2Key(key, ++id)
+//       return {
+//         id: nodeKey,
+//         label: nodeKey,
+//         children: childrenNumber
+//           ? createTreeV2Data(maxDeep, maxChildren, childrenNumber, deep + 1, nodeKey)
+//           : undefined,
+//       }
+//     })
+// }
+
+// const treeV2Data = createTreeV2Data(4, 30, 40)
+
+const infiniteScrollCount = ref(0)
+const infiniteScrollload = () => {
+  infiniteScrollCount.value += 2
+}
 </script>
 
 <style scoped>
@@ -642,5 +718,40 @@ const handleMenuSelect = (key, keyPath) => {
     color: var(--el-color-primary);
     display: flex;
     align-items: center;
+  }
+
+  .el-carousel__item h3 {
+    display: flex;
+    color: #475669;
+    opacity: 0.75;
+    line-height: 300px;
+    margin: 0;
+  }
+
+  .el-carousel__item:nth-child(2n) {
+    background-color: #99a9bf;
+  }
+
+  .el-carousel__item:nth-child(2n + 1) {
+    background-color: #d3dce6;
+  }
+
+  .infinite-list {
+    height: 300px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .infinite-list .infinite-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
+    background: var(--el-color-primary-light-9);
+    margin: 10px;
+    color: var(--el-color-primary);
+  }
+  .infinite-list .infinite-list-item + .list-item {
+    margin-top: 10px;
   }
 </style>

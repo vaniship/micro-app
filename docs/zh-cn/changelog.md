@@ -8,6 +8,28 @@
 
 ---
 
+### 1.0.0-alpha.2
+
+`2022-07-06`
+
+- **New**
+
+  - 🆕 新增了`attachToURL`、`attachAllToURL`方法，用于将子应用的路由信息同步到浏览器地址。
+  - 🆕 新增了`setBaseRouter`、`getBaseRouter`方法，用于注册和使用基座路由。
+  - 🆕 新增了`ProxyDocument`，为子应用创建一个虚拟的document对象。
+
+- **Bug Fix**
+
+  - 🐞 修复了`ant-design-vue`的弹窗类组件及其它特殊情况下，子应用元素逃逸到原生body上的问题。
+  - 🐞 修复了在未设置`public_path`时，子应用的资源地址补全失败的问题。
+  - 🐞 修复了子应用在调用fetch等API时，元素绑定没有解除的问题。
+
+- **Update**
+
+  - 🚀 优化了路由相关代码和逻辑。
+  - 🚀 更新了案例。
+
+
 ### 1.0.0-alpha.1
 
 `2022-07-06`

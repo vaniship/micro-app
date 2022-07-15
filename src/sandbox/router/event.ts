@@ -21,7 +21,10 @@ export function addHistoryListener (appName: string): CallableFunction {
   const rawWindow = globalEnv.rawWindow
   // handle popstate event and distribute to child app
   const popStateHandler: PopStateListener = (e: MicroPopStateEvent): void => {
-    // exclude hidden keep-alive app
+    /**
+     * 1. unmount app & hidden keep-alive app will not receive popstate event
+     * 2. filter out onlyForBrowser
+     */
     if (getActiveApps(true).includes(appName) && !e.onlyForBrowser) {
       const microPath = getMicroPathFromURL(appName)
       const app = appInstanceMap.get(appName)!

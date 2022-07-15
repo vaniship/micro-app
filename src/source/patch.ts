@@ -189,17 +189,30 @@ function commonElementHandler (
   passiveChild: Node | null,
   rawMethod: Func,
 ) {
-  const appName = getCurrentAppName()
+  const currentAppName = getCurrentAppName()
   if (
     newChild instanceof Node &&
     (
       newChild.__MICRO_APP_NAME__ ||
-      (appName && !newChild.__PURE_ELEMENT__)
+      (currentAppName && !newChild.__PURE_ELEMENT__)
     )
   ) {
-    newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || appName!
+    newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
     if (app?.container) {
+      if (newChild instanceof Element) {
+        if (/^(img|script)$/i.test(newChild.tagName)) {
+          if (newChild.hasAttribute('src')) {
+            globalEnv.rawSetAttribute.call(newChild, 'src', CompletionPath(newChild.getAttribute('src')!, app.url))
+          }
+          if (newChild.hasAttribute('srcset')) {
+            globalEnv.rawSetAttribute.call(newChild, 'srcset', CompletionPath(newChild.getAttribute('srcset')!, app.url))
+          }
+        } else if (/^link$/i.test(newChild.tagName) && newChild.hasAttribute('href')) {
+          globalEnv.rawSetAttribute.call(newChild, 'href', CompletionPath(newChild.getAttribute('href')!, app.url))
+        }
+      }
+
       return invokePrototypeMethod(
         app,
         rawMethod,
@@ -211,8 +224,8 @@ function commonElementHandler (
       return rawMethod.call(parent, newChild)
     }
   } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
-    if (!(newChild instanceof Node) && appName) {
-      const app = appInstanceMap.get(appName)
+    if (!(newChild instanceof Node) && currentAppName) {
+      const app = appInstanceMap.get(currentAppName)
       if (app?.container) {
         if (parent === document.head) {
           return rawMethod.call(app.container.querySelector('micro-app-head'), newChild)
@@ -298,8 +311,8 @@ export function patchElementPrototypeMethods (): void {
  * @param element new element
  */
 function markElement <T extends { __MICRO_APP_NAME__: string }> (element: T): T {
-  const appName = getCurrentAppName()
-  if (appName) element.__MICRO_APP_NAME__ = appName
+  const currentAppName = getCurrentAppName()
+  if (currentAppName) element.__MICRO_APP_NAME__ = currentAppName
   return element
 }
 
@@ -332,10 +345,10 @@ function patchDocument () {
 
   // query element👇
   function querySelector (this: Document, selectors: string): any {
-    const appName = getCurrentAppName()
+    const currentAppName = getCurrentAppName()
     if (
-      !appName ||
-      !appInstanceMap.get(appName)?.container ||
+      !currentAppName ||
+      !appInstanceMap.get(currentAppName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
       // see https://github.com/micro-zoe/micro-app/issues/56
@@ -344,14 +357,14 @@ function patchDocument () {
       return globalEnv.rawQuerySelector.call(this, selectors)
     }
 
-    return appInstanceMap.get(appName)?.container?.querySelector(selectors) ?? null
+    return appInstanceMap.get(currentAppName)?.container?.querySelector(selectors) ?? null
   }
 
   function querySelectorAll (this: Document, selectors: string): any {
-    const appName = getCurrentAppName()
+    const currentAppName = getCurrentAppName()
     if (
-      !appName ||
-      !appInstanceMap.get(appName)?.container ||
+      !currentAppName ||
+      !appInstanceMap.get(currentAppName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
       rawDocument !== this
@@ -359,7 +372,7 @@ function patchDocument () {
       return globalEnv.rawQuerySelectorAll.call(this, selectors)
     }
 
-    return appInstanceMap.get(appName)?.container?.querySelectorAll(selectors) ?? []
+    return appInstanceMap.get(currentAppName)?.container?.querySelectorAll(selectors) ?? []
   }
 
   Document.prototype.querySelector = querySelector
@@ -390,12 +403,12 @@ function patchDocument () {
   }
 
   Document.prototype.getElementsByTagName = function getElementsByTagName (key: string): HTMLCollectionOf<Element> {
-    const appName = getCurrentAppName()
+    const currentAppName = getCurrentAppName()
     if (
-      !appName ||
+      !currentAppName ||
       isUniqueElement(key) ||
       isInvalidQuerySelectorKey(key) ||
-      (!appInstanceMap.get(appName)?.inline && /^script$/i.test(key))
+      (!appInstanceMap.get(currentAppName)?.inline && /^script$/i.test(key))
     ) {
       return globalEnv.rawGetElementsByTagName.call(this, key)
     }
@@ -429,30 +442,33 @@ let hasRewriteSetAttribute = false
 export function patchSetAttribute (): void {
   if (hasRewriteSetAttribute) return
   hasRewriteSetAttribute = true
-  Element.prototype.setAttribute = function setAttribute (key: string, value: string): void {
+  Element.prototype.setAttribute = function setAttribute (key: string, value: any): void {
     if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
       if (isPlainObject(value)) {
         const cloneValue: Record<NormalKey, unknown> = {}
-        Object.getOwnPropertyNames(value).forEach((key: NormalKey) => {
-          if (!(isString(key) && key.indexOf('__') === 0)) {
-            cloneValue[key] = value[key]
+        Object.getOwnPropertyNames(value).forEach((ownKey: NormalKey) => {
+          if (!(isString(ownKey) && ownKey.indexOf('__') === 0)) {
+            cloneValue[ownKey] = value[ownKey]
           }
         })
         this.data = cloneValue
       } else if (value !== '[object Object]') {
         logWarn('property data must be an object', this.getAttribute('name'))
       }
-    } else if (
-      (
-        ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
-        (key === 'href' && /^link$/i.test(this.tagName))
-      ) &&
-      this.__MICRO_APP_NAME__ &&
-      appInstanceMap.has(this.__MICRO_APP_NAME__)
-    ) {
-      const app = appInstanceMap.get(this.__MICRO_APP_NAME__)
-      globalEnv.rawSetAttribute.call(this, key, CompletionPath(value, app!.url))
     } else {
+      const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()
+      if (
+        appName &&
+        appInstanceMap.has(appName) &&
+        (
+          ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
+          (key === 'href' && /^link$/i.test(this.tagName))
+        )
+      ) {
+        const app = appInstanceMap.get(appName)
+        value = CompletionPath(value, app!.url)
+      }
+
       globalEnv.rawSetAttribute.call(this, key, value)
     }
   }

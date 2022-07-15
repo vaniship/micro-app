@@ -1,5 +1,10 @@
 /* eslint-disable no-return-assign */
-import { isBoundFunction, isConstructor, rawDefineProperty, isBoolean } from '../libs/utils'
+import {
+  isBoundFunction,
+  isConstructor,
+  rawDefineProperty,
+  isBoolean,
+} from '../libs/utils'
 
 function isBoundedFunction (value: CallableFunction & {__MICRO_APP_IS_BOUND_FUNCTION__: boolean}): boolean {
   if (isBoolean(value.__MICRO_APP_IS_BOUND_FUNCTION__)) return value.__MICRO_APP_IS_BOUND_FUNCTION__
