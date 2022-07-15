@@ -89,7 +89,7 @@ class CSSParser {
   }
 
   private formatSelector (skip: boolean): false | string {
-    const m = this.commonMatch(/^([^{]+)/, skip)
+    const m = this.commonMatch(/^[^{]+/, skip)
     if (!m) return false
 
     return m[0].replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
@@ -188,7 +188,7 @@ class CSSParser {
   private keyframesRule (): boolean | void {
     if (!this.commonMatch(/^@([-\w]+)?keyframes\s*/)) return false
 
-    if (!this.commonMatch(/^([-\w]+)\s*/)) return parseError('@keyframes missing name', this.linkPath)
+    if (!this.commonMatch(/^[^{]+/)) return parseError('@keyframes missing name', this.linkPath)
 
     this.matchComments()
 
