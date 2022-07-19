@@ -270,8 +270,9 @@ export default class App extends React.Component {
                   // keep-alive
                   // destroy
                   keep-router-state
+                  // hidden-router
                   // disable-memory-router
-                  inline
+                  // inline
                   // disableSandbox
                   // disable-sandbox
                   // disableScopecss

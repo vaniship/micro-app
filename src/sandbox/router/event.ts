@@ -40,7 +40,7 @@ export function addHistoryListener (appName: string): CallableFunction {
       }
 
       // dispatch formatted popStateEvent to child
-      dispatchPopStateEventToMicroApp(appName, proxyWindow, rawWindow.history.state)
+      dispatchPopStateEventToMicroApp(appName, proxyWindow)
 
       // dispatch formatted hashChangeEvent to child when hash change
       if (isHashChange) dispatchHashChangeEventToMicroApp(appName, proxyWindow, oldHref)
@@ -66,12 +66,11 @@ export function addHistoryListener (appName: string): CallableFunction {
 export function dispatchPopStateEventToMicroApp (
   appName: string,
   proxyWindow: WindowProxy,
-  eventState: unknown,
 ): void {
   // create PopStateEvent named popstate-appName with sub app state
   const newPopStateEvent = new PopStateEvent(
     formatEventName('popstate', appName),
-    { state: getMicroState(appName, eventState) }
+    { state: getMicroState(appName) }
   )
 
   globalEnv.rawWindow.dispatchEvent(newPopStateEvent)

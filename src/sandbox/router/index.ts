@@ -18,13 +18,13 @@ import {
 import {
   createMicroHistory,
   attachRouteToBrowserURL,
-  rewriteHistoryState,
 } from './history'
 import { createURL } from '../../libs/utils'
 import { clearRouterWhenUnmount } from './api'
 export { router } from './api'
 export { addHistoryListener } from './event'
 export { getNoHashMicroPathFromURL } from './core'
+export { patchHistory, releasePatchHistory } from './history'
 
 /**
  * The router system has two operations: read and write
@@ -34,7 +34,6 @@ export { getNoHashMicroPathFromURL } from './core'
  * @returns MicroRouter
  */
 export default function createMicroRouter (appName: string, url: string): MicroRouter {
-  rewriteHistoryState()
   const microLocation = createMicroLocation(appName, url)
   return {
     microLocation,
@@ -72,7 +71,6 @@ export function updateBrowserURLWithLocation (
     setMicroPathToURL(appName, microLocation),
     setMicroState(
       appName,
-      globalEnv.rawWindow.history.state,
       null,
     ),
   )

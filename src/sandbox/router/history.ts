@@ -1,3 +1,4 @@
+/* eslint-disable no-void */
 import type {
   MicroState,
   MicroLocation,
@@ -6,11 +7,13 @@ import type {
   HandleMicroPathResult,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import { isString, createURL, isPlainObject, isURL, assign, isFunction } from '../../libs/utils'
-import { setMicroPathToURL, setMicroState, getMicroState } from './core'
+import { isString, createURL, isPlainObject, isURL, assign, isFunction, removeDomScope } from '../../libs/utils'
+import { setMicroPathToURL, setMicroState, getMicroState, getMicroPathFromURL } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
 import bindFunctionToRawObject from '../bind_function'
+import { getActiveApps } from '../../micro_app'
+import { appInstanceMap } from '../../create_app'
 
 /**
  * create proxyHistory for microApp
@@ -21,7 +24,7 @@ import bindFunctionToRawObject from '../bind_function'
 export function createMicroHistory (appName: string, microLocation: MicroLocation): MicroHistory {
   const rawHistory = globalEnv.rawWindow.history
   function getMicroHistoryMethod (methodName: string): CallableFunction {
-    return function (...rests: unknown[]): void {
+    return function (...rests: any[]): void {
       if (isString(rests[2]) || isURL(rests[2])) {
         const targetLocation = createURL(rests[2], microLocation.href)
         if (targetLocation.origin === microLocation.origin) {
@@ -29,19 +32,18 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
             methodName,
             setMicroPathToURL(appName, targetLocation),
             true,
-            setMicroState(appName, rawHistory.state, rests[0]),
-            rests[1] as string,
+            setMicroState(appName, rests[0]),
+            rests[1],
           )
           const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
           if (targetFullPath !== microLocation.fullPath) {
             updateMicroLocation(appName, targetFullPath, microLocation)
           }
-        } else {
-          rawHistory[methodName].apply(rawHistory, rests)
+          return void 0
         }
-      } else {
-        rawHistory[methodName].apply(rawHistory, rests)
       }
+
+      nativeHistoryNavigate(methodName, rests[2], rests[0], rests[1])
     }
   }
 
@@ -51,7 +53,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
   return new Proxy(rawHistory, {
     get (target: History, key: PropertyKey): HistoryProxyValue {
       if (key === 'state') {
-        return getMicroState(appName, rawHistory.state)
+        return getMicroState(appName)
       } else if (key === 'pushState') {
         return pushState
       } else if (key === 'replaceState') {
@@ -76,7 +78,8 @@ export function nativeHistoryNavigate (
   state: unknown = null,
   title = '',
 ): void {
-  globalEnv.rawWindow.history[methodName](state, title, fullPath)
+  const method = methodName === 'pushState' ? globalEnv.rawPushState : globalEnv.rawReplaceState
+  method.call(globalEnv.rawWindow.history, state, title, fullPath)
 }
 
 /**
@@ -122,10 +125,10 @@ export function attachRouteToBrowserURL (
 
 /**
  * When path is same, keep the microAppState in history.state
- * Fix bug of missing microAppState in next.js & angular
+ * Fix bug of missing microAppState when base app is next.js or angular
  * @param method history.pushState/replaceState
  */
-function patchHistoryState (method: History['pushState' | 'replaceState']): CallableFunction {
+function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): CallableFunction {
   const rawWindow = globalEnv.rawWindow
   return function (...rests: [data: any, unused: string, url?: string]): void {
     if (
@@ -141,26 +144,47 @@ function patchHistoryState (method: History['pushState' | 'replaceState']): Call
         })
       }
     }
+
     method.apply(rawWindow.history, rests)
+    /**
+     * Attach child router info to browser url when base app navigate with pushState/replaceState
+     * NOTE:
+     * 1. Exec after apply pushState/replaceState
+     * 2. Unable to catch when base app navigate with location
+     * 3. When in nest app, rawPushState/rawReplaceState has been modified by parent
+     * 4.
+     */
+    getActiveApps(true).forEach(appName => {
+      const app = appInstanceMap.get(appName)!
+      if (app.sandBox && app.useMemoryRouter && !getMicroPathFromURL(appName)) {
+        attachRouteToBrowserURL(
+          setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
+          setMicroState(appName, getMicroState(appName)),
+        )
+      }
+    })
+    // fix bug for nest app
+    removeDomScope()
   }
 }
 
-let isReWriteHistoryState = false
 /**
  * rewrite history.pushState/replaceState
  * used to fix the problem that the microAppState maybe missing when mainApp navigate to same path
  * e.g: when nextjs, angular receive popstate event, they will use history.replaceState to update browser url with a new state object
  */
-export function rewriteHistoryState (): void {
-  // filter nest app
-  if (!isReWriteHistoryState && !window.__MICRO_APP_ENVIRONMENT__) {
-    isReWriteHistoryState = true
-    const rawWindow = globalEnv.rawWindow
-    rawWindow.history.pushState = patchHistoryState(
-      rawWindow.history.pushState,
-    )
-    rawWindow.history.replaceState = patchHistoryState(
-      rawWindow.history.replaceState,
-    )
-  }
+export function patchHistory (): void {
+  const rawWindow = globalEnv.rawWindow
+  rawWindow.history.pushState = reWriteHistoryMethod(
+    globalEnv.rawPushState,
+  )
+  rawWindow.history.replaceState = reWriteHistoryMethod(
+    globalEnv.rawReplaceState,
+  )
+}
+
+export function releasePatchHistory (): void {
+  const rawWindow = globalEnv.rawWindow
+  rawWindow.history.pushState = globalEnv.rawPushState
+  rawWindow.history.replaceState = globalEnv.rawReplaceState
 }

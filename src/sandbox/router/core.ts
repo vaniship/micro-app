@@ -18,9 +18,9 @@ import {
 // set micro app state to origin state
 export function setMicroState (
   appName: string,
-  rawState: MicroState,
   microState: MicroState,
 ): MicroState {
+  const rawState = globalEnv.rawWindow.history.state
   const additionalState: Record<string, any> = {
     microAppState: assign({}, rawState?.microAppState, {
       [appName]: microState
@@ -47,8 +47,8 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
 }
 
 // get micro app state form origin state
-export function getMicroState (appName: string, state: MicroState): MicroState {
-  return state?.microAppState?.[appName] || null
+export function getMicroState (appName: string): MicroState {
+  return globalEnv.rawWindow.history.state?.microAppState?.[appName] || null
 }
 
 const ENC_AD_RE = /&/g // %M1

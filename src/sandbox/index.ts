@@ -38,12 +38,14 @@ import {
   releasePatches,
 } from '../source/patch'
 import createMicroRouter, {
+  router,
   initRouteStateWithURL,
   clearRouteStateFromURL,
   addHistoryListener,
   removeStateAndPathFromBrowser,
   updateBrowserURLWithLocation,
-  router,
+  patchHistory,
+  releasePatchHistory,
 } from './router'
 import Adapter, {
   fixBabelPolyfill6,
@@ -143,6 +145,7 @@ export default class SandBox implements SandBoxInterface {
         effectDocumentEvent()
         patchElementPrototypeMethods()
         initEnvOfNestedApp()
+        patchHistory()
       }
 
       fixBabelPolyfill6()
@@ -183,6 +186,7 @@ export default class SandBox implements SandBoxInterface {
       if (--SandBox.activeCount === 0) {
         releaseEffectDocumentEvent()
         releasePatches()
+        releasePatchHistory()
       }
 
       this.active = false

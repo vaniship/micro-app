@@ -97,7 +97,7 @@ describe('main process', () => {
       url: `http://127.0.0.1:${ports.main}/common`,
       // disableScopecss: xx,
       // disableSandbox: xx,
-      shadowDOM: true,
+      // shadowDOM: true,
     }])
   })
 

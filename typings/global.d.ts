@@ -77,6 +77,7 @@ declare module '@micro-app/types' {
     useMemoryRouter: boolean // whether use memoryRouter, default is true
     baseroute: string // route prefix, default is ''
     keepRouteState: boolean // keep route state when unmount, default is false
+    hiddenRouter: boolean // hide router info of child from browser url
     source: sourceType // sources of css, js, html
     sandBox: SandBoxInterface | null // sandbox
     umdMode: boolean // is umd mode
@@ -98,6 +99,7 @@ declare module '@micro-app/types' {
       baseroute?: string,
       keepRouteState?: boolean,
       defaultPage?: string,
+      hiddenRouter?: boolean
     ): void
 
     // unmount app
@@ -138,10 +140,13 @@ declare module '@micro-app/types' {
   type prefetchParam = {
     name: string,
     url: string,
+    // old config 👇
     disableScopecss?: boolean
     disableSandbox?: boolean
-    disableMemoryRouter?: boolean
-    shadowDOM?: boolean
+    // old config 👆
+    'disable-scopecss'?: boolean
+    'disable-sandbox'?: boolean
+    'disable-memory-router'?: boolean
   }
 
   // prefetch params
@@ -193,13 +198,20 @@ declare module '@micro-app/types' {
 
   type OptionsType = {
     tagName?: string
-    shadowDOM?: boolean
-    destroy?: boolean
-    inline?: boolean
+    'shadowDOM'?: boolean
+    'destroy'?: boolean
+    'inline'?: boolean
+    // old config 👇
     disableScopecss?: boolean
     disableSandbox?: boolean
-    disableMemoryRouter?: boolean
-    ssr?: boolean
+    // old config 👆
+    'disable-scopecss'?: boolean
+    'disable-sandbox'?: boolean
+    'disable-memory-router'?: boolean
+    'keep-router-state'?: boolean
+    'hidden-router'?: boolean
+    'esmodule'?: boolean
+    'ssr'?: boolean
     lifeCycles?: lifeCyclesType
     preFetchApps?: prefetchParamList
     plugins?: plugins

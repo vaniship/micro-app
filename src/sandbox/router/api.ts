@@ -11,7 +11,10 @@ import type {
 import {
   encodeMicroPath,
   decodeMicroPath,
-  setMicroPathToURL, setMicroState, getMicroPathFromURL
+  setMicroPathToURL,
+  setMicroState,
+  getMicroState,
+  getMicroPathFromURL,
 } from './core'
 import {
   logError,
@@ -67,11 +70,13 @@ function createRouterApi (): RouterApi {
   ): void {
     navigateWithNativeEvent(
       methodName,
-      setMicroPathToURL(appName, targetLocation),
+      setMicroPathToURL(
+        appName,
+        targetLocation,
+      ),
       false,
       setMicroState(
         appName,
-        globalEnv.rawWindow.history.state,
         state ?? null,
       ),
     )
@@ -199,11 +204,7 @@ function createRouterApi (): RouterApi {
     if (app.sandBox && app.useMemoryRouter) {
       attachRouteToBrowserURL(
         setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
-        setMicroState(
-          appName,
-          globalEnv.rawWindow.history.state,
-          null,
-        ),
+        setMicroState(appName, getMicroState(appName)),
       )
     }
   }
@@ -221,9 +222,10 @@ function createRouterApi (): RouterApi {
 
   /**
    * Attach all active app router info to browser url
+   * exclude hidden keep-alive app
    */
-  function attachAllToURL (): void {
-    getActiveApps().forEach(appName => commonHandlerForAttachToURL(appName))
+  function attachAllToURL (includeHiddenApp = false): void {
+    getActiveApps(!includeHiddenApp).forEach(appName => commonHandlerForAttachToURL(appName))
   }
 
   function createDefaultPageApi (): CreateDefaultPage {

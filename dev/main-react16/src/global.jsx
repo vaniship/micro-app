@@ -17,7 +17,13 @@ microApp.start({
   // destroy: true,
   // disableScopecss: true,
   // disableSandbox: true,
-  // macro: true,
+  // 'disable-scopecss': true,
+  // 'disable-sandbox': true,
+  // 'disable-memory-router': true,
+  // 'keep-router-state': true,
+  // 'hidden-router': true,
+  // esmodule: true,
+  // ssr: true,
   lifeCycles: {
     created () {
       console.log('created 全局监听')
@@ -134,6 +140,7 @@ window.addEventListener('popstate', (e) => {
   //   a.innerHTML = '55555555'
   //   document.body.appendChild(a)
   console.log('popstate', e, window.location.href)
+  // history.replaceState(history.state, '', location.href)
 })
 
 window.addEventListener('hashchange', (e) => {

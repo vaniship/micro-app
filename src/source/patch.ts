@@ -4,7 +4,7 @@ import {
   CompletionPath,
   getCurrentAppName,
   pureCreateElement,
-  setCurrentAppName,
+  removeDomScope,
   logWarn,
   isPlainObject,
   isString,
@@ -435,8 +435,9 @@ function patchDocument () {
 
 /**
  * patchSetAttribute is different from other patch
- * it not dependent on sandbox
- * it should exec when micro-app first created & release when all app unmounted
+ * NOTE:
+ * 1. it not dependent on sandbox
+ * 2. it should exec when first micro-app-element created & release when all app unmounted
  */
 let hasRewriteSetAttribute = false
 export function patchSetAttribute (): void {
@@ -474,11 +475,6 @@ export function patchSetAttribute (): void {
   }
 }
 
-export function releasePatchSetAttribute (): void {
-  hasRewriteSetAttribute = false
-  Element.prototype.setAttribute = globalEnv.rawSetAttribute
-}
-
 function releasePatchDocument (): void {
   Document.prototype.createElement = globalEnv.rawCreateElement
   Document.prototype.createElementNS = globalEnv.rawCreateElementNS
@@ -493,7 +489,7 @@ function releasePatchDocument (): void {
 
 // release patch
 export function releasePatches (): void {
-  setCurrentAppName(null)
+  removeDomScope()
   releasePatchDocument()
 
   Element.prototype.appendChild = globalEnv.rawAppendChild
@@ -503,6 +499,12 @@ export function releasePatches (): void {
   Element.prototype.append = globalEnv.rawAppend
   Element.prototype.prepend = globalEnv.rawPrepend
   Element.prototype.cloneNode = globalEnv.rawCloneNode
+}
+
+// exec when last child unmount
+export function releasePatchSetAttribute (): void {
+  hasRewriteSetAttribute = false
+  Element.prototype.setAttribute = globalEnv.rawSetAttribute
 }
 
 // Set the style of micro-app-head and micro-app-body

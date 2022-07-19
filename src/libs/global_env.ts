@@ -87,6 +87,8 @@ export function initGlobalEnv (): void {
     const rawSetTimeout = rawWindow.setTimeout
     const rawClearInterval = rawWindow.clearInterval
     const rawClearTimeout = rawWindow.clearTimeout
+    const rawPushState = rawWindow.history.pushState
+    const rawReplaceState = rawWindow.history.replaceState
 
     const rawDocumentAddEventListener = rawDocument.addEventListener
     const rawDocumentRemoveEventListener = rawDocument.removeEventListener
@@ -129,6 +131,8 @@ export function initGlobalEnv (): void {
       rawClearTimeout,
       rawDocumentAddEventListener,
       rawDocumentRemoveEventListener,
+      rawPushState,
+      rawReplaceState,
     })
 
     // global effect

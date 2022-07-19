@@ -30,7 +30,7 @@ import { router } from './sandbox'
  * @param excludeHiddenApp exclude hidden keep-alive app, default is false
  * @returns active apps
  */
-export function getActiveApps (excludeHiddenApp?: boolean): appName[] {
+export function getActiveApps (excludeHiddenApp = false): appName[] {
   const activeApps: appName[] = []
   appInstanceMap.forEach((app: AppInterface, appName: appName) => {
     if (
@@ -138,9 +138,12 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
   shadowDOM?: boolean
   destroy?: boolean
   inline?: boolean
-  disableScopecss?: boolean
-  disableSandbox?: boolean
-  disableMemoryRouter?: boolean
+  'disable-scopecss'?: boolean
+  'disable-sandbox'?: boolean
+  'disable-memory-router'?: boolean
+  'keep-router-state'?: boolean
+  'hidden-router'?: boolean
+  esmodule?: boolean
   ssr?: boolean
   lifeCycles?: lifeCyclesType
   plugins?: plugins
@@ -176,10 +179,14 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
       // @ts-ignore
       this.destory = options.destory
       this.inline = options.inline
-      this.disableScopecss = options.disableScopecss
-      this.disableSandbox = options.disableSandbox
-      this.disableMemoryRouter = options.disableMemoryRouter
+      this['disable-scopecss'] = options['disable-scopecss'] ?? options.disableScopecss
+      this['disable-sandbox'] = options['disable-sandbox'] ?? options.disableSandbox
+      this['disable-memory-router'] = options['disable-memory-router']
+      this['keep-router-state'] = options['keep-router-state']
+      this['hidden-router'] = options['hidden-router']
+      this.esmodule = options.esmodule
       this.ssr = options.ssr
+
       isFunction(options.fetch) && (this.fetch = options.fetch)
 
       isPlainObject(options.lifeCycles) && (this.lifeCycles = options.lifeCycles)

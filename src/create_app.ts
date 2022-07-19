@@ -13,7 +13,6 @@ import SandBox from './sandbox'
 import {
   isFunction,
   cloneContainer,
-  isBoolean,
   isPromise,
   logError,
   getRootContainer,
@@ -37,6 +36,7 @@ export interface CreateAppParam {
   inline?: boolean
   baseroute?: string
   keepRouteState?: boolean
+  hiddenRouter?: boolean,
   container?: HTMLElement | ShadowRoot
   defaultPage?: string
 }
@@ -62,6 +62,7 @@ export default class CreateApp implements AppInterface {
   useMemoryRouter: boolean
   baseroute: string
   keepRouteState: boolean
+  hiddenRouter: boolean
   source: sourceType
   sandBox: SandBoxInterface | null = null
   defaultPage: string
@@ -77,19 +78,21 @@ export default class CreateApp implements AppInterface {
     useMemoryRouter,
     baseroute,
     keepRouteState,
+    hiddenRouter,
     defaultPage,
   }: CreateAppParam) {
-    this.container = container ?? null
-    this.inline = inline ?? false
-    this.baseroute = baseroute ?? ''
-    this.keepRouteState = keepRouteState ?? false
-    this.ssrUrl = ssrUrl ?? ''
-    // optional during init👆
     this.name = name
     this.url = url
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
     this.useMemoryRouter = this.useSandbox && useMemoryRouter
+    // optional during init base on prefetch 👇
+    this.container = container ?? null
+    this.ssrUrl = ssrUrl ?? ''
+    this.inline = inline ?? false
+    this.baseroute = baseroute ?? ''
+    this.keepRouteState = keepRouteState ?? false
+    this.hiddenRouter = hiddenRouter ?? false
     this.defaultPage = defaultPage ?? ''
 
     this.source = {
@@ -153,13 +156,14 @@ export default class CreateApp implements AppInterface {
     baseroute?: string,
     keepRouteState?: boolean,
     defaultPage?: string,
+    hiddenRouter?: boolean,
   ): void {
-    if (isBoolean(inline)) this.inline = inline
-    // keepRouteState effective on unmount
-    if (isBoolean(keepRouteState)) this.keepRouteState = keepRouteState
+    this.inline = inline ?? this.inline
+    this.keepRouteState = keepRouteState ?? this.keepRouteState
     this.container = this.container ?? container!
     this.baseroute = baseroute ?? this.baseroute
     this.defaultPage = defaultPage ?? this.defaultPage
+    this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
 
     if (this.loadSourceLevel !== 2) {
       this.state = appStates.LOADING

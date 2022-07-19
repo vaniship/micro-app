@@ -36,6 +36,7 @@ export function defineElement (tagName: string): void {
 
     constructor () {
       super()
+      // patchSetAttribute hijiack data attribute, it needs exec first
       patchSetAttribute()
     }
 
@@ -290,6 +291,7 @@ export function defineElement (tagName: string): void {
         this.getBaseRouteCompatible(),
         this.getDisposeResult('keep-router-state'),
         this.getDefaultPageValue(),
+        this.getDisposeResult('hidden-router'),
       ))
     }
 
@@ -309,12 +311,13 @@ export function defineElement (tagName: string): void {
         ssrUrl: this.ssrUrl,
         container: this.shadowRoot ?? this,
         inline: this.getDisposeResult('inline'),
-        scopecss: !(this.getDisposeResult('disableScopecss') || this.getDisposeResult('shadowDOM')),
-        useSandbox: !this.getDisposeResult('disableSandbox'),
+        scopecss: !(this.getDisposeResult('disable-scopecss') || this.getDisposeResult('shadowDOM')),
+        useSandbox: !this.getDisposeResult('disable-sandbox'),
         useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
         baseroute: this.getBaseRouteCompatible(),
         keepRouteState: this.getDisposeResult('keep-router-state'),
         defaultPage: this.getDefaultPageValue(),
+        hiddenRouter: this.getDisposeResult('hidden-router'),
       })
 
       appInstanceMap.set(this.appName, instance)
@@ -360,25 +363,25 @@ export function defineElement (tagName: string): void {
      */
     private getDisposeResult (name: string): boolean {
       // @ts-ignore
-      return (this.compatibleSpecialProperties(name) || microApp[name]) && this.compatibleDisableSpecialProperties(name)
+      return (this.compatibleSpecialProperties(name) || !!microApp[name]) && this.compatibleDisableSpecialProperties(name)
     }
 
     // compatible of disableScopecss & disableSandbox
     private compatibleSpecialProperties (name: string): boolean {
-      if (name === 'disableScopecss') {
-        return this.hasAttribute('disableScopecss') || this.hasAttribute('disable-scopecss')
-      } else if (name === 'disableSandbox') {
-        return this.hasAttribute('disableSandbox') || this.hasAttribute('disable-sandbox')
+      if (name === 'disable-scopecss') {
+        return this.hasAttribute('disable-scopecss') || this.hasAttribute('disableScopecss')
+      } else if (name === 'disable-sandbox') {
+        return this.hasAttribute('disable-sandbox') || this.hasAttribute('disableSandbox')
       }
       return this.hasAttribute(name)
     }
 
     // compatible of disableScopecss & disableSandbox
     private compatibleDisableSpecialProperties (name: string): boolean {
-      if (name === 'disableScopecss') {
-        return this.getAttribute('disableScopecss') !== 'false' && this.getAttribute('disable-scopecss') !== 'false'
-      } else if (name === 'disableSandbox') {
-        return this.getAttribute('disableSandbox') !== 'false' && this.getAttribute('disable-sandbox') !== 'false'
+      if (name === 'disable-scopecss') {
+        return this.getAttribute('disable-scopecss') !== 'false' && this.getAttribute('disableScopecss') !== 'false'
+      } else if (name === 'disable-sandbox') {
+        return this.getAttribute('disable-sandbox') !== 'false' && this.getAttribute('disableSandbox') !== 'false'
       }
       return this.getAttribute(name) !== 'false'
     }

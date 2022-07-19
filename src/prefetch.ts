@@ -57,9 +57,9 @@ function preFetchInSerial (prefetchApp: prefetchParam): Promise<void> {
           const app = new CreateApp({
             name: prefetchApp.name,
             url: prefetchApp.url,
-            scopecss: !(prefetchApp.disableScopecss ?? microApp.disableScopecss),
-            useSandbox: !(prefetchApp.disableSandbox ?? microApp.disableSandbox),
-            useMemoryRouter: !(prefetchApp.disableMemoryRouter ?? microApp.disableMemoryRouter),
+            scopecss: !(prefetchApp['disable-scopecss'] ?? prefetchApp.disableScopecss ?? microApp['disable-scopecss']),
+            useSandbox: !(prefetchApp['disable-sandbox'] ?? prefetchApp.disableSandbox ?? microApp['disable-sandbox']),
+            useMemoryRouter: !(prefetchApp['disable-memory-router'] ?? microApp['disable-memory-router']),
           })
 
           app.isPrefetch = true

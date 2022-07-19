@@ -1,5 +1,6 @@
 <template>
   <div class='page2'>
+    <img src="../assets/micro-app-logo.jpeg" alt="" width="100" />
     <div class="test-btn" @click='onClickTest'>
       返回首页
     </div>
