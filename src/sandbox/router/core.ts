@@ -76,7 +76,8 @@ function commonDecode (path: string): string {
 
 // 格式化query参数key，防止与原有参数的冲突
 function formatQueryAppName (appName: string) {
-  return `app-${appName}`
+  // return `app-${appName}`
+  return appName
 }
 
 // 根据浏览器url参数，获取当前子应用的path

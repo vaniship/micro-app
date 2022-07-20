@@ -45,7 +45,7 @@ window.addEventListener('appstate-change', function (e) {
   console.log('子应用内部console.log -- keep-alive app 状态：', e.detail.appState);
 })
 
-// ----------------------分割线-默认模式--------------------- //
+/* ----------------------分割线-默认模式--------------------- */
 ReactDOM.render(
   <React.StrictMode>
     <Router />
@@ -61,7 +61,7 @@ window.addEventListener('unmount', function () {
 
 // console.timeEnd('react#16');
 
-// ----------------------分割线-umd模式--------------------- //
+/* ----------------------分割线-umd模式--------------------- */
 // function mount () {
 //   ReactDOM.render(
 //     <React.StrictMode>
@@ -90,7 +90,7 @@ window.addEventListener('unmount', function () {
 // }
 
 
-// ----------------------分割线-特殊场景测试--------------------- //
+/* ---------------------- 全局事件 --------------------- */
 // document.addEventListener('click', function () {
 //   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
 // }, false)
@@ -107,7 +107,9 @@ window.addEventListener('unmount', function () {
 //   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
 // }, 1000)
 
-// ---------------------- 创建元素 --------------------- //
+
+/* ---------------------- 创建元素 --------------------- */
+// script
 // const dynamicScript1 = document.createElement('script')
 // // dynamicScript1.setAttribute('type', 'module')
 // // dynamicScript1.textContent = 'console.warn('inline module')'
@@ -117,18 +119,22 @@ window.addEventListener('unmount', function () {
 // }
 // document.head.appendChild(dynamicScript1)
 
-// ---------------------- 全局变量 --------------------- //
-// console.log('__micro_app_environment__', window.__micro_app_environment__)
-// console.log('__micro_app_name__', window.__micro_app_name__)
-// console.log('__full_public_path__', window.__full_public_path__)
-// console.log('baseurl', window.baseurl)
-
+// style
 // const dynamicStyle = document.createElement('style')
 // document.head.appendChild(dynamicStyle)
 // dynamicStyle.textContent = '.test-class { color: red } '
 
 
-// // BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
+
+/* ---------------------- 全局变量 --------------------- */
+console.log('__micro_app_environment__', window.__micro_app_environment__)
+console.log('__micro_app_name__', window.__micro_app_name__)
+console.log('__full_public_path__', window.__full_public_path__)
+console.log('baseurl', window.baseurl)
+
+
+/* ---------------------- DOMParser --------------------- */
+// BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
 // const parser = new DOMParser()
 // const htmlString = `
 // <div>
@@ -159,40 +165,28 @@ window.addEventListener('unmount', function () {
 // }, 3000)
 
 
-// // 测试 Image
+/* ---------------------- Image --------------------- */
 // const newImg = new Image()
 // newImg.src = '/static/media/logo.6ce24c58.svg'
 // document.body.appendChild(newImg)
 
-// // 测试 cloneNode
+
+/* ---------------------- cloneNode --------------------- */
 // var img2 = newImg.cloneNode(true)
 // document.body.appendChild(img2)
 
 
-
+/* ---------------------- setInterval在子应用卸载时的自动清除和恢复 --------------------- */
 // setInterval(() => {
 //   console.log(4444444, document.activeElement)
 // }, 3000);
 
-// function App({ basename }) {
-//   return (
-//     <React.StrictMode>
-//       <Router />
-//     </React.StrictMode>
-//   );
-// }
+/* ---------------------- requestAnimationFrame --------------------- */
+// requestAnimationFrame(() => {
+//   console.log(444444)
+// })
 
-// setTimeout(() => {
-//   console.log(document)
-//   console.log(window.document)
-// }, 5000);
-
-// window.a = 1111111
-// console.log(a, alert, window.alert) // eslint-disable-line
-
-// window.abc1111111111111()
-// abc1111111111111() // eslint-disable-line
-
+/* ---------------------- 声明全局变量 --------------------- */
 // window.abc222 = function () {
 //   console.log(33333333, this)
 // }
@@ -201,6 +195,8 @@ window.addEventListener('unmount', function () {
 
 // abc222() // eslint-disable-line
 
+
+/* ---------------------- window特有变量 --------------------- */
 // console.log(
 //   66666,
 //   window.hasOwnProperty('microApp'),
@@ -211,16 +207,15 @@ window.addEventListener('unmount', function () {
 //   window.globalThis,
 // )
 
+
+/* ---------------------- 测试defineProperty定义全局变量(清空、恢复) --------------------- */
 // Object.defineProperty(window, 'aaa', {
 //   value: 111,
 // })
-// console.log(55555555, this, aaa, undefined, null) // eslint-disable-line
+// console.log(55555555, this, aaa) // eslint-disable-line
 
-// requestAnimationFrame(() => {
-//   console.log(444444)
-// })
 
-// ----------------------分割线--接口相关--------------------- //
+/* ---------------------- 接口相关 --------------------- */
 // 测试proxy代理
 fetch('/sugrec').then((res) => {
   return res.json()
@@ -229,7 +224,7 @@ fetch('/sugrec').then((res) => {
 })
 
 
-// ----------------------分割线--插件相关--------------------- //
+/* ---------------------- 插件相关 --------------------- */
 window.scopeKey1 = 'scopeKey1'
 window.scopeKey2 = 'scopeKey2'
 window.scopeKey3 = 'scopeKey3'
@@ -245,20 +240,22 @@ window.escapeKey5 = 'escapeKey5' // should be undefined in rawWindow
 window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
 
 
-// ----------------------分割线-- pureCreateElement & removeDomScope --------------------- //
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  const unBoundDom1 = window.microApp.pureCreateElement('div')
-  unBoundDom1.innerHTML = 'unBoundDom1'
-  document.body.appendChild(unBoundDom1)
+/* ---------------------- pureCreateElement & removeDomScope --------------------- */
+// if (window.__MICRO_APP_ENVIRONMENT__) {
+//   const unBoundDom1 = window.microApp.pureCreateElement('div')
+//   unBoundDom1.innerHTML = 'unBoundDom1'
+//   document.body.appendChild(unBoundDom1)
 
-  const createElement = document.createElement
-  const rawDocument = window.rawDocument
-  window.microApp.removeDomScope()
-  const unBoundDom2 = createElement.call(rawDocument, 'div')
-  unBoundDom2.innerHTML = 'unBoundDom2'
-  document.body.appendChild(unBoundDom2)
-}
+//   const createElement = document.createElement
+//   const rawDocument = window.rawDocument
+//   window.microApp.removeDomScope()
+//   const unBoundDom2 = createElement.call(rawDocument, 'div')
+//   unBoundDom2.innerHTML = 'unBoundDom2'
+//   document.body.appendChild(unBoundDom2)
+// }
 
+
+/* ---------------------- 获取原生window 和 document --------------------- */
 // // 注意：！！！！ 无论任何使用window.xx的情况都会重新触发元素绑定
 // const _window = new Function('return window')()
 
@@ -268,6 +265,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 // }, 0);
 
 
+/* ---------------------- location 跳转 --------------------- */
 // setTimeout(() => {
 //   // window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
 //   // window.location.pathname = '/micro-app/react16/page2#fff'
@@ -278,6 +276,8 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 //   // window.history.scrollRestoration = 'manual'
 // }, 5000);
 
+
+/* ---------------------- popstate 和 hashchange --------------------- */
 window.addEventListener('popstate', (e) => {
   console.log('子应用 popstate', e)
 })
@@ -285,3 +285,17 @@ window.addEventListener('popstate', (e) => {
 window.addEventListener('hashchange', (e) => {
   console.log('子应用 hashchange', e, e.newURL, e.oldURL)
 })
+
+
+/* ---------------------- 选择器 -- 绑定ProxyDocument --------------------- */
+// console.log('querySelectorAll: ', Document.prototype.querySelectorAll.call(document, 'span'))
+// console.log('querySelectorAll head: ', Document.prototype.querySelectorAll.call(document, 'head'))
+// console.log('querySelector: ', Document.prototype.querySelector.call(document, 'div'))
+// console.log('querySelector head: ', Document.prototype.querySelector.call(document, 'head'))
+// console.log('createElement: ', Document.prototype.createElement.call(document, 'div'))
+// console.log('createElementNS: ', Document.prototype.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg'))
+// console.log('createDocumentFragment: ', Document.prototype.createDocumentFragment.call(document))
+// console.log('getElementById: ', Document.prototype.getElementById.call(document, '1abc'))
+// console.log('getElementsByClassName: ', Document.prototype.getElementsByClassName.call(document, '1abc'))
+// console.log('getElementsByTagName: ', Document.prototype.getElementsByTagName.call(document, '1abc'))
+// console.log('getElementsByName: ', Document.prototype.getElementsByName.call(document, '1abc'))

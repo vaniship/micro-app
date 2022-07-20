@@ -17,6 +17,7 @@ import {
 import { UploadOutlined, InboxOutlined } from '@ant-design/icons';
 import styled from 'styled-components'
 import './page2.css'
+import bigImg from '../../assets/big-img.jpeg';
 
 const StyledButton = styled.button`
   background: transparent;
@@ -63,6 +64,7 @@ const Page2 = () => {
 
   return (
     <div>
+      <img src={bigImg} alt="" width="100" />
       <div>
         <p>styled-component👇</p>
         <StyledButton>按钮</StyledButton>

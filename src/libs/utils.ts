@@ -98,6 +98,11 @@ export function isURL (target: unknown): target is URL {
   return target instanceof URL
 }
 
+// is ProxyDocument
+export function isProxyDocument (target: unknown): target is Document {
+  return toString.call(target) === '[object ProxyDocument]'
+}
+
 /**
  * format error log
  * @param msg message

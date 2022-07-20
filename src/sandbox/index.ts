@@ -584,6 +584,7 @@ export default class SandBox implements SandBoxInterface {
         throttleDeferForSetAppName(appName)
         throttleDeferForParentNode(proxyDocument)
         if (key === 'createElement') return createElement
+        if (key === Symbol.toStringTag) return 'ProxyDocument'
         const rawValue = Reflect.get(target, key)
         return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'DOCUMENT') : rawValue
       },

@@ -52,7 +52,6 @@ function controlBase () {
   window.microApp.router.getBaseAppRouter()?.push('/vue2')
 }
 
-
 function Page1() {
   return (
     <div className="App">
@@ -70,21 +69,18 @@ function Page1() {
           Learn React
         </a>
       </header>
-      <div>
-        {
-          window.location.href.includes('react16') && (
-            <div className='btn-con2' clstag="pageclick|keycount|home2013|08a">
-              <Space direction='vertical'>
-                <Button type="primary" onClick={() => window.microApp?.dispatch({'from': '来自微应用react16的数据' + (+new Date())})}>
-                  向基座应用发送数据
-                </Button>
-                <Button type="primary" onClick={getDataFromBase}>
-                  主动获取数据
-                </Button>
-              </Space>
-            </div>
-          )
-        }
+      <div className='btn-con2' clstag="pageclick|keycount|home2013|08a">
+        <Space direction='vertical'>
+          <Button type="primary" onClick={() => window.microApp?.dispatch({'from': '来自微应用react16的数据' + (+new Date())})}>
+            向基座应用发送数据
+          </Button>
+          <Button type="primary" onClick={getDataFromBase}>
+            主动获取数据
+          </Button>
+          <Button type="primary" onClick={controlBase}>
+            控制基座跳转到子应用vue2
+          </Button>
+        </Space>
       </div>
       <div>
         <SVG src={logo} width={60} />
@@ -97,9 +93,6 @@ function Page1() {
       </div>
       <div>
         <a href={`${process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3001'}/micro-app/react16/static/media/logo.6ce24c58.svg`} download="w3logo" onClick={download}>下载</a>
-      </div>
-      <div onClick={controlBase}>
-        控制基座跳转到/vue2
       </div>
     </div>
   );

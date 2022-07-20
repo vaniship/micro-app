@@ -10,6 +10,7 @@ import {
   isString,
   isInvalidQuerySelectorKey,
   isUniqueElement,
+  isProxyDocument,
 } from '../libs/utils'
 import scopedCSS from '../sandbox/scoped_css'
 import { extractLinkFromHtml, formatDynamicLink } from './links'
@@ -320,12 +321,16 @@ function markElement <T extends { __MICRO_APP_NAME__: string }> (element: T): T 
 function patchDocument () {
   const rawDocument = globalEnv.rawDocument
 
+  function getBindTarget (target: Document): Document {
+    return isProxyDocument(target) ? rawDocument : target
+  }
+
   // create element 👇
   Document.prototype.createElement = function createElement (
     tagName: string,
     options?: ElementCreationOptions,
   ): HTMLElement {
-    const element = globalEnv.rawCreateElement.call(this, tagName, options)
+    const element = globalEnv.rawCreateElement.call(getBindTarget(this), tagName, options)
     return markElement(element)
   }
 
@@ -334,17 +339,18 @@ function patchDocument () {
     name: string,
     options?: string | ElementCreationOptions,
   ): any {
-    const element = globalEnv.rawCreateElementNS.call(this, namespaceURI, name, options)
+    const element = globalEnv.rawCreateElementNS.call(getBindTarget(this), namespaceURI, name, options)
     return markElement(element)
   }
 
   Document.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
-    const element = globalEnv.rawCreateDocumentFragment.call(this)
+    const element = globalEnv.rawCreateDocumentFragment.call(getBindTarget(this))
     return markElement(element)
   }
 
   // query element👇
   function querySelector (this: Document, selectors: string): any {
+    const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
       !currentAppName ||
@@ -352,24 +358,25 @@ function patchDocument () {
       !selectors ||
       isUniqueElement(selectors) ||
       // see https://github.com/micro-zoe/micro-app/issues/56
-      rawDocument !== this
+      rawDocument !== _this
     ) {
-      return globalEnv.rawQuerySelector.call(this, selectors)
+      return globalEnv.rawQuerySelector.call(_this, selectors)
     }
 
     return appInstanceMap.get(currentAppName)?.container?.querySelector(selectors) ?? null
   }
 
   function querySelectorAll (this: Document, selectors: string): any {
+    const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
       !currentAppName ||
       !appInstanceMap.get(currentAppName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
-      rawDocument !== this
+      rawDocument !== _this
     ) {
-      return globalEnv.rawQuerySelectorAll.call(this, selectors)
+      return globalEnv.rawQuerySelectorAll.call(_this, selectors)
     }
 
     return appInstanceMap.get(currentAppName)?.container?.querySelectorAll(selectors) ?? []
@@ -379,30 +386,33 @@ function patchDocument () {
   Document.prototype.querySelectorAll = querySelectorAll
 
   Document.prototype.getElementById = function getElementById (key: string): HTMLElement | null {
+    const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementById.call(this, key)
+      return globalEnv.rawGetElementById.call(_this, key)
     }
 
     try {
-      return querySelector.call(this, `#${key}`)
+      return querySelector.call(_this, `#${key}`)
     } catch {
-      return globalEnv.rawGetElementById.call(this, key)
+      return globalEnv.rawGetElementById.call(_this, key)
     }
   }
 
   Document.prototype.getElementsByClassName = function getElementsByClassName (key: string): HTMLCollectionOf<Element> {
+    const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementsByClassName.call(this, key)
+      return globalEnv.rawGetElementsByClassName.call(_this, key)
     }
 
     try {
-      return querySelectorAll.call(this, `.${key}`)
+      return querySelectorAll.call(_this, `.${key}`)
     } catch {
-      return globalEnv.rawGetElementsByClassName.call(this, key)
+      return globalEnv.rawGetElementsByClassName.call(_this, key)
     }
   }
 
   Document.prototype.getElementsByTagName = function getElementsByTagName (key: string): HTMLCollectionOf<Element> {
+    const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
       !currentAppName ||
@@ -410,25 +420,26 @@ function patchDocument () {
       isInvalidQuerySelectorKey(key) ||
       (!appInstanceMap.get(currentAppName)?.inline && /^script$/i.test(key))
     ) {
-      return globalEnv.rawGetElementsByTagName.call(this, key)
+      return globalEnv.rawGetElementsByTagName.call(_this, key)
     }
 
     try {
-      return querySelectorAll.call(this, key)
+      return querySelectorAll.call(_this, key)
     } catch {
-      return globalEnv.rawGetElementsByTagName.call(this, key)
+      return globalEnv.rawGetElementsByTagName.call(_this, key)
     }
   }
 
   Document.prototype.getElementsByName = function getElementsByName (key: string): NodeListOf<HTMLElement> {
+    const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementsByName.call(this, key)
+      return globalEnv.rawGetElementsByName.call(_this, key)
     }
 
     try {
-      return querySelectorAll.call(this, `[name=${key}]`)
+      return querySelectorAll.call(_this, `[name=${key}]`)
     } catch {
-      return globalEnv.rawGetElementsByName.call(this, key)
+      return globalEnv.rawGetElementsByName.call(_this, key)
     }
   }
 }
