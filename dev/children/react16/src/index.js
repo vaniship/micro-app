@@ -287,7 +287,7 @@ window.addEventListener('hashchange', (e) => {
 })
 
 
-/* ---------------------- 选择器 -- 绑定ProxyDocument --------------------- */
+/* ---------------------- 选择器 -- Document原型方法绑定ProxyDocument --------------------- */
 // console.log('querySelectorAll: ', Document.prototype.querySelectorAll.call(document, 'span'))
 // console.log('querySelectorAll head: ', Document.prototype.querySelectorAll.call(document, 'head'))
 // console.log('querySelector: ', Document.prototype.querySelector.call(document, 'div'))
@@ -299,3 +299,6 @@ window.addEventListener('hashchange', (e) => {
 // console.log('getElementsByClassName: ', Document.prototype.getElementsByClassName.call(document, '1abc'))
 // console.log('getElementsByTagName: ', Document.prototype.getElementsByTagName.call(document, '1abc'))
 // console.log('getElementsByName: ', Document.prototype.getElementsByName.call(document, '1abc'))
+
+console.log('createAttribute: ', Document.prototype.createAttribute.call(document, 'abc'))
+console.log('createAttribute: ', document.createAttribute.call(document, 'abc'))
