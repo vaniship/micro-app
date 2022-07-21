@@ -109,7 +109,6 @@ window.addEventListener('unmount', function () {
 
 
 /* ---------------------- 创建元素 --------------------- */
-// script
 // const dynamicScript1 = document.createElement('script')
 // // dynamicScript1.setAttribute('type', 'module')
 // // dynamicScript1.textContent = 'console.warn('inline module')'
@@ -119,7 +118,6 @@ window.addEventListener('unmount', function () {
 // }
 // document.head.appendChild(dynamicScript1)
 
-// style
 // const dynamicStyle = document.createElement('style')
 // document.head.appendChild(dynamicStyle)
 // dynamicStyle.textContent = '.test-class { color: red } '
@@ -127,10 +125,10 @@ window.addEventListener('unmount', function () {
 
 
 /* ---------------------- 全局变量 --------------------- */
-console.log('__micro_app_environment__', window.__micro_app_environment__)
-console.log('__micro_app_name__', window.__micro_app_name__)
-console.log('__full_public_path__', window.__full_public_path__)
-console.log('baseurl', window.baseurl)
+// console.log('__micro_app_environment__', window.__micro_app_environment__)
+// console.log('__micro_app_name__', window.__micro_app_name__)
+// console.log('__full_public_path__', window.__full_public_path__)
+// console.log('baseurl', window.baseurl)
 
 
 /* ---------------------- DOMParser --------------------- */
@@ -167,8 +165,9 @@ console.log('baseurl', window.baseurl)
 
 /* ---------------------- Image --------------------- */
 // const newImg = new Image()
-// newImg.src = '/static/media/logo.6ce24c58.svg'
+// newImg.src = '/micro-app/react16/static/media/logo.6ce24c58.svg'
 // document.body.appendChild(newImg)
+// newImg.setAttribute('width', '50px')
 
 
 /* ---------------------- cloneNode --------------------- */
@@ -241,28 +240,28 @@ window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
 
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */
-// if (window.__MICRO_APP_ENVIRONMENT__) {
-//   const unBoundDom1 = window.microApp.pureCreateElement('div')
-//   unBoundDom1.innerHTML = 'unBoundDom1'
-//   document.body.appendChild(unBoundDom1)
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  const unBoundDom1 = window.microApp.pureCreateElement('div')
+  unBoundDom1.innerHTML = 'unBoundDom1'
+  document.body.appendChild(unBoundDom1)
 
-//   const createElement = document.createElement
-//   const rawDocument = window.rawDocument
-//   window.microApp.removeDomScope()
-//   const unBoundDom2 = createElement.call(rawDocument, 'div')
-//   unBoundDom2.innerHTML = 'unBoundDom2'
-//   document.body.appendChild(unBoundDom2)
-// }
+  const createElement = document.createElement
+  const rawDocument = window.rawDocument
+  window.microApp.removeDomScope()
+  const unBoundDom2 = createElement.call(rawDocument, 'div')
+  unBoundDom2.innerHTML = 'unBoundDom2'
+  document.body.appendChild(unBoundDom2)
+}
 
 
 /* ---------------------- 获取原生window 和 document --------------------- */
-// // 注意：！！！！ 无论任何使用window.xx的情况都会重新触发元素绑定
-// const _window = new Function('return window')()
+// 注意：！！！！ 无论任何使用window.xx的情况都会重新触发元素绑定
+const _window = new Function('return window')()
 
-// setTimeout(() => {
-//   // window.microApp.removeDomScope()
-//   console.log(_window.document.getElementById('root'))
-// }, 0);
+setTimeout(() => {
+  // window.microApp.removeDomScope()
+  console.log(_window.document.getElementById('root'))
+}, 0);
 
 
 /* ---------------------- location 跳转 --------------------- */
@@ -288,17 +287,19 @@ window.addEventListener('hashchange', (e) => {
 
 
 /* ---------------------- 选择器 -- Document原型方法绑定ProxyDocument --------------------- */
-// console.log('querySelectorAll: ', Document.prototype.querySelectorAll.call(document, 'span'))
-// console.log('querySelectorAll head: ', Document.prototype.querySelectorAll.call(document, 'head'))
-// console.log('querySelector: ', Document.prototype.querySelector.call(document, 'div'))
-// console.log('querySelector head: ', Document.prototype.querySelector.call(document, 'head'))
-// console.log('createElement: ', Document.prototype.createElement.call(document, 'div'))
-// console.log('createElementNS: ', Document.prototype.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg'))
-// console.log('createDocumentFragment: ', Document.prototype.createDocumentFragment.call(document))
-// console.log('getElementById: ', Document.prototype.getElementById.call(document, '1abc'))
-// console.log('getElementsByClassName: ', Document.prototype.getElementsByClassName.call(document, '1abc'))
-// console.log('getElementsByTagName: ', Document.prototype.getElementsByTagName.call(document, '1abc'))
-// console.log('getElementsByName: ', Document.prototype.getElementsByName.call(document, '1abc'))
+console.log('querySelectorAll: ', Document.prototype.querySelectorAll.call(document, 'span'))
+console.log('querySelectorAll head: ', Document.prototype.querySelectorAll.call(document, 'head'))
+console.log('querySelector: ', Document.prototype.querySelector.call(document, 'div'))
+console.log('querySelector head: ', Document.prototype.querySelector.call(document, 'head'))
+console.log('createElement: ', Document.prototype.createElement.call(document, 'div'))
+console.log('createElementNS: ', Document.prototype.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg'))
+console.log('createDocumentFragment: ', Document.prototype.createDocumentFragment.call(document))
+console.log('getElementById: ', Document.prototype.getElementById.call(document, '1abc'))
+console.log('getElementsByClassName: ', Document.prototype.getElementsByClassName.call(document, '1abc'))
+console.log('getElementsByTagName: ', Document.prototype.getElementsByTagName.call(document, '1abc'))
+console.log('getElementsByName: ', Document.prototype.getElementsByName.call(document, '1abc'))
 
-console.log('createAttribute: ', Document.prototype.createAttribute.call(document, 'abc'))
-console.log('createAttribute: ', document.createAttribute.call(document, 'abc'))
+console.log('Document.prototype.createAttribute: ', Document.prototype.createAttribute.call(document, 'abc'))
+console.log('document.createAttribute: ', document.createAttribute.call(document, 'abc'))
+console.log('document instanceof Document', document instanceof Document)
+console.log('new Document() ', new Document())

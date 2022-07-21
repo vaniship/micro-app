@@ -1,3 +1,4 @@
+/* eslint-disable no-cond-assign */
 import type {
   microAppWindowType,
   SandBoxInterface,
@@ -379,15 +380,26 @@ export default class SandBox implements SandBoxInterface {
   }
 
   private setProxyDocument (microAppWindow: microAppWindowType, appName: string): void {
-    const proxyDocument = this.createProxyDocument(appName)
-    rawDefineProperty(microAppWindow, 'document', {
-      configurable: false,
-      enumerable: true,
-      get () {
-        throttleDeferForSetAppName(appName)
-        // return globalEnv.rawDocument
-        return proxyDocument
+    const { proxyDocument, MicroDocument } = this.createProxyDocument(appName)
+    rawDefineProperties(microAppWindow, {
+      document: {
+        configurable: false,
+        enumerable: true,
+        get () {
+          throttleDeferForSetAppName(appName)
+          // return globalEnv.rawDocument
+          return proxyDocument
+        },
       },
+      Document: {
+        configurable: false,
+        enumerable: false,
+        get () {
+          throttleDeferForSetAppName(appName)
+          // return globalEnv.rawRootDocument
+          return MicroDocument
+        },
+      }
     })
   }
 
@@ -572,24 +584,66 @@ export default class SandBox implements SandBoxInterface {
     removeStateAndPathFromBrowser(this.proxyWindow.__MICRO_APP_NAME__)
   }
 
-  private createProxyDocument (appName: string): Document {
+  /**
+   * Create new document and Document
+   */
+  private createProxyDocument (appName: string) {
+    const rawDocument = globalEnv.rawDocument
+    const rawRootDocument = globalEnv.rawRootDocument
+
     const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
-      const element = globalEnv.rawCreateElement.call(globalEnv.rawDocument, tagName, options)
+      const element = globalEnv.rawCreateElement.call(rawDocument, tagName, options)
       element.__MICRO_APP_NAME__ = appName
       return element
     }
 
-    const proxyDocument = new Proxy(globalEnv.rawDocument, {
+    const proxyDocument = new Proxy(rawDocument, {
       get (target: Document, key: PropertyKey): unknown {
         throttleDeferForSetAppName(appName)
         throttleDeferForParentNode(proxyDocument)
         if (key === 'createElement') return createElement
         if (key === Symbol.toStringTag) return 'ProxyDocument'
         const rawValue = Reflect.get(target, key)
-        return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'DOCUMENT') : rawValue
+        return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
       },
     })
 
-    return proxyDocument
+    class MicroDocument {
+      static [Symbol.hasInstance] (target: unknown) {
+        let proto = target
+        while (proto = Object.getPrototypeOf(proto)) {
+          if (proto === MicroDocument.prototype) {
+            return true
+          }
+        }
+        return (
+          target === proxyDocument ||
+          target instanceof rawRootDocument
+        )
+      }
+    }
+
+    /**
+     * TIP:
+     * 1. child class __proto__, which represents the inherit of the constructor, always points to the parent class
+     * 2. child class prototype.__proto__, which represents the inherit of methods, always points to parent class prototype
+     * e.g.
+     * class B extends A {}
+     * B.__proto__ === A // true
+     * B.prototype.__proto__ === A.prototype // true
+     */
+    Object.setPrototypeOf(MicroDocument, rawRootDocument)
+    Object.setPrototypeOf(MicroDocument.prototype, new Proxy(rawRootDocument.prototype, {
+      get (target: Document, key: PropertyKey): unknown {
+        throttleDeferForSetAppName(appName)
+        const rawValue = Reflect.get(target, key)
+        return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
+      }
+    }))
+
+    return {
+      proxyDocument,
+      MicroDocument,
+    }
   }
 }

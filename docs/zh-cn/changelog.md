@@ -15,6 +15,7 @@
 - **New**
 
   - 🆕 重写了基座的`pushState`、`replaceState`方法，自动将子应用的路由信息同步到浏览器地址。
+  - 🆕 重写了子应用的`Document`对象，每个子应用拥有单独的Document实例。
 
 - **Bug Fix**
 

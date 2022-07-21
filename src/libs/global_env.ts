@@ -42,6 +42,10 @@ const globalEnv: Record<string, any> = {}
  */
 export function initGlobalEnv (): void {
   if (isBrowser) {
+    const rawWindow = Function('return window')()
+    const rawDocument = Function('return document')()
+    const rawRootDocument = Function('return Document')()
+    const supportModuleScript = isSupportModuleScript()
     /**
      * save patch raw methods
      * pay attention to this binding
@@ -55,15 +59,15 @@ export function initGlobalEnv (): void {
     const rawPrepend = Element.prototype.prepend
     const rawCloneNode = Element.prototype.cloneNode
 
-    const rawCreateElement = Document.prototype.createElement
-    const rawCreateElementNS = Document.prototype.createElementNS
-    const rawCreateDocumentFragment = Document.prototype.createDocumentFragment
-    const rawQuerySelector = Document.prototype.querySelector
-    const rawQuerySelectorAll = Document.prototype.querySelectorAll
-    const rawGetElementById = Document.prototype.getElementById
-    const rawGetElementsByClassName = Document.prototype.getElementsByClassName
-    const rawGetElementsByTagName = Document.prototype.getElementsByTagName
-    const rawGetElementsByName = Document.prototype.getElementsByName
+    const rawCreateElement = rawRootDocument.prototype.createElement
+    const rawCreateElementNS = rawRootDocument.prototype.createElementNS
+    const rawCreateDocumentFragment = rawRootDocument.prototype.createDocumentFragment
+    const rawQuerySelector = rawRootDocument.prototype.querySelector
+    const rawQuerySelectorAll = rawRootDocument.prototype.querySelectorAll
+    const rawGetElementById = rawRootDocument.prototype.getElementById
+    const rawGetElementsByClassName = rawRootDocument.prototype.getElementsByClassName
+    const rawGetElementsByTagName = rawRootDocument.prototype.getElementsByTagName
+    const rawGetElementsByName = rawRootDocument.prototype.getElementsByName
 
     const ImageProxy = new Proxy(Image, {
       construct (Target, args): HTMLImageElement {
@@ -72,10 +76,6 @@ export function initGlobalEnv (): void {
         return elementImage
       },
     })
-
-    const rawWindow = Function('return window')()
-    const rawDocument = Function('return document')()
-    const supportModuleScript = isSupportModuleScript()
 
     /**
      * save effect raw methods
@@ -97,6 +97,12 @@ export function initGlobalEnv (): void {
     window.__MICRO_APP_BASE_APPLICATION__ = true
 
     assign(globalEnv, {
+      // common global vars
+      rawWindow,
+      rawDocument,
+      rawRootDocument,
+      supportModuleScript,
+
       // source/patch
       rawSetAttribute,
       rawAppendChild,
@@ -116,11 +122,6 @@ export function initGlobalEnv (): void {
       rawGetElementsByTagName,
       rawGetElementsByName,
       ImageProxy,
-
-      // common global vars
-      rawWindow,
-      rawDocument,
-      supportModuleScript,
 
       // sandbox/effect
       rawWindowAddEventListener,

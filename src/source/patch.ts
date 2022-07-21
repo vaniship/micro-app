@@ -320,13 +320,14 @@ function markElement <T extends { __MICRO_APP_NAME__: string }> (element: T): T 
 // methods of document
 function patchDocument () {
   const rawDocument = globalEnv.rawDocument
+  const rawRootDocument = globalEnv.rawRootDocument
 
   function getBindTarget (target: Document): Document {
     return isProxyDocument(target) ? rawDocument : target
   }
 
   // create element 👇
-  Document.prototype.createElement = function createElement (
+  rawRootDocument.prototype.createElement = function createElement (
     tagName: string,
     options?: ElementCreationOptions,
   ): HTMLElement {
@@ -334,7 +335,7 @@ function patchDocument () {
     return markElement(element)
   }
 
-  Document.prototype.createElementNS = function createElementNS (
+  rawRootDocument.prototype.createElementNS = function createElementNS (
     namespaceURI: string,
     name: string,
     options?: string | ElementCreationOptions,
@@ -343,7 +344,7 @@ function patchDocument () {
     return markElement(element)
   }
 
-  Document.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
+  rawRootDocument.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
     const element = globalEnv.rawCreateDocumentFragment.call(getBindTarget(this))
     return markElement(element)
   }
@@ -382,10 +383,10 @@ function patchDocument () {
     return appInstanceMap.get(currentAppName)?.container?.querySelectorAll(selectors) ?? []
   }
 
-  Document.prototype.querySelector = querySelector
-  Document.prototype.querySelectorAll = querySelectorAll
+  rawRootDocument.prototype.querySelector = querySelector
+  rawRootDocument.prototype.querySelectorAll = querySelectorAll
 
-  Document.prototype.getElementById = function getElementById (key: string): HTMLElement | null {
+  rawRootDocument.prototype.getElementById = function getElementById (key: string): HTMLElement | null {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementById.call(_this, key)
@@ -398,7 +399,7 @@ function patchDocument () {
     }
   }
 
-  Document.prototype.getElementsByClassName = function getElementsByClassName (key: string): HTMLCollectionOf<Element> {
+  rawRootDocument.prototype.getElementsByClassName = function getElementsByClassName (key: string): HTMLCollectionOf<Element> {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementsByClassName.call(_this, key)
@@ -411,7 +412,7 @@ function patchDocument () {
     }
   }
 
-  Document.prototype.getElementsByTagName = function getElementsByTagName (key: string): HTMLCollectionOf<Element> {
+  rawRootDocument.prototype.getElementsByTagName = function getElementsByTagName (key: string): HTMLCollectionOf<Element> {
     const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
@@ -430,7 +431,7 @@ function patchDocument () {
     }
   }
 
-  Document.prototype.getElementsByName = function getElementsByName (key: string): NodeListOf<HTMLElement> {
+  rawRootDocument.prototype.getElementsByName = function getElementsByName (key: string): NodeListOf<HTMLElement> {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementsByName.call(_this, key)
@@ -487,15 +488,16 @@ export function patchSetAttribute (): void {
 }
 
 function releasePatchDocument (): void {
-  Document.prototype.createElement = globalEnv.rawCreateElement
-  Document.prototype.createElementNS = globalEnv.rawCreateElementNS
-  Document.prototype.createDocumentFragment = globalEnv.rawCreateDocumentFragment
-  Document.prototype.querySelector = globalEnv.rawQuerySelector
-  Document.prototype.querySelectorAll = globalEnv.rawQuerySelectorAll
-  Document.prototype.getElementById = globalEnv.rawGetElementById
-  Document.prototype.getElementsByClassName = globalEnv.rawGetElementsByClassName
-  Document.prototype.getElementsByTagName = globalEnv.rawGetElementsByTagName
-  Document.prototype.getElementsByName = globalEnv.rawGetElementsByName
+  const rawRootDocument = globalEnv.rawRootDocument
+  rawRootDocument.prototype.createElement = globalEnv.rawCreateElement
+  rawRootDocument.prototype.createElementNS = globalEnv.rawCreateElementNS
+  rawRootDocument.prototype.createDocumentFragment = globalEnv.rawCreateDocumentFragment
+  rawRootDocument.prototype.querySelector = globalEnv.rawQuerySelector
+  rawRootDocument.prototype.querySelectorAll = globalEnv.rawQuerySelectorAll
+  rawRootDocument.prototype.getElementById = globalEnv.rawGetElementById
+  rawRootDocument.prototype.getElementsByClassName = globalEnv.rawGetElementsByClassName
+  rawRootDocument.prototype.getElementsByTagName = globalEnv.rawGetElementsByTagName
+  rawRootDocument.prototype.getElementsByName = globalEnv.rawGetElementsByName
 }
 
 // release patch
