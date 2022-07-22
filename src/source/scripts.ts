@@ -375,6 +375,7 @@ function bindScope (
   code: string,
   info: sourceScriptInfo,
 ): string {
+  // TODO: 增加缓存机制
   if (isPlainObject(microApp.plugins)) {
     code = usePlugins(url, code, app.name, microApp.plugins, info)
   }

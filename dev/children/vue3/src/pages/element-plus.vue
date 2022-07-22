@@ -4,7 +4,7 @@
     <div class="test-btn" @click='onClickTest'>
       返回首页
     </div>
-    <img src="../assets/logo.png" alt=""/>
+    <!-- <img src="../assets/logo.png" alt=""/> -->
     <h1>表单</h1>
     <el-form
       ref="ruleFormRef"
@@ -274,7 +274,11 @@
       <el-button plain @click="noticeOpen2"> Warning </el-button>
       <el-button plain @click="noticeOpen3"> Info </el-button>
       <el-button plain @click="noticeOpen4"> Error </el-button>
-      <br />
+    </div>
+    <br />
+    <br />
+    <h1>消息提示</h1>
+    <div>
       <el-button :plain="true" @click="messageOpen1">message</el-button>
       <el-button :plain="true" @click="messageOpen2">success</el-button>
       <el-button :plain="true" @click="messageOpen3">warning</el-button>

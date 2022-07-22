@@ -44,6 +44,7 @@ function Vue3 () {
         // baseRoute='/micro-app/demo/vue3'
         // disableScopecss
         // keep-alive
+        keep-router-state
         // inline
         // destroy
         // disableSandbox

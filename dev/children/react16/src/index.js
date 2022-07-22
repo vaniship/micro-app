@@ -215,8 +215,15 @@ window.addEventListener('unmount', function () {
 
 
 /* ---------------------- 接口相关 --------------------- */
-// 测试proxy代理
+/**
+ * 基座和子应用都设置了/sugrec的代理，两者都可以正常拿到数据
+ * 但是当走子应用的代理时，headers信息只能拿到 content-length 和 content-type
+ * 走基座的代理时，可以拿到所有的headers头信息
+ * 子应用：/sugrec，默认补全为 http://localhost:3001/sugrec
+ * 主应用：http://localhost:3000/sugrec
+ */
 fetch('/sugrec').then((res) => {
+  res.headers.forEach(function(val, key) { console.log('response.headers: ', key + ': ' + val) })
   return res.json()
 }).then((data) => {
   console.log('proxy代理 https://www.baidu.com/sugrec 返回数据', data)
