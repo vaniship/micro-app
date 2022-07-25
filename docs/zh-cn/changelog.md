@@ -8,6 +8,23 @@
 
 ---
 
+### 1.0.0-alpha.4
+
+`2022-07-28`
+
+- **New**
+
+  - 🆕 
+
+- **Bug Fix**
+
+  - 🐞 修复了设置document.title, history.scrollRestoration时报`Illegal invocation`错误的问题。
+
+- **Update**
+
+  - 🚀 更新了案例和文档
+
+
 ### 1.0.0-alpha.3
 
 `2022-07-21`

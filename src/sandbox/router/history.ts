@@ -61,6 +61,15 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
       }
       const rawValue = Reflect.get(target, key)
       return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'HISTORY') : rawValue
+    },
+    set (target: History, key: PropertyKey, value: unknown): boolean {
+      Reflect.set(target, key, value)
+      /**
+       * If the set() method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
+       * e.g. history.state = {}
+       * TypeError: 'set' on proxy: trap returned falsish for property 'state'
+       */
+      return true
     }
   })
 }

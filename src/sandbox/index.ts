@@ -606,6 +606,14 @@ export default class SandBox implements SandBoxInterface {
         const rawValue = Reflect.get(target, key)
         return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
       },
+      set (target: Document, key: PropertyKey, value: unknown): boolean {
+        // Fix TypeError: Illegal invocation when set document.title
+        Reflect.set(target, key, value)
+        /**
+         * If the set method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
+         */
+        return true
+      }
     })
 
     class MicroDocument {
@@ -633,11 +641,16 @@ export default class SandBox implements SandBoxInterface {
      * B.prototype.__proto__ === A.prototype // true
      */
     Object.setPrototypeOf(MicroDocument, rawRootDocument)
+    // Object.create(rawRootDocument.prototype) will cause MicroDocument and proxyDocument methods not same when exec Document.prototype.xxx = xxx in child app
     Object.setPrototypeOf(MicroDocument.prototype, new Proxy(rawRootDocument.prototype, {
       get (target: Document, key: PropertyKey): unknown {
         throttleDeferForSetAppName(appName)
         const rawValue = Reflect.get(target, key)
         return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
+      },
+      set (target: Document, key: PropertyKey, value: unknown): boolean {
+        Reflect.set(target, key, value)
+        return true
       }
     }))
 

@@ -279,6 +279,10 @@ function createRouterApi (): RouterApi {
             removeDomScope()
             const rawValue = Reflect.get(target, key)
             return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'BASEROUTER') : rawValue
+          },
+          set (target: History, key: PropertyKey, value: unknown): boolean {
+            Reflect.set(target, key, value)
+            return true
           }
         })
       } else if (process.env.NODE_ENV !== 'production') {
