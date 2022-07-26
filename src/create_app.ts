@@ -195,7 +195,8 @@ export default class CreateApp implements AppInterface {
             this.umdHookMount = mount as Func
             this.umdHookUnmount = unmount as Func
             this.umdMode = true
-            this.sandBox?.recordUmdSnapshot()
+            if (this.sandBox) this.sandBox.proxyWindow.__MICRO_APP_UMD_MODE__ = true
+            // this.sandBox?.recordUmdSnapshot()
             try {
               umdHookMountResult = this.umdHookMount()
             } catch (e) {
@@ -315,6 +316,9 @@ export default class CreateApp implements AppInterface {
       cloneContainer(this.container as Element, this.source.html as Element, false)
     }
 
+    if (this.umdMode) {
+      this.sandBox?.recordUmdSnapshot()
+    }
     /**
      * this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
      * NOTE:
@@ -322,6 +326,7 @@ export default class CreateApp implements AppInterface {
      * 2. umd mode and keep-alive will not clear EventSource
      */
     this.sandBox?.stop(
+      this.umdMode,
       this.keepRouteState && !destroy,
       !this.umdMode || destroy,
     )

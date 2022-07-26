@@ -51,18 +51,6 @@ microApp.start({
           // console.log('vue2插件', url, options)
           return code
         }
-      },
-      {
-        loader (code) {
-          code = `
-            window.__micro_app_environment__ = window.__MICRO_APP_ENVIRONMENT__;
-            window.__micro_app_name__ = window.__MICRO_APP_NAME__;
-            window.__full_public_path__ = window.__MICRO_APP_PUBLIC_PATH__;
-            window.baseurl = window.__MICRO_APP_BASE_ROUTE__;
-            ;${code}
-          `
-          return code
-        }
       }
     ],
     modules: {

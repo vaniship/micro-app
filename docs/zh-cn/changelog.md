@@ -19,6 +19,7 @@
 - **Bug Fix**
 
   - 🐞 修复了设置document.title, history.scrollRestoration时报`Illegal invocation`错误的问题。
+  - 🐞 修复了在umd模式部分场景下二次渲染时全局变量和全局事件丢失的问题。
 
 - **Update**
 

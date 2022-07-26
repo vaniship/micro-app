@@ -312,7 +312,7 @@ export function runDynamicRemoteScript (
     } catch (e) {
       console.error(`[micro-app from runDynamicScript] app ${app.name}: `, e, url)
     }
-    !info.module && dispatchOnLoadEvent(originScript)
+    !info.module && dispatchScriptOnLoadEvent()
   }).catch((err) => {
     logError(err, app.name)
     dispatchOnErrorEvent(originScript)

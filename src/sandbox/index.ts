@@ -100,7 +100,7 @@ export default class SandBox implements SandBoxInterface {
   // Properties escape to rawWindow, cleared when unmount
   private escapeKeys = new Set<PropertyKey>()
   // record injected values before the first execution of umdHookMount and rebuild before remount umd app
-  private recordUmdInjectedValues?: Map<PropertyKey, unknown>
+  // private recordUmdInjectedValues?: Map<PropertyKey, unknown>
   // sandbox state
   private active = false
   public proxyWindow: proxyWindow // Proxy
@@ -153,7 +153,7 @@ export default class SandBox implements SandBoxInterface {
     }
   }
 
-  public stop (keepRouteState: boolean, clearEventSource: boolean): void {
+  public stop (umdMode: boolean, keepRouteState: boolean, clearEventSource: boolean): void {
     if (this.active) {
       this.releaseEffect()
       this.microAppWindow.microApp.clearDataListener()
@@ -173,16 +173,19 @@ export default class SandBox implements SandBoxInterface {
        * NOTE:
        *  1. injectedKeys and escapeKeys must be placed at the back
        *  2. if key in initial microAppWindow, and then rewrite, this key will be delete from microAppWindow when stop, and lost when restart
+       *  3. umd mode will not delete global keys
        */
-      this.injectedKeys.forEach((key: PropertyKey) => {
-        Reflect.deleteProperty(this.microAppWindow, key)
-      })
-      this.injectedKeys.clear()
+      if (!umdMode) {
+        this.injectedKeys.forEach((key: PropertyKey) => {
+          Reflect.deleteProperty(this.microAppWindow, key)
+        })
+        this.injectedKeys.clear()
 
-      this.escapeKeys.forEach((key: PropertyKey) => {
-        Reflect.deleteProperty(globalEnv.rawWindow, key)
-      })
-      this.escapeKeys.clear()
+        this.escapeKeys.forEach((key: PropertyKey) => {
+          Reflect.deleteProperty(globalEnv.rawWindow, key)
+        })
+        this.escapeKeys.clear()
+      }
 
       if (--SandBox.activeCount === 0) {
         releaseEffectDocumentEvent()
@@ -196,21 +199,21 @@ export default class SandBox implements SandBoxInterface {
 
   // record umd snapshot before the first execution of umdHookMount
   public recordUmdSnapshot (): void {
-    this.microAppWindow.__MICRO_APP_UMD_MODE__ = true
+    // this.microAppWindow.__MICRO_APP_UMD_MODE__ = true
     this.recordUmdEffect()
     recordDataCenterSnapshot(this.microAppWindow.microApp)
 
-    this.recordUmdInjectedValues = new Map<PropertyKey, unknown>()
-    this.injectedKeys.forEach((key: PropertyKey) => {
-      this.recordUmdInjectedValues!.set(key, Reflect.get(this.microAppWindow, key))
-    })
+    // this.recordUmdInjectedValues = new Map<PropertyKey, unknown>()
+    // this.injectedKeys.forEach((key: PropertyKey) => {
+    //   this.recordUmdInjectedValues!.set(key, Reflect.get(this.microAppWindow, key))
+    // })
   }
 
   // rebuild umd snapshot before remount umd app
   public rebuildUmdSnapshot (): void {
-    this.recordUmdInjectedValues!.forEach((value: unknown, key: PropertyKey) => {
-      Reflect.set(this.proxyWindow, key, value)
-    })
+    // this.recordUmdInjectedValues!.forEach((value: unknown, key: PropertyKey) => {
+    //   Reflect.set(this.proxyWindow, key, value)
+    // })
     this.rebuildUmdEffect()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
   }

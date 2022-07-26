@@ -64,6 +64,8 @@
 </template>
 
 <script>
+// 测试umd二次渲染时全局变量是否丢失
+window.umdGlobalKey = 'umdGlobalKey'
 
 export default {
   name: 'Page1',
@@ -111,6 +113,9 @@ export default {
   },
   mounted () {
     console.log('vue2 page2 mounted')
+    if (!window.umdGlobalKey) {
+      alert('umdGlobalKey missing')
+    }
   },
   methods: {
     submitForm(formName) {

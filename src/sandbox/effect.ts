@@ -1,7 +1,6 @@
 import type { microAppWindowType } from '@micro-app/types'
 import {
   getCurrentAppName,
-  setCurrentAppName,
   logWarn,
   isFunction,
   isBoundFunction,
@@ -234,6 +233,14 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   let umdTimeoutIdMap = new Map<number, timeInfo>()
   let umdOnClickHandler: unknown
 
+  const clearUmdSnapshotData = () => {
+    umdWindowListenerMap.clear()
+    umdIntervalIdMap.clear()
+    umdTimeoutIdMap.clear()
+    umdDocumentListenerMap.clear()
+    umdOnClickHandler = null
+  }
+
   // record event and timer before exec umdMountHook
   const recordUmdEffect = () => {
     // record window event
@@ -288,13 +295,13 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
     umdOnClickHandler && documentClickListMap.set(appName, umdOnClickHandler)
 
     // rebuild document event
-    setCurrentAppName(appName)
     umdDocumentListenerMap.forEach((listenerList, type) => {
       for (const listener of listenerList) {
         document.addEventListener(type, listener, listener?.__MICRO_APP_MARK_OPTIONS__)
       }
     })
-    setCurrentAppName(null)
+
+    clearUmdSnapshotData()
   }
 
   // release all event listener & interval & timeout when unmount app
