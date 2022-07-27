@@ -153,7 +153,11 @@ export default class SandBox implements SandBoxInterface {
     }
   }
 
-  public stop (umdMode: boolean, keepRouteState: boolean, clearEventSource: boolean): void {
+  public stop (
+    umdMode: boolean,
+    keepRouteState: boolean,
+    clearEventSource: boolean,
+  ): void {
     if (this.active) {
       this.releaseEffect()
       this.microAppWindow.microApp.clearDataListener()
