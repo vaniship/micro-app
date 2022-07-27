@@ -12,18 +12,16 @@
 
 `2022-07-28`
 
-- **New**
-
-  - 🆕 
-
 - **Bug Fix**
 
   - 🐞 修复了设置document.title, history.scrollRestoration时报`Illegal invocation`错误的问题。
   - 🐞 修复了在umd模式部分场景下二次渲染时全局变量和全局事件丢失的问题。
+  - 🐞 修复了高德地图二次渲染时地图无法显示的问题。
+  - 🐞 修复了`element-plus`按需加载时，点击ElSelect组件空白区域无法收起的问题。
 
 - **Update**
 
-  - 🚀 更新了案例和文档
+  - 🚀 更新了1.0版本文档
 
 
 ### 1.0.0-alpha.3
