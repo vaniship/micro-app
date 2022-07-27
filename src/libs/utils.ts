@@ -1,5 +1,5 @@
 /* eslint-disable no-new-func, indent, @typescript-eslint/explicit-module-boundary-types */
-import type { Func } from '@micro-app/types'
+import type { Func, LocationQueryObject, LocationQueryValue, MicroLocation } from '@micro-app/types'
 
 export const version = '__MICRO_APP_VERSION__'
 
@@ -16,6 +16,19 @@ export const globalThis = (typeof global !== 'undefined')
         (typeof self !== 'undefined') ? self : Function('return this')()
       )
   )
+
+export const noop = () => {}
+export const noopFalse = () => false
+
+// Array.isArray
+export const isArray = Array.isArray
+// Object.assign
+export const assign = Object.assign
+
+// Object prototype methods
+export const rawDefineProperty = Object.defineProperty
+export const rawDefineProperties = Object.defineProperties
+export const rawHasOwnProperty = Object.prototype.hasOwnProperty
 
 // is Undefined
 export function isUndefined (target: unknown): target is undefined {
@@ -38,37 +51,57 @@ export function isBoolean (target: unknown): target is boolean {
 }
 
 // is function
-export function isFunction (target: unknown): boolean {
+export function isFunction (target: unknown): target is Function {
   return typeof target === 'function'
 }
 
-// is Array
-export const isArray = Array.isArray
-
 // is PlainObject
-export function isPlainObject (target: unknown): boolean {
+export function isPlainObject (target: unknown): target is Record<PropertyKey, unknown> {
   return toString.call(target) === '[object Object]'
 }
 
+// is Object
+export function isObject (target: unknown): target is Object {
+  return typeof target === 'object'
+}
+
 // is Promise
-export function isPromise (target: unknown): boolean {
+export function isPromise (target: unknown): target is Promise<unknown> {
   return toString.call(target) === '[object Promise]'
 }
 
 // is bind function
-export function isBoundFunction (target: any): boolean {
+export function isBoundFunction (target: unknown): boolean {
   return isFunction(target) && target.name.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
 }
 
+// is constructor function
+export function isConstructor (target: unknown): boolean {
+  if (isFunction(target)) {
+    const targetStr = target.toString()
+    return (
+      target.prototype?.constructor === target &&
+      Object.getOwnPropertyNames(target.prototype).length > 1
+    ) ||
+      /^function\s+[A-Z]/.test(targetStr) ||
+      /^class\s+/.test(targetStr)
+  }
+  return false
+}
+
 // is ShadowRoot
-export function isShadowRoot (target: unknown): boolean {
+export function isShadowRoot (target: unknown): target is ShadowRoot {
   return typeof ShadowRoot !== 'undefined' && target instanceof ShadowRoot
 }
 
-export const rawDefineProperty = Object.defineProperty
+export function isURL (target: unknown): target is URL {
+  return target instanceof URL
+}
 
-export const rawDefineProperties = Object.defineProperties
-export const rawHasOwnProperty = Object.prototype.hasOwnProperty
+// is ProxyDocument
+export function isProxyDocument (target: unknown): target is Document {
+  return toString.call(target) === '[object ProxyDocument]'
+}
 
 /**
  * format error log
@@ -78,7 +111,7 @@ export const rawHasOwnProperty = Object.prototype.hasOwnProperty
 export function logError (
   msg: unknown,
   appName: string | null = null,
-  ...rest: any[]
+  ...rest: unknown[]
 ): void {
   const appNameTip = appName && isString(appName) ? ` app ${appName}:` : ''
   if (isString(msg)) {
@@ -96,7 +129,7 @@ export function logError (
 export function logWarn (
   msg: unknown,
   appName: string | null = null,
-  ...rest: any[]
+  ...rest: unknown[]
 ): void {
   const appNameTip = appName && isString(appName) ? ` app ${appName}:` : ''
   if (isString(msg)) {
@@ -111,16 +144,26 @@ export function logWarn (
  * @param fn callback
  * @param args params
  */
-export function defer (fn: Func, ...args: any[]): void {
+export function defer (fn: Func, ...args: unknown[]): void {
   Promise.resolve().then(fn.bind(null, ...args))
 }
+
+/**
+ * create URL as MicroLocation
+ */
+export const createURL = (function (): (path: string | URL, base?: string) => MicroLocation {
+  class Location extends URL {}
+  return (path: string | URL, base?: string): MicroLocation => {
+    return (base ? new Location('' + path, base) : new Location('' + path)) as MicroLocation
+  }
+})()
 
 /**
  * Add address protocol
  * @param url address
  */
 export function addProtocol (url: string): string {
-  return url.startsWith('//') ? `${location.protocol}${url}` : url
+  return url.startsWith('//') ? `${globalThis.location.protocol}${url}` : url
 }
 
 /**
@@ -133,7 +176,7 @@ export function formatAppURL (url: string | null, appName: string | null = null)
   if (!isString(url) || !url) return ''
 
   try {
-    const { origin, pathname, search } = new URL(addProtocol(url))
+    const { origin, pathname, search } = createURL(addProtocol(url))
     // If it ends with .html/.node/.php/.net/.etc, don’t need to add /
     if (/\.(\w+)$/.test(pathname)) {
       return `${origin}${pathname}${search}`
@@ -154,6 +197,7 @@ export function formatAppURL (url: string | null, appName: string | null = null)
  * 3. event_center -> EventCenterForBaseApp -> all methods
  * 4. preFetch
  * 5. plugins
+ * 6. router api (push, replace)
  */
 export function formatAppName (name: string | null): string {
   if (!isString(name) || !name) return ''
@@ -165,7 +209,7 @@ export function formatAppName (name: string | null): string {
  * @param url app.url
  */
 export function getEffectivePath (url: string): string {
-  const { origin, pathname } = new URL(url)
+  const { origin, pathname } = createURL(url)
   if (/\.(\w+)$/.test(pathname)) {
     const fullPath = `${origin}${pathname}`
     const pathArr = fullPath.split('/')
@@ -188,7 +232,7 @@ export function CompletionPath (path: string, baseURI: string): string {
     /^(data|blob):/.test(path)
   ) return path
 
-  return new URL(path, getEffectivePath(addProtocol(baseURI))).toString()
+  return createURL(path, getEffectivePath(addProtocol(baseURI))).toString()
 }
 
 /**
@@ -224,23 +268,14 @@ export function promiseStream <T> (
   promiseList.forEach((p, i) => {
     if (isPromise(p)) {
       (p as Promise<T>).then((res: T) => {
-        successCb({
-          data: res,
-          index: i,
-        })
+        successCb({ data: res, index: i })
         isFinished()
       }).catch((err: Error) => {
-        errorCb({
-          error: err,
-          index: i,
-        })
+        errorCb({ error: err, index: i })
         isFinished()
       })
     } else {
-      successCb({
-        data: p,
-        index: i,
-      })
+      successCb({ data: p, index: i })
       isFinished()
     }
   })
@@ -316,6 +351,7 @@ export function isSafari (): boolean {
 export function pureCreateElement<K extends keyof HTMLElementTagNameMap> (tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K] {
   const element = document.createElement(tagName, options)
   if (element.__MICRO_APP_NAME__) delete element.__MICRO_APP_NAME__
+  element.__PURE_ELEMENT__ = true
   return element
 }
 
@@ -377,4 +413,104 @@ export function trim (str: string): string {
 
 export function isFireFox (): boolean {
   return navigator.userAgent.indexOf('Firefox') > -1
+}
+
+/**
+ * Transforms a queryString into object.
+ * @param search - search string to parse
+ * @returns a query object
+ */
+export function parseQuery (search: string): LocationQueryObject {
+  const result: LocationQueryObject = {}
+  const queryList = search.split('&')
+
+  // we will not decode the key/value to ensure that the values are consistent when update URL
+  for (const queryItem of queryList) {
+    const eqPos = queryItem.indexOf('=')
+    const key = eqPos < 0 ? queryItem : queryItem.slice(0, eqPos)
+    const value = eqPos < 0 ? null : queryItem.slice(eqPos + 1)
+
+    if (key in result) {
+      let currentValue = result[key]
+      if (!isArray(currentValue)) {
+        currentValue = result[key] = [currentValue]
+      }
+      currentValue.push(value)
+    } else {
+      result[key] = value
+    }
+  }
+
+  return result
+}
+
+/**
+ * Transforms an object to query string
+ * @param queryObject - query object to stringify
+ * @returns query string without the leading `?`
+ */
+export function stringifyQuery (queryObject: LocationQueryObject): string {
+  let result = ''
+
+  for (const key in queryObject) {
+    const value = queryObject[key]
+    if (isNull(value)) {
+      result += (result.length ? '&' : '') + key
+    } else {
+      const valueList: LocationQueryValue[] = isArray(value) ? value : [value]
+
+      valueList.forEach(value => {
+        if (!isUndefined(value)) {
+          result += (result.length ? '&' : '') + key
+          if (!isNull(value)) result += '=' + value
+        }
+      })
+    }
+  }
+
+  return result
+}
+
+/**
+ * Register or unregister callback/guard with Set
+ */
+export function useSetRecord<T> () {
+  const handlers: Set<T> = new Set()
+
+  function add (handler: T): () => boolean {
+    handlers.add(handler)
+    return (): boolean => {
+      if (handlers.has(handler)) return handlers.delete(handler)
+      return false
+    }
+  }
+
+  return {
+    add,
+    list: () => handlers,
+  }
+}
+
+/**
+ * record data with Map
+ */
+export function useMapRecord<T> () {
+  const data: Map<PropertyKey, T> = new Map()
+
+  function add (key: PropertyKey, value: T): () => boolean {
+    data.set(key, value)
+    return (): boolean => {
+      if (data.has(key)) return data.delete(key)
+      return false
+    }
+  }
+
+  return {
+    add,
+    get: (key: PropertyKey) => data.get(key),
+    delete: (key: PropertyKey): boolean => {
+      if (data.has(key)) return data.delete(key)
+      return false
+    }
+  }
 }

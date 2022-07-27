@@ -1,5 +1,6 @@
 <template>
   <div class='page2'>
+    <img src="../assets/micro-app-logo.jpeg" alt="" width="100" />
     <div class="test-btn" @click="goback">goback</div>
     <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
       <el-form-item label="活动名称" prop="name">
@@ -63,6 +64,8 @@
 </template>
 
 <script>
+// 测试umd二次渲染时全局变量是否丢失
+window.umdGlobalKey = 'umdGlobalKey'
 
 export default {
   name: 'Page1',
@@ -104,6 +107,15 @@ export default {
         ]
       }
     };
+  },
+  created () {
+    console.log('vue2 page2 created')
+  },
+  mounted () {
+    console.log('vue2 page2 mounted')
+    if (!window.umdGlobalKey) {
+      alert('umdGlobalKey missing')
+    }
   },
   methods: {
     submitForm(formName) {

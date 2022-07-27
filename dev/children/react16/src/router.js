@@ -1,5 +1,5 @@
-import React, { lazy, Suspense } from 'react'
-import { BrowserRouter, Switch, Route, Redirect, Link, HashRouter } from 'react-router-dom'
+import React, { lazy, Suspense, useState, useEffect } from 'react'
+import { BrowserRouter, Switch, Route, Redirect, Link } from 'react-router-dom'
 import Page1 from './pages/page1/page1'
 import { Menu } from 'antd';
 import { MailOutlined, AppstoreOutlined } from '@ant-design/icons';
@@ -17,13 +17,26 @@ function getDefaultKey () {
   return 'home'
 }
 
+
 function App () {
+  const [selectedKey, changeSelectedKey ] = useState(getDefaultKey())
+  function handleSelect ({ selectedKeys }) {
+    changeSelectedKey(selectedKeys[0])
+  }
+  useEffect(() => {
+    const handlePopstate = () => changeSelectedKey(getDefaultKey())
+    window.addEventListener('popstate', handlePopstate)
+    return () => {
+      window.removeEventListener('popstate', handlePopstate)
+    }
+  }, [])
   return (
     <BrowserRouter basename={window.__MICRO_APP_BASE_ROUTE__ || '/micro-app/react16/'} >
       <Menu
         mode="horizontal"
-        defaultSelectedKeys={[getDefaultKey()]}
+        selectedKeys={[selectedKey]}
         style={{marginBottom: '5px'}}
+        onSelect={handleSelect}
       >
         <Menu.Item key='home' icon={<AppstoreOutlined />}>
           <Link to='/'>home</Link>

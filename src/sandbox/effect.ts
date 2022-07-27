@@ -1,7 +1,6 @@
 import type { microAppWindowType } from '@micro-app/types'
 import {
   getCurrentAppName,
-  setCurrentAppName,
   logWarn,
   isFunction,
   isBoundFunction,
@@ -15,6 +14,27 @@ type timeInfo = {
   handler: TimerHandler,
   timeout?: number,
   args: any[],
+}
+
+// this events should be sent to the specified app
+const formatEventList = ['unmount', 'appstate-change']
+
+/**
+ * Format event name
+ * @param eventName event name
+ * @param appName app name
+ */
+export function formatEventName (eventName: string, appName: string): string {
+  if (
+    formatEventList.includes(eventName) ||
+    (
+      (eventName === 'popstate' || eventName === 'hashchange') &&
+      appInstanceMap.get(appName)?.useMemoryRouter
+    )
+  ) {
+    return `${eventName}-${appName}`
+  }
+  return eventName
 }
 
 // document.onclick binding list, the binding function of each application is unique
@@ -127,27 +147,11 @@ export function releaseEffectDocumentEvent (): void {
   document.removeEventListener = globalEnv.rawDocumentRemoveEventListener
 }
 
-// this events should be sent to the specified app
-const formatEventList = ['unmount', 'appstate-change']
-
-/**
- * Format event name
- * @param type event name
- * @param microAppWindow micro window
- */
-function formatEventType (type: string, microAppWindow: microAppWindowType): string {
-  if (formatEventList.includes(type)) {
-    return `${type}-${microAppWindow.__MICRO_APP_NAME__}`
-  }
-  return type
-}
-
 /**
  * Rewrite side-effect events
  * @param microAppWindow micro window
  */
-export default function effect (microAppWindow: microAppWindowType): Record<string, CallableFunction> {
-  const appName = microAppWindow.__MICRO_APP_NAME__
+export default function effect (appName: string, microAppWindow: microAppWindowType): Record<string, CallableFunction> {
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const intervalIdMap = new Map<number, timeInfo>()
   const timeoutIdMap = new Map<number, timeInfo>()
@@ -169,7 +173,7 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    type = formatEventType(type, microAppWindow)
+    type = formatEventName(type, appName)
     const listenerList = eventListenerMap.get(type)
     if (listenerList) {
       listenerList.add(listener)
@@ -185,7 +189,7 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    type = formatEventType(type, microAppWindow)
+    type = formatEventName(type, appName)
     const listenerList = eventListenerMap.get(type)
     if (listenerList?.size && listenerList.has(listener)) {
       listenerList.delete(listener)
@@ -228,6 +232,14 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
   let umdIntervalIdMap = new Map<number, timeInfo>()
   let umdTimeoutIdMap = new Map<number, timeInfo>()
   let umdOnClickHandler: unknown
+
+  const clearUmdSnapshotData = () => {
+    umdWindowListenerMap.clear()
+    umdIntervalIdMap.clear()
+    umdTimeoutIdMap.clear()
+    umdDocumentListenerMap.clear()
+    umdOnClickHandler = null
+  }
 
   // record event and timer before exec umdMountHook
   const recordUmdEffect = () => {
@@ -283,13 +295,13 @@ export default function effect (microAppWindow: microAppWindowType): Record<stri
     umdOnClickHandler && documentClickListMap.set(appName, umdOnClickHandler)
 
     // rebuild document event
-    setCurrentAppName(appName)
     umdDocumentListenerMap.forEach((listenerList, type) => {
       for (const listener of listenerList) {
         document.addEventListener(type, listener, listener?.__MICRO_APP_MARK_OPTIONS__)
       }
     })
-    setCurrentAppName(null)
+
+    clearUmdSnapshotData()
   }
 
   // release all event listener & interval & timeout when unmount app

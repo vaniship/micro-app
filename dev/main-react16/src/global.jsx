@@ -17,7 +17,13 @@ microApp.start({
   // destroy: true,
   // disableScopecss: true,
   // disableSandbox: true,
-  // macro: true,
+  // 'disable-scopecss': true,
+  // 'disable-sandbox': true,
+  // 'disable-memory-router': true,
+  // 'keep-router-state': true,
+  // 'hidden-router': true,
+  // esmodule: true,
+  // ssr: true,
   lifeCycles: {
     created () {
       console.log('created 全局监听')
@@ -45,40 +51,19 @@ microApp.start({
           // console.log('vue2插件', url, options)
           return code
         }
-      },
-      {
-        loader (code) {
-          code = `
-            window.__micro_app_environment__ = window.__MICRO_APP_ENVIRONMENT__
-            window.__micro_app_name__ = window.__MICRO_APP_NAME__
-            window.__full_public_path__ = window.__MICRO_APP_PUBLIC_PATH__
-            window.baseurl = window.__MICRO_APP_BASE_ROUTE__
-            ;${code}
-          `
-          return code
-        }
       }
     ],
     modules: {
       react16: [{
         scopeProperties: ['scopeKey3', 'scopeKey4'],
         escapeProperties: ['escapeKey3', 'escapeKey4'],
-        loader(code, url) {
-          if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
-            console.log('react16插件', url)
-            code = code.replace('window.location.port', '3001')
-          }
-          return code
-        }
-      }],
-      react17: [{
-        loader(code, url) {
-          if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
-            console.log('react17插件', url)
-            code = code.replace('window.location.port', '3002')
-          }
-          return code
-        }
+        // loader(code, url) {
+        //   if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
+        //     console.log('react16插件', url)
+        //     code = code.replace('window.location.port', '3001')
+        //   }
+        //   return code
+        // }
       }],
       vue2: [{
         scopeProperties: ['scopeKey5', 'scopeKey6'],
@@ -137,3 +122,18 @@ microApp.start({
 //     console.log('unmountAllApps方法 -- 主动卸载所有应用成功')
 //   })
 // }, 10000)
+
+window.addEventListener('popstate', (e) => {
+  // const a = document.createElement('div')
+  //   a.innerHTML = '55555555'
+  //   document.body.appendChild(a)
+  console.log('popstate', e, window.location.href)
+  // history.replaceState(history.state, '', location.href)
+})
+
+window.addEventListener('hashchange', (e) => {
+  // const a = document.createElement('div')
+  //   a.innerHTML = '666666666'
+  //   document.body.appendChild(a)
+  console.log('hashchange', e, e.newURL, e.oldURL)
+})

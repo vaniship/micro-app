@@ -16,7 +16,7 @@ function Vue2 () {
       <div className='btn-con'>
         <Button
           type='primary'
-          onClick={() => microApp.setData('vue2', {dispatch: 'data from dispatch' + (+new Date())})}
+          onClick={() => microApp.setData('inline', {dispatch: 'data from dispatch' + (+new Date())})}
           style={{width: '120px'}}
         >
           发送数据
@@ -32,7 +32,7 @@ function Vue2 () {
         // onBeforemount={() => hideLoading(false)}
         onMounted={() => hideLoading(false)}
         // shadowDOM
-        destory
+        // destory
         // inline
         // disableScopecss
         // disableSandbox

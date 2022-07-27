@@ -24,12 +24,13 @@ import microApp from './micro_app'
  *    url: string,
  *    disableScopecss?: boolean,
  *    disableSandbox?: boolean,
+ *    disableMemoryRouter?: boolean,
  *  },
  *  ...
  * ])
  * Note:
  *  1: preFetch is asynchronous and is performed only when the browser is idle
- *  2: disableScopecss, disableSandbox must be same with micro-app element, if conflict, the one who executes first shall prevail
+ *  2: disableScopecss, disableSandbox, disableMemoryRouter must be same with micro-app element, if conflict, the one who executes first shall prevail
  * @param apps micro apps
  */
 export default function preFetch (apps: prefetchParamList): void {
@@ -37,7 +38,7 @@ export default function preFetch (apps: prefetchParamList): void {
     return logError('preFetch is only supported in browser environment')
   }
   requestIdleCallback(() => {
-    isFunction(apps) && (apps = (apps as Function)())
+    isFunction(apps) && (apps = apps())
 
     if (isArray(apps)) {
       apps.reduce((pre, next) => pre.then(() => preFetchInSerial(next)), Promise.resolve())
@@ -56,8 +57,9 @@ function preFetchInSerial (prefetchApp: prefetchParam): Promise<void> {
           const app = new CreateApp({
             name: prefetchApp.name,
             url: prefetchApp.url,
-            scopecss: !(prefetchApp.disableScopecss ?? microApp.disableScopecss),
-            useSandbox: !(prefetchApp.disableSandbox ?? microApp.disableSandbox),
+            scopecss: !(prefetchApp['disable-scopecss'] ?? prefetchApp.disableScopecss ?? microApp['disable-scopecss']),
+            useSandbox: !(prefetchApp['disable-sandbox'] ?? prefetchApp.disableSandbox ?? microApp['disable-sandbox']),
+            useMemoryRouter: !(prefetchApp['disable-memory-router'] ?? microApp['disable-memory-router']),
           })
 
           app.isPrefetch = true

@@ -16,7 +16,7 @@ export default class App extends React.Component {
       name: '初始化数据'
     },
     name: 'react#16',
-    url: `${config.react16}micro-app/react16?a=1`,
+    url: `${config.react16}micro-app/react16/?a=1`,
     // url: 'http://127.0.0.1:8080/micro-app/react16',
     showLoading: true,
     showMicroApp: true,
@@ -101,8 +101,8 @@ export default class App extends React.Component {
 
   changeNameUrl = () => {
     this.setState({
-      name: 'vue2',
-      url: `${config.vue2}micro-app/vue2`,
+      name: 'react16',
+      url: `${config.react16}micro-app/react16/?a=2`,
     })
   }
 
@@ -133,6 +133,47 @@ export default class App extends React.Component {
     this.setState({
       testNum: this.state.testNum + 1,
     })
+    console.log(33333, this.props.history)
+  }
+
+  jumpToHome = () => {
+    microApp.router.push({name: this.state.name, path: '/micro-app/react16/'})
+  }
+
+  jumpToPage2 = () => {
+    microApp.router.push({name: this.state.name, path: '/micro-app/react16/page2'})
+  }
+
+  jumpToInline = () => {
+    microApp.router.push({name: this.state.name, path: '/micro-app/react16/inline'})
+  }
+
+  useRouterGo = () => {
+    microApp.router.go(-1)
+  }
+
+  useRouterBack = () => {
+    microApp.router.back()
+  }
+
+  useRouterForward = () => {
+    microApp.router.forward()
+  }
+
+  useCurrentRoute = () => {
+    console.log('router.current', microApp.router.current.get('react16'))
+
+    // setTimeout(() => {
+    //   microApp.router.current.get('react16').assign('?b=222')
+    // }, 3000);
+  }
+
+  useRouterAttachToURL = () => {
+    microApp.router.attachToURL(this.state.name)
+  }
+
+  useRouterAttachAllToURL = () => {
+    microApp.router.attachAllToURL()
   }
 
   handleGlobalDataForBaseApp = (data) => {
@@ -148,11 +189,40 @@ export default class App extends React.Component {
     })
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
+
+    this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
+      // const a = document.createElement('div')
+      // a.innerHTML = '44444444'
+      // document.body.appendChild(a)
+      console.log('全局 beforeEach: ', to, from, appName)
+    })
+
+    this.releaseBeforeEach2 = microApp.router.beforeEach({
+      react16 (to, from) {
+        console.log('指定 beforeEach: ', to, from)
+      }
+    })
+
+    this.releaseAfterEach1 = microApp.router.afterEach((to, from, appName) => {
+      console.log('全局 afterEach: ', to, from, appName)
+    })
+
+    this.releaseAfterEach2 = microApp.router.afterEach({
+      react16 (to, from) {
+        console.log('指定 afterEach: ', to, from)
+      }
+    })
+
+    microApp.router.setBaseAppRouter(this.props.history)
   }
 
   componentWillUnmount ()  {
     microApp.clearDataListener(this.state.name)
     microApp.removeGlobalDataListener(this.handleGlobalDataForBaseApp)
+    this.releaseBeforeEach1?.()
+    this.releaseBeforeEach2?.()
+    this.releaseAfterEach1?.()
+    this.releaseAfterEach2?.()
   }
 
   render () {
@@ -167,6 +237,15 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
             <Button type="primary" onClick={this.handleModal}>modal内嵌应用</Button>
             <Button type="primary" onClick={this.handleUnmountMySelf}>主动卸载应用</Button>
+            <Button type="primary" onClick={this.jumpToHome}>基座控制子应用跳转home</Button>
+            <Button type="primary" onClick={this.jumpToPage2}>基座控制子应用跳转page2</Button>
+            <Button type="primary" onClick={this.jumpToInline}>基座控制子应用跳转inline</Button>
+            <Button type="primary" onClick={this.useRouterGo}>基座调用router.go</Button>
+            <Button type="primary" onClick={this.useRouterBack}>基座调用router.back</Button>
+            <Button type="primary" onClick={this.useRouterForward}>基座调用router.forward</Button>
+            <Button type="primary" onClick={this.useCurrentRoute}>基座调用router.current</Button>
+            <Button type="primary" onClick={this.useRouterAttachToURL}>基座调用router.attachToURL</Button>
+            <Button type="primary" onClick={this.useRouterAttachAllToURL}>基座调用router.attachAllToURL</Button>
             <Button type="primary" onClick={this.changeTestNum}>{this.state.testNum}</Button>
           </Col>
           <Col span={18} className='app-con-react16'>
@@ -188,14 +267,18 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseRoute='/micro-app/demo/react16'
-                  keep-alive
+                  // keep-alive
                   // destroy
-                  // inline
+                  keep-router-state
+                  // hidden-router
+                  // disable-memory-router
+                  inline
                   // disableSandbox
                   // disable-sandbox
                   // disableScopecss
                   // disable-scopecss
                   // macro
+                  // shadowDOM
                 >
                 </micro-app>
               )
@@ -214,7 +297,7 @@ export default class App extends React.Component {
               <micro-app
                 name='modal-app1'
                 url={this.state.url}
-                baseRoute='/micro-app/demo/react16'
+                // baseRoute='/micro-app/demo/react16'
                 // disableSandbox
                 // macro
               />

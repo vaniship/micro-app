@@ -24,7 +24,7 @@ import {
 } from './load_event'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
-import { globalKeyToBeCached } from '../constants'
+import { globalKeyToBeCached } from '../libs/constants'
 
 type moduleCallBack = Func & { moduleCount?: number, errorCount?: number }
 
@@ -314,6 +314,13 @@ export function runDynamicRemoteScript (
   if (app.source.scripts.has(url)) {
     const existInfo: sourceScriptInfo = app.source.scripts.get(url)!
     !existInfo.module && defer(dispatchScriptOnLoadEvent)
+    /**
+     * TODO: 这里要改，当script初始化时动态创建远程script时，初次渲染和二次渲染的顺序不一致，会导致错误
+     * 1、url不存在缓存，初始化的时候肯定是要异步请求，那么执行顺序就会靠后，至少落后于html自带的script
+     * 2、url存在缓存，那么二次渲染的时候这里会同步执行，就会先于html自带的script执行
+     * 3、测试一下，初次渲染和二次渲染时，onload的执行时机，是在js执行完成，还是执行之前
+     * 4、将上述问题做成注释，方便后续阅读和理解
+     */
     return runScript(url, app, existInfo, true, dispatchScriptOnLoadEvent)
   }
 
@@ -346,7 +353,7 @@ export function runDynamicRemoteScript (
     } catch (e) {
       console.error(`[micro-app from runDynamicScript] app ${app.name}: `, e, url)
     }
-    !info.module && dispatchOnLoadEvent(originScript)
+    !info.module && dispatchScriptOnLoadEvent()
   }).catch((err) => {
     logError(err, app.name)
     dispatchOnErrorEvent(originScript)
@@ -409,8 +416,9 @@ function bindScope (
   code: string,
   info: sourceScriptInfo,
 ): string {
+  // TODO: 增加缓存机制
   if (isPlainObject(microApp.plugins)) {
-    code = usePlugins(url, code, app.name, microApp.plugins!, info)
+    code = usePlugins(url, code, app.name, microApp.plugins, info)
   }
 
   if (app.sandBox && !info.module) {
@@ -442,7 +450,7 @@ function processCode (configs: plugins['global'], code: string, url: string, inf
 
   return configs.reduce((preCode, config) => {
     if (isPlainObject(config) && isFunction(config.loader)) {
-      return config.loader!(preCode, url, config.options, info)
+      return config.loader(preCode, url, config.options, info)
     }
 
     return preCode

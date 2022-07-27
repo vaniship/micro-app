@@ -1,6 +1,5 @@
-import { isSupportModuleScript, isBrowser, getCurrentAppName } from './utils'
+import { isSupportModuleScript, isBrowser, getCurrentAppName, assign } from './utils'
 import { rejectMicroAppStyle } from '../source/patch'
-import { listenUmountOfNestedApp, releaseUnmountOfNestedApp } from '../libs/additional'
 
 type RequestIdleCallbackOptions = {
   timeout: number
@@ -25,7 +24,8 @@ declare global {
 
   interface Node {
     __MICRO_APP_NAME__?: string | null
-    data?: any
+    __PURE_ELEMENT__?: boolean
+    data?: unknown
   }
 
   interface HTMLStyleElement {
@@ -42,6 +42,10 @@ const globalEnv: Record<string, any> = {}
  */
 export function initGlobalEnv (): void {
   if (isBrowser) {
+    const rawWindow = Function('return window')()
+    const rawDocument = Function('return document')()
+    const rawRootDocument = Function('return Document')()
+    const supportModuleScript = isSupportModuleScript()
     /**
      * save patch raw methods
      * pay attention to this binding
@@ -54,17 +58,16 @@ export function initGlobalEnv (): void {
     const rawAppend = Element.prototype.append
     const rawPrepend = Element.prototype.prepend
     const rawCloneNode = Element.prototype.cloneNode
-    // const rawGetBoundingClientRect = Element.prototype.getBoundingClientRect
 
-    const rawCreateElement = Document.prototype.createElement
-    const rawCreateElementNS = Document.prototype.createElementNS
-    const rawCreateDocumentFragment = Document.prototype.createDocumentFragment
-    const rawQuerySelector = Document.prototype.querySelector
-    const rawQuerySelectorAll = Document.prototype.querySelectorAll
-    const rawGetElementById = Document.prototype.getElementById
-    const rawGetElementsByClassName = Document.prototype.getElementsByClassName
-    const rawGetElementsByTagName = Document.prototype.getElementsByTagName
-    const rawGetElementsByName = Document.prototype.getElementsByName
+    const rawCreateElement = rawRootDocument.prototype.createElement
+    const rawCreateElementNS = rawRootDocument.prototype.createElementNS
+    const rawCreateDocumentFragment = rawRootDocument.prototype.createDocumentFragment
+    const rawQuerySelector = rawRootDocument.prototype.querySelector
+    const rawQuerySelectorAll = rawRootDocument.prototype.querySelectorAll
+    const rawGetElementById = rawRootDocument.prototype.getElementById
+    const rawGetElementsByClassName = rawRootDocument.prototype.getElementsByClassName
+    const rawGetElementsByTagName = rawRootDocument.prototype.getElementsByTagName
+    const rawGetElementsByName = rawRootDocument.prototype.getElementsByName
 
     const ImageProxy = new Proxy(Image, {
       construct (Target, args): HTMLImageElement {
@@ -73,10 +76,6 @@ export function initGlobalEnv (): void {
         return elementImage
       },
     })
-
-    const rawWindow = Function('return window')()
-    const rawDocument = Function('return document')()
-    const supportModuleScript = isSupportModuleScript()
 
     /**
      * save effect raw methods
@@ -88,6 +87,8 @@ export function initGlobalEnv (): void {
     const rawSetTimeout = rawWindow.setTimeout
     const rawClearInterval = rawWindow.clearInterval
     const rawClearTimeout = rawWindow.clearTimeout
+    const rawPushState = rawWindow.history.pushState
+    const rawReplaceState = rawWindow.history.replaceState
 
     const rawDocumentAddEventListener = rawDocument.addEventListener
     const rawDocumentRemoveEventListener = rawDocument.removeEventListener
@@ -95,7 +96,13 @@ export function initGlobalEnv (): void {
     // mark current application as base application
     window.__MICRO_APP_BASE_APPLICATION__ = true
 
-    Object.assign(globalEnv, {
+    assign(globalEnv, {
+      // common global vars
+      rawWindow,
+      rawDocument,
+      rawRootDocument,
+      supportModuleScript,
+
       // source/patch
       rawSetAttribute,
       rawAppendChild,
@@ -105,7 +112,6 @@ export function initGlobalEnv (): void {
       rawAppend,
       rawPrepend,
       rawCloneNode,
-      // rawGetBoundingClientRect,
       rawCreateElement,
       rawCreateElementNS,
       rawCreateDocumentFragment,
@@ -117,11 +123,6 @@ export function initGlobalEnv (): void {
       rawGetElementsByName,
       ImageProxy,
 
-      // common global vars
-      rawWindow,
-      rawDocument,
-      supportModuleScript,
-
       // sandbox/effect
       rawWindowAddEventListener,
       rawWindowRemoveEventListener,
@@ -131,12 +132,12 @@ export function initGlobalEnv (): void {
       rawClearTimeout,
       rawDocumentAddEventListener,
       rawDocumentRemoveEventListener,
+      rawPushState,
+      rawReplaceState,
     })
 
     // global effect
     rejectMicroAppStyle()
-    releaseUnmountOfNestedApp()
-    listenUmountOfNestedApp()
   }
 }
 

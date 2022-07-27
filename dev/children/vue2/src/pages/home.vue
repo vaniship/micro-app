@@ -12,11 +12,15 @@
       <use xlink:href="#zoe-ui-right"></use>
     </svg>
     <div class='test-safari-before' title='sdfsfs'></div>
+    <div>
+      <button @click="jumpWithLocation">通过location跳转page2</button>
+    </div>
+    <br />
     <div class="pt60">
       <ul class="wrapper">
-        <li v-for="item in aaa" :key="item">{{ item }}</li>
+        <li v-for="item in liList" :key="item">{{ item }}</li>
       </ul>
-      <button @click="test">test</button>
+      <button @click="renderNode">渲染一万个元素</button>
     </div>
   </div>
 </template>
@@ -32,7 +36,7 @@ export default {
       version: Vue.version,
       centerDialogVisible: false,
       microDataStr: '',
-      aaa: 1,
+      liList: 0,
     }
   },
   created () {
@@ -51,11 +55,11 @@ export default {
       this.centerDialogVisible = true
       this.microDataStr = JSON.stringify(data)
     },
-    test() {
+    renderNode() {
       console.time("run loop", 10000);
 
       for (let index = 2; index < 1 * 10000; index++) {
-        this.aaa = index;
+        this.liList = index;
       }
 
       console.timeLog("run loop", 10000);
@@ -64,6 +68,10 @@ export default {
         console.timeEnd("run loop", 10000);
       });
     },
+    jumpWithLocation () {
+      // 通过location跳转page2
+      location.href = '/micro-app/vue2/#/page2'
+    }
   }
 }
 </script>

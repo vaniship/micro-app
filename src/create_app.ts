@@ -9,12 +9,11 @@ import type {
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
 import { execScripts } from './source/scripts'
-import { appStates, lifeCycles, keepAliveStates } from './constants'
+import { appStates, lifeCycles, keepAliveStates } from './libs/constants'
 import SandBox from './sandbox'
 import {
   isFunction,
   cloneContainer,
-  isBoolean,
   isPromise,
   logError,
   getRootContainer,
@@ -34,13 +33,17 @@ export interface CreateAppParam {
   ssrUrl?: string
   scopecss: boolean
   useSandbox: boolean
+  useMemoryRouter: boolean
   inline?: boolean
   baseroute?: string
+  keepRouteState?: boolean
+  hiddenRouter?: boolean,
   container?: HTMLElement | ShadowRoot
+  defaultPage?: string
 }
 
 export default class CreateApp implements AppInterface {
-  private state: string = appStates.NOT_LOADED
+  private state: string = appStates.CREATED
   private keepAliveState: string | null = null
   private keepAliveContainer: HTMLElement | null = null
   private loadSourceLevel: -1|0|1|2 = 0
@@ -57,9 +60,13 @@ export default class CreateApp implements AppInterface {
   inline: boolean
   scopecss: boolean
   useSandbox: boolean
-  baseroute = ''
+  useMemoryRouter: boolean
+  baseroute: string
+  keepRouteState: boolean
+  hiddenRouter: boolean
   source: sourceType
   sandBox: SandBoxInterface | null = null
+  defaultPage: string
 
   constructor ({
     name,
@@ -69,28 +76,37 @@ export default class CreateApp implements AppInterface {
     inline,
     scopecss,
     useSandbox,
+    useMemoryRouter,
     baseroute,
+    keepRouteState,
+    hiddenRouter,
+    defaultPage,
   }: CreateAppParam) {
-    this.container = container ?? null
-    this.inline = inline ?? false
-    this.baseroute = baseroute ?? ''
-    this.ssrUrl = ssrUrl ?? ''
-    // optional during init👆
     this.name = name
     this.url = url
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
+    this.useMemoryRouter = this.useSandbox && useMemoryRouter
+    // optional during init base on prefetch 👇
+    this.container = container ?? null
+    this.ssrUrl = ssrUrl ?? ''
+    this.inline = inline ?? false
+    this.baseroute = baseroute ?? ''
+    this.keepRouteState = keepRouteState ?? false
+    this.hiddenRouter = hiddenRouter ?? false
+    this.defaultPage = defaultPage ?? ''
+
     this.source = {
       links: new Map<string, sourceLinkInfo>(),
       scripts: new Map<string, sourceScriptInfo>(),
     }
     this.loadSourceCode()
-    this.useSandbox && (this.sandBox = new SandBox(name, url))
+    this.useSandbox && (this.sandBox = new SandBox(name, url, this.useMemoryRouter))
   }
 
   // Load resources
   loadSourceCode (): void {
-    this.state = appStates.LOADING_SOURCE_CODE
+    this.state = appStates.LOADING
     HTMLLoader.getInstance().run(this, extractSourceDom)
   }
 
@@ -105,7 +121,7 @@ export default class CreateApp implements AppInterface {
         this.prefetchResolve?.()
         this.prefetchResolve = null
       } else if (appStates.UNMOUNT !== this.state) {
-        this.state = appStates.LOAD_SOURCE_FINISHED
+        this.state = appStates.LOADED
         this.mount()
       }
     }
@@ -124,7 +140,7 @@ export default class CreateApp implements AppInterface {
 
     if (appStates.UNMOUNT !== this.state) {
       this.onerror(e)
-      this.state = appStates.LOAD_SOURCE_ERROR
+      this.state = appStates.LOAD_FAILED
     }
   }
 
@@ -133,21 +149,25 @@ export default class CreateApp implements AppInterface {
    * @param container app container
    * @param inline js runs in inline mode
    * @param baseroute route prefix, default is ''
+   * @param keepRouteState keep route state when unmount, default is false
    */
   mount (
     container?: HTMLElement | ShadowRoot,
     inline?: boolean,
     baseroute?: string,
+    keepRouteState?: boolean,
+    defaultPage?: string,
+    hiddenRouter?: boolean,
   ): void {
-    if (isBoolean(inline) && inline !== this.inline) {
-      this.inline = inline
-    }
-
+    this.inline = inline ?? this.inline
+    this.keepRouteState = keepRouteState ?? this.keepRouteState
     this.container = this.container ?? container!
     this.baseroute = baseroute ?? this.baseroute
+    this.defaultPage = defaultPage ?? this.defaultPage
+    this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
 
     if (this.loadSourceLevel !== 2) {
-      this.state = appStates.LOADING_SOURCE_CODE
+      this.state = appStates.LOADING
       return
     }
 
@@ -161,7 +181,7 @@ export default class CreateApp implements AppInterface {
 
     cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
 
-    this.sandBox?.start(this.baseroute)
+    this.sandBox?.start(this.baseroute, this.useMemoryRouter, this.defaultPage)
 
     let umdHookMountResult: any // result of mount function
 
@@ -176,7 +196,8 @@ export default class CreateApp implements AppInterface {
             this.umdHookMount = mount as Func
             this.umdHookUnmount = unmount as Func
             this.umdMode = true
-            this.sandBox?.recordUmdSnapshot()
+            if (this.sandBox) this.sandBox.proxyWindow.__MICRO_APP_UMD_MODE__ = true
+            // this.sandBox?.recordUmdSnapshot()
             try {
               umdHookMountResult = this.umdHookMount()
             } catch (e) {
@@ -231,11 +252,12 @@ export default class CreateApp implements AppInterface {
 
   /**
    * unmount app
+   * NOTE: Do not add any params on account of unmountApp
    * @param destroy completely destroy, delete cache resources
    * @param unmountcb callback of unmount
    */
   unmount (destroy: boolean, unmountcb?: CallableFunction): void {
-    if (this.state === appStates.LOAD_SOURCE_ERROR) {
+    if (this.state === appStates.LOAD_FAILED) {
       destroy = true
     }
 
@@ -295,8 +317,20 @@ export default class CreateApp implements AppInterface {
       cloneContainer(this.container as Element, this.source.html as Element, false)
     }
 
-    // this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
-    this.sandBox?.stop()
+    if (this.umdMode) {
+      this.sandBox?.recordUmdSnapshot()
+    }
+    /**
+     * this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
+     * NOTE:
+     * 1. if destroy is true, clear route state
+     * 2. umd mode and keep-alive will not clear EventSource
+     */
+    this.sandBox?.stop(
+      this.umdMode,
+      this.keepRouteState && !destroy,
+      !this.umdMode || destroy,
+    )
     if (!getActiveApps().length) {
       releasePatchSetAttribute()
     }
@@ -337,27 +371,30 @@ export default class CreateApp implements AppInterface {
     this.keepAliveState = keepAliveStates.KEEP_ALIVE_HIDDEN
 
     // event should dispatch before clone node
-    // dispatch afterhidden event to micro-app
+    // dispatch afterHidden event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'afterhidden',
     })
 
-    // dispatch afterhidden event to base app
+    // dispatch afterHidden event to base app
     dispatchLifecyclesEvent(
       oldContainer!,
       this.name,
       lifeCycles.AFTERHIDDEN,
     )
+
+    // called after lifeCyclesEvent
+    this.sandBox?.removeRouteInfoForKeepAliveApp()
   }
 
   // show app when connectedCallback called with keep-alive
   showKeepAliveApp (container: HTMLElement | ShadowRoot): void {
-    // dispatch beforeshow event to micro-app
+    // dispatch beforeShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'beforeshow',
     })
 
-    // dispatch beforeshow event to base app
+    // dispatch beforeShow event to base app
     dispatchLifecyclesEvent(
       container,
       this.name,
@@ -374,12 +411,15 @@ export default class CreateApp implements AppInterface {
 
     this.keepAliveState = keepAliveStates.KEEP_ALIVE_SHOW
 
-    // dispatch aftershow event to micro-app
+    // called before lifeCyclesEvent
+    this.sandBox?.setRouteInfoForKeepAliveApp()
+
+    // dispatch afterShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'aftershow',
     })
 
-    // dispatch aftershow event to base app
+    // dispatch afterShow event to base app
     dispatchLifecyclesEvent(
       this.container,
       this.name,

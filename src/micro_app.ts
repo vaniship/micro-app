@@ -1,20 +1,38 @@
-import type { OptionsType, MicroAppConfigType, lifeCyclesType, plugins, fetchType, AppInterface } from '@micro-app/types'
+import type {
+  OptionsType,
+  MicroAppConfigType,
+  lifeCyclesType,
+  plugins,
+  fetchType,
+  AppInterface,
+  Router,
+  appName,
+} from '@micro-app/types'
 import { defineElement } from './micro_app_element'
 import preFetch, { getGlobalAssets } from './prefetch'
-import { logError, logWarn, isFunction, isBrowser, isPlainObject, formatAppName, getRootContainer } from './libs/utils'
+import {
+  logError,
+  logWarn,
+  isFunction,
+  isBrowser,
+  isPlainObject,
+  formatAppName,
+  getRootContainer,
+} from './libs/utils'
 import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
-import { appStates, keepAliveStates } from './constants'
+import { appStates, keepAliveStates } from './libs/constants'
+import { router } from './sandbox'
 
 /**
  * if app not prefetch & not unmount, then app is active
  * @param excludeHiddenApp exclude hidden keep-alive app, default is false
  * @returns active apps
  */
-export function getActiveApps (excludeHiddenApp?: boolean): string[] {
-  const activeApps: string[] = []
-  appInstanceMap.forEach((app: AppInterface, appName: string) => {
+export function getActiveApps (excludeHiddenApp = false): appName[] {
+  const activeApps: appName[] = []
+  appInstanceMap.forEach((app: AppInterface, appName: appName) => {
     if (
       appStates.UNMOUNT !== app.getAppState() &&
       !app.isPrefetch &&
@@ -35,7 +53,7 @@ export function getAllApps (): string[] {
   return Array.from(appInstanceMap.keys())
 }
 
-export interface unmountAppParams {
+type unmountAppOptions = {
   destroy?: boolean // destroy app, default is false
   clearAliveState?: boolean // clear keep-alive app state, default is false
 }
@@ -43,10 +61,10 @@ export interface unmountAppParams {
 /**
  * unmount app by appName
  * @param appName
- * @param options unmountAppParams
+ * @param options unmountAppOptions
  * @returns Promise<void>
  */
-export function unmountApp (appName: string, options?: unmountAppParams): Promise<void> {
+export function unmountApp (appName: string, options?: unmountAppOptions): Promise<void> {
   const app = appInstanceMap.get(formatAppName(appName))
   return new Promise((resolve) => { // eslint-disable-line
     if (app) {
@@ -87,6 +105,7 @@ export function unmountApp (appName: string, options?: unmountAppParams): Promis
 
           container.setAttribute('destroy', 'true')
           container.parentNode!.removeChild(container)
+
           container.removeAttribute('destroy')
 
           typeof destroyAttrValue === 'string' && container.setAttribute('destroy', destroyAttrValue)
@@ -110,7 +129,7 @@ export function unmountApp (appName: string, options?: unmountAppParams): Promis
 }
 
 // unmount all apps in turn
-export function unmountAllApps (options?: unmountAppParams): Promise<void> {
+export function unmountAllApps (options?: unmountAppOptions): Promise<void> {
   return Array.from(appInstanceMap.keys()).reduce((pre, next) => pre.then(() => unmountApp(next, options)), Promise.resolve())
 }
 
@@ -119,13 +138,18 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
   shadowDOM?: boolean
   destroy?: boolean
   inline?: boolean
-  disableScopecss?: boolean
-  disableSandbox?: boolean
+  'disable-scopecss'?: boolean
+  'disable-sandbox'?: boolean
+  'disable-memory-router'?: boolean
+  'keep-router-state'?: boolean
+  'hidden-router'?: boolean
+  esmodule?: boolean
   ssr?: boolean
   lifeCycles?: lifeCyclesType
   plugins?: plugins
   fetch?: fetchType
   preFetch = preFetch
+  router: Router = router
   start (options?: OptionsType): void {
     if (!isBrowser || !window.customElements) {
       return logError('micro-app is not supported in this environment')
@@ -155,9 +179,14 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
       // @ts-ignore
       this.destory = options.destory
       this.inline = options.inline
-      this.disableScopecss = options.disableScopecss
-      this.disableSandbox = options.disableSandbox
+      this['disable-scopecss'] = options['disable-scopecss'] ?? options.disableScopecss
+      this['disable-sandbox'] = options['disable-sandbox'] ?? options.disableSandbox
+      this['disable-memory-router'] = options['disable-memory-router']
+      this['keep-router-state'] = options['keep-router-state']
+      this['hidden-router'] = options['hidden-router']
+      this.esmodule = options.esmodule
       this.ssr = options.ssr
+
       isFunction(options.fetch) && (this.fetch = options.fetch)
 
       isPlainObject(options.lifeCycles) && (this.lifeCycles = options.lifeCycles)
@@ -169,7 +198,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
       options.globalAssets && getGlobalAssets(options.globalAssets)
 
       if (isPlainObject(options.plugins)) {
-        const modules = options.plugins!.modules
+        const modules = options.plugins.modules
         if (isPlainObject(modules)) {
           for (const appName in modules) {
             const formattedAppName = formatAppName(appName)

@@ -1,21 +1,23 @@
-import type { Func, AppInterface } from '@micro-app/types'
+import type { Func, AppInterface, NormalKey } from '@micro-app/types'
 import { appInstanceMap } from '../create_app'
 import {
   CompletionPath,
   getCurrentAppName,
   pureCreateElement,
-  setCurrentAppName,
+  removeDomScope,
   logWarn,
   isPlainObject,
   isString,
   isInvalidQuerySelectorKey,
   isUniqueElement,
+  isProxyDocument,
 } from '../libs/utils'
-import scopedCSS from './scoped_css'
+import scopedCSS from '../sandbox/scoped_css'
 import { extractLinkFromHtml, formatDynamicLink } from './links'
 import { extractScriptElement, runScript, runDynamicRemoteScript, checkExcludeUrl, checkIgnoreUrl } from './scripts'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
+import { fixReactHMRConflict } from '../sandbox/adapter'
 
 // Record element and map element
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
@@ -108,29 +110,49 @@ function invokePrototypeMethod (
   targetChild: Node,
   passiveChild?: Node | null,
 ): any {
-  const container = getContainer(parent, app)
+  const hijackElement = getHijackElement(parent, app)
   /**
    * If passiveChild is not the child node, insertBefore replaceChild will have a problem, at this time, it will be degraded to appendChild
    * E.g: document.head.insertBefore(targetChild, document.head.childNodes[0])
    */
-  if (container) {
+  if (hijackElement) {
     /**
      * 1. If passiveChild exists, it must be insertBefore or replaceChild
      * 2. When removeChild, targetChild may not be in microAppHead or head
      */
-    if (passiveChild && !container.contains(passiveChild)) {
-      return globalEnv.rawAppendChild.call(container, targetChild)
-    } else if (rawMethod === globalEnv.rawRemoveChild && !container.contains(targetChild)) {
+    if (passiveChild && !hijackElement.contains(passiveChild)) {
+      return globalEnv.rawAppendChild.call(hijackElement, targetChild)
+    } else if (rawMethod === globalEnv.rawRemoveChild && !hijackElement.contains(targetChild)) {
       if (parent.contains(targetChild)) {
         return rawMethod.call(parent, targetChild)
       }
       return targetChild
     }
 
-    return invokeRawMethod(rawMethod, container, targetChild, passiveChild)
+    // TODO: __DEV__
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      targetChild instanceof HTMLIFrameElement &&
+      rawMethod === globalEnv.rawAppendChild
+    ) {
+      fixReactHMRConflict(app)
+    }
+
+    return invokeRawMethod(rawMethod, hijackElement, targetChild, passiveChild)
   }
 
   return invokeRawMethod(rawMethod, parent, targetChild, passiveChild)
+}
+
+// head/body map to micro-app-head/micro-app-body
+function getHijackElement (node: Node, app: AppInterface) {
+  if (node === document.head) {
+    return app?.container?.querySelector('micro-app-head')
+  }
+  if (node === document.body) {
+    return app?.container?.querySelector('micro-app-body')
+  }
+  return null
 }
 
 function invokeRawMethod (
@@ -148,16 +170,6 @@ function invokeRawMethod (
 
 function isPendMethod (method: CallableFunction) {
   return method === globalEnv.rawAppend || method === globalEnv.rawPrepend
-}
-
-function getContainer (node: Node, app: AppInterface) {
-  if (node === document.head) {
-    return app?.container?.querySelector('micro-app-head')
-  }
-  if (node === document.body) {
-    return app?.container?.querySelector('micro-app-body')
-  }
-  return null
 }
 
 // Get the map element
@@ -178,9 +190,30 @@ function commonElementHandler (
   passiveChild: Node | null,
   rawMethod: Func,
 ) {
-  if (newChild?.__MICRO_APP_NAME__) {
+  const currentAppName = getCurrentAppName()
+  if (
+    newChild instanceof Node &&
+    (
+      newChild.__MICRO_APP_NAME__ ||
+      (currentAppName && !newChild.__PURE_ELEMENT__)
+    )
+  ) {
+    newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
     if (app?.container) {
+      if (newChild instanceof Element) {
+        if (/^(img|script)$/i.test(newChild.tagName)) {
+          if (newChild.hasAttribute('src')) {
+            globalEnv.rawSetAttribute.call(newChild, 'src', CompletionPath(newChild.getAttribute('src')!, app.url))
+          }
+          if (newChild.hasAttribute('srcset')) {
+            globalEnv.rawSetAttribute.call(newChild, 'srcset', CompletionPath(newChild.getAttribute('srcset')!, app.url))
+          }
+        } else if (/^link$/i.test(newChild.tagName) && newChild.hasAttribute('href')) {
+          globalEnv.rawSetAttribute.call(newChild, 'href', CompletionPath(newChild.getAttribute('href')!, app.url))
+        }
+      }
+
       return invokePrototypeMethod(
         app,
         rawMethod,
@@ -191,11 +224,9 @@ function commonElementHandler (
     } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
       return rawMethod.call(parent, newChild)
     }
-    return rawMethod.call(parent, newChild, passiveChild)
   } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
-    const appName = getCurrentAppName()
-    if (!(newChild instanceof Node) && appName) {
-      const app = appInstanceMap.get(appName)
+    if (!(newChild instanceof Node) && currentAppName) {
+      const app = appInstanceMap.get(currentAppName)
       if (app?.container) {
         if (parent === document.head) {
           return rawMethod.call(app.container.querySelector('micro-app-head'), newChild)
@@ -258,7 +289,11 @@ export function patchElementPrototypeMethods (): void {
           getMappingNode(oldChild),
         )
       }
-      return globalEnv.rawRemoveChild.call(this, oldChild) as T
+      try {
+        return globalEnv.rawRemoveChild.call(this, oldChild) as T
+      } catch {
+        return oldChild?.parentNode?.removeChild(oldChild) as T
+      }
     }
 
     return globalEnv.rawRemoveChild.call(this, oldChild) as T
@@ -270,29 +305,6 @@ export function patchElementPrototypeMethods (): void {
     this.__MICRO_APP_NAME__ && (clonedNode.__MICRO_APP_NAME__ = this.__MICRO_APP_NAME__)
     return clonedNode
   }
-
-  // patch getBoundingClientRect
-  // TODO: scenes test
-  // Element.prototype.getBoundingClientRect = function getBoundingClientRect () {
-  //   const rawRect: DOMRect = globalEnv.rawGetBoundingClientRect.call(this)
-  //   if (this.__MICRO_APP_NAME__) {
-  //     const app = appInstanceMap.get(this.__MICRO_APP_NAME__)
-  //     if (!app?.container) {
-  //       return rawRect
-  //     }
-  //     const appBody = app.container.querySelector('micro-app-body')
-  //     const appBodyRect: DOMRect = globalEnv.rawGetBoundingClientRect.call(appBody)
-  //     const computedRect: DOMRect = new DOMRect(
-  //       rawRect.x - appBodyRect.x,
-  //       rawRect.y - appBodyRect.y,
-  //       rawRect.width,
-  //       rawRect.height,
-  //     )
-  //     return computedRect
-  //   }
-
-  //   return rawRect
-  // }
 }
 
 /**
@@ -300,183 +312,197 @@ export function patchElementPrototypeMethods (): void {
  * @param element new element
  */
 function markElement <T extends { __MICRO_APP_NAME__: string }> (element: T): T {
-  const appName = getCurrentAppName()
-  if (appName) element.__MICRO_APP_NAME__ = appName
+  const currentAppName = getCurrentAppName()
+  if (currentAppName) element.__MICRO_APP_NAME__ = currentAppName
   return element
 }
 
 // methods of document
 function patchDocument () {
   const rawDocument = globalEnv.rawDocument
+  const rawRootDocument = globalEnv.rawRootDocument
+
+  function getBindTarget (target: Document): Document {
+    return isProxyDocument(target) ? rawDocument : target
+  }
 
   // create element 👇
-  Document.prototype.createElement = function createElement (
+  rawRootDocument.prototype.createElement = function createElement (
     tagName: string,
     options?: ElementCreationOptions,
   ): HTMLElement {
-    const element = globalEnv.rawCreateElement.call(this, tagName, options)
+    const element = globalEnv.rawCreateElement.call(getBindTarget(this), tagName, options)
     return markElement(element)
   }
 
-  Document.prototype.createElementNS = function createElementNS (
+  rawRootDocument.prototype.createElementNS = function createElementNS (
     namespaceURI: string,
     name: string,
     options?: string | ElementCreationOptions,
   ): any {
-    const element = globalEnv.rawCreateElementNS.call(this, namespaceURI, name, options)
+    const element = globalEnv.rawCreateElementNS.call(getBindTarget(this), namespaceURI, name, options)
     return markElement(element)
   }
 
-  Document.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
-    const element = globalEnv.rawCreateDocumentFragment.call(this)
+  rawRootDocument.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
+    const element = globalEnv.rawCreateDocumentFragment.call(getBindTarget(this))
     return markElement(element)
   }
 
   // query element👇
   function querySelector (this: Document, selectors: string): any {
-    const appName = getCurrentAppName()
+    const _this = getBindTarget(this)
+    const currentAppName = getCurrentAppName()
     if (
-      !appName ||
+      !currentAppName ||
+      !appInstanceMap.get(currentAppName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
       // see https://github.com/micro-zoe/micro-app/issues/56
-      rawDocument !== this
+      rawDocument !== _this
     ) {
-      return globalEnv.rawQuerySelector.call(this, selectors)
+      return globalEnv.rawQuerySelector.call(_this, selectors)
     }
-    return appInstanceMap.get(appName)?.container?.querySelector(selectors) ?? null
+
+    return appInstanceMap.get(currentAppName)?.container?.querySelector(selectors) ?? null
   }
 
   function querySelectorAll (this: Document, selectors: string): any {
-    const appName = getCurrentAppName()
+    const _this = getBindTarget(this)
+    const currentAppName = getCurrentAppName()
     if (
-      !appName ||
+      !currentAppName ||
+      !appInstanceMap.get(currentAppName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
-      rawDocument !== this
+      rawDocument !== _this
     ) {
-      return globalEnv.rawQuerySelectorAll.call(this, selectors)
+      return globalEnv.rawQuerySelectorAll.call(_this, selectors)
     }
-    return appInstanceMap.get(appName)?.container?.querySelectorAll(selectors) ?? []
+
+    return appInstanceMap.get(currentAppName)?.container?.querySelectorAll(selectors) ?? []
   }
 
-  Document.prototype.querySelector = querySelector
-  Document.prototype.querySelectorAll = querySelectorAll
+  rawRootDocument.prototype.querySelector = querySelector
+  rawRootDocument.prototype.querySelectorAll = querySelectorAll
 
-  Document.prototype.getElementById = function getElementById (key: string): HTMLElement | null {
+  rawRootDocument.prototype.getElementById = function getElementById (key: string): HTMLElement | null {
+    const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementById.call(this, key)
+      return globalEnv.rawGetElementById.call(_this, key)
     }
 
     try {
-      return querySelector.call(this, `#${key}`)
+      return querySelector.call(_this, `#${key}`)
     } catch {
-      return globalEnv.rawGetElementById.call(this, key)
+      return globalEnv.rawGetElementById.call(_this, key)
     }
   }
 
-  Document.prototype.getElementsByClassName = function getElementsByClassName (key: string): HTMLCollectionOf<Element> {
+  rawRootDocument.prototype.getElementsByClassName = function getElementsByClassName (key: string): HTMLCollectionOf<Element> {
+    const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementsByClassName.call(this, key)
+      return globalEnv.rawGetElementsByClassName.call(_this, key)
     }
 
     try {
-      return querySelectorAll.call(this, `.${key}`)
+      return querySelectorAll.call(_this, `.${key}`)
     } catch {
-      return globalEnv.rawGetElementsByClassName.call(this, key)
+      return globalEnv.rawGetElementsByClassName.call(_this, key)
     }
   }
 
-  Document.prototype.getElementsByTagName = function getElementsByTagName (key: string): HTMLCollectionOf<Element> {
-    const appName = getCurrentAppName()
+  rawRootDocument.prototype.getElementsByTagName = function getElementsByTagName (key: string): HTMLCollectionOf<Element> {
+    const _this = getBindTarget(this)
+    const currentAppName = getCurrentAppName()
     if (
-      !appName ||
+      !currentAppName ||
       isUniqueElement(key) ||
       isInvalidQuerySelectorKey(key) ||
-      (!appInstanceMap.get(appName)?.inline && /^script$/i.test(key))
+      (!appInstanceMap.get(currentAppName)?.inline && /^script$/i.test(key))
     ) {
-      return globalEnv.rawGetElementsByTagName.call(this, key)
+      return globalEnv.rawGetElementsByTagName.call(_this, key)
     }
 
     try {
-      return querySelectorAll.call(this, key)
+      return querySelectorAll.call(_this, key)
     } catch {
-      return globalEnv.rawGetElementsByTagName.call(this, key)
+      return globalEnv.rawGetElementsByTagName.call(_this, key)
     }
   }
 
-  Document.prototype.getElementsByName = function getElementsByName (key: string): NodeListOf<HTMLElement> {
+  rawRootDocument.prototype.getElementsByName = function getElementsByName (key: string): NodeListOf<HTMLElement> {
+    const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementsByName.call(this, key)
+      return globalEnv.rawGetElementsByName.call(_this, key)
     }
 
     try {
-      return querySelectorAll.call(this, `[name=${key}]`)
+      return querySelectorAll.call(_this, `[name=${key}]`)
     } catch {
-      return globalEnv.rawGetElementsByName.call(this, key)
+      return globalEnv.rawGetElementsByName.call(_this, key)
     }
   }
 }
 
 /**
  * patchSetAttribute is different from other patch
- * it not dependent on sandbox
- * it should exec when micro-app first created & release when all app unmounted
+ * NOTE:
+ * 1. it not dependent on sandbox
+ * 2. it should exec when first micro-app-element created & release when all app unmounted
  */
 let hasRewriteSetAttribute = false
 export function patchSetAttribute (): void {
   if (hasRewriteSetAttribute) return
   hasRewriteSetAttribute = true
-  Element.prototype.setAttribute = function setAttribute (key: string, value: string): void {
+  Element.prototype.setAttribute = function setAttribute (key: string, value: any): void {
     if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
       if (isPlainObject(value)) {
-        const cloneValue: Record<PropertyKey, unknown> = {}
-        Object.getOwnPropertyNames(value).forEach((propertyKey: PropertyKey) => {
-          if (!(isString(propertyKey) && propertyKey.indexOf('__') === 0)) {
-            // @ts-ignore
-            cloneValue[propertyKey] = value[propertyKey]
+        const cloneValue: Record<NormalKey, unknown> = {}
+        Object.getOwnPropertyNames(value).forEach((ownKey: NormalKey) => {
+          if (!(isString(ownKey) && ownKey.indexOf('__') === 0)) {
+            cloneValue[ownKey] = value[ownKey]
           }
         })
         this.data = cloneValue
       } else if (value !== '[object Object]') {
         logWarn('property data must be an object', this.getAttribute('name'))
       }
-    } else if (
-      (
-        ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
-        (key === 'href' && /^link$/i.test(this.tagName))
-      ) &&
-      this.__MICRO_APP_NAME__ &&
-      appInstanceMap.has(this.__MICRO_APP_NAME__)
-    ) {
-      const app = appInstanceMap.get(this.__MICRO_APP_NAME__)
-      globalEnv.rawSetAttribute.call(this, key, CompletionPath(value, app!.url))
     } else {
+      const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()
+      if (
+        appName &&
+        appInstanceMap.has(appName) &&
+        (
+          ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
+          (key === 'href' && /^link$/i.test(this.tagName))
+        )
+      ) {
+        const app = appInstanceMap.get(appName)
+        value = CompletionPath(value, app!.url)
+      }
+
       globalEnv.rawSetAttribute.call(this, key, value)
     }
   }
 }
 
-export function releasePatchSetAttribute (): void {
-  hasRewriteSetAttribute = false
-  Element.prototype.setAttribute = globalEnv.rawSetAttribute
-}
-
 function releasePatchDocument (): void {
-  Document.prototype.createElement = globalEnv.rawCreateElement
-  Document.prototype.createElementNS = globalEnv.rawCreateElementNS
-  Document.prototype.createDocumentFragment = globalEnv.rawCreateDocumentFragment
-  Document.prototype.querySelector = globalEnv.rawQuerySelector
-  Document.prototype.querySelectorAll = globalEnv.rawQuerySelectorAll
-  Document.prototype.getElementById = globalEnv.rawGetElementById
-  Document.prototype.getElementsByClassName = globalEnv.rawGetElementsByClassName
-  Document.prototype.getElementsByTagName = globalEnv.rawGetElementsByTagName
-  Document.prototype.getElementsByName = globalEnv.rawGetElementsByName
+  const rawRootDocument = globalEnv.rawRootDocument
+  rawRootDocument.prototype.createElement = globalEnv.rawCreateElement
+  rawRootDocument.prototype.createElementNS = globalEnv.rawCreateElementNS
+  rawRootDocument.prototype.createDocumentFragment = globalEnv.rawCreateDocumentFragment
+  rawRootDocument.prototype.querySelector = globalEnv.rawQuerySelector
+  rawRootDocument.prototype.querySelectorAll = globalEnv.rawQuerySelectorAll
+  rawRootDocument.prototype.getElementById = globalEnv.rawGetElementById
+  rawRootDocument.prototype.getElementsByClassName = globalEnv.rawGetElementsByClassName
+  rawRootDocument.prototype.getElementsByTagName = globalEnv.rawGetElementsByTagName
+  rawRootDocument.prototype.getElementsByName = globalEnv.rawGetElementsByName
 }
 
 // release patch
 export function releasePatches (): void {
-  setCurrentAppName(null)
+  removeDomScope()
   releasePatchDocument()
 
   Element.prototype.appendChild = globalEnv.rawAppendChild
@@ -486,7 +512,12 @@ export function releasePatches (): void {
   Element.prototype.append = globalEnv.rawAppend
   Element.prototype.prepend = globalEnv.rawPrepend
   Element.prototype.cloneNode = globalEnv.rawCloneNode
-  // Element.prototype.getBoundingClientRect = globalEnv.rawGetBoundingClientRect
+}
+
+// exec when last child unmount
+export function releasePatchSetAttribute (): void {
+  hasRewriteSetAttribute = false
+  Element.prototype.setAttribute = globalEnv.rawSetAttribute
 }
 
 // Set the style of micro-app-head and micro-app-body

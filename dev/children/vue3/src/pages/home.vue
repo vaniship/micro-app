@@ -2,21 +2,17 @@
   <div>
     <img src="../assets/logo.png" alt="">
     <HelloWorld msg="Welcome to Vue@3.0.7"/>
-    <div class='msg-title'>{{microDataStr}}</div>
     <el-row justify="center">
-      <router-link to="/page2">
+      <router-link to="/element-plus">
         <el-button type="primary" plain>跳转element-plus</el-button>
+      </router-link>&emsp;
+      <router-link to="/ant-design-vue">
+        <el-button type="primary" plain>跳转ant-design-vue</el-button>
       </router-link>
     </el-row>
     <br>
-    <el-row justify="center">
-      <el-button type="primary" @click="centerDialogVisible = true">展示Dialog</el-button>
-    </el-row>
     <el-dialog v-model="centerDialogVisible" title="Warning" width="30%" center>
-      <span
-        >It should be noted that the content will not be aligned in center by
-        default</span
-      >
+      <span>{{microDataStr}}</span>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="centerDialogVisible = false">Cancel</el-button>

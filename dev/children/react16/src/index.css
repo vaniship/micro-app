@@ -7,6 +7,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:global{
+  @media (max-width: 575px){}
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
@@ -43,4 +47,8 @@ code {
     display: flex;
     float: none;
   }
+}
+
+:global{
+  @media (max-width: 575px){}
 }

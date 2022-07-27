@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Form,
   Select,
@@ -17,6 +17,18 @@ import {
 import { UploadOutlined, InboxOutlined } from '@ant-design/icons';
 import styled from 'styled-components'
 import './page2.css'
+import bigImg from '../../assets/big-img.jpeg';
+
+// 测试umd二次渲染时全局变量是否丢失
+window.umdGlobalKey = 'umdGlobalKey'
+
+window.addEventListener('click', () => {
+  console.log('测试umd懒加载页面二次渲染全局事件')
+})
+
+window.microApp?.addDataListener((data) => {
+  console.log('懒加载的数据监听', data)
+})
 
 const StyledButton = styled.button`
   background: transparent;
@@ -48,6 +60,7 @@ const normFile = (e) => {
 };
 
 const Page2 = () => {
+  const [count, changeCount] = useState(0)
   const onFinish = (values) => {
     console.log('Received values of form: ', values);
     message.success('This is a success message');
@@ -57,8 +70,30 @@ const Page2 = () => {
     console.log(444444444)
   }
 
+  useEffect(() => {
+    console.log('react16 page2 useEffect')
+    if (!window.umdGlobalKey) {
+      throw Error('umdGlobalKey missing')
+    }
+
+    const handler = (data) => {
+      console.log('懒加载组件内部的数据监听', data)
+      changeCount((pre) => {
+        return pre + 1
+      })
+    }
+
+    window.microApp?.addDataListener(handler)
+
+    return () => {
+      window.microApp?.removeDataListener(handler)
+    }
+  }, [])
+
   return (
     <div>
+      <img src={bigImg} alt="" width="100" />
+      <div>{count}</div>
       <div>
         <p>styled-component👇</p>
         <StyledButton>按钮</StyledButton>

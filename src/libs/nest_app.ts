@@ -12,16 +12,18 @@ function unmountNestedApp (): void {
   !window.__MICRO_APP_UMD_MODE__ && AppManager.getInstance().clear()
 }
 
-// if micro-app run in micro application, delete all next generation application when unmount event received
-export function listenUmountOfNestedApp (): void {
+// release listener
+function releaseUnmountOfNestedApp (): void {
   if (window.__MICRO_APP_ENVIRONMENT__) {
-    window.addEventListener('unmount', unmountNestedApp, false)
+    window.removeEventListener('unmount', unmountNestedApp, false)
   }
 }
 
-// release listener
-export function releaseUnmountOfNestedApp (): void {
+// if micro-app run in micro application, delete all next generation application when unmount event received
+// unmount event will auto release by sandbox
+export function initEnvOfNestedApp (): void {
   if (window.__MICRO_APP_ENVIRONMENT__) {
-    window.removeEventListener('unmount', unmountNestedApp, false)
+    releaseUnmountOfNestedApp()
+    window.addEventListener('unmount', unmountNestedApp, false)
   }
 }

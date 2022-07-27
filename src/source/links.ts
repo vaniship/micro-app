@@ -10,7 +10,7 @@ import {
   defer,
   logError,
 } from '../libs/utils'
-import scopedCSS from './scoped_css'
+import scopedCSS from '../sandbox/scoped_css'
 import {
   dispatchOnLoadEvent,
   dispatchOnErrorEvent,

@@ -1,4 +1,4 @@
-import './public-path'
+// import './public-path'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import routes from './router'
@@ -16,6 +16,15 @@ const router = new VueRouter({
   // base: window.__MICRO_APP_BASE_ROUTE__ || '/',
   // mode: 'history',
   routes,
+})
+
+router.beforeEach((to, from, next) => {
+  console.log('vue2 路由钩子 beforeEach', to, from, location.href)
+  next()
+})
+
+router.afterEach((to, from) => {
+  console.log('vue2 路由钩子 afterEach', to, from, location.href)
 })
 
 let app = null
@@ -36,7 +45,7 @@ let app = null
 
 
 // -------------------分割线-umd模式------------------ //
-export async function mount (props) {
+export function mount (props) {
   app = new Vue({
     router,
     render: h => h(App),
@@ -45,14 +54,14 @@ export async function mount (props) {
 }
 
 // 卸载应用
-export async function unmount () {
+export function unmount () {
   app.$destroy()
   app.$el.innerHTML = ''
   app = null
   console.log("微应用vue2卸载了 -- 来自umd-unmount")
 }
 
-export async function bootstrap() {
+export function bootstrap() {
 
 }
 
@@ -63,3 +72,11 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
   // 非微前端环境直接渲染
   mount()
 }
+
+window.addEventListener('popstate', (e) => {
+  console.log('子应用vue2 popstate', e)
+})
+
+window.addEventListener('hashchange', (e) => {
+  console.log('子应用vue2 hashchange', e, e.newURL, e.oldURL)
+})

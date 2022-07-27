@@ -9,18 +9,20 @@ import {
   isString,
   isFunction,
   CompletionPath,
+  createURL,
 } from './libs/utils'
 import {
   ObservedAttrName,
   appStates,
   lifeCycles,
   keepAliveStates,
-} from './constants'
+} from './libs/constants'
 import CreateApp, { appInstanceMap } from './create_app'
 import { patchSetAttribute } from './source/patch'
 import microApp from './micro_app'
 import dispatchLifecyclesEvent from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
+import { getNoHashMicroPathFromURL, router } from './sandbox'
 
 /**
  * define element
@@ -34,6 +36,7 @@ export function defineElement (tagName: string): void {
 
     constructor () {
       super()
+      // patchSetAttribute hijiack data attribute, it needs exec first
       patchSetAttribute()
     }
 
@@ -70,11 +73,18 @@ export function defineElement (tagName: string): void {
 
     disconnectedCallback (): void {
       this.hasConnected = false
-      // keep-alive
-      if (this.getKeepAliveModeResult()) {
-        this.handleHiddenKeepAliveApp()
-      } else {
-        this.handleUnmount(this.getDestroyCompatibleResult())
+      const app = appInstanceMap.get(this.appName)
+      if (
+        app &&
+        app.getAppState() !== appStates.UNMOUNT &&
+        app.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN
+      ) {
+        // keep-alive
+        if (this.getKeepAliveModeResult()) {
+          this.handleHiddenKeepAliveApp()
+        } else {
+          this.handleUnmount(this.getDestroyCompatibleResult())
+        }
       }
     }
 
@@ -129,11 +139,7 @@ export function defineElement (tagName: string): void {
         this.attachShadow({ mode: 'open' })
       }
 
-      if (this.getDisposeResult('ssr')) {
-        this.ssrUrl = CompletionPath(globalEnv.rawWindow.location.pathname, this.appUrl)
-      } else if (this.ssrUrl) {
-        this.ssrUrl = ''
-      }
+      this.updateSsrUrl(this.appUrl)
 
       if (appInstanceMap.has(this.appName)) {
         const app = appInstanceMap.get(this.appName)!
@@ -217,14 +223,9 @@ export function defineElement (tagName: string): void {
       existApp: AppInterface | undefined,
     ): void {
       /**
-       * change ssrUrl in ssr mode
        * do not add judgment of formatAttrUrl === this.appUrl
        */
-      if (this.getDisposeResult('ssr')) {
-        this.ssrUrl = CompletionPath(globalEnv.rawWindow.location.pathname, formatAttrUrl)
-      } else if (this.ssrUrl) {
-        this.ssrUrl = ''
-      }
+      this.updateSsrUrl(formatAttrUrl)
 
       this.appName = formatAttrName
       this.appUrl = formatAttrUrl
@@ -288,13 +289,16 @@ export function defineElement (tagName: string): void {
         this.shadowRoot ?? this,
         this.getDisposeResult('inline'),
         this.getBaseRouteCompatible(),
+        this.getDisposeResult('keep-router-state'),
+        this.getDefaultPageValue(),
+        this.getDisposeResult('hidden-router'),
       ))
     }
 
     // create app instance
     private handleCreateApp (): void {
       /**
-       * actions for destory old app
+       * actions for destroy old app
        * fix of unmounted umd app with disableSandbox
        */
       if (appInstanceMap.has(this.appName)) {
@@ -307,9 +311,13 @@ export function defineElement (tagName: string): void {
         ssrUrl: this.ssrUrl,
         container: this.shadowRoot ?? this,
         inline: this.getDisposeResult('inline'),
-        scopecss: !(this.getDisposeResult('disableScopecss') || this.getDisposeResult('shadowDOM')),
-        useSandbox: !this.getDisposeResult('disableSandbox'),
+        scopecss: !(this.getDisposeResult('disable-scopecss') || this.getDisposeResult('shadowDOM')),
+        useSandbox: !this.getDisposeResult('disable-sandbox'),
+        useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
         baseroute: this.getBaseRouteCompatible(),
+        keepRouteState: this.getDisposeResult('keep-router-state'),
+        defaultPage: this.getDefaultPageValue(),
+        hiddenRouter: this.getDisposeResult('hidden-router'),
       })
 
       appInstanceMap.set(this.appName, instance)
@@ -319,16 +327,21 @@ export function defineElement (tagName: string): void {
      * unmount app
      * @param destroy delete cache resources when unmount
      */
-    private handleUnmount (destroy: boolean, unmountcb?: CallableFunction): void {
+    private handleUnmount (destroy: boolean, unmountCb?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
         app.getAppState() !== appStates.UNMOUNT
-      ) app.unmount(destroy, unmountcb)
+      ) {
+        app.unmount(
+          destroy,
+          unmountCb,
+        )
+      }
     }
 
     // hidden app when disconnectedCallback called with keep-alive
-    private handleHiddenKeepAliveApp () {
+    private handleHiddenKeepAliveApp (): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
@@ -338,7 +351,7 @@ export function defineElement (tagName: string): void {
     }
 
     // show app when connectedCallback called with keep-alive
-    private handleShowKeepAliveApp (app: AppInterface) {
+    private handleShowKeepAliveApp (app: AppInterface): void {
       // must be async
       defer(() => app.showKeepAliveApp(this.shadowRoot ?? this))
     }
@@ -350,25 +363,25 @@ export function defineElement (tagName: string): void {
      */
     private getDisposeResult (name: string): boolean {
       // @ts-ignore
-      return (this.compatibleSpecialProperties(name) || microApp[name]) && this.compatibleDisableSpecialProperties(name)
+      return (this.compatibleSpecialProperties(name) || !!microApp[name]) && this.compatibleDisableSpecialProperties(name)
     }
 
     // compatible of disableScopecss & disableSandbox
     private compatibleSpecialProperties (name: string): boolean {
-      if (name === 'disableScopecss') {
-        return this.hasAttribute('disableScopecss') || this.hasAttribute('disable-scopecss')
-      } else if (name === 'disableSandbox') {
-        return this.hasAttribute('disableSandbox') || this.hasAttribute('disable-sandbox')
+      if (name === 'disable-scopecss') {
+        return this.hasAttribute('disable-scopecss') || this.hasAttribute('disableScopecss')
+      } else if (name === 'disable-sandbox') {
+        return this.hasAttribute('disable-sandbox') || this.hasAttribute('disableSandbox')
       }
       return this.hasAttribute(name)
     }
 
     // compatible of disableScopecss & disableSandbox
     private compatibleDisableSpecialProperties (name: string): boolean {
-      if (name === 'disableScopecss') {
-        return this.getAttribute('disableScopecss') !== 'false' && this.getAttribute('disable-scopecss') !== 'false'
-      } else if (name === 'disableSandbox') {
-        return this.getAttribute('disableSandbox') !== 'false' && this.getAttribute('disable-sandbox') !== 'false'
+      if (name === 'disable-scopecss') {
+        return this.getAttribute('disable-scopecss') !== 'false' && this.getAttribute('disableScopecss') !== 'false'
+      } else if (name === 'disable-sandbox') {
+        return this.getAttribute('disable-sandbox') !== 'false' && this.getAttribute('disableSandbox') !== 'false'
       }
       return this.getAttribute(name) !== 'false'
     }
@@ -392,6 +405,39 @@ export function defineElement (tagName: string): void {
      */
     private getKeepAliveModeResult (): boolean {
       return this.getDisposeResult('keep-alive') && !this.getDestroyCompatibleResult()
+    }
+
+    /**
+     * change ssrUrl in ssr mode
+     */
+    private updateSsrUrl (baseUrl: string): void {
+      if (this.getDisposeResult('ssr')) {
+        if (this.getDisposeResult('disable-memory-router') || this.getDisposeResult('disableSandbox')) {
+          const rawLocation = globalEnv.rawWindow.location
+          this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)
+        } else {
+          // get path from browser URL
+          let targetPath = getNoHashMicroPathFromURL(this.appName, baseUrl)
+          const defaultPagePath = this.getDefaultPageValue()
+          if (!targetPath && defaultPagePath) {
+            const targetLocation = createURL(defaultPagePath, baseUrl)
+            targetPath = targetLocation.origin + targetLocation.pathname + targetLocation.search
+          }
+          this.ssrUrl = targetPath
+        }
+      } else if (this.ssrUrl) {
+        this.ssrUrl = ''
+      }
+    }
+
+    /**
+     * get config of default page
+     */
+    private getDefaultPageValue (): string {
+      return router.getDefaultPage(this.appName) ??
+      this.getAttribute('default-page') ??
+      this.getAttribute('defaultPage') ??
+      ''
     }
 
     /**
