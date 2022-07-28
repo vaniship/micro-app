@@ -13,9 +13,11 @@ declare module '@micro-app/types' {
     proxyWindow: WindowProxy
     microAppWindow: Window // Proxy target
     start (
+      umdMode: boolean,
       baseRoute: string,
       useMemoryRouter: boolean,
       defaultPage: string,
+      disablePatchRequest: boolean,
     ): void
     stop (
       umdMode: boolean,
@@ -103,7 +105,8 @@ declare module '@micro-app/types' {
       baseroute?: string,
       keepRouteState?: boolean,
       defaultPage?: string,
-      hiddenRouter?: boolean
+      hiddenRouter?: boolean,
+      disablePatchRequest?: boolean,
     ): void
 
     // unmount app
@@ -226,6 +229,7 @@ declare module '@micro-app/types' {
     'disable-scopecss'?: boolean
     'disable-sandbox'?: boolean
     'disable-memory-router'?: boolean
+    'disable-patch-request'?: boolean
     'keep-router-state'?: boolean
     'hidden-router'?: boolean
     'esmodule'?: boolean

@@ -40,6 +40,7 @@ export interface CreateAppParam {
   hiddenRouter?: boolean,
   container?: HTMLElement | ShadowRoot
   defaultPage?: string
+  disablePatchRequest?: boolean
 }
 
 export default class CreateApp implements AppInterface {
@@ -67,6 +68,7 @@ export default class CreateApp implements AppInterface {
   source: sourceType
   sandBox: SandBoxInterface | null = null
   defaultPage: string
+  disablePatchRequest: boolean
 
   constructor ({
     name,
@@ -81,6 +83,7 @@ export default class CreateApp implements AppInterface {
     keepRouteState,
     hiddenRouter,
     defaultPage,
+    disablePatchRequest,
   }: CreateAppParam) {
     this.name = name
     this.url = url
@@ -95,6 +98,7 @@ export default class CreateApp implements AppInterface {
     this.keepRouteState = keepRouteState ?? false
     this.hiddenRouter = hiddenRouter ?? false
     this.defaultPage = defaultPage ?? ''
+    this.disablePatchRequest = disablePatchRequest ?? false
 
     this.source = {
       links: new Map<string, sourceLinkInfo>(),
@@ -150,6 +154,7 @@ export default class CreateApp implements AppInterface {
    * @param inline js runs in inline mode
    * @param baseroute route prefix, default is ''
    * @param keepRouteState keep route state when unmount, default is false
+   * @param disablePatchRequest prevent rewrite request method of child app
    */
   mount (
     container?: HTMLElement | ShadowRoot,
@@ -158,6 +163,7 @@ export default class CreateApp implements AppInterface {
     keepRouteState?: boolean,
     defaultPage?: string,
     hiddenRouter?: boolean,
+    disablePatchRequest?: boolean,
   ): void {
     this.inline = inline ?? this.inline
     this.keepRouteState = keepRouteState ?? this.keepRouteState
@@ -165,6 +171,7 @@ export default class CreateApp implements AppInterface {
     this.baseroute = baseroute ?? this.baseroute
     this.defaultPage = defaultPage ?? this.defaultPage
     this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
+    this.disablePatchRequest = disablePatchRequest ?? this.disablePatchRequest
 
     if (this.loadSourceLevel !== 2) {
       this.state = appStates.LOADING
@@ -181,7 +188,13 @@ export default class CreateApp implements AppInterface {
 
     cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
 
-    this.sandBox?.start(this.baseroute, this.useMemoryRouter, this.defaultPage)
+    this.sandBox?.start(
+      this.umdMode,
+      this.baseroute,
+      this.useMemoryRouter,
+      this.defaultPage,
+      this.disablePatchRequest,
+    )
 
     let umdHookMountResult: any // result of mount function
 

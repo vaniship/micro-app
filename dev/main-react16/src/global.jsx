@@ -20,6 +20,7 @@ microApp.start({
   // 'disable-scopecss': true,
   // 'disable-sandbox': true,
   // 'disable-memory-router': true,
+  // 'disable-patch-request': true,
   // 'keep-router-state': true,
   // 'hidden-router': true,
   // esmodule: true,

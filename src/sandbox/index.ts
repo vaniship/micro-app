@@ -119,9 +119,11 @@ export default class SandBox implements SandBoxInterface {
   }
 
   public start (
+    umdMode: boolean,
     baseRoute: string,
     useMemoryRouter = true,
     defaultPage = '',
+    disablePatchRequest: boolean,
   ): void {
     if (!this.active) {
       this.active = true
@@ -135,12 +137,18 @@ export default class SandBox implements SandBoxInterface {
         this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseRoute
       }
 
-      // prevent the key deleted during sandBox.stop after rewrite
-      this.initGlobalKeysWhenStart(
-        this.microAppWindow,
-        this.proxyWindow.__MICRO_APP_NAME__,
-        this.proxyWindow.__MICRO_APP_URL__,
-      )
+      /**
+       * 1. prevent the key deleted during sandBox.stop after rewrite
+       * 2. umd mode will not delete any keys during sandBox.stop
+       */
+      if (!umdMode) {
+        this.initGlobalKeysWhenStart(
+          this.microAppWindow,
+          this.proxyWindow.__MICRO_APP_NAME__,
+          this.proxyWindow.__MICRO_APP_URL__,
+          disablePatchRequest,
+        )
+      }
 
       if (++SandBox.activeCount === 1) {
         effectDocumentEvent()
@@ -459,15 +467,17 @@ export default class SandBox implements SandBoxInterface {
    * @param microAppWindow micro window
    * @param appName app name
    * @param url app url
+   * @param disablePatchRequest prevent rewrite request method of child app
    */
   private initGlobalKeysWhenStart (
     microAppWindow: microAppWindowType,
     appName: string,
     url: string,
+    disablePatchRequest: boolean,
   ): void {
     microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
     this.setHijackProperty(microAppWindow, appName)
-    this.patchRequestApi(microAppWindow, appName, url)
+    if (!disablePatchRequest) this.patchRequestApi(microAppWindow, appName, url)
   }
 
   // set hijack Properties to microAppWindow

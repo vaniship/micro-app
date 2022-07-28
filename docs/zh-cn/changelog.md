@@ -12,15 +12,20 @@
 
 `2022-07-28`
 
+- **New**
+
+  - 🆕 新增了配置`disable-patch-request`，用于阻止MicroApp对子应用fetch、XMLHttpRequest等请求方法的重写。
+
 - **Bug Fix**
 
   - 🐞 修复了设置document.title, history.scrollRestoration时报`Illegal invocation`错误的问题。
   - 🐞 修复了在umd模式部分场景下二次渲染时全局变量和全局事件丢失的问题。
   - 🐞 修复了高德地图二次渲染时地图无法显示的问题。
   - 🐞 修复了`element-plus`按需加载时，点击ElSelect组件空白区域无法收起的问题。
+  - 🐞 修复了umd模式下每次渲染时fetch、XMLHttpRequest等API被重写的问题。
 
 - **Update**
-
+  - 🚀 更新了umd模式下全局事件和全局变量的处理逻辑，不再主动卸载全局事件和删除全局变量。
   - 🚀 更新了1.0版本文档
 
 

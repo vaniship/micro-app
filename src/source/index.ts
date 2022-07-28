@@ -67,7 +67,7 @@ function flatChildren (
  * @param htmlStr html string
  * @param app app
  */
-export function extractSourceDom (htmlStr: string, app: AppInterface) {
+export function extractSourceDom (htmlStr: string, app: AppInterface): void {
   const wrapElement = getWrapElement(htmlStr)
   const microAppHead = wrapElement.querySelector('micro-app-head')
   const microAppBody = wrapElement.querySelector('micro-app-body')

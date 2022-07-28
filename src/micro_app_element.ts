@@ -292,6 +292,7 @@ export function defineElement (tagName: string): void {
         this.getDisposeResult('keep-router-state'),
         this.getDefaultPageValue(),
         this.getDisposeResult('hidden-router'),
+        this.getDisposeResult('disable-patch-request'),
       ))
     }
 
@@ -318,6 +319,7 @@ export function defineElement (tagName: string): void {
         keepRouteState: this.getDisposeResult('keep-router-state'),
         defaultPage: this.getDefaultPageValue(),
         hiddenRouter: this.getDisposeResult('hidden-router'),
+        disablePatchRequest: this.getDisposeResult('disable-patch-request'),
       })
 
       appInstanceMap.set(this.appName, instance)

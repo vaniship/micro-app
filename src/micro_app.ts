@@ -141,6 +141,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
   'disable-scopecss'?: boolean
   'disable-sandbox'?: boolean
   'disable-memory-router'?: boolean
+  'disable-patch-request'?: boolean
   'keep-router-state'?: boolean
   'hidden-router'?: boolean
   esmodule?: boolean
@@ -182,6 +183,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
       this['disable-scopecss'] = options['disable-scopecss'] ?? options.disableScopecss
       this['disable-sandbox'] = options['disable-sandbox'] ?? options.disableSandbox
       this['disable-memory-router'] = options['disable-memory-router']
+      this['disable-patch-request'] = options['disable-patch-request']
       this['keep-router-state'] = options['keep-router-state']
       this['hidden-router'] = options['hidden-router']
       this.esmodule = options.esmodule
