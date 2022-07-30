@@ -15,7 +15,7 @@ import microApp from '@micro-zoe/micro-app'
 microApp.start()
 ```
 
-#### 3、嵌入子应用
+#### 3、在页面中嵌入子应用
 ```js
 export function MyPage () {
   return (
@@ -57,8 +57,8 @@ window.addEventListener('unmount', function () {
 })
 ```
 
-### 可选配置
-以下配置是针对子应用的，它们是可选的，但建议根据实际情况选择设置。
+### 可选设置
+以下配置是针对子应用的，它们是可选的，建议根据实际情况选择设置。
 
 #### 1、开启umd模式，优化内存和性能
 `micro-app`支持两种渲染微前端的模式，默认模式和umd模式。
@@ -100,6 +100,8 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 > 2、因为注册了`unmount`函数，此时上述步骤2中监听卸载事件可以省略
 
 #### 2、设置 webpack.jsonpFunction
+如果微前端正常运行，则可以忽略这一步。
+
 如果子应用资源加载混乱导致渲染失败，可以尝试设置`jsonpFunction`来解决，因为相同的`jsonpFunction`名称会导致资源污染。
 
 这种情况常见于基座和子应用都是通过`create-react-app`等脚手架创建的项目。
@@ -149,7 +151,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
 **步骤2:** 在子应用入口文件的`最顶部`引入`public-path.js`
 ```js
-// index.js
+// entry
 import './public-path'
 ```
 

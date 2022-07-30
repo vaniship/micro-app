@@ -77,7 +77,6 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 ```
 
 #### ** Vue2 **
-这里只介绍配合`vue-router3.x`的用法
 
 ```js
 // main.js
@@ -111,7 +110,6 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 ```
 
 #### ** Vue3 **
-这里只介绍配合`vue-router4.x`的用法
 
 ```js
 // main.js

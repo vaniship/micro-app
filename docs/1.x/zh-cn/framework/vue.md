@@ -1,90 +1,36 @@
-本篇以`Vue 2、3`作为案例介绍vue的接入方式，其它版本vue的接入方式以此类推，我们默认开发者掌握了各版本vue的开发技巧，比如示例中vue2的代码如何转换为vue1。
+本篇以`Vue 2、3`作为案例介绍vue的接入方式。
 
 ## 作为基座应用
-我们强烈建议基座应用采用history模式，hash路由的基座应用只能加载hash路由的子应用，history模式的基座应用对这两种子应用都支持。
-
-在以下案例中，我们默认基座的路由为history模式。
 
 #### 1、安装依赖
 ```bash
-npm i @micro-zoe/micro-app --save
+npm i @micro-zoe/micro-app@alpha --save
 ```
 
-#### 2、在入口处引入
+#### 2、初始化micro-app
 ```js
-// entry
+// main.js
 import microApp from '@micro-zoe/micro-app'
 
 microApp.start()
 ```
 
-#### 3、分配一个路由给子应用
-
-<!-- tabs:start -->
-
-#### ** Vue2 **
-
-```js
-// router.js
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import MyPage from './my-page.vue'
-
-Vue.use(VueRouter)
-
-const routes = [
-  {
-    // 👇 非严格匹配，/my-page/* 都指向 MyPage 页面
-    path: '/my-page/*',
-    name: 'my-page',
-    component: MyPage,
-  },
-]
-
-export default routes
-```
-
-#### ** Vue3 **
-```js
-// router.js
-import { createRouter, createWebHistory } from 'vue-router'
-import MyPage from './my-page.vue'
-
-const routes = [
-  {
-    // 👇 非严格匹配，/my-page/* 都指向 MyPage 页面
-    path: '/my-page/:page*',
-    name: 'my-page',
-    component: MyPage,
-  },
-]
-
-const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
-  routes
-})
-
-export default router
-```
-<!-- tabs:end -->
-
-
-#### 4、在页面中嵌入子应用
-
+#### 3、嵌入子应用
 ```html
-<!-- my-page.vue -->
 <template>
   <div>
-    <h1>子应用</h1>
-    <!-- 
-      name(必传)：应用名称
-      url(必传)：应用地址，会被自动补全为http://localhost:3000/index.html
-      baseroute(可选)：基座应用分配给子应用的基础路由，就是上面的 `/my-page`
-     -->
-    <micro-app name='app1' url='http://localhost:3000/' baseroute='/my-page'></micro-app>
+    <h1>子应用👇</h1>
+    <!-- name：应用名称, url：应用地址 -->
+    <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
   </div>
 </template>
 ```
+
+> [!NOTE]
+> 1、name：必传参数，必须以字母开头，且不可以带特殊符号(中划线、下划线除外)
+>
+> 2、url：必传参数，必须指向子应用的index.html，如：http://localhost:3000/ 或 http://localhost:3000/index.html
+
 
 ## 作为子应用
 
@@ -100,64 +46,7 @@ devServer: {
 }
 ```
 
-
-#### 2、设置基础路由`(如果基座是history路由，子应用是hash路由，这一步可以省略)`
-
-<!-- tabs:start -->
-
-#### ** Vue2 **
-
-```js
-// main.js
-import VueRouter from 'vue-router'
-import routes from './router'
-
-const router = new VueRouter({
-  mode: 'history',
-  // 👇 __MICRO_APP_BASE_ROUTE__ 为micro-app传入的基础路由
-  base: window.__MICRO_APP_BASE_ROUTE__ || process.env.BASE_URL,
-  routes,
-})
-
-```
-
-#### ** Vue3 **
-```js
-// main.js
-import { createRouter, createWebHistory } from 'vue-router'
-import routes from './router'
-
-const router = createRouter({
-  // 👇 __MICRO_APP_BASE_ROUTE__ 为micro-app传入的基础路由
-  history: createWebHistory(window.__MICRO_APP_BASE_ROUTE__ || process.env.BASE_URL),
-  routes,
-})
-```
-<!-- tabs:end -->
-
-
-#### 3、设置 publicPath
-
-这一步借助了webpack的功能，避免子应用的静态资源使用相对地址时加载失败的情况，详情参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
-
-*如果子应用不是webpack构建的，这一步可以省略。*
-
-**步骤1:** 在子应用src目录下创建名称为`public-path.js`的文件，并添加如下内容
-```js
-// __MICRO_APP_ENVIRONMENT__和__MICRO_APP_PUBLIC_PATH__是由micro-app注入的全局变量
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  // eslint-disable-next-line
-  __webpack_public_path__ = window.__MICRO_APP_PUBLIC_PATH__
-}
-```
-
-**步骤2:** 在子应用入口文件的`最顶部`引入`public-path.js`
-```js
-// entry
-import './public-path'
-```
-
-#### 4、监听卸载
+#### 2、监听卸载事件
 子应用被卸载时会接受到一个名为`unmount`的事件，在此可以进行卸载相关操作。
 
 <!-- tabs:start -->
@@ -188,10 +77,171 @@ window.addEventListener('unmount', function () {
 <!-- tabs:end -->
 
 
-## 实战案例
-以上介绍了vue如何接入微前端，但在实际使用中会涉及更多功能，如数据通信、路由跳转、打包部署，为此我们提供了一套案例，用于展示vue作为基座嵌入(或作为子应用被嵌入) react、vue、angular、vite、nextjs、nuxtjs等框架，在案例中我们使用尽可能少的代码实现尽可能多的功能。
+### 可选设置
+以下配置是针对子应用的，它们是可选的，建议根据实际情况选择设置。
 
-案例地址：https://github.com/micro-zoe/micro-app-demo
+#### 1、开启umd模式，优化内存和性能
+`micro-app`支持两种渲染微前端的模式，默认模式和umd模式。
+
+- **默认模式：**子应用在初次渲染和后续渲染时会顺序执行所有js，以保证多次渲染的一致性。
+- **umd模式：**子应用暴露出`mount`、`unmount`方法，此时只在初次渲染时执行所有js，后续渲染只会执行这两个方法，在多次渲染时具有更好的性能和内存表现。
+
+如果子应用渲染和卸载不频繁，那么使用默认模式即可，如果子应用渲染和卸载非常频繁建议使用umd模式。
+
+<!-- tabs:start -->
+
+#### ** Vue2 **
+```js
+// main.js
+import Vue from 'vue'
+import router from './router'
+import App from './App.vue'
+
+let app = null
+// 👇 将渲染操作放入 mount 函数
+function mount () {
+  app = new Vue({
+    router,
+    render: h => h(App),
+  }).$mount('#app')
+}
+
+// 👇 将卸载操作放入 unmount 函数
+function unmount () {
+  app.$destroy()
+  app.$el.innerHTML = ''
+  app = null
+}
+
+// 微前端环境下，注册mount和unmount方法
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  window[`micro-app-${window.__MICRO_APP_NAME__}`] = { mount, unmount }
+} else {
+  // 非微前端环境直接渲染
+  mount()
+}
+```
+
+#### ** Vue3 **
+```js
+// main.js
+import { createApp } from 'vue'
+import * as VueRouter from 'vue-router'
+import routes from './router'
+import App from './App.vue'
+
+let app = null
+let router = null
+let history = null
+// 👇 将渲染操作放入 mount 函数
+function mount () {
+  history = VueRouter.createWebHistory()
+  router = VueRouter.createRouter({
+    history,
+    routes,
+  })
+
+  app = createApp(App)
+  app.use(router)
+  app.mount('#app')
+}
+
+// 👇 将卸载操作放入 unmount 函数
+function unmount () {
+  app.unmount()
+  history.destroy()
+  app = null
+  router = null
+  history = null
+}
+
+// 微前端环境下，注册mount和unmount方法
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  window[`micro-app-${window.__MICRO_APP_NAME__}`] = { mount, unmount }
+} else {
+  // 非微前端环境直接渲染
+  mount()
+}
+```
+
+<!-- tabs:end -->
+
+> [!NOTE]
+>
+> 1、mount和unmount方法都是必须的
+>
+> 2、因为注册了`unmount`函数，此时上述步骤2中监听卸载事件可以省略
+
+#### 2、设置 webpack.jsonpFunction
+如果微前端正常运行，则可以忽略这一步。
+
+如果子应用资源加载混乱导致渲染失败，可以尝试设置`jsonpFunction`来解决，因为相同的`jsonpFunction`名称会导致资源污染。
+
+这种情况常见于基座和子应用都是通过`create-react-app`等脚手架创建的项目。
+
+**解决方式：修改子应用的webpack配置**
+<!-- tabs:start -->
+
+#### ** vue.config.js **
+```js
+// vue.config.js
+module.exports = {
+  configureWebpack: {
+    output: {
+      jsonpFunction: `webpackJsonp_自定义名称`,
+      globalObject: 'window',
+    }
+  },
+}
+
+```
+
+#### ** webpack4 **
+```js
+// webpack.config.js
+module.exports = {
+  output: {
+    ...
+    jsonpFunction: `webpackJsonp_自定义名称`,
+    globalObject: 'window',
+  },
+}
+```
+
+#### ** webpack5 **
+```js
+// webpack.config.js
+module.exports = {
+  output: {
+    ...
+    chunkLoadingGlobal: 'webpackJsonp_自定义名称',
+    globalObject: 'window',
+  },
+}
+```
+<!-- tabs:end -->
+
+
+#### 3、设置 publicPath
+如果子应用出现静态资源地址404(js、css、图片)，建议设置`publicPath`来尝试解决这个问题。
+
+`publicPath`是webpack提供的功能，它可以补全静态资源的地址，详情参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
+
+**步骤1:** 在子应用src目录下创建名称为`public-path.js`的文件，并添加如下内容
+```js
+// __MICRO_APP_ENVIRONMENT__和__MICRO_APP_PUBLIC_PATH__是由micro-app注入的全局变量
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  // eslint-disable-next-line
+  __webpack_public_path__ = window.__MICRO_APP_PUBLIC_PATH__
+}
+```
+
+**步骤2:** 在子应用入口文件的`最顶部`引入`public-path.js`
+```js
+// entry
+import './public-path'
+```
+
 
 ## 常见问题
 #### 1、基座应用中抛出警告，micro-app未定义
@@ -266,57 +316,3 @@ export default defineConfig({
 
   2、部分组件，如`Select`提供了`popper-append-to-body`配置，用于设置弹框不插入body，可以避免这个问题。如果组件没有提供类似的功能，则暂且只能通过关闭样式隔离解决。 -->
 
-
-#### 2、当基座和子应用都是vue-router4，点击浏览器返回按钮页面丢失
-
-**原因：**vue-router4没有对路由堆栈state做唯一性标记，导致基座和子应用相互影响，vue-router3及其它框架路由没有类似问题。
-
-**测试版本：**vue-router@4.0.12
-
-**相关issue：**[155](https://github.com/micro-zoe/micro-app/issues/155)
-
-**解决方式：**在子应用中添加如下设置
-```js
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  // 如果__MICRO_APP_BASE_ROUTE__为 `/基座应用基础路由/子应用基础路由/`，则应去掉`/基座应用基础路由`
-  // 如果对这句话不理解，可以参考案例：https://github.com/micro-zoe/micro-app-demo
-  const realBaseRoute = window.__MICRO_APP_BASE_ROUTE__
-
-  router.beforeEach(() => {
-    if (typeof window.history.state?.current === 'string') {
-      window.history.state.current = window.history.state.current.replace(new RegExp(realBaseRoute, 'g'), '')
-    }
-  })
-
-  router.afterEach(() => {
-    if (typeof window.history.state === 'object') {
-      window.history.state.current = realBaseRoute +  (window.history.state.current || '')
-    }
-  })
-}
-```
-
-#### 3、vue-router在hash模式无法通过base设置基础路由
-
-**解决方式：**创建一个空的路由页面，将其它路由作为它的children，具体设置如下：
-
-```js
-import RootApp from './root-app.vue'
-
-const routes = [
-    {
-      path: window.__MICRO_APP_BASE_ROUTE__ || '/',
-      component: RootApp,
-      children: [
-        // 其他的路由都写到这里
-      ],
-    },
-]
-```
-
-`root-app.vue`内容如下：
-```html
-<template>
-  <router-view />
-</template>
-```
