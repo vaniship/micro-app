@@ -118,12 +118,13 @@ export default class SandBox implements SandBoxInterface {
     this.initStaticGlobalKeys(this.microAppWindow, appName, url, useMemoryRouter)
   }
 
+  // TODO: 重构
   public start (
-    umdMode: boolean,
-    baseRoute: string,
+    umdMode = false,
+    baseRoute = '',
     useMemoryRouter = true,
     defaultPage = '',
-    disablePatchRequest: boolean,
+    disablePatchRequest = false,
   ): void {
     if (!this.active) {
       this.active = true
