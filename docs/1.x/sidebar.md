@@ -7,7 +7,7 @@
   - [生命周期](zh-cn/life-cycles)
   - [环境变量](zh-cn/env)
   - [JS沙箱](zh-cn/sandbox)
-  - [路由系统](zh-cn/router)
+  - [虚拟路由系统](zh-cn/router)
   - [样式隔离](zh-cn/scopecss)
   - [元素隔离](zh-cn/dom-scope)
   - [数据通信](zh-cn/data)
