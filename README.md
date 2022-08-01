@@ -35,10 +35,6 @@ It is the lowest cost framework for accessing micro front-end, and provides a se
 micro-app has no restrictions on the front-end framework, and any framework can be used as a base application to embed any type of micro application of the framework.
 
 # How to use
-The micro front end is divided into a base application (also called main application) and a micro application.
-
-Here is a common example: the base application uses the Vue framework, uses history routing, the micro application uses the react framework, and uses hash routing. We list the modifications that need to be made by the base application and the micro application, and introduce the use of micro-app in detail.
-
 ## base application
 **1、Install**
 ```bash

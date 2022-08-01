@@ -1,4 +1,4 @@
-MicroApp为子应用提供了一套虚拟路由系统，子应用运行在这套虚拟路由系统中，和基座应用的路由进行隔离，避免相互影响。
+MicroApp通过自定义location和history，实现了一套虚拟路由系统，子应用运行在这套虚拟路由系统中，和基座应用的路由进行隔离，避免相互影响。
 
 子应用的路由信息会作为query参数同步到浏览器地址上，如下：
 
@@ -34,16 +34,16 @@ router.push({ name: '子应用名称', path: '页面地址', replace: 是否使�
 ```js
 import microApp from '@micro-zoe/micro-app'
 
-// 不带域名的地址
+// 不带域名的地址，控制子应用my-app跳转/page1
 microApp.router.push({name: 'my-app', path: '/page1'})
 
 // 带域名的地址
 microApp.router.push({name: 'my-app', path: 'http://localhost:3000/page1'})
 
-// 带查询参数
+// 带查询参数，控制子应用my-app跳转/page1?id=9527
 microApp.router.push({name: 'my-app', path: '/page1?id=9527'})
 
-// 带hash
+// 带hash，控制子应用my-app跳转/page1#hash
 microApp.router.push({name: 'my-app', path: '/page1#hash'})
 
 // 使用replace模式，等同于 router.replace({name: 'my-app', path: '/page1'})
@@ -170,16 +170,16 @@ router.push({ name: '子应用名称', path: '页面地址', replace: 是否使�
 
 **示例：**
 ```js
-// 不带域名的地址
+// 不带域名的地址，控制子应用my-app跳转/page1
 window.microApp.router.push({name: 'my-app', path: '/page1'})
 
 // 带域名的地址
 window.microApp.router.push({name: 'my-app', path: 'http://localhost:3000/page1'})
 
-// 带查询参数
+// 带查询参数，控制子应用my-app跳转/page1?id=9527
 window.microApp.router.push({name: 'my-app', path: '/page1?id=9527'})
 
-// 带hash
+// 带hash，控制子应用my-app跳转/page1#hash
 window.microApp.router.push({name: 'my-app', path: '/page1#hash'})
 
 // 使用replace模式，等同于 router.replace({name: 'my-app', path: '/page1'})

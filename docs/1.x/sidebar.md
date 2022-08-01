@@ -1,6 +1,7 @@
 - 指南
   - [介绍](/)
   - [快速开始](zh-cn/start)
+  - [0.x迁移到1.0](zh-cn/transfer)
 
 - 功能
   - [配置项](zh-cn/configure)
