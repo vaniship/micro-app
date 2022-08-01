@@ -46,8 +46,8 @@ devServer: {
 }
 ```
 
-#### 2、监听卸载事件
-子应用被卸载时会接受到一个名为`unmount`的事件，在此可以进行卸载相关操作。
+#### 2、注册卸载函数
+子应用卸载时会自动执行`window.unmount`，在此可以进行卸载相关操作。
 
 <!-- tabs:start -->
 
@@ -57,10 +57,10 @@ devServer: {
 // main.js
 const app = new Vue(...)
 
-// 监听卸载操作
-window.addEventListener('unmount', function () {
+// 卸载应用
+window.unmount = () => {
   app.$destroy()
-})
+}
 ```
 
 #### ** Vue3 **
@@ -69,10 +69,10 @@ window.addEventListener('unmount', function () {
 const app = createApp(App)
 app.mount('#app')
 
-// 监听卸载操作
-window.addEventListener('unmount', function () {
+// 卸载应用
+window.unmount = () => {
   app.unmount()
-})
+}
 ```
 <!-- tabs:end -->
 
@@ -81,7 +81,7 @@ window.addEventListener('unmount', function () {
 以下配置是针对子应用的，它们是可选的，建议根据实际情况选择设置。
 
 #### 1、开启umd模式，优化内存和性能
-`micro-app`支持两种渲染微前端的模式，默认模式和umd模式。
+MicroApp支持两种渲染微前端的模式，默认模式和umd模式。
 
 - **默认模式：**子应用在初次渲染和后续渲染时会顺序执行所有js，以保证多次渲染的一致性。
 - **umd模式：**子应用暴露出`mount`、`unmount`方法，此时只在初次渲染时执行所有js，后续渲染只会执行这两个方法，在多次渲染时具有更好的性能和内存表现。
@@ -98,27 +98,24 @@ import router from './router'
 import App from './App.vue'
 
 let app = null
-// 👇 将渲染操作放入 mount 函数
-function mount () {
+// 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
+window.mount = () => {
   app = new Vue({
     router,
     render: h => h(App),
   }).$mount('#app')
 }
 
-// 👇 将卸载操作放入 unmount 函数
-function unmount () {
+// 👇 将卸载操作放入 unmount 函数，就是上面步骤2中的卸载函数
+window.unmount = () => {
   app.$destroy()
   app.$el.innerHTML = ''
   app = null
 }
 
-// 微前端环境下，注册mount和unmount方法
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  window[`micro-app-${window.__MICRO_APP_NAME__}`] = { mount, unmount }
-} else {
-  // 非微前端环境直接渲染
-  mount()
+// 如果不在微前端环境，则直接执行mount渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
+  window.mount()
 }
 ```
 
@@ -133,8 +130,8 @@ import App from './App.vue'
 let app = null
 let router = null
 let history = null
-// 👇 将渲染操作放入 mount 函数
-function mount () {
+// 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
+window.mount = () => {
   history = VueRouter.createWebHistory()
   router = VueRouter.createRouter({
     history,
@@ -146,8 +143,8 @@ function mount () {
   app.mount('#app')
 }
 
-// 👇 将卸载操作放入 unmount 函数
-function unmount () {
+// 👇 将卸载操作放入 unmount 函数，就是上面步骤2中的卸载函数
+window.unmount = () => {
   app.unmount()
   history.destroy()
   app = null
@@ -155,29 +152,21 @@ function unmount () {
   history = null
 }
 
-// 微前端环境下，注册mount和unmount方法
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  window[`micro-app-${window.__MICRO_APP_NAME__}`] = { mount, unmount }
-} else {
-  // 非微前端环境直接渲染
-  mount()
+// 如果不在微前端环境，则直接执行mount渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
+  window.mount()
 }
 ```
 
 <!-- tabs:end -->
 
-> [!NOTE]
->
-> 1、mount和unmount方法都是必须的
->
-> 2、因为注册了`unmount`函数，此时上述步骤2中监听卸载事件可以省略
 
 #### 2、设置 webpack.jsonpFunction
 如果微前端正常运行，则可以忽略这一步。
 
 如果子应用资源加载混乱导致渲染失败，可以尝试设置`jsonpFunction`来解决，因为相同的`jsonpFunction`名称会导致资源污染。
 
-这种情况常见于基座和子应用都是通过`create-react-app`等脚手架创建的项目。
+这种情况常见于基座和子应用都是通过`create-react-app`脚手架创建的react项目，vue项目中并不常见。
 
 **解决方式：修改子应用的webpack配置**
 <!-- tabs:start -->

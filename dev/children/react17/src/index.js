@@ -8,7 +8,8 @@ import reportWebVitals from './reportWebVitals';
 // 发送数据
 window.microApp?.dispatch({'from': '来自微应用react17的数据' + (+new Date())})
 
-function mount () {
+// 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
+window.mount = () => {
   ReactDOM.render(
     <React.StrictMode>
       <App />
@@ -16,32 +17,21 @@ function mount () {
     document.getElementById('root')
   );
 
-  console.log("微应用react17渲染来了 -- 来自umd-mount");
+  console.log("微应用react17渲染来了 -- UMD模式");
 }
 
-function unmount () {
-  console.log("微应用react17卸载了 -- 来自umd-unmount");
-  // 卸载应用
+// 👇 将卸载操作放入 unmount 函数
+window.unmount = () => {
   ReactDOM.unmountComponentAtNode(document.getElementById("root"));
+  console.log("微应用react17卸载了 -- UMD模式");
 }
 
-// 微前端环境下，注册mount和unmount方法
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  window[`micro-app-${window.__MICRO_APP_NAME__}`] = { mount, unmount }
-} else {
-  // 非微前端环境直接渲染
-  mount();
+// 如果不在微前端环境，则直接执行mount渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
+  window.mount()
 }
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
-
-window.addEventListener('popstate', (e) => {
-  console.log('popstate', e)
-})
-
-window.addEventListener('hashchange', (e) => {
-  console.log('hashchange', e)
-})

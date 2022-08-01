@@ -1,3 +1,4 @@
+import type { Func } from '@micro-app/types'
 import { isSupportModuleScript, isBrowser, getCurrentAppName, assign } from './utils'
 import { rejectMicroAppStyle } from '../source/patch'
 
@@ -20,6 +21,8 @@ declare global {
     __MICRO_APP_ENVIRONMENT__?: boolean
     __MICRO_APP_UMD_MODE__?: boolean
     __MICRO_APP_BASE_APPLICATION__?: boolean
+    mount: Func
+    unmount: Func
   }
 
   interface Node {

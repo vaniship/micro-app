@@ -53,40 +53,38 @@ window.addEventListener('appstate-change', function (e) {
 //   document.getElementById('root')
 // );
 
-// // 监听卸载
-// window.addEventListener('unmount', function () {
+// // 注册unmount函数，卸载时会自动执行
+// window.unmount = () => {
 //   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
-//   console.log('微应用react16卸载了 -- 自定义事件unmount');
-// })
+//   console.log('微应用react16卸载了 -- 默认模式');
+// }
 
 // console.timeEnd('react#16');
 
 /* ----------------------分割线-umd模式--------------------- */
-function mount () {
+// 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
+window.mount = () => {
   ReactDOM.render(
     <React.StrictMode>
       <Router />
     </React.StrictMode>,
     document.getElementById('root')
   );
-  console.log('微应用react16渲染了 -- 来自umd-mount');
+  console.log('微应用react16渲染了 -- UMD模式');
   console.timeEnd('react#16');
 }
 
-function unmount () {
-  console.log('微应用react16卸载了 -- 来自umd-unmount');
+// 👇 将卸载操作放入 unmount 函数
+window.unmount = () => {
   // 卸载时关闭弹窗
   notification.destroy()
-  // 卸载应用
   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
+  console.log('微应用react16卸载了 -- UMD模式');
 }
 
-// 微前端环境下，注册mount和unmount方法
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  window[`micro-app-${window.__MICRO_APP_NAME__}`] = { mount, unmount }
-} else {
-  // 非微前端环境直接渲染
-  mount();
+// 如果不在微前端环境，则直接执行mount渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
+  window.mount()
 }
 
 

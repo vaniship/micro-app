@@ -17,6 +17,7 @@ import {
   isPromise,
   logError,
   getRootContainer,
+  isObject,
 } from './libs/utils'
 import dispatchLifecyclesEvent, { dispatchCustomEventToMicroApp } from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
@@ -204,10 +205,14 @@ export default class CreateApp implements AppInterface {
       execScripts(this.source.scripts, this, (isFinished: boolean) => {
         if (!this.umdMode) {
           const { mount, unmount } = this.getUmdLibraryHooks()
+          /**
+           * umdHookUnmount can works in non UMD mode
+           * register with window.unmount
+           */
+          this.umdHookUnmount = unmount as Func
           // if mount & unmount is function, the sub app is umd mode
           if (isFunction(mount) && isFunction(unmount)) {
             this.umdHookMount = mount as Func
-            this.umdHookUnmount = unmount as Func
             this.umdMode = true
             if (this.sandBox) this.sandBox.proxyWindow.__MICRO_APP_UMD_MODE__ = true
             // this.sandBox?.recordUmdSnapshot()
@@ -284,7 +289,7 @@ export default class CreateApp implements AppInterface {
      * send an unmount event to the micro app or call umd unmount hook
      * before the sandbox is cleared
      */
-    if (this.umdHookUnmount) {
+    if (isFunction(this.umdHookUnmount)) {
       try {
         umdHookUnmountResult = this.umdHookUnmount()
       } catch (e) {
@@ -469,8 +474,15 @@ export default class CreateApp implements AppInterface {
     if (appStates.UNMOUNT !== this.state) {
       const global = (this.sandBox?.proxyWindow ?? globalEnv.rawWindow) as any
       this.libraryName = getRootContainer(this.container!).getAttribute('library') || `micro-app-${this.name}`
-      // do not use isObject
-      return typeof global[this.libraryName] === 'object' ? global[this.libraryName] : {}
+
+      if (isObject(global[this.libraryName])) {
+        return global[this.libraryName]
+      }
+
+      return {
+        mount: this.sandBox?.proxyWindow.mount,
+        unmount: this.sandBox?.proxyWindow.unmount,
+      }
     }
 
     return {}
