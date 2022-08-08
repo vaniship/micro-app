@@ -134,7 +134,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
   2. 当设置了`default-page`时`keep-router-state`将失效，因为它的优先级小于`default-page`
 
 ## disable-patch-request
-- Desc: `是否`
+- Desc: `是否关闭子应用请求的自动补全功能`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' disable-patch-request></micro-app>`

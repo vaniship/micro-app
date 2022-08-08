@@ -1,5 +1,12 @@
 /* eslint-disable no-new-func, indent, @typescript-eslint/explicit-module-boundary-types */
-import type { Func, LocationQueryObject, LocationQueryValue, MicroLocation } from '@micro-app/types'
+import type {
+  Func,
+  LocationQueryObject,
+  LocationQueryValue,
+  MicroLocation,
+  AttrsType,
+  fiberTasks,
+} from '@micro-app/types'
 
 export const version = '__MICRO_APP_VERSION__'
 
@@ -310,8 +317,20 @@ export const requestIdleCallback = globalThis.requestIdleCallback ||
           return Math.max(0, 50 - (Date.now() - lastTime))
         },
       })
-    }, 50)
+    }, 1)
   }
+
+/**
+ * Wrap requestIdleCallback with promise
+ * Exec callback when browser idle
+ */
+export function promiseRequestIdle (callback: CallableFunction): Promise<void> {
+  return new Promise((resolve) => {
+    requestIdleCallback(() => {
+      callback(resolve)
+    })
+  })
+}
 
 /**
  * Record the currently running app.name
@@ -513,4 +532,21 @@ export function useMapRecord<T> () {
       return false
     }
   }
+}
+
+export function getAttributes (element: Element): AttrsType {
+  const attr = element.attributes
+  const attrMap: AttrsType = new Map()
+  for (let i = 0; i < attr.length; i++) {
+    attrMap.set(attr[i].name, attr[i].value)
+  }
+  return attrMap
+}
+
+/**
+ * serial exec fiber task of link, style, script
+ * @param tasks task array or null
+ */
+export function serialExecFiberTasks (tasks: fiberTasks) {
+  return tasks?.reduce((pre, next) => pre.then(next), Promise.resolve())
 }

@@ -2,8 +2,6 @@ import type {
   AppInterface,
   sourceType,
   SandBoxInterface,
-  sourceLinkInfo,
-  sourceScriptInfo,
   Func,
 } from '@micro-app/types'
 import { HTMLLoader } from './source/loader/html'
@@ -42,6 +40,9 @@ export interface CreateAppParam {
   container?: HTMLElement | ShadowRoot
   defaultPage?: string
   disablePatchRequest?: boolean
+  fiber?: boolean
+  isPrefetch?: boolean
+  esmodule?: boolean
 }
 
 export default class CreateApp implements AppInterface {
@@ -70,6 +71,8 @@ export default class CreateApp implements AppInterface {
   sandBox: SandBoxInterface | null = null
   defaultPage: string
   disablePatchRequest: boolean
+  fiber: boolean
+  esmodule: boolean
 
   constructor ({
     name,
@@ -85,6 +88,9 @@ export default class CreateApp implements AppInterface {
     hiddenRouter,
     defaultPage,
     disablePatchRequest,
+    fiber,
+    isPrefetch,
+    esmodule,
   }: CreateAppParam) {
     this.name = name
     this.url = url
@@ -100,13 +106,15 @@ export default class CreateApp implements AppInterface {
     this.hiddenRouter = hiddenRouter ?? false
     this.defaultPage = defaultPage ?? ''
     this.disablePatchRequest = disablePatchRequest ?? false
+    this.fiber = fiber ?? false
+    this.esmodule = esmodule ?? false
 
-    this.source = {
-      links: new Map<string, sourceLinkInfo>(),
-      scripts: new Map<string, sourceScriptInfo>(),
-    }
+    this.isPrefetch = isPrefetch ?? false
+
+    this.source = { html: null, links: new Set(), scripts: new Set() }
     this.loadSourceCode()
     this.useSandbox && (this.sandBox = new SandBox(name, url, this.useMemoryRouter))
+    appInstanceMap.set(this.name, this)
   }
 
   // Load resources
@@ -165,6 +173,8 @@ export default class CreateApp implements AppInterface {
     defaultPage?: string,
     hiddenRouter?: boolean,
     disablePatchRequest?: boolean,
+    fiber?: boolean,
+    esmodule?: boolean
   ): void {
     this.inline = inline ?? this.inline
     this.keepRouteState = keepRouteState ?? this.keepRouteState
@@ -173,6 +183,8 @@ export default class CreateApp implements AppInterface {
     this.defaultPage = defaultPage ?? this.defaultPage
     this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
     this.disablePatchRequest = disablePatchRequest ?? this.disablePatchRequest
+    this.fiber = fiber ?? this.fiber
+    this.esmodule = esmodule ?? this.esmodule
 
     if (this.loadSourceLevel !== 2) {
       this.state = appStates.LOADING
@@ -202,7 +214,7 @@ export default class CreateApp implements AppInterface {
     if (!this.umdMode) {
       let hasDispatchMountedEvent = false
       // if all js are executed, param isFinished will be true
-      execScripts(this.source.scripts, this, (isFinished: boolean) => {
+      execScripts(this, (isFinished: boolean) => {
         if (!this.umdMode) {
           const { mount, unmount } = this.getUmdLibraryHooks()
           /**

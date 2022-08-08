@@ -1,4 +1,4 @@
-从0.x版本迁移到1.0是相对顺滑的，但是1.0版本有许多破坏性更新，如果在迁移中发现问题，请及时反馈。
+从0.x版本迁移到1.0是相对顺滑的，如果在迁移中发现问题，请及时反馈。
 
 ### 迁移步骤
 **1、安装最新版本**
@@ -12,7 +12,7 @@ npm i @micro-zoe/micro-app@alpha --save
 import microApp from '@micro-zoe/micro-app'
 
 microApp.start({
-  'disable-memory-router': true,
-  'disable-patch-request': true,
+  'disable-memory-router': true, // 关闭虚拟路由
+  'disable-patch-request': true, // 关闭子应用请求的自动补全功能
 })
 ```

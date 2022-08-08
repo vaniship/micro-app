@@ -161,7 +161,6 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
      * 1. Exec after apply pushState/replaceState
      * 2. Unable to catch when base app navigate with location
      * 3. When in nest app, rawPushState/rawReplaceState has been modified by parent
-     * 4.
      */
     getActiveApps(true).forEach(appName => {
       const app = appInstanceMap.get(appName)!

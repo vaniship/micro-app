@@ -21,6 +21,7 @@ declare global {
     __MICRO_APP_ENVIRONMENT__?: boolean
     __MICRO_APP_UMD_MODE__?: boolean
     __MICRO_APP_BASE_APPLICATION__?: boolean
+    __REACT_ERROR_OVERLAY_GLOBAL_HOOK__: boolean
     mount: Func
     unmount: Func
   }

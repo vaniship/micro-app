@@ -277,7 +277,7 @@ export default class App extends React.Component {
                   // shadowDOM
                   // disable-memory-router
                   keep-router-state
-                  default-page='/micro-app/react16/page2'
+                  // default-page='/micro-app/react16/page2'
                   // hidden-router
                   // disable-patch-request
                 >

@@ -41,7 +41,12 @@ export default function createMicroRouter (appName: string, url: string): MicroR
   }
 }
 
-// 当沙箱执行start, 或者隐藏的keep-alive应用重新渲染时时才根据浏览器url更新location 或者 将参数更新到url上
+/**
+ * When the sandbox executes start, or the hidden keep-alive application is re-rendered, the location is updated according to the browser url or attach router info to browser url
+ * @param appName app.name
+ * @param microLocation MicroLocation for sandbox
+ * @param defaultPage default page
+ */
 export function initRouteStateWithURL (
   appName: string,
   microLocation: MicroLocation,

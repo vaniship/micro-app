@@ -60,6 +60,33 @@
         <el-button type="primary" @click="centerDialogVisible = false">确 定</el-button>
       </span>
     </el-dialog>
+    <br />
+    <br />
+    <h1>选择器</h1>
+    <el-select v-model="selectValue" placeholder="请选择">
+      <el-option
+        v-for="item in selectOptions"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value">
+      </el-option>
+    </el-select>
+    <br />
+    <br />
+    <h1>下拉菜单</h1>
+    <el-dropdown trigger="click">
+      <span class="el-dropdown-link">
+        下拉菜单<i class="el-icon-arrow-down el-icon--right"></i>
+      </span>
+      <el-dropdown-menu slot="dropdown" ref="dropdown">
+        <el-dropdown-item icon="el-icon-plus">黄金糕</el-dropdown-item>
+        <el-dropdown-item icon="el-icon-circle-plus">狮子头</el-dropdown-item>
+        <el-dropdown-item icon="el-icon-circle-plus-outline">螺蛳粉</el-dropdown-item>
+        <el-dropdown-item icon="el-icon-check">双皮奶</el-dropdown-item>
+        <el-dropdown-item icon="el-icon-circle-check">蚵仔煎</el-dropdown-item>
+      </el-dropdown-menu>
+    </el-dropdown>
+
   </div>
 </template>
 
@@ -105,7 +132,24 @@ export default {
         desc: [
           { required: true, message: '请填写活动形式', trigger: 'blur' }
         ]
-      }
+      },
+      selectOptions: [{
+        value: '选项1',
+        label: '黄金糕'
+      }, {
+        value: '选项2',
+        label: '双皮奶'
+      }, {
+        value: '选项3',
+        label: '蚵仔煎'
+      }, {
+        value: '选项4',
+        label: '龙须面'
+      }, {
+        value: '选项5',
+        label: '北京烤鸭'
+      }],
+      selectValue: ''
     };
   },
   created () {
@@ -116,6 +160,12 @@ export default {
     if (!window.umdGlobalKey) {
       alert('umdGlobalKey missing')
     }
+
+
+  },
+  beforeDestroy () {
+    // BUG：页面跳转和router-view更新时不会自动收起，且会移动到浏览器左上角
+    this.$refs.dropdown.popperElm.parentNode.removeChild(this.$refs.dropdown.popperElm)
   },
   methods: {
     submitForm(formName) {

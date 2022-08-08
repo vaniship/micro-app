@@ -9,6 +9,12 @@ declare module '@micro-app/types' {
 
   type appName = string
 
+  type SourceAddress = string
+
+  type AttrsType = Map<string, string>
+
+  type fiberTasks = Array<() => Promise<void>> | null
+
   interface SandBoxInterface {
     proxyWindow: WindowProxy
     microAppWindow: Window // Proxy target
@@ -46,27 +52,37 @@ declare module '@micro-app/types' {
     // injectReactHRMProperty (): void
   }
 
-  type sourceLinkInfo = {
-    code: string // code
-    placeholder?: Comment | null // placeholder comment
-    isGlobal: boolean // is global asset
+  type LinkSourceInfo = {
+    code: string, // source code
+    appSpace: Record<string, {
+      attrs: Map<string, string>, // active element.attributes
+      placeholder?: Comment | null, // placeholder comment
+    }>,
+    parseResult?: {
+      prefix: string, // micro-app[name=appName]
+      parsedCode: string, // parsed code
+    },
   }
 
-  type sourceScriptInfo = {
-    code: string // code
-    isExternal: boolean // external script
-    isDynamic: boolean // dynamic create script
-    async: boolean // async script
-    defer: boolean // defer script
-    module: boolean // module type script
-    isGlobal?: boolean // share js to global
-    code2Function?: Function // code to Function
+  type ScriptSourceInfo = {
+    code: string, // source code
+    isExternal: boolean, // external script
+    appSpace: Record<string, {
+      isDynamic: boolean, // dynamic create script
+      async: boolean, // async script
+      defer: boolean, // defer script
+      module: boolean, // module type script
+      inline: boolean, // run js with inline script
+      attrs: Map<string, string>, // element attributes
+      parsedCode?: string, // bind code
+      parsedFunction?: Function | null, // code to function
+    }>
   }
 
-  interface sourceType {
-    html?: HTMLElement
-    links: Map<string, sourceLinkInfo>
-    scripts: Map<string, sourceScriptInfo>
+  type sourceType = {
+    html: HTMLElement | null, // html address
+    links: Set<string>, // style/link address list
+    scripts: Set<string>, // script address list
   }
 
   // app instance
@@ -84,10 +100,12 @@ declare module '@micro-app/types' {
     baseroute: string // route prefix, default is ''
     keepRouteState: boolean // keep route state when unmount, default is false
     hiddenRouter: boolean // hide router info of child from browser url
-    source: sourceType // sources of css, js, html
     sandBox: SandBoxInterface | null // sandbox
     umdMode: boolean // is umd mode
     defaultPage: string // default page when mount
+    source: sourceType // source list
+    fiber: boolean // fiber mode
+    esmodule: boolean
 
     // Load resources
     loadSourceCode (): void
@@ -107,6 +125,8 @@ declare module '@micro-app/types' {
       defaultPage?: string,
       hiddenRouter?: boolean,
       disablePatchRequest?: boolean,
+      fiber?: boolean,
+      esmodule?: boolean
     ): void
 
     // unmount app
@@ -182,11 +202,11 @@ declare module '@micro-app/types' {
       // Ignore JS or CSS
       ignoreChecker?: AssetsChecker
       // options for plugin as the third parameter of loader
-      options?: unknown
+      options?: Record<string, unknown>
       // handle function
-      loader?: (code: string, url: string, options: unknown, info: sourceScriptInfo) => string
+      loader?: (code: string, url: string) => string
       // html processor
-      processHtml?: (code: string, url: string, options: unknown) => string
+      processHtml?: (code: string, url: string) => string
     }>
 
     // plugin for special app
@@ -201,11 +221,11 @@ declare module '@micro-app/types' {
         // Ignore JS or CSS
         ignoreChecker?: AssetsChecker
         // options for plugin as the third parameter of loader
-        options?: unknown
+        options?: Record<string, unknown>
         // handle function
-        loader?: (code: string, url: string, options: unknown, info: sourceScriptInfo) => string
+        loader?: (code: string, url: string) => string
         // html processor
-        processHtml?: (code: string, url: string, options: unknown) => string
+        processHtml?: (code: string, url: string) => string
       }>
     }
   }
@@ -232,8 +252,9 @@ declare module '@micro-app/types' {
     'disable-patch-request'?: boolean
     'keep-router-state'?: boolean
     'hidden-router'?: boolean
-    'esmodule'?: boolean
-    'ssr'?: boolean
+    esmodule?: boolean
+    ssr?: boolean
+    fiber?: boolean
     lifeCycles?: lifeCyclesType
     preFetchApps?: prefetchParamList
     plugins?: plugins

@@ -37,7 +37,7 @@ import microApp from '@micro-zoe/micro-app'
 // 不带域名的地址，控制子应用my-app跳转/page1
 microApp.router.push({name: 'my-app', path: '/page1'})
 
-// 带域名的地址
+// 带域名的地址，控制子应用my-app跳转/page1
 microApp.router.push({name: 'my-app', path: 'http://localhost:3000/page1'})
 
 // 带查询参数，控制子应用my-app跳转/page1?id=9527
@@ -156,6 +156,7 @@ const baseRouter = window.microApp.router.getBaseAppRouter()
 baseRouter.基座路由的方法(...) 
 ```
 
+### 控制其他子应用跳转
 
 ### router.push
 **介绍：**控制其它子应用跳转，并向路由堆栈添加一条新的记录
@@ -173,7 +174,7 @@ router.push({ name: '子应用名称', path: '页面地址', replace: 是否使�
 // 不带域名的地址，控制子应用my-app跳转/page1
 window.microApp.router.push({name: 'my-app', path: '/page1'})
 
-// 带域名的地址
+// 带域名的地址，控制子应用my-app跳转/page1
 window.microApp.router.push({name: 'my-app', path: 'http://localhost:3000/page1'})
 
 // 带查询参数，控制子应用my-app跳转/page1?id=9527

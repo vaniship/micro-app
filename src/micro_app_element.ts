@@ -1,3 +1,4 @@
+/* eslint-disable no-new */
 import type { AttrType, MicroAppElementType, AppInterface } from '@micro-app/types'
 import {
   defer,
@@ -293,6 +294,8 @@ export function defineElement (tagName: string): void {
         this.getDefaultPageValue(),
         this.getDisposeResult('hidden-router'),
         this.getDisposeResult('disable-patch-request'),
+        this.getDisposeResult('fiber'),
+        this.getDisposeResult('esmodule'),
       ))
     }
 
@@ -306,7 +309,8 @@ export function defineElement (tagName: string): void {
         appInstanceMap.get(this.appName)!.actionsForCompletelyDestroy()
       }
 
-      const instance: AppInterface = new CreateApp({
+      //
+      new CreateApp({
         name: this.appName,
         url: this.appUrl,
         ssrUrl: this.ssrUrl,
@@ -320,9 +324,9 @@ export function defineElement (tagName: string): void {
         defaultPage: this.getDefaultPageValue(),
         hiddenRouter: this.getDisposeResult('hidden-router'),
         disablePatchRequest: this.getDisposeResult('disable-patch-request'),
+        fiber: this.getDisposeResult('fiber'),
+        esmodule: this.getDisposeResult('esmodule'),
       })
-
-      appInstanceMap.set(this.appName, instance)
     }
 
     /**

@@ -146,6 +146,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
   'hidden-router'?: boolean
   esmodule?: boolean
   ssr?: boolean
+  fiber?: boolean
   lifeCycles?: lifeCyclesType
   plugins?: plugins
   fetch?: fetchType
@@ -188,6 +189,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
       this['hidden-router'] = options['hidden-router']
       this.esmodule = options.esmodule
       this.ssr = options.ssr
+      this.fiber = options.fiber
 
       isFunction(options.fetch) && (this.fetch = options.fetch)
 

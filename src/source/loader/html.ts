@@ -64,7 +64,7 @@ export class HTMLLoader implements IHTMLLoader {
     if (mergedPlugins.length > 0) {
       return mergedPlugins.reduce((preCode, plugin) => {
         if (isPlainObject(plugin) && isFunction(plugin.processHtml)) {
-          return plugin.processHtml!(preCode, url, plugin.options)
+          return plugin.processHtml!(preCode, url)
         }
         return preCode
       }, code)

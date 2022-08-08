@@ -1,8 +1,10 @@
-import type { AppInterface } from '@micro-app/types'
+import type { AppInterface, fiberTasks } from '@micro-app/types'
 import {
   logError,
   CompletionPath,
   pureCreateElement,
+  promiseRequestIdle,
+  serialExecFiberTasks,
 } from '../libs/utils'
 import { extractLinkFromHtml, fetchLinksFromHtml } from './links'
 import { extractScriptElement, fetchScriptsFromHtml, checkExcludeUrl, checkIgnoreUrl } from './scripts'
@@ -30,11 +32,12 @@ function flatChildren (
   parent: HTMLElement,
   app: AppInterface,
   microAppHead: Element,
+  fiberStyleTasks: fiberTasks,
 ): void {
   const children = Array.from(parent.children)
 
   children.length && children.forEach((child) => {
-    flatChildren(child as HTMLElement, app, microAppHead)
+    flatChildren(child as HTMLElement, app, microAppHead, fiberStyleTasks)
   })
 
   for (const dom of children) {
@@ -50,7 +53,14 @@ function flatChildren (
       if (dom.hasAttribute('exclude')) {
         parent.replaceChild(document.createComment('style element with exclude attribute ignored by micro-app'), dom)
       } else if (app.scopecss && !dom.hasAttribute('ignore')) {
-        scopedCSS(dom, app)
+        if (fiberStyleTasks) {
+          fiberStyleTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
+            scopedCSS(dom, app)
+            resolve()
+          }))
+        } else {
+          scopedCSS(dom, app)
+        }
       }
     } else if (dom instanceof HTMLScriptElement) {
       extractScriptElement(dom, parent, app)
@@ -78,10 +88,19 @@ export function extractSourceDom (htmlStr: string, app: AppInterface): void {
     return logError(msg, app.name)
   }
 
-  flatChildren(wrapElement, app, microAppHead)
+  const fiberStyleTasks: fiberTasks = app.isPrefetch || app.fiber ? [] : null
+
+  flatChildren(wrapElement, app, microAppHead, fiberStyleTasks)
+
+  /**
+   * Style and link are parallel, because it takes a lot of time for link to request resources. During this period, style processing can be performed to improve efficiency.
+   */
+  const fiberStyleResult = serialExecFiberTasks(fiberStyleTasks)
 
   if (app.source.links.size) {
-    fetchLinksFromHtml(wrapElement, app, microAppHead)
+    fetchLinksFromHtml(wrapElement, app, microAppHead, fiberStyleResult)
+  } else if (fiberStyleResult) {
+    fiberStyleResult.then(() => app.onLoad(wrapElement))
   } else {
     app.onLoad(wrapElement)
   }

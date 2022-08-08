@@ -47,17 +47,16 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
       return child
     }
 
-    const { url, info, replaceComment } = extractLinkFromHtml(
+    const { address, linkInfo, replaceComment } = extractLinkFromHtml(
       child,
       parent,
       app,
       true,
     )
 
-    if (url && info) {
+    if (address && linkInfo) {
       const replaceStyle = pureCreateElement('style')
-      replaceStyle.__MICRO_APP_LINK_PATH__ = url
-      formatDynamicLink(url, info, app, child, replaceStyle)
+      formatDynamicLink(address, linkInfo, app, child, replaceStyle)
       dynamicElementInMicroAppMap.set(child, replaceStyle)
       return replaceStyle
     } else if (replaceComment) {
@@ -67,20 +66,20 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
 
     return child
   } else if (child instanceof HTMLScriptElement) {
-    const { replaceComment, url, info } = extractScriptElement(
+    const { replaceComment, address, scriptInfo } = extractScriptElement(
       child,
       parent,
       app,
       true,
     ) || {}
 
-    if (url && info) {
-      if (!info.isExternal) { // inline script
-        const replaceElement = runScript(url, app, info, true)
+    if (address && scriptInfo) {
+      if (!scriptInfo.isExternal) { // inline script
+        const replaceElement = runScript(address, app, scriptInfo, true)
         dynamicElementInMicroAppMap.set(child, replaceElement)
         return replaceElement
       } else { // remote script
-        const replaceElement = runDynamicRemoteScript(url, info, app, child)
+        const replaceElement = runDynamicRemoteScript(address, scriptInfo, app, child)
         dynamicElementInMicroAppMap.set(child, replaceElement)
         return replaceElement
       }

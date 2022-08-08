@@ -87,6 +87,7 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
   window.mount()
 }
 
+// throw new Error('dsdfsdfs')
 
 /* ---------------------- 全局事件 --------------------- */
 // document.addEventListener('click', function () {

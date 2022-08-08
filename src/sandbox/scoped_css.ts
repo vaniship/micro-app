@@ -431,7 +431,7 @@ export default function scopedCSS (
   app: AppInterface,
 ): HTMLStyleElement {
   if (app.scopecss) {
-    const prefix = `${microApp.tagName}[name=${app.name}]`
+    const prefix = createPrefix(app.name)
 
     if (!parser) parser = new CSSParser()
 
@@ -463,4 +463,9 @@ export default function scopedCSS (
   }
 
   return styleElement
+}
+
+export function createPrefix (appName: string, reg = false): string {
+  const regCharacter = reg ? '\\' : ''
+  return `${microApp.tagName}${regCharacter}[name=${appName}${regCharacter}]`
 }

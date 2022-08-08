@@ -6,7 +6,8 @@
         <el-tab-pane label="page2" name="page2"></el-tab-pane>
       </el-tabs>
     </div>
-    <router-view/>
+    <div @click="reload">点击刷新</div>
+    <router-view v-if="showView"></router-view>
   </div>
 </template>
 
@@ -17,6 +18,7 @@ export default {
   data () {
     return {
       activeName: location.href.includes('#/page2') ? 'page2': '/',
+      showView: true,
     }
   },
   mounted () {
@@ -30,6 +32,12 @@ export default {
   methods: {
     handleClick(tab) {
       this.$router.push(tab.name)
+    },
+    reload () {
+      this.showView = false
+      this.$nextTick(() => {
+        this.showView = true
+      })
     }
   }
 }
