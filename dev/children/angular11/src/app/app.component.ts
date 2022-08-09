@@ -11,9 +11,9 @@ export class AppComponent {
     // 解决点击浏览器前进、返回按钮，上一个页面不卸载的问题
     if (window.__MICRO_APP_ENVIRONMENT__) {
       window.addEventListener('popstate', () => {
-        const path = location.pathname.replace('/micro-app/angular11', '') + location.search + location.hash
+        const fullPath = location.pathname.replace('/micro-app/angular11', '') + location.search + location.hash
         this.ngZone.run(() => {
-          this.router.navigateByUrl(path)
+          this.router.navigateByUrl(fullPath)
         })
       })
     }

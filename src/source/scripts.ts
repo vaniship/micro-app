@@ -77,10 +77,9 @@ function code2Function (code: string): Function {
 // transfer the attributes on the script to convertScript
 function setConvertScriptAttr (convertScript: HTMLScriptElement, attrs: AttrsType): void {
   attrs.forEach((value, key) => {
-    if (key !== 'type' || value !== 'module') {
-      if (key === 'src') key = 'data-origin-src'
-      convertScript.setAttribute(key, value)
-    }
+    if ((key === 'type' && value === 'module') || key === 'defer' || key === 'async') return
+    if (key === 'src') key = 'data-origin-src'
+    convertScript.setAttribute(key, value)
   })
 }
 
@@ -387,17 +386,14 @@ export function runScript (
   try {
     preActionForExecScript(app)
     const appSpaceData = scriptInfo.appSpace[app.name]
-    const currentCode = bindScope(address, app, scriptInfo.code, scriptInfo)
     /**
      * TIP:
-     * 1. if parsedCode not exist, parsedFunction is not exist
-     * 2. if currentCode is different from parsedCode, update parsedCode with parsedCode and clear parsedFunction
+     * 1. plugins and wrapCode will only be executed once
+     * 2. if parsedCode not exist, parsedFunction is not exist
+     * 3. if parsedCode exist, parsedFunction does not necessarily exist
      */
     if (!appSpaceData.parsedCode) {
-      appSpaceData.parsedCode = currentCode
-    } else if (appSpaceData.parsedCode !== currentCode) {
-      appSpaceData.parsedCode = currentCode
-      appSpaceData.parsedFunction = null
+      appSpaceData.parsedCode = bindScope(address, app, scriptInfo.code, scriptInfo)
     }
 
     if (isInlineScript(app, scriptInfo)) {
@@ -445,6 +441,7 @@ export function runDynamicRemoteScript (
      * 2、url存在缓存，那么二次渲染的时候这里会同步执行，就会先于html自带的script执行
      * 3、测试一下，初次渲染和二次渲染时，onload的执行时机，是在js执行完成，还是执行之前
      * 4、将上述问题做成注释，方便后续阅读和理解
+     * 5、这里只有远程js
      */
     return runScript(address, app, scriptInfo, true, dispatchScriptOnLoadEvent)
   }

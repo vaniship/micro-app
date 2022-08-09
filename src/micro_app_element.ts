@@ -43,7 +43,8 @@ export function defineElement (tagName: string): void {
 
     private isWaiting = false
     private cacheData: Record<PropertyKey, unknown> | null = null
-    private hasConnected = false
+    private connectCount = 0
+    private connectStateMap: Map<number, boolean> = new Map()
     appName = '' // app name
     appUrl = '' // app url
     ssrUrl = '' // html path in ssr mode
@@ -61,19 +62,26 @@ export function defineElement (tagName: string): void {
     // keep-alive: open keep-alive mode
 
     connectedCallback (): void {
-      this.hasConnected = true
-
-      defer(() => dispatchLifecyclesEvent(
-        this,
-        this.appName,
-        lifeCycles.CREATED,
-      ))
-
-      this.initialMount()
+      const cacheCount = ++this.connectCount
+      this.connectStateMap.set(cacheCount, true)
+      /**
+       * In some special scenarios, such as vue's keep-alive, the micro-app will be inserted and deleted twice in an instant
+       * So we execute the mount method async and record connectState to prevent repeated rendering
+       */
+      defer(() => {
+        if (this.connectStateMap.get(cacheCount)) {
+          dispatchLifecyclesEvent(
+            this,
+            this.appName,
+            lifeCycles.CREATED,
+          )
+          this.initialMount()
+        }
+      })
     }
 
     disconnectedCallback (): void {
-      this.hasConnected = false
+      this.connectStateMap.set(this.connectCount, false)
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
@@ -127,7 +135,7 @@ export function defineElement (tagName: string): void {
 
     // handle for connectedCallback run before attributeChangedCallback
     private handleInitialNameAndUrl (): void {
-      this.hasConnected && this.initialMount()
+      this.connectStateMap.get(this.connectCount) && this.initialMount()
     }
 
     /**
@@ -179,6 +187,7 @@ export function defineElement (tagName: string): void {
      */
     private handleAttributeUpdate = (): void => {
       this.isWaiting = false
+      if (!this.connectStateMap.get(this.connectCount)) return
       const formatAttrName = formatAppName(this.getAttribute('name'))
       const formatAttrUrl = formatAppURL(this.getAttribute('url'), this.appName)
       if (this.legalAttribute('name', formatAttrName) && this.legalAttribute('url', formatAttrUrl)) {

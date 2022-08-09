@@ -10,28 +10,30 @@ import microApp from '@micro-zoe/micro-app'
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
-function Angular11 () {
+function Angular14 () {
   const [showLoading, hideLoading] = useState(true)
   const [data, changeData] = useState({frotm: '来自基座的初始化数据'})
 
-  function jumpToPage2ByBase () {
-    microApp.router.push({name: 'angular11', path: '/micro-app/angular11/page2'})
+  function jumpToPage (path) {
+    microApp.router.push({ name: 'angular14', path })
   }
 
   return (
     <div>
       <Col span={6} className='btn-con'>
-        <Button type="primary" onClick={jumpToPage2ByBase}>基座控制子应用跳转page2</Button>
+        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/')}>基座控制子应用跳转home</Button>
+        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/material')}>基座控制子应用跳转material</Button>
+        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/page3')}>基座控制子应用跳转page3</Button>
       </Col>
       {
         showLoading && <Spin indicator={antIcon} />
       }
       <micro-app
-        name='angular11'
-        url={`${config.angular11}micro-app/angular11`}
+        name='angular14'
+        url={`${config.angular14}micro-app/angular14`}
         data={data}
         onMounted={() => hideLoading(false)}
-        // baseRoute='/micro-app/demo/angular11'
+        // baseRoute='/micro-app/demo/angular14'
         // destroy
         // inline
         // disableScopecss
@@ -42,4 +44,4 @@ function Angular11 () {
   )
 }
 
-export default Angular11
+export default Angular14

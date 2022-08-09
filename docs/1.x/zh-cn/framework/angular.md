@@ -75,7 +75,7 @@ headers: {
 
 ```js
 // main.ts
-let app = null;
+let app: void | NgModuleRef<AppModule>
 platformBrowserDynamic()
   .bootstrapModule(AppModule)
   .then((res: NgModuleRef<AppModule>) => {
@@ -85,8 +85,8 @@ platformBrowserDynamic()
 
 // 监听卸载操作
 window.unmount = () => {
-  app.destroy();
-  app = null;
+  app && app.destroy();
+  app = undefined;
 }
 ```
 
@@ -105,6 +105,7 @@ MicroApp支持两种渲染微前端的模式，默认模式和umd模式。
 
 ```js
 // main.ts
+import { NgModuleRef  } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { AppModule } from './app/app.module';
 
@@ -117,19 +118,22 @@ declare global {
   }
 }
 
-let app = null;
+let app: void | NgModuleRef<AppModule>
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
-window.mount = async () => {
-  app = await platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => console.error(err))
+window.mount = () => {
+  platformBrowserDynamic()
+    .bootstrapModule(AppModule)
+    .then((res: NgModuleRef<AppModule>) => {
+      app = res
+    })
+    .catch(err => console.error(err))
 }
 
 // 👇 将卸载操作放入 unmount 函数，就是上面步骤2中的卸载函数
 window.unmount = () => {
-  // angular在部分场景下执行destroy时会删除根元素app-root，此时可删除app.destroy()以避免这个问题
-  app.destroy();
-  app = null;
+  // angular在部分场景下执行destroy时会删除根元素app-root，导致在此渲染时报错，此时可删除app.destroy()来避免这个问题
+  app && app.destroy();
+  app = undefined;
 }
 
 // 如果不在微前端环境，则直接执行mount渲染

@@ -59,6 +59,13 @@ export default [
                 exact: false,
               },
               {
+                path: '/angular14',
+                name: 'angular14',
+                icon: 'HistoryOutlined',
+                component: './angular14/angular14',
+                exact: false,
+              },
+              {
                 path: '/multiple',
                 name: 'multiple',
                 icon: 'HddOutlined',

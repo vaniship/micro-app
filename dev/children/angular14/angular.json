@@ -17,7 +17,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/angular14-2",
+            "outputPath": "angular14",
+            "baseHref": "/micro-app/angular14/",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",

@@ -18,7 +18,7 @@ declare global {
 }
 
 // ----------分割线---默认模式------两种模式任选其一-----放开注释即可运行------- //
-// let app = null;
+// let app: void | NgModuleRef<AppModule>
 // platformBrowserDynamic()
 //   .bootstrapModule(AppModule)
 //   .then((res: NgModuleRef<AppModule>) => {
@@ -30,26 +30,29 @@ declare global {
 
 // // 监听卸载操作
 // window.unmount = () => {
-//   app.destroy();
-//   app = null;
+//   app && app.destroy();
+//   app = undefined;
 //   console.log('微应用child-angular11卸载了 --- 默认模式');
 // }
 
 // ----------分割线---umd模式------两种模式任选其一-------------- //
-let app = null;
+let app: void | NgModuleRef<AppModule>
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
-window.mount = async () => {
-  app = await platformBrowserDynamic()
-  .bootstrapModule(AppModule)
-  .catch(err => console.error(err))
+window.mount = () => {
+  platformBrowserDynamic()
+    .bootstrapModule(AppModule)
+    .then((res: NgModuleRef<AppModule>) => {
+      app = res
+    })
+    .catch(err => console.error(err))
 
   console.log('微应用child-angular11渲染了 -- UMD模式');
 }
 
 // 👇 将卸载操作放入 unmount 函数
 window.unmount = () => {
-  app.destroy();
-  app = null;
+  app && app.destroy();
+  app = undefined;
   console.log('微应用child-angular11卸载了 --- UMD模式');
 }
 

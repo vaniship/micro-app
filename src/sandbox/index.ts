@@ -616,15 +616,16 @@ export default class SandBox implements SandBoxInterface {
     }
 
     const proxyDocument = new Proxy(rawDocument, {
-      get (target: Document, key: PropertyKey): unknown {
+      get: (target: Document, key: PropertyKey): unknown => {
         throttleDeferForSetAppName(appName)
         throttleDeferForParentNode(proxyDocument)
         if (key === 'createElement') return createElement
         if (key === Symbol.toStringTag) return 'ProxyDocument'
+        if (key === 'defaultView') return this.proxyWindow
         const rawValue = Reflect.get(target, key)
         return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
       },
-      set (target: Document, key: PropertyKey, value: unknown): boolean {
+      set: (target: Document, key: PropertyKey, value: unknown): boolean => {
         // Fix TypeError: Illegal invocation when set document.title
         Reflect.set(target, key, value)
         /**

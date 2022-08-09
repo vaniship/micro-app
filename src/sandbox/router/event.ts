@@ -5,7 +5,7 @@ import { formatEventName } from '../effect'
 import { getMicroPathFromURL, getMicroState } from './core'
 import { updateMicroLocation } from './location'
 import globalEnv from '../../libs/global_env'
-import { removeDomScope } from '../../libs/utils'
+import { removeDomScope, isFunction } from '../../libs/utils'
 
 type PopStateListener = (this: Window, e: PopStateEvent) => void
 type MicroPopStateEvent = PopStateEvent & { onlyForBrowser?: boolean }
@@ -73,10 +73,21 @@ export function dispatchPopStateEventToMicroApp (
     { state: getMicroState(appName) }
   )
 
+  /**
+   * angular14 takes e.type as type judgment
+   * when e.type is popstate-appName popstate event will be invalid
+   */
+  // Object.defineProperty(newPopStateEvent, 'type', {
+  //   value: 'popstate',
+  //   writable: true,
+  //   configurable: true,
+  //   enumerable: true,
+  // })
+
   globalEnv.rawWindow.dispatchEvent(newPopStateEvent)
 
   // call function window.onpopstate if it exists
-  typeof proxyWindow.onpopstate === 'function' && proxyWindow.onpopstate(newPopStateEvent)
+  isFunction(proxyWindow.onpopstate) && proxyWindow.onpopstate(newPopStateEvent)
 }
 
 /**
@@ -101,7 +112,7 @@ export function dispatchHashChangeEventToMicroApp (
   globalEnv.rawWindow.dispatchEvent(newHashChangeEvent)
 
   // call function window.onhashchange if it exists
-  typeof proxyWindow.onhashchange === 'function' && proxyWindow.onhashchange(newHashChangeEvent)
+  isFunction(proxyWindow.onhashchange) && proxyWindow.onhashchange(newHashChangeEvent)
 }
 
 /**
