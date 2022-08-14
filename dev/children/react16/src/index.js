@@ -108,18 +108,18 @@ console.timeEnd('react#16');
 
 
 /* ---------------------- 创建元素 --------------------- */
-// const dynamicScript1 = document.createElement('script')
-// // dynamicScript1.setAttribute('type', 'module')
-// // dynamicScript1.textContent = 'console.warn('inline module')'
-// dynamicScript1.setAttribute('src', '//127.0.0.1:8080/test.js')
-// dynamicScript1.onload = () => {
-//   console.log('动态module加载完成了')
-// }
-// document.head.appendChild(dynamicScript1)
+const dynamicScript1 = document.createElement('script')
+// dynamicScript1.setAttribute('type', 'module')
+// dynamicScript1.textContent = 'console.warn('inline module')'
+dynamicScript1.setAttribute('src', '//127.0.0.1:8080/js/test.js')
+dynamicScript1.onload = () => {
+  console.log('动态module加载完成了')
+}
+document.head.appendChild(dynamicScript1)
 
-// const dynamicStyle = document.createElement('style')
-// document.head.appendChild(dynamicStyle)
-// dynamicStyle.textContent = '.test-class { color: red } '
+const dynamicStyle = document.createElement('style')
+document.head.appendChild(dynamicStyle)
+dynamicStyle.textContent = '.test-class { color: red } '
 
 
 

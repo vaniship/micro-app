@@ -190,28 +190,28 @@ export default class App extends React.Component {
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
 
-    this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
-      // const a = document.createElement('div')
-      // a.innerHTML = '44444444'
-      // document.body.appendChild(a)
-      console.log('全局 beforeEach: ', to, from, appName)
-    })
+    // this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
+    //   // const a = document.createElement('div')
+    //   // a.innerHTML = '44444444'
+    //   // document.body.appendChild(a)
+    //   console.log('全局 beforeEach: ', to, from, appName)
+    // })
 
-    this.releaseBeforeEach2 = microApp.router.beforeEach({
-      react16 (to, from) {
-        console.log('指定 beforeEach: ', to, from)
-      }
-    })
+    // this.releaseBeforeEach2 = microApp.router.beforeEach({
+    //   react16 (to, from) {
+    //     console.log('指定 beforeEach: ', to, from)
+    //   }
+    // })
 
-    this.releaseAfterEach1 = microApp.router.afterEach((to, from, appName) => {
-      console.log('全局 afterEach: ', to, from, appName)
-    })
+    // this.releaseAfterEach1 = microApp.router.afterEach((to, from, appName) => {
+    //   console.log('全局 afterEach: ', to, from, appName)
+    // })
 
-    this.releaseAfterEach2 = microApp.router.afterEach({
-      react16 (to, from) {
-        console.log('指定 afterEach: ', to, from)
-      }
-    })
+    // this.releaseAfterEach2 = microApp.router.afterEach({
+    //   react16 (to, from) {
+    //     console.log('指定 afterEach: ', to, from)
+    //   }
+    // })
 
     microApp.router.setBaseAppRouter(this.props.history)
   }
@@ -281,7 +281,7 @@ export default class App extends React.Component {
                   // hidden-router
                   // disable-patch-request
                   // esmodule
-                  fiber
+                  // fiber
                 >
                 </micro-app>
               )

@@ -325,10 +325,10 @@ export function execScripts (
   app: AppInterface,
   initHook: moduleCallBack,
 ): void {
+  const fiberScriptTasks: fiberTasks = app.fiber ? [] : null
   const scriptList: Array<string> = Array.from(app.source.scripts)
   const deferScriptPromise: Array<Promise<string>|string> = []
   const deferScriptInfo: Array<[string, ScriptSourceInfo]> = []
-  const fiberScriptTasks: fiberTasks = app.fiber ? [] : null
   for (const address of scriptList) {
     const scriptInfo = sourceCenter.script.getInfo(address)!
     const appSpaceData = scriptInfo.appSpace[app.name]
