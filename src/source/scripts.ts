@@ -22,6 +22,7 @@ import {
   getAttributes,
   promiseRequestIdle,
   serialExecFiberTasks,
+  isInlineScript,
 } from '../libs/utils'
 import {
   dispatchOnLoadEvent,
@@ -40,10 +41,10 @@ function isTypeModule (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean
 
 function isSpecialScript (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
   const attrs = scriptInfo.appSpace[app.name].attrs
-  return attrs.has('id') || attrs.has('class')
+  return attrs.has('id')
 }
 
-function isInlineScript (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
+function isInlineMode (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
   return (
     app.inline ||
     scriptInfo.appSpace[app.name].inline ||
@@ -119,6 +120,7 @@ export function extractScriptElement (
       defer: script.defer || script.type === 'module',
       module: script.type === 'module',
       inline: script.hasAttribute('inline'),
+      pure: script.hasAttribute('pure'),
       attrs: getAttributes(script),
     }
     if (!scriptInfo) {
@@ -159,6 +161,7 @@ export function extractScriptElement (
           defer: script.type === 'module',
           module: script.type === 'module',
           inline: script.hasAttribute('inline'),
+          pure: script.hasAttribute('pure'),
           attrs: getAttributes(script),
         }
       }
@@ -307,7 +310,7 @@ export function fetchScriptSuccess (
   if (app.isPrefetch) {
     const appSpaceData = scriptInfo.appSpace[app.name]
     appSpaceData.parsedCode = bindScope(address, app, code, scriptInfo)
-    if (!isInlineScript(app, scriptInfo)) {
+    if (!isInlineMode(app, scriptInfo)) {
       appSpaceData.parsedFunction = getExistParseResult(scriptInfo, appSpaceData.parsedCode) || code2Function(appSpaceData.parsedCode)
     }
   }
@@ -325,6 +328,7 @@ export function execScripts (
   const scriptList: Array<string> = Array.from(app.source.scripts)
   const deferScriptPromise: Array<Promise<string>|string> = []
   const deferScriptInfo: Array<[string, ScriptSourceInfo]> = []
+  const fiberScriptTasks: fiberTasks = app.fiber ? [] : null
   for (const address of scriptList) {
     const scriptInfo = sourceCenter.script.getInfo(address)!
     const appSpaceData = scriptInfo.appSpace[app.name]
@@ -339,8 +343,16 @@ export function execScripts (
 
       isTypeModule(app, scriptInfo) && (initHook.moduleCount = initHook.moduleCount ? ++initHook.moduleCount : 1)
     } else {
-      runScript(address, app, scriptInfo, false)
-      initHook(false)
+      if (fiberScriptTasks) {
+        fiberScriptTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
+          runScript(address, app, scriptInfo, false)
+          initHook(false)
+          resolve()
+        }))
+      } else {
+        runScript(address, app, scriptInfo, false)
+        initHook(false)
+      }
     }
   }
 
@@ -354,17 +366,39 @@ export function execScripts (
     }, () => {
       deferScriptInfo.forEach(([address, scriptInfo]) => {
         if (scriptInfo.code) {
-          runScript(address, app, scriptInfo, false, initHook)
-          !isTypeModule(app, scriptInfo) && initHook(false)
+          if (fiberScriptTasks) {
+            fiberScriptTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
+              runScript(address, app, scriptInfo, false, initHook)
+              !isTypeModule(app, scriptInfo) && initHook(false)
+              resolve()
+            }))
+          } else {
+            runScript(address, app, scriptInfo, false, initHook)
+            !isTypeModule(app, scriptInfo) && initHook(false)
+          }
         }
       })
-      initHook(
-        isUndefined(initHook.moduleCount) ||
-        initHook.errorCount === deferScriptPromise.length
-      )
+
+      if (fiberScriptTasks) {
+        fiberScriptTasks.push(() => Promise.resolve(initHook(
+          isUndefined(initHook.moduleCount) ||
+          initHook.errorCount === deferScriptPromise.length
+        )))
+        serialExecFiberTasks(fiberScriptTasks)
+      } else {
+        initHook(
+          isUndefined(initHook.moduleCount) ||
+          initHook.errorCount === deferScriptPromise.length
+        )
+      }
     })
   } else {
-    initHook(true)
+    if (fiberScriptTasks) {
+      fiberScriptTasks.push(() => Promise.resolve(initHook(true)))
+      serialExecFiberTasks(fiberScriptTasks)
+    } else {
+      initHook(true)
+    }
   }
 }
 
@@ -396,7 +430,7 @@ export function runScript (
       appSpaceData.parsedCode = bindScope(address, app, scriptInfo.code, scriptInfo)
     }
 
-    if (isInlineScript(app, scriptInfo)) {
+    if (isInlineMode(app, scriptInfo)) {
       const scriptElement = pureCreateElement('script')
       runCode2InlineScript(
         address,
@@ -447,7 +481,7 @@ export function runDynamicRemoteScript (
   }
 
   let replaceElement: Comment | HTMLScriptElement
-  if (isInlineScript(app, scriptInfo)) {
+  if (isInlineMode(app, scriptInfo)) {
     replaceElement = pureCreateElement('script')
   } else {
     replaceElement = document.createComment(`dynamic script with src='${address}' extract by micro-app`)
@@ -460,7 +494,7 @@ export function runDynamicRemoteScript (
     try {
       preActionForExecScript(app)
       appSpaceData.parsedCode = bindScope(address, app, code, scriptInfo)
-      if (isInlineScript(app, scriptInfo)) {
+      if (isInlineMode(app, scriptInfo)) {
         runCode2InlineScript(
           address,
           appSpaceData.parsedCode,
@@ -502,9 +536,12 @@ function runCode2InlineScript (
 ): void {
   if (module) {
     // module script is async, transform it to a blob for subsequent operations
-    // const blob = new Blob([code], { type: 'text/javascript' })
-    // scriptElement.src = URL.createObjectURL(blob)
-    scriptElement.src = address
+    if (isInlineScript(address)) {
+      const blob = new Blob([code], { type: 'text/javascript' })
+      scriptElement.src = URL.createObjectURL(blob)
+    } else {
+      scriptElement.src = address
+    }
     scriptElement.setAttribute('type', 'module')
     if (callback) {
       callback.moduleCount && callback.moduleCount--
@@ -544,7 +581,7 @@ function bindScope (
   }
 
   if (app.sandBox && !isTypeModule(app, scriptInfo)) {
-    return `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${globalKeyToBeCached}){;${code}\n${address.startsWith('inline-') ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${globalKeyToBeCached})}})(window.__MICRO_APP_PROXY_WINDOW__);`
+    return `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${globalKeyToBeCached}){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${globalKeyToBeCached})}})(window.__MICRO_APP_PROXY_WINDOW__);`
   }
 
   return code

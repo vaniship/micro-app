@@ -65,7 +65,7 @@ export function defineElement (tagName: string): void {
       const cacheCount = ++this.connectCount
       this.connectStateMap.set(cacheCount, true)
       /**
-       * In some special scenarios, such as vue's keep-alive, the micro-app will be inserted and deleted twice in an instant
+       * In some special scenes, such as vue's keep-alive, the micro-app will be inserted and deleted twice in an instant
        * So we execute the mount method async and record connectState to prevent repeated rendering
        */
       defer(() => {
@@ -230,7 +230,7 @@ export function defineElement (tagName: string): void {
     private actionsForAttributeChange (
       formatAttrName: string,
       formatAttrUrl: string,
-      existApp: AppInterface | undefined,
+      existApp: AppInterface | void,
     ): void {
       /**
        * do not add judgment of formatAttrUrl === this.appUrl

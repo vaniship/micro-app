@@ -1,4 +1,5 @@
 import type { LinkSourceInfo, ScriptSourceInfo, SourceAddress } from '@micro-app/types'
+import { isInlineScript } from '../libs/utils'
 
 export interface SourceCenter<L = LinkSourceInfo, S = ScriptSourceInfo> {
   link: {
@@ -54,7 +55,7 @@ function createSourceCenter (): SourceCenter {
       ...createSourceHandler<ScriptSourceInfo, ScriptListType>(scriptList),
       deleteInlineInfo (addressList: SourceAddress[]): void {
         addressList.forEach((address) => {
-          if (address.startsWith('inline-')) {
+          if (isInlineScript(address)) {
             scriptList.delete(address)
           }
         })

@@ -280,6 +280,8 @@ export default class App extends React.Component {
                   // default-page='/micro-app/react16/page2'
                   // hidden-router
                   // disable-patch-request
+                  // esmodule
+                  fiber
                 >
                 </micro-app>
               )

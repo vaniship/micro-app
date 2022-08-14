@@ -547,6 +547,14 @@ export function getAttributes (element: Element): AttrsType {
  * serial exec fiber task of link, style, script
  * @param tasks task array or null
  */
-export function serialExecFiberTasks (tasks: fiberTasks) {
+export function serialExecFiberTasks (tasks: fiberTasks): Promise<void> | void {
   return tasks?.reduce((pre, next) => pre.then(next), Promise.resolve())
+}
+
+/**
+ * inline script start with inline-xxx
+ * @param address source address
+ */
+export function isInlineScript (address: string): boolean {
+  return address.startsWith('inline-')
 }

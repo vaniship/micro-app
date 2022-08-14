@@ -293,24 +293,25 @@ window.addEventListener('hashchange', (e) => {
 
 
 /* ---------------------- 选择器 -- Document原型方法绑定ProxyDocument --------------------- */
-console.log('querySelectorAll: ', Document.prototype.querySelectorAll.call(document, 'span'))
-console.log('querySelectorAll head: ', Document.prototype.querySelectorAll.call(document, 'head'))
-console.log('querySelector: ', Document.prototype.querySelector.call(document, 'div'))
-console.log('querySelector head: ', Document.prototype.querySelector.call(document, 'head'))
-console.log('createElement: ', Document.prototype.createElement.call(document, 'div'))
-console.log('createElementNS: ', Document.prototype.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg'))
-console.log('createDocumentFragment: ', Document.prototype.createDocumentFragment.call(document))
-console.log('getElementById: ', Document.prototype.getElementById.call(document, '1abc'))
-console.log('getElementsByClassName: ', Document.prototype.getElementsByClassName.call(document, '1abc'))
-console.log('getElementsByTagName: ', Document.prototype.getElementsByTagName.call(document, '1abc'))
-console.log('getElementsByName: ', Document.prototype.getElementsByName.call(document, '1abc'))
+// console.log('querySelectorAll: ', Document.prototype.querySelectorAll.call(document, 'span'))
+// console.log('querySelectorAll head: ', Document.prototype.querySelectorAll.call(document, 'head'))
+// console.log('querySelector: ', Document.prototype.querySelector.call(document, 'div'))
+// console.log('querySelector head: ', Document.prototype.querySelector.call(document, 'head'))
+// console.log('createElement: ', Document.prototype.createElement.call(document, 'div'))
+// console.log('createElementNS: ', Document.prototype.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg'))
+// console.log('createDocumentFragment: ', Document.prototype.createDocumentFragment.call(document))
+// console.log('getElementById: ', Document.prototype.getElementById.call(document, '1abc'))
+// console.log('getElementsByClassName: ', Document.prototype.getElementsByClassName.call(document, '1abc'))
+// console.log('getElementsByTagName: ', Document.prototype.getElementsByTagName.call(document, '1abc'))
+// console.log('getElementsByName: ', Document.prototype.getElementsByName.call(document, '1abc'))
 
-console.log('Document.prototype.createAttribute: ', Document.prototype.createAttribute.call(document, 'abc'))
-console.log('document.createAttribute: ', document.createAttribute.call(document, 'abc'))
-console.log('document instanceof Document', document instanceof Document)
-console.log('new Document() ', new Document())
-console.log('document.defaultView ', document.defaultView)
+// console.log('Document.prototype.createAttribute: ', Document.prototype.createAttribute.call(document, 'abc'))
+// console.log('document.createAttribute: ', document.createAttribute.call(document, 'abc'))
+// console.log('document instanceof Document', document instanceof Document)
+// console.log('new Document() ', new Document())
+// console.log('document.defaultView ', document.defaultView)
 
+/* ---------------------- eval作用域 --------------------- */
 // TODO: window.eval 作用域
-window.eval('console.log("window.eval -- ", window)') // window
-eval('console.log("eval -- ", window)') // proxyWindow
+// window.eval('console.log("window.eval -- ", window)') // window
+// eval('console.log("eval -- ", window)') // proxyWindow

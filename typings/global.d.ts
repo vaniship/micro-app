@@ -73,6 +73,7 @@ declare module '@micro-app/types' {
       defer: boolean, // defer script
       module: boolean, // module type script
       inline: boolean, // run js with inline script
+      pure: boolean, // pure script
       attrs: Map<string, string>, // element attributes
       parsedCode?: string, // bind code
       parsedFunction?: Function | null, // code to function
@@ -413,7 +414,7 @@ declare module '@micro-app/types' {
     /**
      * Get defaultPage that set by setDefaultPage
      */
-    getDefaultPage(key: PropertyKey): string | undefined
+    getDefaultPage(key: PropertyKey): string | void
     /**
      * Attach specified active app router info to browser url
      */

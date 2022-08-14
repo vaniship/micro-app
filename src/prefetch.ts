@@ -102,7 +102,7 @@ export function getGlobalAssets (assets: globalAssetsType): void {
 }
 
 // TODO: requestIdleCallback for every file
-function fetchGlobalResources (resources: string[] | undefined, suffix: string, sourceHandler: SourceCenterType['link'] | SourceCenterType['script']) {
+function fetchGlobalResources (resources: string[] | void, suffix: string, sourceHandler: SourceCenterType['link'] | SourceCenterType['script']) {
   if (isArray(resources)) {
     const effectiveResource = resources!.filter((path) => isString(path) && path.includes(`.${suffix}`) && !sourceHandler.hasInfo(path))
 

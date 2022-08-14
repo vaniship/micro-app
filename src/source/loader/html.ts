@@ -54,7 +54,7 @@ export class HTMLLoader implements IHTMLLoader {
       })
   }
 
-  private processHtml (url: string, code: string, appName: string, plugins: plugins | undefined): string {
+  private processHtml (url: string, code: string, appName: string, plugins: plugins | void): string {
     if (!plugins) return code
 
     const mergedPlugins: NonNullable<plugins['global']> = []

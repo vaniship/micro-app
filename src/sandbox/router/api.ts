@@ -52,7 +52,7 @@ export interface CreteBaseRouter {
 export interface CreateDefaultPage {
   setDefaultPage(options: SetDefaultPageOptions): () => boolean
   removeDefaultPage(appName: string): boolean
-  getDefaultPage(key: PropertyKey): string | undefined
+  getDefaultPage(key: PropertyKey): string | void
 }
 
 function createRouterApi (): RouterApi {

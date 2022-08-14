@@ -39,7 +39,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
    * @param methodName pushState/replaceState
    * @returns origin value or formatted value
    */
-  const commonHandler = (value: string | URL, methodName: string): string | URL | undefined => {
+  const commonHandler = (value: string | URL, methodName: string): string | URL | void => {
     const targetLocation = createURL(value, microLocation.href)
     // Even if the origin is the same, developers still have the possibility of want to jump to a new page
     if (targetLocation.origin === microLocation.origin) {

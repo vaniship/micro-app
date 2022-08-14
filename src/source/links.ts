@@ -92,7 +92,7 @@ export function fetchLinksFromHtml (
   wrapElement: HTMLElement,
   app: AppInterface,
   microAppHead: Element,
-  fiberStyleResult: Promise<void> | undefined,
+  fiberStyleResult: Promise<void> | void,
 ): void {
   const styleList: Array<string> = Array.from(app.source.links)
   const fetchLinkPromise: Array<Promise<string> | string> = styleList.map((address) => {
