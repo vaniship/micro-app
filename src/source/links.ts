@@ -23,6 +23,36 @@ import {
 import sourceCenter from './source_center'
 
 /**
+ *
+ * @param appName app.name
+ * @param linkInfo linkInfo of current address
+ */
+function getExistParseCode (
+  appName: string,
+  prefix: string,
+  linkInfo: LinkSourceInfo,
+): string | void {
+  const appSpace = linkInfo.appSpace
+  for (const item in appSpace) {
+    if (item !== appName) {
+      const appSpaceData = appSpace[item]
+      if (appSpaceData.parsedCode) {
+        return appSpaceData.parsedCode.replaceAll(new RegExp(createPrefix(item, true), 'g'), prefix)
+      }
+    }
+  }
+}
+
+// transfer the attributes on the link to convertStyle
+function setConvertStyleAttr (convertStyle: HTMLStyleElement, attrs: AttrsType): void {
+  attrs.forEach((value, key) => {
+    if (key === 'rel') return
+    if (key === 'href') key = 'data-origin-href'
+    convertStyle.setAttribute(key, value)
+  })
+}
+
+/**
  * Extract link elements
  * @param link link element
  * @param parent parent element of link
@@ -53,7 +83,7 @@ export function extractLinkFromHtml (
         }
       }
     } else {
-      linkInfo.appSpace[app.name] = appSpaceData
+      linkInfo.appSpace[app.name] = linkInfo.appSpace[app.name] || appSpaceData
     }
 
     sourceCenter.link.setInfo(href, linkInfo)
@@ -147,7 +177,7 @@ export function fetchLinksFromHtml (
  * 2. Only handler html link element, not dynamic link or style
  * 3. The same prefix can reuse parsedCode
  * 4. Async exec with requestIdleCallback in prefetch or fiber
- * 5. appSpace[app.name].placeholder/.attrs must exist
+ * 5. appSpace[app.name].placeholder/attrs must exist
  * @param address resource address
  * @param code link source code
  * @param microAppHead micro-app-head
@@ -165,7 +195,8 @@ export function fetchLinkSuccess (
    */
   const linkInfo = sourceCenter.link.getInfo(address)!
   linkInfo.code = code
-  const placeholder = linkInfo.appSpace[app.name].placeholder!
+  const appSpaceData = linkInfo.appSpace[app.name]
+  const placeholder = appSpaceData.placeholder!
   const convertStyle = pureCreateElement('style')
 
   handleConvertStyle(
@@ -173,7 +204,7 @@ export function fetchLinkSuccess (
     address,
     convertStyle,
     linkInfo,
-    linkInfo.appSpace[app.name].attrs,
+    appSpaceData.attrs,
   )
 
   if (placeholder.parentNode) {
@@ -183,11 +214,15 @@ export function fetchLinkSuccess (
   }
 
   // clear placeholder
-  linkInfo.appSpace[app.name].placeholder = null
+  appSpaceData.placeholder = null
 }
 
 /**
- * update convertStyle, linkInfo.parseResult
+ * Get parsedCode, update convertStyle
+ * Actions:
+ * 1. get scope css (through scopedCSS or oldData)
+ * 2. record parsedCode
+ * 3. set parsedCode to convertStyle if need
  * @param app app instance
  * @param address resource address
  * @param convertStyle converted style
@@ -202,22 +237,19 @@ export function handleConvertStyle (
   attrs: AttrsType,
 ): void {
   if (app.scopecss) {
-    const prefix = createPrefix(app.name)
-    // set __MICRO_APP_LINK_PATH__ before scopedCSS
-    convertStyle.__MICRO_APP_LINK_PATH__ = address
-    if (!linkInfo.parseResult) {
-      convertStyle.textContent = linkInfo.code
-      scopedCSS(convertStyle, app)
-      linkInfo.parseResult = {
-        prefix,
-        parsedCode: convertStyle.textContent,
+    const appSpaceData = linkInfo.appSpace[app.name]
+    appSpaceData.prefix = appSpaceData.prefix || createPrefix(app.name)
+    if (!appSpaceData.parsedCode) {
+      const existParsedCode = getExistParseCode(app.name, appSpaceData.prefix, linkInfo)
+      if (!existParsedCode) {
+        convertStyle.textContent = linkInfo.code
+        scopedCSS(convertStyle, app, address)
+      } else {
+        convertStyle.textContent = existParsedCode
       }
-    } else if (linkInfo.parseResult.prefix === prefix) {
-      convertStyle.textContent = linkInfo.parseResult.parsedCode
+      appSpaceData.parsedCode = convertStyle.textContent
     } else {
-      // Attention background, url()
-      convertStyle.textContent = linkInfo.parseResult.parsedCode.replaceAll(new RegExp(createPrefix(app.name, true), 'g'), prefix)
-      // scopedCSS(convertStyle, app)
+      convertStyle.textContent = appSpaceData.parsedCode
     }
   } else {
     convertStyle.textContent = linkInfo.code
@@ -226,16 +258,8 @@ export function handleConvertStyle (
   setConvertStyleAttr(convertStyle, attrs)
 }
 
-// transfer the attributes on the link to convertStyle
-function setConvertStyleAttr (convertStyle: HTMLStyleElement, attrs: AttrsType): void {
-  attrs.forEach((value, key) => {
-    if (key === 'href') key = 'data-origin-href'
-    convertStyle.setAttribute(key, value)
-  })
-}
-
 /**
- * get css from dynamic link
+ * Handle css of dynamic link
  * @param address link address
  * @param app app
  * @param linkInfo linkInfo

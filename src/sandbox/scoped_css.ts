@@ -429,6 +429,7 @@ let parser: CSSParser
 export default function scopedCSS (
   styleElement: HTMLStyleElement,
   app: AppInterface,
+  linkPath?: string,
 ): HTMLStyleElement {
   if (app.scopecss) {
     const prefix = createPrefix(app.name)
@@ -441,7 +442,7 @@ export default function scopedCSS (
         app.name,
         prefix,
         app.url,
-        styleElement.__MICRO_APP_LINK_PATH__,
+        linkPath,
       )
     } else {
       const observer = new MutationObserver(function () {
@@ -453,7 +454,7 @@ export default function scopedCSS (
             app.name,
             prefix,
             app.url,
-            styleElement.__MICRO_APP_LINK_PATH__,
+            linkPath,
           )
         }
       })

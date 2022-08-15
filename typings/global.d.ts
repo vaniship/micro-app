@@ -57,18 +57,15 @@ declare module '@micro-app/types' {
     appSpace: Record<string, {
       attrs: Map<string, string>, // active element.attributes
       placeholder?: Comment | null, // placeholder comment
-    }>,
-    parseResult?: {
-      prefix: string, // micro-app[name=appName]
-      parsedCode: string, // parsed code
-    },
+      parsedCode?: string, // parsed code
+      prefix?: string, // micro-app[name=appName]
+    }>
   }
 
   type ScriptSourceInfo = {
     code: string, // source code
     isExternal: boolean, // external script
     appSpace: Record<string, {
-      isDynamic: boolean, // dynamic create script
       async: boolean, // async script
       defer: boolean, // defer script
       module: boolean, // module type script

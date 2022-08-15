@@ -33,7 +33,6 @@ declare global {
   }
 
   interface HTMLStyleElement {
-    __MICRO_APP_LINK_PATH__?: string
     __MICRO_APP_HAS_SCOPED__?: boolean
   }
 }

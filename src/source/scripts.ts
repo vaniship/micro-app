@@ -145,7 +145,6 @@ export function extractScriptElement (
   } else if (src) { // remote script
     let scriptInfo = sourceCenter.script.getInfo(src)
     const appSpaceData = {
-      isDynamic: isDynamic,
       async: script.hasAttribute('async'),
       defer: script.defer || script.type === 'module',
       module: script.type === 'module',
@@ -194,7 +193,6 @@ export function extractScriptElement (
       isExternal: false,
       appSpace: {
         [app.name]: {
-          isDynamic: isDynamic,
           async: false,
           defer: script.type === 'module',
           module: script.type === 'module',
