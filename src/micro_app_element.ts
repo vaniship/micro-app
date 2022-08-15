@@ -318,7 +318,6 @@ export function defineElement (tagName: string): void {
         appInstanceMap.get(this.appName)!.actionsForCompletelyDestroy()
       }
 
-      //
       new CreateApp({
         name: this.appName,
         url: this.appUrl,
@@ -449,10 +448,12 @@ export function defineElement (tagName: string): void {
      * get config of default page
      */
     private getDefaultPageValue (): string {
-      return router.getDefaultPage(this.appName) ??
-      this.getAttribute('default-page') ??
-      this.getAttribute('defaultPage') ??
-      ''
+      return (
+        router.getDefaultPage(this.appName) ||
+        this.getAttribute('default-page') ||
+        this.getAttribute('defaultPage') ||
+        ''
+      )
     }
 
     /**

@@ -55,9 +55,11 @@ export function extractLinkFromHtml (
     } else {
       linkInfo.appSpace[app.name] = appSpaceData
     }
+
+    sourceCenter.link.setInfo(href, linkInfo)
+
     if (!isDynamic) {
       app.source.links.add(href)
-      sourceCenter.link.setInfo(href, linkInfo)
       replaceComment = document.createComment(`link element with href=${href} move to micro-app-head as style element`)
       linkInfo.appSpace[app.name].placeholder = replaceComment
     } else {
@@ -92,7 +94,7 @@ export function fetchLinksFromHtml (
   wrapElement: HTMLElement,
   app: AppInterface,
   microAppHead: Element,
-  fiberStyleResult: Promise<void> | void,
+  fiberStyleResult: Promise<void> | null,
 ): void {
   const styleList: Array<string> = Array.from(app.source.links)
   const fetchLinkPromise: Array<Promise<string> | string> = styleList.map((address) => {
@@ -103,23 +105,21 @@ export function fetchLinksFromHtml (
   const fiberLinkTasks: fiberTasks = app.isPrefetch || app.fiber ? [] : null
 
   promiseStream<string>(fetchLinkPromise, (res: { data: string, index: number }) => {
-    if (fiberLinkTasks) {
-      fiberLinkTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
-        fetchLinkSuccess(
-          styleList[res.index],
-          res.data,
-          microAppHead,
-          app,
-        )
-        resolve()
-      }))
-    } else {
+    const handleStreamResult = () => {
       fetchLinkSuccess(
         styleList[res.index],
         res.data,
         microAppHead,
         app,
       )
+    }
+    if (fiberLinkTasks) {
+      fiberLinkTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
+        handleStreamResult()
+        resolve()
+      }))
+    } else {
+      handleStreamResult()
     }
   }, (err: {error: Error, index: number}) => {
     logError(err, app.name)
@@ -168,7 +168,7 @@ export function fetchLinkSuccess (
   const placeholder = linkInfo.appSpace[app.name].placeholder!
   const convertStyle = pureCreateElement('style')
 
-  handlerConvertStyle(
+  handleConvertStyle(
     app,
     address,
     convertStyle,
@@ -194,7 +194,7 @@ export function fetchLinkSuccess (
  * @param linkInfo linkInfo in sourceCenter
  * @param attrs attrs of link
  */
-export function handlerConvertStyle (
+export function handleConvertStyle (
   app: AppInterface,
   address: string,
   convertStyle: HTMLStyleElement,
@@ -237,45 +237,40 @@ function setConvertStyleAttr (convertStyle: HTMLStyleElement, attrs: AttrsType):
 /**
  * get css from dynamic link
  * @param address link address
- * @param linkInfo linkInfo
  * @param app app
+ * @param linkInfo linkInfo
  * @param originLink origin link element
- * @param convertStyle style element which replaced origin link
  */
 export function formatDynamicLink (
   address: string,
-  linkInfo: LinkSourceInfo,
   app: AppInterface,
+  linkInfo: LinkSourceInfo,
   originLink: HTMLLinkElement,
-  convertStyle: HTMLStyleElement,
-): void {
-  if (linkInfo.code) {
-    handlerConvertStyle(
+): HTMLStyleElement {
+  const convertStyle = pureCreateElement('style')
+
+  const handleDynamicLink = () => {
+    handleConvertStyle(
       app,
       address,
       convertStyle,
       linkInfo,
       linkInfo.appSpace[app.name].attrs,
     )
-    defer(() => dispatchOnLoadEvent(originLink))
-    return
+    dispatchOnLoadEvent(originLink)
   }
 
-  fetchSource(address, app.name).then((data: string) => {
-    linkInfo.code = data
-    convertStyle.textContent = data
-    if (app.scopecss) {
-      scopedCSS(convertStyle, app)
-      linkInfo.parseResult = {
-        prefix: createPrefix(app.name),
-        parsedCode: convertStyle.textContent,
-      }
-    }
-    setConvertStyleAttr(convertStyle, linkInfo.appSpace[app.name].attrs)
-    sourceCenter.link.setInfo(address, linkInfo)
-    dispatchOnLoadEvent(originLink)
-  }).catch((err) => {
-    logError(err, app.name)
-    dispatchOnErrorEvent(originLink)
-  })
+  if (linkInfo.code) {
+    defer(handleDynamicLink)
+  } else {
+    fetchSource(address, app.name).then((data: string) => {
+      linkInfo.code = data
+      handleDynamicLink()
+    }).catch((err) => {
+      logError(err, app.name)
+      dispatchOnErrorEvent(originLink)
+    })
+  }
+
+  return convertStyle
 }

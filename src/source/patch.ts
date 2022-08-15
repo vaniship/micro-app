@@ -14,7 +14,7 @@ import {
 } from '../libs/utils'
 import scopedCSS from '../sandbox/scoped_css'
 import { extractLinkFromHtml, formatDynamicLink } from './links'
-import { extractScriptElement, runScript, runDynamicRemoteScript, checkExcludeUrl, checkIgnoreUrl } from './scripts'
+import { extractScriptElement, runDynamicInlineScript, runDynamicRemoteScript, checkExcludeUrl, checkIgnoreUrl } from './scripts'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
 import { fixReactHMRConflict } from '../sandbox/adapter'
@@ -55,8 +55,7 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
     )
 
     if (address && linkInfo) {
-      const replaceStyle = pureCreateElement('style')
-      formatDynamicLink(address, linkInfo, app, child, replaceStyle)
+      const replaceStyle = formatDynamicLink(address, app, linkInfo, child)
       dynamicElementInMicroAppMap.set(child, replaceStyle)
       return replaceStyle
     } else if (replaceComment) {
@@ -74,15 +73,10 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
     ) || {}
 
     if (address && scriptInfo) {
-      if (!scriptInfo.isExternal) { // inline script
-        const replaceElement = runScript(address, app, scriptInfo, true)
-        dynamicElementInMicroAppMap.set(child, replaceElement)
-        return replaceElement
-      } else { // remote script
-        const replaceElement = runDynamicRemoteScript(address, scriptInfo, app, child)
-        dynamicElementInMicroAppMap.set(child, replaceElement)
-        return replaceElement
-      }
+      // remote script or inline script
+      const replaceElement: HTMLScriptElement | Comment = scriptInfo.isExternal ? runDynamicRemoteScript(address, app, scriptInfo, child) : runDynamicInlineScript(address, app, scriptInfo)
+      dynamicElementInMicroAppMap.set(child, replaceElement)
+      return replaceElement
     } else if (replaceComment) {
       dynamicElementInMicroAppMap.set(child, replaceComment)
       return replaceComment
