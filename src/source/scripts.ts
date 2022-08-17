@@ -15,6 +15,7 @@ import {
   pureCreateElement,
   defer,
   logError,
+  logWarn,
   isUndefined,
   isPlainObject,
   isArray,
@@ -65,6 +66,11 @@ function isInlineMode (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean
   )
 }
 
+// Convert string code to function
+function code2Function (code: string): Function {
+  return new Function(code)
+}
+
 /**
  * If the appSpace of the current js address has other app, try to reuse parsedFunction of other app
  * @param appName app.name
@@ -87,6 +93,18 @@ function getExistParseResult (
   }
 }
 
+/**
+ * get parsedFunction from exist data or parsedCode
+ * @returns parsedFunction
+ */
+function getParsedFunction (
+  app: AppInterface,
+  scriptInfo: ScriptSourceInfo,
+  parsedCode: string,
+): Function {
+  return getExistParseResult(app.name, scriptInfo, parsedCode) || code2Function(parsedCode)
+}
+
 // Prevent randomly created strings from repeating
 function getUniqueNonceSrc (): string {
   const nonceStr: string = createNonceSrc()
@@ -96,11 +114,6 @@ function getUniqueNonceSrc (): string {
   return nonceStr
 }
 
-// Convert string code to function
-function code2Function (code: string): Function {
-  return new Function(code)
-}
-
 // transfer the attributes on the script to convertScript
 function setConvertScriptAttr (convertScript: HTMLScriptElement, attrs: AttrsType): void {
   attrs.forEach((value, key) => {
@@ -108,6 +121,10 @@ function setConvertScriptAttr (convertScript: HTMLScriptElement, attrs: AttrsTyp
     if (key === 'src') key = 'data-origin-src'
     convertScript.setAttribute(key, value)
   })
+}
+
+function isSandBoxEnv (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
+  return app.useSandbox && !isTypeModule(app, scriptInfo)
 }
 
 /**
@@ -344,9 +361,23 @@ export function fetchScriptSuccess (
    */
   if (app.isPrefetch) {
     const appSpaceData = scriptInfo.appSpace[app.name]
-    appSpaceData.parsedCode = bindScope(address, app, code, scriptInfo)
-    if (!isInlineMode(app, scriptInfo)) {
-      appSpaceData.parsedFunction = getExistParseResult(app.name, scriptInfo, appSpaceData.parsedCode) || code2Function(appSpaceData.parsedCode)
+    /**
+     * When prefetch app is replaced by a new app in the processing phase, since the scriptInfo is common, when the scriptInfo of the prefetch app is processed, it may have already been processed.
+     * This causes parsedCode to already exist when preloading ends
+     * e.g.
+     * 1. prefetch app.url different from <micro-app></micro-app>
+     * 2. prefetch param different from <micro-app></micro-app>
+     */
+    if (!appSpaceData.parsedCode) {
+      appSpaceData.parsedCode = bindScope(address, app, code, scriptInfo)
+      appSpaceData.useSandbox = app.useSandbox
+      if (!isInlineMode(app, scriptInfo)) {
+        try {
+          appSpaceData.parsedFunction = getParsedFunction(app, scriptInfo, appSpaceData.parsedCode)
+        } catch (err) {
+          logWarn('Something went wrong while handling preloaded resources', app.name, '\n', err)
+        }
+      }
     }
   }
 }
@@ -462,7 +493,7 @@ export function runScript (
   replaceElement?: HTMLScriptElement,
 ): void {
   try {
-    preActionForExecScript(app)
+    actionsBeforeRunScript(app)
     const appSpaceData = scriptInfo.appSpace[app.name]
     /**
      * NOTE:
@@ -470,8 +501,10 @@ export function runScript (
      * 2. if parsedCode not exist, parsedFunction is not exist
      * 3. if parsedCode exist, parsedFunction does not necessarily exist
      */
-    if (!appSpaceData.parsedCode) {
+    if (!appSpaceData.parsedCode || appSpaceData.useSandbox !== app.useSandbox) {
       appSpaceData.parsedCode = bindScope(address, app, scriptInfo.code, scriptInfo)
+      appSpaceData.useSandbox = app.useSandbox
+      appSpaceData.parsedFunction = null
     }
 
     if (isInlineMode(app, scriptInfo)) {
@@ -594,7 +627,7 @@ function runCode2InlineScript (
 function runParsedFunction (app: AppInterface, scriptInfo: ScriptSourceInfo) {
   const appSpaceData = scriptInfo.appSpace[app.name]
   if (!appSpaceData.parsedFunction) {
-    appSpaceData.parsedFunction = getExistParseResult(app.name, scriptInfo, appSpaceData.parsedCode!) || code2Function(appSpaceData.parsedCode!)
+    appSpaceData.parsedFunction = getParsedFunction(app, scriptInfo, appSpaceData.parsedCode!)
   }
   appSpaceData.parsedFunction.call(window)
 }
@@ -611,19 +644,22 @@ function bindScope (
   code: string,
   scriptInfo: ScriptSourceInfo,
 ): string {
-  // TODO: cache config
+  // TODO: cache
   if (isPlainObject(microApp.plugins)) {
     code = usePlugins(address, code, app.name, microApp.plugins)
   }
 
-  if (app.sandBox && !isTypeModule(app, scriptInfo)) {
+  if (isSandBoxEnv(app, scriptInfo)) {
     return `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${globalKeyToBeCached}){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${globalKeyToBeCached})}})(window.__MICRO_APP_PROXY_WINDOW__);`
   }
 
   return code
 }
 
-function preActionForExecScript (app: AppInterface) {
+/**
+ * actions before run script
+ */
+function actionsBeforeRunScript (app: AppInterface): void {
   setActiveProxyWindow(app)
 }
 

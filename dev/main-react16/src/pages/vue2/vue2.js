@@ -4,9 +4,10 @@ import jsxCustomEvent from '@micro-zoe/micro-app/polyfill/jsx-custom-event'
 import { useState, useEffect } from 'react'
 import { Button, Spin, Col } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
+import microApp from '@micro-zoe/micro-app'
 import config from '../../config'
 import './vue2.less'
-import microApp from '@micro-zoe/micro-app'
+import lessStyles from './module.less'
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
@@ -53,6 +54,7 @@ function Vue2 () {
   }, [])
   return (
     <div>
+      <div className={lessStyles.testModule}>test-cssModule</div>
       <div className='btn-con'>
         <Col span={6} className='btn-con'>
           <Button

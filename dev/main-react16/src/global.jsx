@@ -2,14 +2,39 @@ import 'babel-polyfill'
 import microApp, { unmountApp, unmountAllApps } from '@micro-zoe/micro-app'
 import config from './config'
 
-// microApp.preFetch([
-//   {name: 'vite', url: `${config.vite}micro-app/vite`},
-//   {name: 'vue2', url: `${config.vue2}micro-app/vue2`},
-//   {name: 'react16', url: `${config.react16}micro-app/react16`},
-//   {name: 'react17', url: `${config.react17}micro-app/react17`},
-//   {name: 'vue3', url: `${config.vue3}micro-app/vue3`},
-//   {name: 'angular11', url: `${config.angular11}micro-app/angular11`},
-// ])
+microApp.preFetch([
+  {
+    name: 'vite',
+    url: `${config.vite}micro-app/vite`,
+    esmodule: true,
+    // inline: true,
+    // 'disable-sandbox': true,
+  },
+  {
+    name: 'vue2',
+    url: `${config.vue2}micro-app/vue2`,
+  },
+  {
+    name: 'react16',
+    url: `${config.react16}micro-app/react16`,
+  },
+  {
+    name: 'react17',
+    url: `${config.react17}micro-app/react17`,
+  },
+  {
+    name: 'vue3',
+    url: `${config.vue3}micro-app/vue3`,
+  },
+  {
+    name: 'angular11',
+    url: `${config.angular11}micro-app/angular11`,
+  },
+  {
+    name: 'angular14',
+    url: `${config.angular14}micro-app/angular14`,
+  },
+])
 
 microApp.start({
   // shadowDOM: true,

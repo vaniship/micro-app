@@ -48,34 +48,40 @@ export default function preFetch (apps: prefetchParamList): void {
 }
 
 // sequential preload app
-function preFetchInSerial (prefetchApp: prefetchParam): Promise<void> {
+function preFetchInSerial (options: prefetchParam): Promise<void> {
   return promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
-    if (isPlainObject(prefetchApp) && navigator.onLine) {
-      prefetchApp.name = formatAppName(prefetchApp.name)
-      prefetchApp.url = formatAppURL(prefetchApp.url, prefetchApp.name)
-      if (prefetchApp.name && prefetchApp.url && !appInstanceMap.has(prefetchApp.name)) {
+    if (isPlainObject(options) && navigator.onLine) {
+      options.name = formatAppName(options.name)
+      options.url = formatAppURL(options.url, options.name)
+      if (options.name && options.url && !appInstanceMap.has(options.name)) {
         /**
-         * TODO:
-         * 1、预加载与micro-app元素不再绑定，各自定义参数
-         * 2、如果预加载关闭样式隔离，micro-app元素没有关闭，则需要在mount时再次处理 -- 废弃
-         *    只有在元素上明确打开样式隔离，才会进行处理
-         * 3、预加载增加shadowDOM参数，当开启时关闭样式隔离
-         *   但是有一个问题，如果用户在预加载设置了shadowDOM，但是在元素上没设置，他可能认为预加载设置后就不需要在元素上设置了，这样会导致出问题
-         *   上面也一样，用户在预加载关闭样式隔离后，渲染时如果元素上没有明确关闭，那么还是会生效的
-         *   这样吧，还是可以同时存在，但是预加载的优先级小于元素，当在预加载开启了样式隔离或者shadowDOM，如果子应用没有明确关闭这两个设置，那么默认按照预加载的执行
+         * 思考: 如果预加载参数独立
+         * 1、html自带的style在预加载时进行样式隔离，micro-app元素设置关闭，如何处理这个style，正则匹配？
+         *      这里还涉及到body和micro-app-body的转换问题
          *
-         * 4、增加配置 inline esmodule
+         * 2、js沙箱也有同样的问题
+         *
+         *
+         * 有一种解决方案：当子应用渲染时判断当前配置和预加载的配置是否一致，如果不一致，则destroy应用重新渲染，这样会重新请求html，从头解析和执行，而预加载的缓存是可以复用的
          *
          * 文档提示：
          *  1、预加载的配置建议和<micro-app>元素上的配置保持一致，且后者拥有更高的优先级，当两者产生冲突时，以<micro-app>元素上的配置为准
+         * 稍等：预加载参数和全局参数哪一个优先级高？？
+         *  全局配置更高！！
+         *  -- 预加载只是加载和处理资源，它的参数只是表示该怎么处理预加载的资源，它不应该对应用产生任何影响，只是做了一层缓存
+         * 提示各种案例
+         *
+         * 补充1: vite应用必须在预加载时设置esmodule配置，否则报错 Cannot use import statement outside a module
          */
         const app = new CreateApp({
-          name: prefetchApp.name,
-          url: prefetchApp.url,
-          scopecss: !(prefetchApp['disable-scopecss'] ?? prefetchApp.disableScopecss ?? microApp['disable-scopecss']),
-          useSandbox: !(prefetchApp['disable-sandbox'] ?? prefetchApp.disableSandbox ?? microApp['disable-sandbox']),
-          useMemoryRouter: !(prefetchApp['disable-memory-router'] ?? microApp['disable-memory-router']),
+          name: options.name,
+          url: options.url,
+          scopecss: !(options['disable-scopecss'] ?? options.disableScopecss ?? microApp['disable-scopecss']),
+          useSandbox: !(options['disable-sandbox'] ?? options.disableSandbox ?? microApp['disable-sandbox']),
+          useMemoryRouter: !(options['disable-memory-router'] ?? microApp['disable-memory-router']),
           isPrefetch: true,
+          inline: options.inline ?? microApp.inline,
+          esmodule: options.esmodule ?? microApp.esmodule,
         })
 
         app.prefetchResolve = resolve

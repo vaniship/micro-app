@@ -197,24 +197,33 @@ export function fetchLinkSuccess (
   linkInfo.code = code
   const appSpaceData = linkInfo.appSpace[app.name]
   const placeholder = appSpaceData.placeholder!
-  const convertStyle = pureCreateElement('style')
+  /**
+   * When prefetch app is replaced by a new app in the processing phase, since the linkInfo is common, when the linkInfo of the prefetch app is processed, it may have already been processed.
+   * This causes placeholder to be possibly null
+   * e.g.
+   * 1. prefetch app.url different from <micro-app></micro-app>
+   * 2. prefetch param different from <micro-app></micro-app>
+   */
+  if (placeholder) {
+    const convertStyle = pureCreateElement('style')
 
-  handleConvertStyle(
-    app,
-    address,
-    convertStyle,
-    linkInfo,
-    appSpaceData.attrs,
-  )
+    handleConvertStyle(
+      app,
+      address,
+      convertStyle,
+      linkInfo,
+      appSpaceData.attrs,
+    )
 
-  if (placeholder.parentNode) {
-    placeholder.parentNode.replaceChild(convertStyle, placeholder)
-  } else {
-    microAppHead.appendChild(convertStyle)
+    if (placeholder.parentNode) {
+      placeholder.parentNode.replaceChild(convertStyle, placeholder)
+    } else {
+      microAppHead.appendChild(convertStyle)
+    }
+
+    // clear placeholder
+    appSpaceData.placeholder = null
   }
-
-  // clear placeholder
-  appSpaceData.placeholder = null
 }
 
 /**

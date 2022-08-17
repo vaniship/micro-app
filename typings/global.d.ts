@@ -74,6 +74,7 @@ declare module '@micro-app/types' {
       attrs: Map<string, string>, // element attributes
       parsedCode?: string, // bind code
       parsedFunction?: Function | null, // code to function
+      useSandbox?: boolean // use sandbox
     }>
   }
 
@@ -172,6 +173,8 @@ declare module '@micro-app/types' {
     'disable-scopecss'?: boolean
     'disable-sandbox'?: boolean
     'disable-memory-router'?: boolean
+    inline?: boolean
+    esmodule?: boolean
   }
 
   // prefetch params
