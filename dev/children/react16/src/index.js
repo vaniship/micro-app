@@ -221,12 +221,14 @@ dynamicStyle.textContent = '.test-class { color: red } '
  * 子应用：/sugrec，默认补全为 http://localhost:3001/sugrec
  * 主应用：http://localhost:3000/sugrec
  */
-fetch('/sugrec').then((res) => {
-  res.headers.forEach(function(val, key) { console.log('response.headers: ', key + ': ' + val) })
-  return res.json()
-}).then((data) => {
-  console.log('proxy代理 https://www.baidu.com/sugrec 返回数据', data)
-})
+if (process.env.NODE_ENV !== 'production') {
+  fetch('/sugrec').then((res) => {
+    res.headers.forEach(function(val, key) { console.log('response.headers: ', key + ': ' + val) })
+    return res.json()
+  }).then((data) => {
+    console.log('proxy代理 https://www.baidu.com/sugrec 返回数据', data)
+  })
+}
 
 
 /* ---------------------- 插件相关 --------------------- */

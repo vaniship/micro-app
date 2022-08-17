@@ -164,7 +164,7 @@ function createRouterApi (): RouterApi {
     removeDomScope()
     for (const guard of guards) {
       if (isFunction(guard)) {
-        guard(appName, to, from)
+        guard(to, from, appName)
       } else if (isPlainObject(guard) && isFunction((guard as AccurateGuard)[appName])) {
         guard[appName](to, from)
       }
