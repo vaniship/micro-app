@@ -9,8 +9,8 @@ preFetch接受一个数组或一个返回数组的函数，数组的配置如下
 Array<{
   name: string, // 应用名称，必传
   url: string, // 应用地址，必传
-  esmodule: string, // 是否支持esmodule，vite应用必传，其它应用可选
-  inline: string, // 是否使用内联模式运行js，可选
+  esmodule: boolean, // 是否支持esmodule，vite应用必传，其它应用可选
+  inline: boolean, // 是否使用内联模式运行js，可选
   'disable-scopecss': boolean // 是否关闭样式隔离，可选
   'disable-sandbox': boolean // 是否关闭沙盒，可选
 }>
