@@ -65,7 +65,7 @@ microApp.preFetch([
 
 但我们还是建议预加载的配置和`<micro-app>`元素上的配置保持一致，虽然这不是必须的。
 
-例如：`<micro-app>`元素设置了`disable-scopecss`，那么预加载也最好保持一致
+例如：`<micro-app>`元素设置了`disable-scopecss`关闭样式隔离，那么预加载也最好保持一致
 
 ```html
 <micro-app name='my-app' url='xxx' disable-scopecss></micro-app>
