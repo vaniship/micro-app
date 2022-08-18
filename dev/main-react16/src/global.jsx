@@ -2,7 +2,7 @@ import 'babel-polyfill'
 import microApp, { unmountApp, unmountAllApps } from '@micro-zoe/micro-app'
 import config from './config'
 
-microApp.preFetch([
+const prefetchConfig = [
   {
     name: 'vite',
     url: `${config.vite}micro-app/vite`,
@@ -13,6 +13,7 @@ microApp.preFetch([
   {
     name: 'vue2',
     url: `${config.vue2}micro-app/vue2`,
+    // 'disable-scopecss': true,
   },
   {
     name: 'react16',
@@ -33,8 +34,11 @@ microApp.preFetch([
   {
     name: 'angular14',
     url: `${config.angular14}micro-app/angular14`,
+    esmodule: true,
   },
-])
+]
+
+microApp.preFetch(prefetchConfig)
 
 microApp.start({
   // shadowDOM: true,
@@ -50,6 +54,7 @@ microApp.start({
   // 'hidden-router': true,
   // esmodule: true,
   // ssr: true,
+  // preFetchApps: prefetchConfig,
   lifeCycles: {
     created () {
       console.log('created 全局监听')

@@ -1,8 +1,9 @@
 import type {
+  Func,
   AppInterface,
   sourceType,
   SandBoxInterface,
-  Func,
+  MountParam,
 } from '@micro-app/types'
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
@@ -29,20 +30,13 @@ export const appInstanceMap = new Map<string, AppInterface>()
 export interface CreateAppParam {
   name: string
   url: string
-  ssrUrl?: string
   scopecss: boolean
   useSandbox: boolean
-  useMemoryRouter: boolean
   inline?: boolean
-  baseroute?: string
-  keepRouteState?: boolean
-  hiddenRouter?: boolean,
-  container?: HTMLElement | ShadowRoot
-  defaultPage?: string
-  disablePatchRequest?: boolean
-  fiber?: boolean
-  isPrefetch?: boolean
   esmodule?: boolean
+  container?: HTMLElement | ShadowRoot
+  ssrUrl?: string
+  isPrefetch?: boolean
 }
 
 export default class CreateApp implements AppInterface {
@@ -53,72 +47,56 @@ export default class CreateApp implements AppInterface {
   private umdHookMount: Func | null = null
   private umdHookUnmount: Func | null = null
   private libraryName: string | null = null
-  umdMode = false
-  isPrefetch = false
-  prefetchResolve: (() => void) | null = null
-  name: string
-  url: string
-  ssrUrl: string
-  container: HTMLElement | ShadowRoot | null = null
-  inline: boolean
-  scopecss: boolean
-  useSandbox: boolean
-  useMemoryRouter: boolean
-  baseroute: string
-  keepRouteState: boolean
-  hiddenRouter: boolean
-  source: sourceType
-  sandBox: SandBoxInterface | null = null
-  defaultPage: string
-  disablePatchRequest: boolean
-  fiber: boolean
-  esmodule: boolean
+  public umdMode = false
+  public source: sourceType
+  public sandBox: SandBoxInterface | null = null
+  public name: string
+  public url: string
+  public container: HTMLElement | ShadowRoot | null
+  public scopecss: boolean
+  public useSandbox: boolean
+  public inline: boolean
+  public esmodule: boolean
+  public ssrUrl: string
+  public isPrefetch
+  public keepRouteState = false
+  public fiber = false
+  public useMemoryRouter = true
 
   constructor ({
     name,
     url,
-    ssrUrl,
     container,
-    inline,
     scopecss,
     useSandbox,
-    useMemoryRouter,
-    baseroute,
-    keepRouteState,
-    hiddenRouter,
-    defaultPage,
-    disablePatchRequest,
-    fiber,
-    isPrefetch,
+    inline,
     esmodule,
+    ssrUrl,
+    isPrefetch,
   }: CreateAppParam) {
     this.name = name
     this.url = url
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
-    this.useMemoryRouter = this.useSandbox && useMemoryRouter
-    // optional during init base on prefetch 👇
-    this.container = container ?? null
-    this.ssrUrl = ssrUrl ?? ''
     this.inline = inline ?? false
-    this.baseroute = baseroute ?? ''
-    this.keepRouteState = keepRouteState ?? false
-    this.hiddenRouter = hiddenRouter ?? false
-    this.defaultPage = defaultPage ?? ''
-    this.disablePatchRequest = disablePatchRequest ?? false
-    this.fiber = fiber ?? false
     this.esmodule = esmodule ?? false
 
+    // not exist when prefetch 👇
+    this.container = container ?? null
+    this.ssrUrl = ssrUrl ?? ''
+
+    // not exist when normal 👇
     this.isPrefetch = isPrefetch ?? false
 
+    // init actions
+    appInstanceMap.set(this.name, this)
     this.source = { html: null, links: new Set(), scripts: new Set() }
     this.loadSourceCode()
-    this.useSandbox && (this.sandBox = new SandBox(name, url, this.useMemoryRouter))
-    appInstanceMap.set(this.name, this)
+    this.useSandbox && (this.sandBox = new SandBox(name, url))
   }
 
   // Load resources
-  loadSourceCode (): void {
+  public loadSourceCode (): void {
     this.state = appStates.LOADING
     HTMLLoader.getInstance().run(this, extractSourceDom)
   }
@@ -126,16 +104,14 @@ export default class CreateApp implements AppInterface {
   /**
    * When resource is loaded, mount app if it is not prefetch or unmount
    */
-  onLoad (html: HTMLElement): void {
+  public onLoad (html: HTMLElement): void {
     if (++this.loadSourceLevel === 2) {
       this.source.html = html
+      this.state = appStates.LOADED
 
-      if (this.isPrefetch) {
-        this.prefetchResolve?.()
-        this.prefetchResolve = null
-      } else if (appStates.UNMOUNT !== this.state) {
-        this.state = appStates.LOADED
-        this.mount()
+      if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
+        // @ts-ignore
+        getRootContainer(this.container!).mount(this)
       }
     }
   }
@@ -144,12 +120,8 @@ export default class CreateApp implements AppInterface {
    * Error loading HTML
    * @param e Error
    */
-  onLoadError (e: Error): void {
+  public onLoadError (e: Error): void {
     this.loadSourceLevel = -1
-    if (this.prefetchResolve) {
-      this.prefetchResolve()
-      this.prefetchResolve = null
-    }
 
     if (appStates.UNMOUNT !== this.state) {
       this.onerror(e)
@@ -165,26 +137,26 @@ export default class CreateApp implements AppInterface {
    * @param keepRouteState keep route state when unmount, default is false
    * @param disablePatchRequest prevent rewrite request method of child app
    */
-  mount (
-    container?: HTMLElement | ShadowRoot,
-    inline?: boolean,
-    baseroute?: string,
-    keepRouteState?: boolean,
-    defaultPage?: string,
-    hiddenRouter?: boolean,
-    disablePatchRequest?: boolean,
-    fiber?: boolean,
-    esmodule?: boolean
-  ): void {
-    this.inline = inline ?? this.inline
-    this.keepRouteState = keepRouteState ?? this.keepRouteState
-    this.container = this.container ?? container!
-    this.baseroute = baseroute ?? this.baseroute
-    this.defaultPage = defaultPage ?? this.defaultPage
-    this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
-    this.disablePatchRequest = disablePatchRequest ?? this.disablePatchRequest
-    this.fiber = fiber ?? this.fiber
-    this.esmodule = esmodule ?? this.esmodule
+  public mount ({
+    container,
+    inline,
+    esmodule,
+    useMemoryRouter,
+    baseroute,
+    keepRouteState,
+    defaultPage,
+    disablePatchRequest,
+    fiber,
+    // hiddenRouter,
+  }: MountParam): void {
+    this.container = container
+    this.inline = inline
+    this.esmodule = esmodule
+    this.keepRouteState = keepRouteState
+    this.fiber = fiber
+    // use in sandbox/effect
+    this.useMemoryRouter = useMemoryRouter
+    // this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
 
     if (this.loadSourceLevel !== 2) {
       this.state = appStates.LOADING
@@ -201,13 +173,13 @@ export default class CreateApp implements AppInterface {
 
     cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
 
-    this.sandBox?.start(
-      this.umdMode,
-      this.baseroute,
-      this.useMemoryRouter,
-      this.defaultPage,
-      this.disablePatchRequest,
-    )
+    this.sandBox?.start({
+      umdMode: this.umdMode,
+      baseroute,
+      useMemoryRouter,
+      defaultPage,
+      disablePatchRequest,
+    })
 
     let umdHookMountResult: any // result of mount function
 
@@ -286,7 +258,7 @@ export default class CreateApp implements AppInterface {
    * @param destroy completely destroy, delete cache resources
    * @param unmountcb callback of unmount
    */
-  unmount (destroy: boolean, unmountcb?: CallableFunction): void {
+  public unmount (destroy: boolean, unmountcb?: CallableFunction): void {
     if (this.state === appStates.LOAD_FAILED) {
       destroy = true
     }
@@ -356,11 +328,11 @@ export default class CreateApp implements AppInterface {
      * 1. if destroy is true, clear route state
      * 2. umd mode and keep-alive will not clear EventSource
      */
-    this.sandBox?.stop(
-      this.umdMode,
-      this.keepRouteState && !destroy,
-      !this.umdMode || destroy,
-    )
+    this.sandBox?.stop({
+      umdMode: this.umdMode,
+      keepRouteState: this.keepRouteState && !destroy,
+      clearEventSource: !this.umdMode || destroy,
+    })
     if (!getActiveApps().length) {
       releasePatchSetAttribute()
     }
@@ -379,7 +351,7 @@ export default class CreateApp implements AppInterface {
   }
 
   // actions for completely destroy
-  actionsForCompletelyDestroy (): void {
+  public actionsForCompletelyDestroy (): void {
     if (!this.useSandbox && this.umdMode) {
       delete window[this.libraryName as any]
     }
@@ -387,7 +359,7 @@ export default class CreateApp implements AppInterface {
   }
 
   // hidden app when disconnectedCallback called with keep-alive
-  hiddenKeepAliveApp (): void {
+  public hiddenKeepAliveApp (): void {
     const oldContainer = this.container
 
     cloneContainer(
@@ -418,7 +390,7 @@ export default class CreateApp implements AppInterface {
   }
 
   // show app when connectedCallback called with keep-alive
-  showKeepAliveApp (container: HTMLElement | ShadowRoot): void {
+  public showKeepAliveApp (container: HTMLElement | ShadowRoot): void {
     // dispatch beforeShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'beforeshow',
@@ -461,7 +433,7 @@ export default class CreateApp implements AppInterface {
    * app rendering error
    * @param e Error
    */
-  onerror (e: Error): void {
+  public onerror (e: Error): void {
     dispatchLifecyclesEvent(
       this.container!,
       this.name,
@@ -471,12 +443,12 @@ export default class CreateApp implements AppInterface {
   }
 
   // get app state
-  getAppState (): string {
+  public getAppState (): string {
     return this.state
   }
 
   // get keep-alive state
-  getKeepAliveState (): string | null {
+  public getKeepAliveState (): string | null {
     return this.keepAliveState
   }
 

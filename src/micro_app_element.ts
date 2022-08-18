@@ -153,29 +153,44 @@ export function defineElement (tagName: string): void {
       if (appInstanceMap.has(this.appName)) {
         const app = appInstanceMap.get(this.appName)!
         const existAppUrl = app.ssrUrl || app.url
-        const activeAppUrl = this.ssrUrl || this.appUrl
-        // keep-alive don't care about ssrUrl
-        // Even if the keep-alive app is pushed into the background, it is still active and cannot be replaced. Otherwise, it is difficult for developers to troubleshoot in case of conflict and  will leave developers at a loss
+        const targetAppUrl = this.ssrUrl || this.appUrl
+        /**
+         * NOTE:
+         * 1. keep-alive don't care about ssrUrl
+         * 2. Even if the keep-alive app is pushed into the background, it is still active and cannot be replaced. Otherwise, it is difficult for developers to troubleshoot in case of conflict and  will leave developers at a loss
+         * 3. When scopecss, useSandbox of prefetch app different from target app, delete prefetch app and create new one
+         */
         if (
           app.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN &&
           app.url === this.appUrl
         ) {
           this.handleShowKeepAliveApp(app)
         } else if (
-          existAppUrl === activeAppUrl && (
-            app.isPrefetch ||
-            app.getAppState() === appStates.UNMOUNT
+          existAppUrl === targetAppUrl && (
+            app.getAppState() === appStates.UNMOUNT ||
+            (
+              app.isPrefetch && (
+                app.scopecss === this.isScopecss() &&
+                app.useSandbox === this.isSandbox()
+              )
+            )
           )
         ) {
           this.handleAppMount(app)
         } else if (app.isPrefetch || app.getAppState() === appStates.UNMOUNT) {
-          /**
-           * url is different & old app is unmounted or prefetch, create new app to replace old one
-           */
-          logWarn(`the ${app.isPrefetch ? 'prefetch' : 'unmounted'} app with url: ${existAppUrl} is replaced by a new app`, this.appName)
+          if (
+            process.env.NODE_ENV !== 'production' &&
+            app.scopecss === this.isScopecss() &&
+            app.useSandbox === this.isSandbox()
+          ) {
+            /**
+             * url is different & old app is unmounted or prefetch, create new app to replace old one
+             */
+            logWarn(`the ${app.isPrefetch ? 'prefetch' : 'unmounted'} app with url: ${existAppUrl} replaced by a new app with url: ${targetAppUrl}`, this.appName)
+          }
           this.handleCreateApp()
         } else {
-          logError(`app name conflict, an app named ${this.appName} is running`, this.appName)
+          logError(`app name conflict, an app named: ${this.appName} with url: ${existAppUrl} is running`, this.appName)
         }
       } else {
         this.handleCreateApp()
@@ -295,17 +310,25 @@ export function defineElement (tagName: string): void {
      */
     private handleAppMount (app: AppInterface): void {
       app.isPrefetch = false
-      defer(() => app.mount(
-        this.shadowRoot ?? this,
-        this.getDisposeResult('inline'),
-        this.getBaseRouteCompatible(),
-        this.getDisposeResult('keep-router-state'),
-        this.getDefaultPageValue(),
-        this.getDisposeResult('hidden-router'),
-        this.getDisposeResult('disable-patch-request'),
-        this.getDisposeResult('fiber'),
-        this.getDisposeResult('esmodule'),
-      ))
+      defer(() => this.mount(app))
+    }
+
+    /**
+     * public mount action for micro_app_element & create_app
+     */
+    public mount (app: AppInterface) {
+      app.mount({
+        container: this.shadowRoot ?? this,
+        inline: this.getDisposeResult('inline'),
+        esmodule: this.getDisposeResult('esmodule'),
+        useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
+        baseroute: this.getBaseRouteCompatible(),
+        keepRouteState: this.getDisposeResult('keep-router-state'),
+        defaultPage: this.getDefaultPageValue(),
+        hiddenRouter: this.getDisposeResult('hidden-router'),
+        disablePatchRequest: this.getDisposeResult('disable-patch-request'),
+        fiber: this.getDisposeResult('fiber'),
+      })
     }
 
     // create app instance
@@ -321,19 +344,12 @@ export function defineElement (tagName: string): void {
       new CreateApp({
         name: this.appName,
         url: this.appUrl,
-        ssrUrl: this.ssrUrl,
-        container: this.shadowRoot ?? this,
+        scopecss: this.isScopecss(),
+        useSandbox: this.isSandbox(),
         inline: this.getDisposeResult('inline'),
-        scopecss: !(this.getDisposeResult('disable-scopecss') || this.getDisposeResult('shadowDOM')),
-        useSandbox: !this.getDisposeResult('disable-sandbox'),
-        useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
-        baseroute: this.getBaseRouteCompatible(),
-        keepRouteState: this.getDisposeResult('keep-router-state'),
-        defaultPage: this.getDefaultPageValue(),
-        hiddenRouter: this.getDisposeResult('hidden-router'),
-        disablePatchRequest: this.getDisposeResult('disable-patch-request'),
-        fiber: this.getDisposeResult('fiber'),
         esmodule: this.getDisposeResult('esmodule'),
+        container: this.shadowRoot ?? this,
+        ssrUrl: this.ssrUrl,
       })
     }
 
@@ -398,6 +414,14 @@ export function defineElement (tagName: string): void {
         return this.getAttribute('disable-sandbox') !== 'false' && this.getAttribute('disableSandbox') !== 'false'
       }
       return this.getAttribute(name) !== 'false'
+    }
+
+    private isScopecss (): boolean {
+      return !(this.getDisposeResult('disable-scopecss') || this.getDisposeResult('shadowDOM'))
+    }
+
+    private isSandbox (): boolean {
+      return !this.getDisposeResult('disable-sandbox')
     }
 
     /**

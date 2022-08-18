@@ -15,21 +15,25 @@ declare module '@micro-app/types' {
 
   type fiberTasks = Array<() => Promise<void>> | null
 
+  interface SandBoxStartParams {
+    umdMode: boolean
+    baseroute: string
+    useMemoryRouter: boolean
+    defaultPage: string
+    disablePatchRequest: boolean
+  }
+
+  interface SandBoxStopParams {
+    umdMode: boolean
+    keepRouteState: boolean
+    clearEventSource: boolean
+  }
+
   interface SandBoxInterface {
     proxyWindow: WindowProxy
     microAppWindow: Window // Proxy target
-    start (
-      umdMode: boolean,
-      baseRoute: string,
-      useMemoryRouter: boolean,
-      defaultPage: string,
-      disablePatchRequest: boolean,
-    ): void
-    stop (
-      umdMode: boolean,
-      keepRouteState: boolean,
-      clearEventSource: boolean,
-    ): void
+    start (startParams: SandBoxStartParams): void
+    stop (stopParams: SandBoxStopParams): void
     // record umd snapshot before the first execution of umdHookMount
     recordUmdSnapshot (): void
     // rebuild umd snapshot before remount umd app
@@ -74,7 +78,7 @@ declare module '@micro-app/types' {
       attrs: Map<string, string>, // element attributes
       parsedCode?: string, // bind code
       parsedFunction?: Function | null, // code to function
-      useSandbox?: boolean // use sandbox
+      wrapInSandBox?: boolean // use sandbox
     }>
   }
 
@@ -84,27 +88,39 @@ declare module '@micro-app/types' {
     scripts: Set<string>, // script address list
   }
 
+  interface MountParam {
+    container: HTMLElement | ShadowRoot
+    inline: boolean
+    useMemoryRouter: boolean
+    baseroute: string
+    keepRouteState: boolean
+    defaultPage: string
+    hiddenRouter: boolean
+    disablePatchRequest: boolean
+    fiber: boolean
+    esmodule: boolean
+  }
+
   // app instance
   interface AppInterface {
-    isPrefetch: boolean // whether prefetch app, default is false
-    prefetchResolve: (() => void) | null // prefetch callback
+    source: sourceType // source list
+    sandBox: SandBoxInterface | null // sandbox
     name: string // app name
     url: string // app url
-    ssrUrl: string // html path in ssr mode
-    container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, DIV(keep-alive)
-    inline: boolean //  whether js runs in inline script mode, default is false
     scopecss: boolean // whether use css scoped, default is true
     useSandbox: boolean // whether use js sandbox, default is true
-    useMemoryRouter: boolean // whether use memoryRouter, default is true
-    baseroute: string // route prefix, default is ''
+    inline: boolean //  whether js runs in inline script mode, default is false
+    esmodule: boolean // support esmodule in script
+    ssrUrl: string // html path in ssr mode
+    isPrefetch: boolean // whether prefetch app, default is false
+    container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, div(keep-alive)
     keepRouteState: boolean // keep route state when unmount, default is false
-    hiddenRouter: boolean // hide router info of child from browser url
-    sandBox: SandBoxInterface | null // sandbox
     umdMode: boolean // is umd mode
-    defaultPage: string // default page when mount
-    source: sourceType // source list
     fiber: boolean // fiber mode
-    esmodule: boolean
+    useMemoryRouter: boolean // use virtual router
+    // defaultPage: string // default page when mount
+    // baseroute: string // route prefix, default is ''
+    // hiddenRouter: boolean // hide router info of child from browser url
 
     // Load resources
     loadSourceCode (): void
@@ -116,17 +132,7 @@ declare module '@micro-app/types' {
     onLoadError (e: Error): void
 
     // mount app
-    mount (
-      container?: HTMLElement | ShadowRoot,
-      inline?: boolean,
-      baseroute?: string,
-      keepRouteState?: boolean,
-      defaultPage?: string,
-      hiddenRouter?: boolean,
-      disablePatchRequest?: boolean,
-      fiber?: boolean,
-      esmodule?: boolean
-    ): void
+    mount (mountParams: MountParam): void
 
     // unmount app
     unmount (destroy: boolean, unmountcb?: CallableFunction): void
@@ -172,7 +178,6 @@ declare module '@micro-app/types' {
     // old config 👆
     'disable-scopecss'?: boolean
     'disable-sandbox'?: boolean
-    'disable-memory-router'?: boolean
     inline?: boolean
     esmodule?: boolean
   }
@@ -341,7 +346,7 @@ declare module '@micro-app/types' {
     [appName: string]: (to: GuardLocation, from: GuardLocation) => void
   }
 
-  type GlobalNormalGuard = ((appName: string, to: GuardLocation, from: GuardLocation) => void)
+  type GlobalNormalGuard = ((to: GuardLocation, from: GuardLocation, appName: string) => void)
 
   type RouterGuard = AccurateGuard | GlobalNormalGuard
 

@@ -98,7 +98,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' disable-memory-router></micro-app>`
 
-默认情况下，子应用将运行在虚拟路由系统中，和基座应用的路由系统进行隔离，避免相互影响。
+默认情况下，子应用将运行在虚拟路由系统中，和主应用的路由系统进行隔离，避免相互影响。
 
 子应用的路由信息会作为query参数同步到浏览器地址上，如下：
 
@@ -143,9 +143,9 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 
 如：`fetch('/api/data')` 补全为 `fetch(子应用域名 + '/api/data')`
 
-如果不需要这样的补全，可以配置`disable-patch-request`进行关闭，此时相对地址会兜底到基座域名。
+如果不需要这样的补全，可以配置`disable-patch-request`进行关闭，此时相对地址会兜底到主应用域名。
 
-如：`fetch('/api/data')` 兜底为 `fetch(基座域名 + '/api/data')`
+如：`fetch('/api/data')` 兜底为 `fetch(主应用域名 + '/api/data')`
 
 ## baseroute
 - Desc: `子应用的基础路由`

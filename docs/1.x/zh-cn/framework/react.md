@@ -1,6 +1,6 @@
 本篇以`React 16、17`作为案例介绍react的接入方式，其它版本react的接入方式以此类推。我们默认开发者掌握了各版本react的开发技巧，如示例中useEffect，在不支持hooks的版本中转换为componentDidMount。
 
-## 作为基座应用
+## 作为主应用
 
 #### 1、安装依赖
 ```bash
@@ -98,7 +98,7 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 
 如果子应用资源加载混乱导致渲染失败，可以尝试设置`jsonpFunction`来解决，因为相同的`jsonpFunction`名称会导致资源污染。
 
-这种情况常见于基座和子应用都是通过`create-react-app`等脚手架创建的项目。
+这种情况常见于主应用和子应用都是通过`create-react-app`等脚手架创建的项目。
 
 **解决方式：修改子应用的webpack配置**
 <!-- tabs:start -->
@@ -143,7 +143,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 }
 ```
 
-**步骤2:** 在子应用入口文件的`最顶部`引入`public-path.js`
+**步骤2:** 在子应用入口文件的**最顶部**引入`public-path.js`
 ```js
 // entry
 import './public-path'

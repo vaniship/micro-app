@@ -123,7 +123,8 @@ function setConvertScriptAttr (convertScript: HTMLScriptElement, attrs: AttrsTyp
   })
 }
 
-function isSandBoxEnv (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
+// wrap code in sandbox
+function isWrapInSandBox (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
   return app.useSandbox && !isTypeModule(app, scriptInfo)
 }
 
@@ -370,7 +371,7 @@ export function fetchScriptSuccess (
      */
     if (!appSpaceData.parsedCode) {
       appSpaceData.parsedCode = bindScope(address, app, code, scriptInfo)
-      appSpaceData.useSandbox = app.useSandbox
+      appSpaceData.wrapInSandBox = isWrapInSandBox(app, scriptInfo)
       if (!isInlineMode(app, scriptInfo)) {
         try {
           appSpaceData.parsedFunction = getParsedFunction(app, scriptInfo, appSpaceData.parsedCode)
@@ -495,15 +496,16 @@ export function runScript (
   try {
     actionsBeforeRunScript(app)
     const appSpaceData = scriptInfo.appSpace[app.name]
+    const wrapInSandBox = isWrapInSandBox(app, scriptInfo)
     /**
      * NOTE:
      * 1. plugins and wrapCode will only be executed once
      * 2. if parsedCode not exist, parsedFunction is not exist
      * 3. if parsedCode exist, parsedFunction does not necessarily exist
      */
-    if (!appSpaceData.parsedCode || appSpaceData.useSandbox !== app.useSandbox) {
+    if (!appSpaceData.parsedCode || appSpaceData.wrapInSandBox !== wrapInSandBox) {
       appSpaceData.parsedCode = bindScope(address, app, scriptInfo.code, scriptInfo)
-      appSpaceData.useSandbox = app.useSandbox
+      appSpaceData.wrapInSandBox = wrapInSandBox
       appSpaceData.parsedFunction = null
     }
 
@@ -649,7 +651,7 @@ function bindScope (
     code = usePlugins(address, code, app.name, microApp.plugins)
   }
 
-  if (isSandBoxEnv(app, scriptInfo)) {
+  if (isWrapInSandBox(app, scriptInfo)) {
     return `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${globalKeyToBeCached}){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${globalKeyToBeCached})}})(window.__MICRO_APP_PROXY_WINDOW__);`
   }
 
@@ -663,6 +665,9 @@ function actionsBeforeRunScript (app: AppInterface): void {
   setActiveProxyWindow(app)
 }
 
+/**
+ * set active sandBox.proxyWindow to window.__MICRO_APP_PROXY_WINDOW__
+ */
 function setActiveProxyWindow (app: AppInterface): void {
   if (app.sandBox) {
     globalEnv.rawWindow.__MICRO_APP_PROXY_WINDOW__ = app.sandBox.proxyWindow

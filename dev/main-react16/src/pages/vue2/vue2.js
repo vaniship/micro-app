@@ -84,7 +84,7 @@ function Vue2 () {
         // shadowDOM
         // destroy
         // inline
-        // disableScopecss
+        // disable-scopecss
         // disableSandbox
       >
       </micro-app>

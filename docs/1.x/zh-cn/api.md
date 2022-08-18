@@ -1,6 +1,6 @@
 <!-- tabs:start -->
 
-# ** 基座应用API **
+# ** 主应用API **
 ## start
 **描述：**micro-app注册函数，全局执行一次
 
@@ -40,7 +40,7 @@ start (options?: {
   plugins?: {
     // 全局插件，作用于所有子应用的js文件
     global?: Array<{
-      // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到基座应用中，scopeProperties可以禁止这种情况)
+      // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到主应用中，scopeProperties可以禁止这种情况)
       scopeProperties?: string[],
       // 可选，可以逃逸到外部的全局变量(escapeProperties中的变量会同时赋值到子应用和外部真实的window上)
       escapeProperties?: string[],
@@ -60,7 +60,7 @@ start (options?: {
     modules?: {
       // appName为应用的名称，这些插件只会作用于指定的应用
       [name: string]: Array<{
-        // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到基座应用中，scopeProperties可以禁止这种情况)
+        // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到主应用中，scopeProperties可以禁止这种情况)
         scopeProperties?: string[],
         // 可选，可以逃逸到外部的全局变量(escapeProperties中的变量会同时赋值到子应用和外部真实的window上)
         escapeProperties?: string[],
@@ -195,7 +195,7 @@ document.body.appendChild(pureDiv)
 
 
 ## removeDomScope
-**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致基座元素错误绑定到子应用的情况
+**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致主应用元素错误绑定到子应用的情况
 
 **使用方式：**
 ```js
@@ -361,7 +361,7 @@ microApp.addDataListener('my-app', dataListener)
 ```
 
 ## removeDataListener
-**描述：**解除基座绑定的指定子应用的数据监听函数
+**描述：**解除主应用的数据监听函数
 
 **使用方式：**
 
@@ -377,7 +377,7 @@ microApp.removeDataListener('my-app', dataListener)
 ```
 
 ## clearDataListener
-**描述：**清空基座绑定的指定子应用的所有数据监听函数
+**描述：**清空主应用的所有数据监听函数
 
 **使用方式：**
 
@@ -441,7 +441,7 @@ microApp.removeGlobalDataListener(dataListener)
 ```
 
 ## clearGlobalDataListener
-**描述：**清空基座应用绑定的所有全局数据监听函数
+**描述：**清空主应用绑定的所有全局数据监听函数
 
 **使用方式：**
 
@@ -486,7 +486,7 @@ document.body.appendChild(pureDiv)
 
 
 ## removeDomScope
-**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致基座元素错误绑定到子应用的情况
+**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致主应用元素错误绑定到子应用的情况
 
 **版本限制：** 0.8.2及以上版本
 
@@ -514,11 +514,11 @@ window.rawDocument
 
 
 ## getData
-**描述：**获取基座下发的data数据
+**描述：**获取主应用下发的data数据
 
 **使用方式：**
 ```js
-const data = window.microApp.getData() // 返回基座下发的data数据
+const data = window.microApp.getData() // 返回主应用下发的data数据
 ```
 
 ## addDataListener
@@ -530,8 +530,8 @@ const data = window.microApp.getData() // 返回基座下发的data数据
  * 绑定监听函数，监听函数只有在数据变化时才会触发
  * dataListener: 绑定函数
  * autoTrigger: 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次，默认为false
- * !!!重要说明: 因为子应用是异步渲染的，而基座发送数据是同步的，
- * 如果在子应用渲染结束前基座应用发送数据，则在绑定监听函数前数据已经发送，在初始化后不会触发绑定函数，
+ * !!!重要说明: 因为子应用是异步渲染的，而主应用发送数据是同步的，
+ * 如果在子应用渲染结束前主应用发送数据，则在绑定监听函数前数据已经发送，在初始化后不会触发绑定函数，
  * 但这个数据会放入缓存中，此时可以设置autoTrigger为true主动触发一次监听函数来获取数据。
  */
 window.microApp.addDataListener(dataListener: Function, autoTrigger?: boolean)
@@ -540,7 +540,7 @@ window.microApp.addDataListener(dataListener: Function, autoTrigger?: boolean)
 **使用方式：**
 ```js
 function dataListener (data) {
-  console.log('来自基座应用的数据', data)
+  console.log('来自主应用的数据', data)
 }
 
 window.microApp.addDataListener(dataListener)
@@ -553,7 +553,7 @@ window.microApp.addDataListener(dataListener)
 
 ```js
 function dataListener (data) {
-  console.log('来自基座应用的数据', data)
+  console.log('来自主应用的数据', data)
 }
 
 window.microApp.removeDataListener(dataListener)
@@ -569,7 +569,7 @@ window.microApp.clearDataListener()
 ```
 
 ## dispatch
-**描述：**向基座应用发送数据
+**描述：**向主应用发送数据
 
 **使用方式：**
 

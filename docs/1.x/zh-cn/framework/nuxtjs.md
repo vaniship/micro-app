@@ -1,6 +1,6 @@
 本篇以`nuxtjs 2`作为案例介绍nuxtjs的接入方式，其它版本nuxtjs接入方式会在后续补充，如果你在使用时出现问题，请在github上提issue告知我们。
 
-## 作为基座应用
+## 作为主应用
 
 #### 1、安装依赖
 ```bash
@@ -59,8 +59,8 @@ export default {
 
 ## 作为子应用
 
-#### 1、在基座应用中添加ssr配置
-当子应用是ssr应用时，基座需要在micro-app元素上添加ssr属性，此时micro-app会根据ssr模式加载子应用。
+#### 1、在主应用中添加ssr配置
+当子应用是ssr应用时，主应用需要在micro-app元素上添加ssr属性，此时micro-app会根据ssr模式加载子应用。
 
 ```html
 <micro-app name='xx' url='xx' ssr></micro-app>

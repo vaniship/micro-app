@@ -5,6 +5,8 @@ import type {
   plugins,
   MicroLocation,
   SandBoxAdapter,
+  SandBoxStartParams,
+  SandBoxStopParams,
 } from '@micro-app/types'
 import {
   EventCenterForMicroApp,
@@ -18,6 +20,7 @@ import {
   isArray,
   isPlainObject,
   isString,
+  isUndefined,
   removeDomScope,
   unique,
   throttleDeferForSetAppName,
@@ -106,7 +109,7 @@ export default class SandBox implements SandBoxInterface {
   public proxyWindow: proxyWindow // Proxy
   public microAppWindow = {} as MicroAppWindowType // Proxy target
 
-  constructor (appName: string, url: string, useMemoryRouter = true) {
+  constructor (appName: string, url: string) {
     this.adapter = new Adapter()
     // get scopeProperties and escapeProperties from plugins
     this.getSpecialProperties(appName)
@@ -115,27 +118,41 @@ export default class SandBox implements SandBoxInterface {
     // Rewrite global event listener & timeout
     assign(this, effect(appName, this.microAppWindow))
     // inject global properties
-    this.initStaticGlobalKeys(this.microAppWindow, appName, url, useMemoryRouter)
+    this.initStaticGlobalKeys(this.microAppWindow, appName, url)
   }
 
-  // TODO: 重构
-  public start (
-    umdMode = false,
-    baseRoute = '',
-    useMemoryRouter = true,
-    defaultPage = '',
-    disablePatchRequest = false,
-  ): void {
+  /**
+   * open sandbox and perform some initial actions
+   * @param umdMode is umd mode
+   * @param baseroute base route for child
+   * @param useMemoryRouter use virtual router
+   * @param defaultPage default page when mount child base on virtual router
+   * @param disablePatchRequest prevent patchRequestApi
+   */
+  public start ({
+    umdMode,
+    baseroute,
+    useMemoryRouter,
+    defaultPage,
+    disablePatchRequest,
+  }: SandBoxStartParams): void {
     if (!this.active) {
       this.active = true
       if (useMemoryRouter) {
+        if (isUndefined(this.microAppWindow.location)) {
+          this.setMicroAppRouter(
+            this.microAppWindow,
+            this.microAppWindow.__MICRO_APP_NAME__,
+            this.microAppWindow.__MICRO_APP_URL__,
+          )
+        }
         this.initRouteState(defaultPage)
         // unique listener of popstate event for sub app
         this.removeHistoryListener = addHistoryListener(
-          this.proxyWindow.__MICRO_APP_NAME__,
+          this.microAppWindow.__MICRO_APP_NAME__,
         )
       } else {
-        this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseRoute
+        this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
       }
 
       /**
@@ -145,8 +162,8 @@ export default class SandBox implements SandBoxInterface {
       if (!umdMode) {
         this.initGlobalKeysWhenStart(
           this.microAppWindow,
-          this.proxyWindow.__MICRO_APP_NAME__,
-          this.proxyWindow.__MICRO_APP_URL__,
+          this.microAppWindow.__MICRO_APP_NAME__,
+          this.microAppWindow.__MICRO_APP_URL__,
           disablePatchRequest,
         )
       }
@@ -162,11 +179,17 @@ export default class SandBox implements SandBoxInterface {
     }
   }
 
-  public stop (
-    umdMode: boolean,
-    keepRouteState: boolean,
-    clearEventSource: boolean,
-  ): void {
+  /**
+   * close sandbox and perform some clean up actions
+   * @param umdMode is umd mode
+   * @param keepRouteState prevent reset route
+   * @param clearEventSource clear MicroEventSource when destroy
+   */
+  public stop ({
+    umdMode,
+    keepRouteState,
+    clearEventSource,
+  }: SandBoxStopParams): void {
     if (this.active) {
       this.releaseEffect()
       this.microAppWindow.microApp.clearDataListener()
@@ -179,7 +202,7 @@ export default class SandBox implements SandBoxInterface {
       }
 
       if (clearEventSource) {
-        clearMicroEventSource(this.proxyWindow.__MICRO_APP_NAME__)
+        clearMicroEventSource(this.microAppWindow.__MICRO_APP_NAME__)
       }
 
       /**
@@ -376,7 +399,6 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow: microAppWindowType,
     appName: string,
     url: string,
-    useMemoryRouter: boolean,
   ): void {
     microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
     microAppWindow.__MICRO_APP_NAME__ = appName
@@ -392,7 +414,6 @@ export default class SandBox implements SandBoxInterface {
     })
     this.setProxyDocument(microAppWindow, appName)
     this.setMappingPropertiesWithRawDescriptor(microAppWindow)
-    if (useMemoryRouter) this.setMicroAppRouter(microAppWindow, appName, url)
   }
 
   private setProxyDocument (microAppWindow: microAppWindowType, appName: string): void {

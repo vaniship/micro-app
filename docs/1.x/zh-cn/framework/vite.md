@@ -5,8 +5,8 @@
 
 本篇介绍了`vite 2`的接入方式，vite1暂不支持。
 
-## 作为基座应用
-vite作为基座应用时没有特殊之处，具体方式参考各框架接入文档。
+## 作为主应用
+vite作为主应用时没有特殊之处，具体方式参考各框架接入文档。
 
 ## 作为子应用
 
@@ -79,7 +79,7 @@ createApp(App).mount('#my-vite-app')
 
 **3、路由**
 
-推荐基座使用history路由，vite子应用使用hash路由，避免一些可能出现的问题。
+推荐主应用使用history路由，vite子应用使用hash路由，避免一些可能出现的问题。
 
 子应用如果是vue3，在初始化时路由时，createWebHashHistory不要传入参数，如下：
 
@@ -96,8 +96,8 @@ const router = createRouter({
 
 图片等静态资源需要使用绝对地址，可以使用 `new URL('../assets/logo.png', import.meta.url).href` 等方式获取资源的全链接地址。
 
-### 👇 基座应用的修改
-注意这里的基座应用是指嵌入了vite子应用的基座，它可以是任何框架，和上面`作为基座应用`一节无关。
+### 👇 主应用的修改
+注意这里的主应用是指嵌入了vite子应用的主应用，它可以是任何框架，和上面`作为主应用`一节无关。
 
 **1、关闭沙箱并使用内联script模式**
 ```js
@@ -140,7 +140,7 @@ microApp.start({
 ### 👇 数据通信
 沙箱关闭后，子应用默认的通信功能失效，此时可以通过手动注册通信对象实现一致的功能。
 
-**注册方式：在基座应用中为子应用初始化通信对象**
+**注册方式：在主应用中为子应用初始化通信对象**
 
 ```js
 import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
@@ -149,7 +149,7 @@ import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
 window.eventCenterForViteApp1 = new EventCenterForMicroApp(appName)
 ```
 
-vite子应用就可以通过注册的`eventCenterForViteApp1`对象进行通信，其api和`window.microApp`一致，*基座通信方式没有任何变化。*
+vite子应用就可以通过注册的`eventCenterForViteApp1`对象进行通信，其api和`window.microApp`一致，*主应用通信方式没有任何变化。*
 
 **子应用通信方式：**
 ```js
@@ -169,7 +169,7 @@ window.eventCenterForViteApp1.clearDataListener()
 // 主动获取数据
 window.eventCenterForViteApp1.getData()
 
-// 子应用向基座应用发送数据
+// 子应用向主应用发送数据
 window.eventCenterForViteApp1.dispatch({type: '子应用发送的数据'})
 ```
 
@@ -180,6 +180,6 @@ window.eventCenterForViteApp1.dispatch({type: '子应用发送的数据'})
 
 
 ## 实战案例
-以上介绍了vite如何接入微前端，但在实际使用中会涉及更多功能，如数据通信、路由跳转、打包部署，为此我们提供了一套案例，用于展示vite作为基座嵌入(或作为子应用被嵌入) react、vue、angular、vite、nextjs、nuxtjs等框架，在案例中我们使用尽可能少的代码实现尽可能多的功能。
+以上介绍了vite如何接入微前端，但在实际使用中会涉及更多功能，如数据通信、路由跳转、打包部署，为此我们提供了一套案例，用于展示vite作为主应用嵌入(或作为子应用被嵌入) react、vue、angular、vite、nextjs、nuxtjs等框架，在案例中我们使用尽可能少的代码实现尽可能多的功能。
 
 案例地址：https://github.com/micro-zoe/micro-app-demo

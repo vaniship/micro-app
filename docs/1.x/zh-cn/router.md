@@ -1,4 +1,4 @@
-MicroApp通过自定义location和history，实现了一套虚拟路由系统，子应用运行在这套虚拟路由系统中，和基座应用的路由进行隔离，避免相互影响。
+MicroApp通过自定义location和history，实现了一套虚拟路由系统，子应用运行在这套虚拟路由系统中，和主应用的路由进行隔离，避免相互影响。
 
 子应用的路由信息会作为query参数同步到浏览器地址上，如下：
 
@@ -9,14 +9,14 @@ MicroApp通过自定义location和history，实现了一套虚拟路由系统，
 
 ## 导航
 通过虚拟路由系统，我们可以方便的进行跨应用的跳转，如：
-1. 基座控制子应用跳转
-2. 子应用控制基座跳转
+1. 主应用控制子应用跳转
+2. 子应用控制主应用跳转
 3. 子应用控制其它子应用跳转
 
 由于nextjs的路由系统非常特殊，当子应用是nextjs时无法直接控制跳转，参考[通过数据通信控制跳转](/zh-cn/jump?id=方式二、通过数据通信控制跳转)
 
 <!-- tabs:start -->
-#### ** 基座 **
+#### ** 主应用 **
 
 
 ### router.push
@@ -135,25 +135,25 @@ microApp.router.forward()
 
 
 #### ** 子应用 **
-子应用的路由API和基座保持一致，不同点是`microApp`挂载在window上。
+子应用的路由API和主应用保持一致，不同点是`microApp`挂载在window上。
 
-### 子应用控制基座跳转
-默认情况下，子应用无法直接控制基座的跳转，为此我们提供了一个API，将基座的路由对象传递给子应用。
+### 子应用控制主应用跳转
+默认情况下，子应用无法直接控制主应用的跳转，为此我们提供了一个API，将主应用的路由对象传递给子应用。
 
-**基座** 
+**主应用** 
 ```js
 import microApp from '@micro-zoe/micro-app'
 
-// 注册基座路由
-microApp.router.setBaseAppRouter(基座的路由对象)
+// 注册主应用路由
+microApp.router.setBaseAppRouter(主应用的路由对象)
 ```
 **子应用** 
 ```js
-// 获取基座路由
+// 获取主应用路由
 const baseRouter = window.microApp.router.getBaseAppRouter() 
 
-// 控制基座跳转
-baseRouter.基座路由的方法(...) 
+// 控制主应用跳转
+baseRouter.主应用路由的方法(...) 
 ```
 
 ### 控制其他子应用跳转
@@ -270,7 +270,7 @@ window.microApp.router.forward()
 #### 全局前置守卫
 **介绍：**监听所有或某个子应用的路由变化，在子应用页面渲染前执行。
 
-**使用范围：**基座应用
+**使用范围：**主应用
 ```js
 /**
  * @param {object} to 即将要进入的路由
@@ -313,7 +313,7 @@ cancelCallback()
 #### 全局后置守卫
 **介绍：**监听所有或某个子应用的路由变化，在子应用页面渲染后执行。
 
-**使用范围：**基座应用
+**使用范围：**主应用
 ```js
 /**
  * @param {object} to 已经进入的路由
@@ -437,7 +437,7 @@ router.current.get(name)
 **示例：**
 
 <!-- tabs:start -->
-#### ** 基座 **
+#### ** 主应用 **
 
 ```js
 import microApp from '@micro-zoe/micro-app'
@@ -477,7 +477,7 @@ router.decode(path: string)
 **示例：**
 
 <!-- tabs:start -->
-#### ** 基座 **
+#### ** 主应用 **
 
 ```js
 import microApp from '@micro-zoe/micro-app'
@@ -501,11 +501,11 @@ const encodeResult = window.microApp.router.decode('%2Fpage1%2F')
 <!-- tabs:end -->
 
 ## 同步路由信息
-在一些特殊情况下，基座的跳转会导致浏览器地址上子应用信息丢失，此时可以主动调用方法，将子应用的路由信息同步到浏览器地址上。
+在一些特殊情况下，主应用的跳转会导致浏览器地址上子应用信息丢失，此时可以主动调用方法，将子应用的路由信息同步到浏览器地址上。
 
 **介绍：**主动将子应用的路由信息同步到浏览器地址上
 
-**使用范围：**基座应用
+**使用范围：**主应用
 ```js
 /**
  * 将指定子应用的路由信息同步到浏览器地址上

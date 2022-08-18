@@ -1,6 +1,6 @@
 本篇以`Vue 2、3`作为案例介绍vue的接入方式。
 
-## 作为基座应用
+## 作为主应用
 
 #### 1、安装依赖
 ```bash
@@ -167,7 +167,7 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 
 如果子应用资源加载混乱导致渲染失败，可以尝试设置`jsonpFunction`来解决，因为相同的`jsonpFunction`名称会导致资源污染。
 
-这种情况常见于基座和子应用都是通过`create-react-app`脚手架创建的react项目，vue项目中并不常见。
+这种情况常见于主应用和子应用都是通过`create-react-app`脚手架创建的react项目，vue项目中并不常见。
 
 **解决方式：修改子应用的webpack配置**
 <!-- tabs:start -->
@@ -226,7 +226,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 }
 ```
 
-**步骤2:** 在子应用入口文件的`最顶部`引入`public-path.js`
+**步骤2:** 在子应用入口文件的**最顶部**引入`public-path.js`
 ```js
 // entry
 import './public-path'
@@ -234,7 +234,7 @@ import './public-path'
 
 
 ## 常见问题
-#### 1、基座应用中抛出警告，micro-app未定义
+#### 1、主应用中抛出警告，micro-app未定义
 
 **报错信息：**
   - vue2: `[Vue warn]: Unknown custom element: <micro-app>`
@@ -242,7 +242,7 @@ import './public-path'
 
 **参考issue：**[vue-next@1414](https://github.com/vuejs/vue-next/issues/1414)
 
-**解决方式：** 在基座应用中添加如下配置
+**解决方式：** 在主应用中添加如下配置
 <!-- tabs:start -->
 
 #### ** Vue2 **

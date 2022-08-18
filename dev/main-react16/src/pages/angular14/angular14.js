@@ -38,6 +38,7 @@ function Angular14 () {
         // inline
         // disableScopecss
         // keep-alive
+        // esmodule
       >
       </micro-app>
     </div>

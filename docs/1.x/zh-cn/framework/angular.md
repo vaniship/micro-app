@@ -1,6 +1,6 @@
 本篇以`angular 11`作为案例介绍angular的接入方式，其它版本angular接入方式会在后续补充，如果你在使用时出现问题，请在github上提issue告知我们。
 
-## 作为基座应用
+## 作为主应用
 
 #### 1、安装依赖
 ```bash
@@ -46,15 +46,15 @@ import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 ## 作为子应用
 
-#### 1、在基座应用中引入`zone.js`
-如果基座应用非angular，那么基座应用需要引入`zone.js`才能正确加载angular子应用。
+#### 1、在主应用中引入`zone.js`
+如果主应用非angular，那么主应用需要引入`zone.js`才能正确加载angular子应用。
 
 步骤1、安装依赖
 ```
 npm i zone.js --save
 ```
 
-步骤2、在基座应用中引入zone.js
+步骤2、在主应用中引入zone.js
 ```js
 import 'zone.js'
 ```
@@ -148,7 +148,7 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 
 如果子应用资源加载混乱导致渲染失败，可以尝试设置`jsonpFunction`来解决，因为相同的`jsonpFunction`名称会导致资源污染。
 
-这种情况常见于基座和子应用都是通过`create-react-app`等脚手架创建的react项目，vue项目中并不常见。
+这种情况常见于主应用和子应用都是通过`create-react-app`等脚手架创建的react项目，vue项目中并不常见。
 
 **解决方式：修改子应用的webpack配置**
 <!-- tabs:start -->
@@ -193,7 +193,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 }
 ```
 
-**步骤2:** 在子应用入口文件的`最顶部`引入`public-path.ts`
+**步骤2:** 在子应用入口文件的**最顶部**引入`public-path.ts`
 ```js
 // entry
 import './public-path'
@@ -203,11 +203,11 @@ import './public-path'
 ## 常见问题
 #### 1、通过micro-app数据通信修改angular组件数据后视图不更新
 
-**原因：**因为在angular区域外调用了内部的代码(基座和子应用属于不同的angular区域)，angular无法知道状态发生了变化。
+**原因：**因为在angular区域外调用了内部的代码(主应用和子应用属于不同的angular区域)，angular无法知道状态发生了变化。
 
 **解决方式：**通过`ngZone.run()`触发更改检测，具体方式如下：
 
 ![angular-question3](../../../static/images/angular-1.png ':size=800')
 
-#### 2、基座是react、nextjs应用，引入zone.js后导致micro-app元素生命周期异常
+#### 2、主应用是react、nextjs应用，引入zone.js后导致micro-app元素生命周期异常
 目前无法解决，请暂停使用生命周期函数。

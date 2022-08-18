@@ -1,6 +1,6 @@
 本篇以`nextjs 11`作为案例介绍nextjs的接入方式，其它版本nextjs接入方式会在后续补充，如果你在使用时出现问题，请在github上提issue告知我们。
 
-## 作为基座应用
+## 作为主应用
 
 #### 1、安装依赖
 ```bash
@@ -63,8 +63,8 @@ export default MyPage
 
 ## 作为子应用
 
-#### 1、在基座应用中添加ssr配置
-当子应用是ssr应用时，基座需要在micro-app元素上添加ssr属性，此时micro-app会根据ssr模式加载子应用。
+#### 1、在主应用中添加ssr配置
+当子应用是ssr应用时，主应用需要在micro-app元素上添加ssr属性，此时micro-app会根据ssr模式加载子应用。
 
 ```html
 <micro-app name='xx' url='xx' ssr></micro-app>
@@ -181,12 +181,12 @@ window.addEventListener('unmount', function () {
 
 #### 3、控制台报错`Cannot read properties of null (reading 'tagName')`
 
-**原因：**当基座和子应用都是nextjs应用时，`next/head`组件冲突。
+**原因：**当主应用和子应用都是nextjs应用时，`next/head`组件冲突。
 
 **解决方式：**去掉子应用中`next/head`组件。
 
 #### 4、webpack.jsonpFunction冲突，导致加载子应用失败
-**原因：**当基座和子应用都是官方脚手架创建的项目，容易造成webpack.jsonpFunction冲突。
+**原因：**当主应用和子应用都是官方脚手架创建的项目，容易造成webpack.jsonpFunction冲突。
 
 **解决方式：**修改子应用的webpack配置。
 

@@ -47,7 +47,7 @@
 
 - **New**
 
-  - 🆕 重写了基座的`pushState`、`replaceState`方法，自动将子应用的路由信息同步到浏览器地址。
+  - 🆕 重写了主应用的`pushState`、`replaceState`方法，自动将子应用的路由信息同步到浏览器地址。
   - 🆕 重写了子应用的`Document`对象，每个子应用拥有单独的Document实例。
 
 - **Bug Fix**
@@ -67,7 +67,7 @@
 - **New**
 
   - 🆕 新增了`attachToURL`、`attachAllToURL`方法，用于将子应用的路由信息同步到浏览器地址。
-  - 🆕 新增了`setBaseRouter`、`getBaseRouter`方法，用于注册和使用基座路由。
+  - 🆕 新增了`setBaseRouter`、`getBaseRouter`方法，用于注册和使用主应用路由。
   - 🆕 新增了`ProxyDocument`，为子应用创建一个虚拟的document对象。
 
 - **Bug Fix**
@@ -175,11 +175,11 @@
 
 - **Bug Fix**
 
-  - 🐞 修复了基座通过远程连接引入Vue，加载vue子应用报错的问题，issue [#234](https://github.com/micro-zoe/micro-app/issues/234)。
+  - 🐞 修复了主应用通过远程连接引入Vue，加载vue子应用报错的问题，issue [#234](https://github.com/micro-zoe/micro-app/issues/234)。
 
 - **Update**
 
-  - 🚀 优化了预加载相关代码和逻辑，减小对基座项目的影响。
+  - 🚀 优化了预加载相关代码和逻辑，减小对主应用项目的影响。
 
 
 ### 0.8.1
@@ -397,7 +397,7 @@
 - **New**
 
   - 🆕 新增了ignore属性，用于忽略部分部分元素
-  - 🆕 新增了全局变量 `__MICRO_APP_BASE_APPLICATION__` 用于标记当前应用为基座应用
+  - 🆕 新增了全局变量 `__MICRO_APP_BASE_APPLICATION__` 用于标记当前应用为主应用
 
 - **Bug Fix**
 
@@ -463,7 +463,7 @@
 - **Update**
 
   - 🚀 优化了修改name&url属性切换应用的操作，部分场景下被替换的应用可以计入缓存
-  - 🚀 更新了全局数据通信卸载机制，基座应用和子应用只能卸载自身的全局监听函数
+  - 🚀 更新了全局数据通信卸载机制，主应用和子应用只能卸载自身的全局监听函数
 
 
 ### 0.2.5
@@ -472,7 +472,7 @@
 
 - **New**
 
-  - 🆕 新增了`main-vue3-vite`基座应用案例
+  - 🆕 新增了`main-vue3-vite`主应用案例
 
 - **Bug Fix**
 
