@@ -8,6 +8,34 @@
 
 ---
 
+### 1.0.0-alpha.6
+
+`2022-08-19`
+
+- **New**
+
+  - 🆕 重构了资源管理系统，提升资源复用率。
+  - 🆕 新增了`excludeAssetFilter`配置，用于指定部分特殊的动态加载的微应用资源（css/js) 不被 micro-app 劫持处理。
+  - 🆕 新增了`esmodule`配置，用于对vite等esmodule应用提供更好的支持。
+  - 🆕 新增了`fiber`配置，支持子应用以fiber模式运行，增加主应用的响应速度。
+
+
+- **Bug Fix**
+
+  - 🐞 修复了sourceMap地址丢失，导致调试困难的问题。
+  - 🐞 修复了document.defaultView可以获取真实window的问题。
+  - 🐞 修复了document.currentScript丢失的问题。
+  - 🐞 修复了动态script标签二次渲染时执行顺序错误的问题。
+  - 🐞 修复了angular13、14及vue-cli5 build后应用沙箱失效的问题。
+  - 🐞 修复了全局路由守卫参数与文档不一致的问题。
+  - 🐞 修复了micro-app在vue keep-alive环境下频繁渲染的问题。
+
+- **Update**
+
+  - 🚀 优化了预加载逻辑，提升预加载子应用的渲染速度。
+  - 🚀 优化了sandbox、create_app相关代码。
+
+
 ### 1.0.0-alpha.5
 
 `2022-08-01`

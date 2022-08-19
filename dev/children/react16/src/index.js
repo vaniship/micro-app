@@ -108,28 +108,28 @@ console.timeEnd('react#16');
 
 
 /* ---------------------- 创建元素 --------------------- */
-const dynamicScript1 = document.createElement('script')
-// dynamicScript1.setAttribute('type', 'module')
-// dynamicScript1.textContent = 'console.warn('inline module')'
-dynamicScript1.setAttribute('src', '//127.0.0.1:8080/js/test.js')
-dynamicScript1.onload = () => {
-  console.log('动态module加载完成了')
-}
-document.head.appendChild(dynamicScript1)
+// const dynamicScript1 = document.createElement('script')
+// // dynamicScript1.setAttribute('type', 'module')
+// // dynamicScript1.textContent = 'console.warn('inline module')'
+// dynamicScript1.setAttribute('src', '//127.0.0.1:8080/js/test.js')
+// dynamicScript1.onload = () => {
+//   console.log('动态module加载完成了')
+// }
+// document.head.appendChild(dynamicScript1)
 
-const dynamicStyle = document.createElement('style')
-document.head.appendChild(dynamicStyle)
-dynamicStyle.textContent = '.test-class { color: red } '
+// const dynamicStyle = document.createElement('style')
+// document.head.appendChild(dynamicStyle)
+// dynamicStyle.textContent = '.test-class { color: red } '
 
-// test excludeAssetFilter
-const dynamicScript2 = document.createElement('script')
-dynamicScript2.setAttribute('src', 'http://127.0.0.1:8080/js/defer.js')
-dynamicScript2.setAttribute('defer', 'true')
-document.body.appendChild(dynamicScript2)
+// // test excludeAssetFilter
+// const dynamicScript2 = document.createElement('script')
+// dynamicScript2.setAttribute('src', 'http://127.0.0.1:8080/js/defer.js')
+// dynamicScript2.setAttribute('defer', 'true')
+// document.body.appendChild(dynamicScript2)
 
-const link1 = document.createElement('link')
-link1.setAttribute('href', 'http://127.0.0.1:8080/facefont.css')
-document.head.appendChild(link1)
+// const link1 = document.createElement('link')
+// link1.setAttribute('href', 'http://127.0.0.1:8080/facefont.css')
+// document.head.appendChild(link1)
 
 
 
