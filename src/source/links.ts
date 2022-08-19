@@ -12,7 +12,7 @@ import {
   defer,
   logError,
   getAttributes,
-  promiseRequestIdle,
+  injectFiberTask,
   serialExecFiberTasks,
 } from '../libs/utils'
 import scopedCSS, { createPrefix } from '../sandbox/scoped_css'
@@ -135,22 +135,12 @@ export function fetchLinksFromHtml (
   const fiberLinkTasks: fiberTasks = app.isPrefetch || app.fiber ? [] : null
 
   promiseStream<string>(fetchLinkPromise, (res: { data: string, index: number }) => {
-    const handleStreamResult = () => {
-      fetchLinkSuccess(
-        styleList[res.index],
-        res.data,
-        microAppHead,
-        app,
-      )
-    }
-    if (fiberLinkTasks) {
-      fiberLinkTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
-        handleStreamResult()
-        resolve()
-      }))
-    } else {
-      handleStreamResult()
-    }
+    injectFiberTask(fiberLinkTasks, () => fetchLinkSuccess(
+      styleList[res.index],
+      res.data,
+      microAppHead,
+      app,
+    ))
   }, (err: {error: Error, index: number}) => {
     logError(err, app.name)
   }, () => {

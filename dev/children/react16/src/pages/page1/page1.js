@@ -1,9 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Modal, Button, Space } from 'antd';
 import styled from 'styled-components'
 import SVG from 'react-inlinesvg';
 import logo from '../../assets/logo.svg';
 import './page1.css';
+// import { loadModules, loadCss } from "esri-loader";
+// loadCss();
+
 
 const StyledButton = styled.button`
   background: transparent;
@@ -53,6 +56,24 @@ function controlBase () {
 }
 
 function Page1() {
+  useEffect(() => {
+  //   loadModules(["esri/Map", "esri/views/MapView"])
+  //   .then(([Map, MapView]) => {
+  //     const map = new Map({
+  //       basemap: "topo-vector",
+  //     });
+  //     console.log(222222, document.getElementById('view-div'))
+  //     const view = new MapView({
+  //       container: document.getElementById('view-div'),
+  //       map: map,
+  //       center: [118.24, 34.01],
+  //       zoom: 12,
+  //     });
+  //   })
+  //   .catch((err) => {
+  //     console.error(err);
+  //   });
+  }, [])
   return (
     <div className="App">
       <header className="App-header">
@@ -94,6 +115,7 @@ function Page1() {
       <div>
         <a href={`${process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3001'}/micro-app/react16/static/media/logo.6ce24c58.svg`} download="w3logo" onClick={download}>下载</a>
       </div>
+      <div id='view-div'></div>
     </div>
   );
 }

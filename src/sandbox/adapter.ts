@@ -81,8 +81,11 @@ export function throttleDeferForParentNode (proxyDocument: Document): void {
 }
 
 export function setRootParentNode (root: Element, value: Document): void {
-  Object.defineProperty(root, 'parentNode', {
-    value,
-    configurable: true,
-  })
+  const descriptor = Object.getOwnPropertyDescriptor(root, 'parentNode')
+  if (!descriptor || descriptor.configurable) {
+    Object.defineProperty(root, 'parentNode', {
+      value,
+      configurable: true,
+    })
+  }
 }

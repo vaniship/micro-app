@@ -43,7 +43,7 @@ export function defineElement (tagName: string): void {
 
     private isWaiting = false
     private cacheData: Record<PropertyKey, unknown> | null = null
-    private connectCount = 0
+    private connectedCount = 0
     private connectStateMap: Map<number, boolean> = new Map()
     appName = '' // app name
     appUrl = '' // app url
@@ -62,7 +62,7 @@ export function defineElement (tagName: string): void {
     // keep-alive: open keep-alive mode
 
     connectedCallback (): void {
-      const cacheCount = ++this.connectCount
+      const cacheCount = ++this.connectedCount
       this.connectStateMap.set(cacheCount, true)
       /**
        * In some special scenes, such as vue's keep-alive, the micro-app will be inserted and deleted twice in an instant
@@ -81,7 +81,7 @@ export function defineElement (tagName: string): void {
     }
 
     disconnectedCallback (): void {
-      this.connectStateMap.set(this.connectCount, false)
+      this.connectStateMap.set(this.connectedCount, false)
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
@@ -135,7 +135,7 @@ export function defineElement (tagName: string): void {
 
     // handle for connectedCallback run before attributeChangedCallback
     private handleInitialNameAndUrl (): void {
-      this.connectStateMap.get(this.connectCount) && this.initialMount()
+      this.connectStateMap.get(this.connectedCount) && this.initialMount()
     }
 
     /**
@@ -202,7 +202,7 @@ export function defineElement (tagName: string): void {
      */
     private handleAttributeUpdate = (): void => {
       this.isWaiting = false
-      if (!this.connectStateMap.get(this.connectCount)) return
+      if (!this.connectStateMap.get(this.connectedCount)) return
       const formatAttrName = formatAppName(this.getAttribute('name'))
       const formatAttrUrl = formatAppURL(this.getAttribute('url'), this.appName)
       if (this.legalAttribute('name', formatAttrName) && this.legalAttribute('url', formatAttrUrl)) {

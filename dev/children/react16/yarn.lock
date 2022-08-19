@@ -4980,6 +4980,11 @@ esrecurse@^4.1.0, esrecurse@^4.3.0:
   dependencies:
     estraverse "^5.2.0"
 
+esri-loader@^3.6.0:
+  version "3.6.0"
+  resolved "https://registry.npmjs.org/esri-loader/-/esri-loader-3.6.0.tgz#5373a977fb43f5ab7a3171a3c7353fe932f33b41"
+  integrity sha512-hvFnBLcHDVcymOXTg2IxptPAxDKq1lOQjO1bFlaJTZxmruvGR+41HjW12BgemPhiEBrH782q2nFuUytwWPVAMg==
+
 estraverse@^4.1.1:
   version "4.3.0"
   resolved "https://registry.npmjs.org/estraverse/-/estraverse-4.3.0.tgz#398ad3f3c5a24948be7725e83d11a7de28cdbd1d"

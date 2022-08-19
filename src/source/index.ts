@@ -3,7 +3,7 @@ import {
   logError,
   CompletionPath,
   pureCreateElement,
-  promiseRequestIdle,
+  injectFiberTask,
   serialExecFiberTasks,
 } from '../libs/utils'
 import { extractLinkFromHtml, fetchLinksFromHtml } from './links'
@@ -53,14 +53,7 @@ function flatChildren (
       if (dom.hasAttribute('exclude')) {
         parent.replaceChild(document.createComment('style element with exclude attribute ignored by micro-app'), dom)
       } else if (app.scopecss && !dom.hasAttribute('ignore')) {
-        if (fiberStyleTasks) {
-          fiberStyleTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
-            scopedCSS(dom, app)
-            resolve()
-          }))
-        } else {
-          scopedCSS(dom, app)
-        }
+        injectFiberTask(fiberStyleTasks, () => scopedCSS(dom, app))
       }
     } else if (dom instanceof HTMLScriptElement) {
       extractScriptElement(dom, parent, app)

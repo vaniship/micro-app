@@ -21,7 +21,7 @@ import {
   isArray,
   isFunction,
   getAttributes,
-  promiseRequestIdle,
+  injectFiberTask,
   serialExecFiberTasks,
   isInlineScript,
 } from '../libs/utils'
@@ -307,22 +307,12 @@ export function fetchScriptsFromHtml (
 
   if (fetchScriptPromise.length) {
     promiseStream<string>(fetchScriptPromise, (res: {data: string, index: number}) => {
-      const handleStreamResult = () => {
-        fetchScriptSuccess(
-          fetchScriptPromiseInfo[res.index][0],
-          fetchScriptPromiseInfo[res.index][1],
-          res.data,
-          app,
-        )
-      }
-      if (fiberScriptTasks) {
-        fiberScriptTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
-          handleStreamResult()
-          resolve()
-        }))
-      } else {
-        handleStreamResult()
-      }
+      injectFiberTask(fiberScriptTasks, () => fetchScriptSuccess(
+        fetchScriptPromiseInfo[res.index][0],
+        fetchScriptPromiseInfo[res.index][1],
+        res.data,
+        app,
+      ))
     }, (err: {error: Error, index: number}) => {
       logError(err, app.name)
     }, () => {
@@ -410,16 +400,10 @@ export function execScripts (
 
       isTypeModule(app, scriptInfo) && (initHook.moduleCount = initHook.moduleCount ? ++initHook.moduleCount : 1)
     } else {
-      if (fiberScriptTasks) {
-        fiberScriptTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
-          runScript(address, app, scriptInfo)
-          initHook(false)
-          resolve()
-        }))
-      } else {
+      injectFiberTask(fiberScriptTasks, () => {
         runScript(address, app, scriptInfo)
         initHook(false)
-      }
+      })
     }
   }
 
@@ -433,18 +417,10 @@ export function execScripts (
     }, () => {
       deferScriptInfo.forEach(([address, scriptInfo]) => {
         if (scriptInfo.code) {
-          const runDeferScript = () => {
+          injectFiberTask(fiberScriptTasks, () => {
             runScript(address, app, scriptInfo, initHook)
             !isTypeModule(app, scriptInfo) && initHook(false)
-          }
-          if (fiberScriptTasks) {
-            fiberScriptTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
-              runDeferScript()
-              resolve()
-            }))
-          } else {
-            runDeferScript()
-          }
+          })
         }
       })
 
@@ -550,6 +526,14 @@ export function runDynamicRemoteScript (
   const dispatchScriptOnLoadEvent = () => dispatchOnLoadEvent(originScript)
 
   const runDynamicScript = () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalEnv.rawDocument, 'currentScript')
+    if (!descriptor || descriptor.configurable) {
+      Object.defineProperty(globalEnv.rawDocument, 'currentScript', {
+        value: originScript,
+        configurable: true,
+      })
+    }
+
     runScript(address, app, scriptInfo, dispatchScriptOnLoadEvent, replaceElement as HTMLScriptElement)
 
     !isTypeModule(app, scriptInfo) && dispatchScriptOnLoadEvent()

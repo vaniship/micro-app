@@ -544,6 +544,23 @@ export function getAttributes (element: Element): AttrsType {
 }
 
 /**
+ * if fiberTasks exist, wrap callback with promiseRequestIdle
+ * if not, execute callback
+ * @param fiberTasks fiber task list
+ * @param callback action callback
+ */
+export function injectFiberTask (fiberTasks: fiberTasks, callback: CallableFunction): void {
+  if (fiberTasks) {
+    fiberTasks.push(() => promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
+      callback()
+      resolve()
+    }))
+  } else {
+    callback()
+  }
+}
+
+/**
  * serial exec fiber task of link, style, script
  * @param tasks task array or null
  */

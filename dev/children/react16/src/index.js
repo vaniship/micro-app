@@ -264,12 +264,12 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
 /* ---------------------- 获取原生window 和 document --------------------- */
 // 注意：！！！！ 无论任何使用window.xx的情况都会重新触发元素绑定
-const _window = new Function('return window')()
+// const _window = new Function('return window')()
 
-setTimeout(() => {
-  // window.microApp.removeDomScope()
-  console.log(_window.document.getElementById('root'))
-}, 0);
+// setTimeout(() => {
+//   // window.microApp.removeDomScope()
+//   console.log(_window.document.getElementById('root'))
+// }, 0);
 
 
 /* ---------------------- location 跳转 --------------------- */
