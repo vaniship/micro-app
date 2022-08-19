@@ -12,7 +12,7 @@
   - [样式隔离](zh-cn/scopecss)
   - [元素隔离](zh-cn/dom-scope)
   - [数据通信](zh-cn/data)
-  - [静态资源](zh-cn/static-source)
+  - [资源系统](zh-cn/static-source)
   - [预加载](zh-cn/prefetch)
   - [插件系统](zh-cn/plugins)
   - [多层嵌套](zh-cn/nest)

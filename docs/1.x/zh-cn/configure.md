@@ -160,6 +160,17 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 <micro-app name='xx' url='xx' baseroute='/my-page/' disable-memory-router></micro-app>
 ```
 
+## fiber
+- Desc: `是否开启fiber模式`
+- Type: `string(boolean)`
+- Default: `false`
+- 使用方式: `<micro-app name='xx' url='xx' fiber></micro-app>`
+
+默认情况下，子应用js是同步执行的，这会阻塞主应用的渲染线程，当开启fiber后，micro-app会降低子应用的优先级，通过异步执行子应用的js文件，以减小对主应用的影响，快速响应用户操作。
+
+> [!NOTE]
+> 开启fiber后会降低子应用的渲染速度。
+
 
 ## shadowDOM
 - Desc: `是否开启shadowDOM`
