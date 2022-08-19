@@ -57,10 +57,10 @@ function preFetchInSerial (options: prefetchParam): Promise<void> {
         const app = new CreateApp({
           name: options.name,
           url: options.url,
-          scopecss: !(options['disable-scopecss'] ?? options.disableScopecss ?? microApp['disable-scopecss']),
-          useSandbox: !(options['disable-sandbox'] ?? options.disableSandbox ?? microApp['disable-sandbox']),
-          inline: options.inline ?? microApp.inline,
-          esmodule: options.esmodule ?? microApp.esmodule,
+          scopecss: !(options['disable-scopecss'] ?? options.disableScopecss ?? microApp.options['disable-scopecss']),
+          useSandbox: !(options['disable-sandbox'] ?? options.disableSandbox ?? microApp.options['disable-sandbox']),
+          inline: options.inline ?? microApp.options.inline,
+          esmodule: options.esmodule ?? microApp.options.esmodule,
           isPrefetch: true,
         })
 

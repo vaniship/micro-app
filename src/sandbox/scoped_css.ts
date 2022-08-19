@@ -184,6 +184,15 @@ class CSSParser {
       this.fontFaceRule()
   }
 
+  // :global is CSS Modules rule, it will be converted to normal syntax
+  // private matchGlobalRule (): boolean | void {
+  //   if (this.cssText[0] !== ':') return false
+  //   // reset scopecssDisableNextLine
+  //   this.scopecssDisableNextLine = false
+
+  //   return this.globalRule()
+  // }
+
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSKeyframesRule
   private keyframesRule (): boolean | void {
     if (!this.commonMatch(/^@([-\w]+)?keyframes\s*/)) return false
@@ -252,11 +261,13 @@ class CSSParser {
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSMediaRule
-  private mediaRule = this.createMatcherForAtRuleWithChildRule(/^@media *([^{]+)/, 'media')
+  private mediaRule = this.createMatcherForRuleWithChildRule(/^@media *([^{]+)/, '@media')
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSSupportsRule
-  private supportsRule = this.createMatcherForAtRuleWithChildRule(/^@supports *([^{]+)/, 'supports')
-  private documentRule = this.createMatcherForAtRuleWithChildRule(/^@([-\w]+)?document *([^{]+)/, 'document')
-  private hostRule = this.createMatcherForAtRuleWithChildRule(/^@host\s*/, 'host')
+  private supportsRule = this.createMatcherForRuleWithChildRule(/^@supports *([^{]+)/, '@supports')
+  private documentRule = this.createMatcherForRuleWithChildRule(/^@([-\w]+)?document *([^{]+)/, '@document')
+  private hostRule = this.createMatcherForRuleWithChildRule(/^@host\s*/, '@host')
+  // :global is CSS Modules rule, it will be converted to normal syntax
+  // private globalRule = this.createMatcherForRuleWithChildRule(/^:global([^{]*)/, ':global')
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSImportRule
   private importRule = this.createMatcherForNoneBraceAtRule('import')
   // Removed in most browsers
@@ -264,18 +275,18 @@ class CSSParser {
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSNamespaceRule
   private namespaceRule = this.createMatcherForNoneBraceAtRule('namespace')
 
-  // common matcher for @media, @supports, @document, @host
-  private createMatcherForAtRuleWithChildRule (reg: RegExp, name: string): () => boolean | void {
+  // common matcher for @media, @supports, @document, @host, :global
+  private createMatcherForRuleWithChildRule (reg: RegExp, name: string): () => boolean | void {
     return () => {
       if (!this.commonMatch(reg)) return false
 
-      if (!this.matchOpenBrace()) return parseError(`@${name} missing '{'`, this.linkPath)
+      if (!this.matchOpenBrace()) return parseError(`${name} missing '{'`, this.linkPath)
 
       this.matchComments()
 
       this.matchRules()
 
-      if (!this.matchCloseBrace()) return parseError(`@${name} missing '}'`, this.linkPath)
+      if (!this.matchCloseBrace()) return parseError(`${name} missing '}'`, this.linkPath)
 
       this.matchLeadingSpaces()
 

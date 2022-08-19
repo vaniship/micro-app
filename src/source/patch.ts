@@ -11,10 +11,17 @@ import {
   isInvalidQuerySelectorKey,
   isUniqueElement,
   isProxyDocument,
+  isFunction,
 } from '../libs/utils'
 import scopedCSS from '../sandbox/scoped_css'
 import { extractLinkFromHtml, formatDynamicLink } from './links'
-import { extractScriptElement, runDynamicInlineScript, runDynamicRemoteScript, checkExcludeUrl, checkIgnoreUrl } from './scripts'
+import {
+  extractScriptElement,
+  runDynamicInlineScript,
+  runDynamicRemoteScript,
+  checkExcludeUrl,
+  checkIgnoreUrl,
+} from './scripts'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
 import { fixReactHMRConflict } from '../sandbox/adapter'
@@ -43,7 +50,15 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
       const linkReplaceComment = document.createComment('link element with exclude attribute ignored by micro-app')
       dynamicElementInMicroAppMap.set(child, linkReplaceComment)
       return linkReplaceComment
-    } else if (child.hasAttribute('ignore') || checkIgnoreUrl(child.getAttribute('href'), app.name)) {
+    } else if (
+      child.hasAttribute('ignore') ||
+      checkIgnoreUrl(child.getAttribute('href'), app.name) ||
+      (
+        child.href &&
+        isFunction(microApp.options.excludeAssetFilter) &&
+        microApp.options.excludeAssetFilter(child.href)
+      )
+    ) {
       return child
     }
 
@@ -65,6 +80,14 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
 
     return child
   } else if (child instanceof HTMLScriptElement) {
+    if (
+      child.src &&
+      isFunction(microApp.options.excludeAssetFilter) &&
+      microApp.options.excludeAssetFilter(child.src)
+    ) {
+      return child
+    }
+
     const { replaceComment, address, scriptInfo } = extractScriptElement(
       child,
       parent,

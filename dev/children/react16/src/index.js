@@ -121,6 +121,16 @@ const dynamicStyle = document.createElement('style')
 document.head.appendChild(dynamicStyle)
 dynamicStyle.textContent = '.test-class { color: red } '
 
+// test excludeAssetFilter
+const dynamicScript2 = document.createElement('script')
+dynamicScript2.setAttribute('src', 'http://127.0.0.1:8080/js/defer.js')
+dynamicScript2.setAttribute('defer', 'true')
+document.body.appendChild(dynamicScript2)
+
+const link1 = document.createElement('link')
+link1.setAttribute('href', 'http://127.0.0.1:8080/facefont.css')
+document.head.appendChild(link1)
+
 
 
 /* ---------------------- 全局变量 --------------------- */

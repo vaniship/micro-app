@@ -1,3 +1,4 @@
+import type { lifeCyclesType } from '@micro-app/types'
 import microApp from '../micro_app'
 import { logError, isFunction, removeDomScope, getRootContainer, assign } from '../libs/utils'
 import { formatEventName } from '../sandbox/effect'
@@ -17,6 +18,8 @@ function formatEventInfo (event: CustomEvent, element: HTMLElement): void {
   })
 }
 
+type LifecycleEventName = keyof lifeCyclesType
+
 /**
  * dispatch lifeCycles event to base app
  * created, beforemount, mounted, unmount, error
@@ -28,7 +31,7 @@ function formatEventInfo (event: CustomEvent, element: HTMLElement): void {
 export default function dispatchLifecyclesEvent (
   element: HTMLElement | ShadowRoot,
   appName: string,
-  lifecycleName: string,
+  lifecycleName: LifecycleEventName,
   error?: Error,
 ): void {
   if (!element) {
@@ -53,10 +56,8 @@ export default function dispatchLifecyclesEvent (
 
   formatEventInfo(event, element)
   // global hooks
-  // @ts-ignore
-  if (isFunction(microApp.lifeCycles?.[lifecycleName])) {
-    // @ts-ignore
-    microApp.lifeCycles[lifecycleName](event)
+  if (isFunction(microApp.options.lifeCycles?.[lifecycleName])) {
+    microApp.options.lifeCycles![lifecycleName]!(event)
   }
 
   element.dispatchEvent(event)

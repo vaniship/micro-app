@@ -1,5 +1,10 @@
 /* eslint-disable no-new */
-import type { AttrType, MicroAppElementType, AppInterface } from '@micro-app/types'
+import type {
+  AttrType,
+  MicroAppElementType,
+  AppInterface,
+  OptionsType,
+} from '@micro-app/types'
 import {
   defer,
   formatAppName,
@@ -391,9 +396,8 @@ export function defineElement (tagName: string): void {
      * Global setting is lowest priority
      * @param name Configuration item name
      */
-    private getDisposeResult (name: string): boolean {
-      // @ts-ignore
-      return (this.compatibleSpecialProperties(name) || !!microApp[name]) && this.compatibleDisableSpecialProperties(name)
+    private getDisposeResult <T extends keyof OptionsType> (name: T): boolean {
+      return (this.compatibleSpecialProperties(name) || !!microApp.options[name]) && this.compatibleDisableSpecialProperties(name)
     }
 
     // compatible of disableScopecss & disableSandbox

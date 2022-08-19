@@ -260,9 +260,9 @@ export default class SandBox implements SandBoxInterface {
    */
   private getSpecialProperties (appName: string): void {
     this.scopeProperties = this.scopeProperties.concat(this.adapter.staticScopeProperties)
-    if (isPlainObject(microApp.plugins)) {
-      this.commonActionForSpecialProperties(microApp.plugins.global)
-      this.commonActionForSpecialProperties(microApp.plugins.modules?.[appName])
+    if (isPlainObject(microApp.options.plugins)) {
+      this.commonActionForSpecialProperties(microApp.options.plugins.global)
+      this.commonActionForSpecialProperties(microApp.options.plugins.modules?.[appName])
     }
   }
 

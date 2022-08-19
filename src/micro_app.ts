@@ -1,9 +1,6 @@
 import type {
   OptionsType,
   MicroAppConfigType,
-  lifeCyclesType,
-  plugins,
-  fetchType,
   AppInterface,
   Router,
   appName,
@@ -13,7 +10,6 @@ import preFetch, { getGlobalAssets } from './prefetch'
 import {
   logError,
   logWarn,
-  isFunction,
   isBrowser,
   isPlainObject,
   formatAppName,
@@ -135,21 +131,7 @@ export function unmountAllApps (options?: unmountAppOptions): Promise<void> {
 
 export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigType {
   tagName = 'micro-app'
-  shadowDOM?: boolean
-  destroy?: boolean
-  inline?: boolean
-  'disable-scopecss'?: boolean
-  'disable-sandbox'?: boolean
-  'disable-memory-router'?: boolean
-  'disable-patch-request'?: boolean
-  'keep-router-state'?: boolean
-  'hidden-router'?: boolean
-  esmodule?: boolean
-  ssr?: boolean
-  fiber?: boolean
-  lifeCycles?: lifeCyclesType
-  plugins?: plugins
-  fetch?: fetchType
+  options: OptionsType = {}
   preFetch = preFetch
   router: Router = router
   start (options?: OptionsType): void {
@@ -171,29 +153,10 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
 
     initGlobalEnv()
 
-    if (options && isPlainObject(options)) {
-      this.shadowDOM = options.shadowDOM
-      this.destroy = options.destroy
-      /**
-       * compatible with versions below 0.4.2 of destroy
-       * do not merge with the previous line
-       */
-      // @ts-ignore
-      this.destory = options.destory
-      this.inline = options.inline
-      this['disable-scopecss'] = options['disable-scopecss'] ?? options.disableScopecss
-      this['disable-sandbox'] = options['disable-sandbox'] ?? options.disableSandbox
-      this['disable-memory-router'] = options['disable-memory-router']
-      this['disable-patch-request'] = options['disable-patch-request']
-      this['keep-router-state'] = options['keep-router-state']
-      this['hidden-router'] = options['hidden-router']
-      this.esmodule = options.esmodule
-      this.ssr = options.ssr
-      this.fiber = options.fiber
-
-      isFunction(options.fetch) && (this.fetch = options.fetch)
-
-      isPlainObject(options.lifeCycles) && (this.lifeCycles = options.lifeCycles)
+    if (isPlainObject(options)) {
+      this.options = options
+      options['disable-scopecss'] = options['disable-scopecss'] ?? options.disableScopecss
+      options['disable-sandbox'] = options['disable-sandbox'] ?? options.disableSandbox
 
       // load app assets when browser is idle
       options.preFetchApps && preFetch(options.preFetchApps)
@@ -212,8 +175,6 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
             }
           }
         }
-
-        this.plugins = options.plugins
       }
     }
 

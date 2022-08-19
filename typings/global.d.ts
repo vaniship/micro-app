@@ -192,6 +192,9 @@ declare module '@micro-app/types' {
     mounted?(e?: CustomEvent): void
     unmount?(e?: CustomEvent): void
     error?(e?: CustomEvent): void
+    beforeshow?(e?: CustomEvent): void
+    aftershow?(e?: CustomEvent): void
+    afterhidden?(e?: CustomEvent): void
   }
 
   type AssetsChecker = (url: string) => boolean;
@@ -245,9 +248,10 @@ declare module '@micro-app/types' {
 
   type OptionsType = {
     tagName?: string
-    'shadowDOM'?: boolean
-    'destroy'?: boolean
-    'inline'?: boolean
+    shadowDOM?: boolean
+    destroy?: boolean
+    destory?: boolean
+    inline?: boolean
     // old config 👇
     disableScopecss?: boolean
     disableSandbox?: boolean
@@ -258,6 +262,7 @@ declare module '@micro-app/types' {
     'disable-patch-request'?: boolean
     'keep-router-state'?: boolean
     'hidden-router'?: boolean
+    'keep-alive'?: boolean
     esmodule?: boolean
     ssr?: boolean
     fiber?: boolean
@@ -266,21 +271,13 @@ declare module '@micro-app/types' {
     plugins?: plugins
     fetch?: fetchType
     globalAssets?: globalAssetsType,
+    excludeAssetFilter?: (assetUrl: string) => boolean
   }
 
   // MicroApp config
   interface MicroAppConfigType {
     tagName: string
-    shadowDOM?: boolean
-    destroy?: boolean
-    inline?: boolean
-    disableScopecss?: boolean
-    disableSandbox?: boolean
-    disableMemoryRouter?: boolean
-    ssr?: boolean
-    lifeCycles?: lifeCyclesType
-    plugins?: plugins
-    fetch?: fetchType
+    options: OptionsType
     preFetch(apps: prefetchParamList): void
     router: Router // eslint-disable-line
     start(options?: OptionsType): void

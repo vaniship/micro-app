@@ -41,7 +41,7 @@ export class HTMLLoader implements IHTMLLoader {
   }
 
   private formatHTML (htmlUrl: string, htmlStr: string, appName: string) {
-    return this.processHtml(htmlUrl, htmlStr, appName, microApp.plugins)
+    return this.processHtml(htmlUrl, htmlStr, appName, microApp.options.plugins)
       .replace(/<head[^>]*>[\s\S]*?<\/head>/i, (match) => {
         return match
           .replace(/<head/i, '<micro-app-head')

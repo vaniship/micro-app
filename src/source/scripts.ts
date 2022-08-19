@@ -248,8 +248,8 @@ export function extractScriptElement (
  * @param appName app name
  */
 export function getAssetsPlugins (appName: string): plugins['global'] {
-  const globalPlugins = microApp.plugins?.global || []
-  const modulePlugins = microApp.plugins?.modules?.[appName] || []
+  const globalPlugins = microApp.options.plugins?.global || []
+  const modulePlugins = microApp.options.plugins?.modules?.[appName] || []
 
   return [...globalPlugins, ...modulePlugins]
 }
@@ -631,8 +631,8 @@ function bindScope (
   scriptInfo: ScriptSourceInfo,
 ): string {
   // TODO: cache
-  if (isPlainObject(microApp.plugins)) {
-    code = usePlugins(address, code, app.name, microApp.plugins)
+  if (isPlainObject(microApp.options.plugins)) {
+    code = usePlugins(address, code, app.name, microApp.options.plugins)
   }
 
   if (isWrapInSandBox(app, scriptInfo)) {
