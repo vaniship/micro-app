@@ -268,7 +268,7 @@ export default class App extends React.Component {
                   onDataChange={this.handleDataChange}
                   baseRoute='/micro-app/demo/react16'
                   // keep-alive
-                  // destroy
+                  destroy
                   // inline
                   // disableSandbox
                   // disable-sandbox

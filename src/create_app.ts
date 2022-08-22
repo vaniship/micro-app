@@ -22,6 +22,7 @@ import dispatchLifecyclesEvent, { dispatchCustomEventToMicroApp } from './intera
 import globalEnv from './libs/global_env'
 import { releasePatchSetAttribute } from './source/patch'
 import { getActiveApps } from './micro_app'
+import sourceCenter from './source/source_center'
 
 // micro app instances
 export const appInstanceMap = new Map<string, AppInterface>()
@@ -355,6 +356,7 @@ export default class CreateApp implements AppInterface {
     if (!this.useSandbox && this.umdMode) {
       delete window[this.libraryName as any]
     }
+    sourceCenter.script.deleteInlineInfo(this.source.scripts)
     appInstanceMap.delete(this.name)
   }
 

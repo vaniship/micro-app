@@ -13,7 +13,7 @@ export interface SourceCenter<L = LinkSourceInfo, S = ScriptSourceInfo> {
     getInfo (address: SourceAddress): S | null,
     hasInfo (address: SourceAddress): boolean,
     deleteInfo (address: SourceAddress): boolean,
-    deleteInlineInfo (addressList: SourceAddress[]): void,
+    deleteInlineInfo (addressList: Set<SourceAddress>): void,
   }
 }
 
@@ -57,7 +57,7 @@ function createSourceCenter (): SourceCenter {
     link: createSourceHandler<LinkSourceInfo, LinkListType>(linkList),
     script: {
       ...createSourceHandler<ScriptSourceInfo, ScriptListType>(scriptList),
-      deleteInlineInfo (addressList: SourceAddress[]): void {
+      deleteInlineInfo (addressList: Set<SourceAddress>): void {
         addressList.forEach((address) => {
           if (isInlineScript(address)) {
             scriptList.delete(address)
