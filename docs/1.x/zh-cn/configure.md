@@ -24,7 +24,7 @@ MicroApp会根据url地址自动补全子应用的静态资源，如js、css、�
 当`url`的值发生变化时，会卸载当前应用并根据新的`url`值重新渲染。
 
 ## inline
-- Desc: `是否使用内联script`
+- Desc: `使用内联script`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' inline></micro-app>`
 
@@ -36,7 +36,7 @@ MicroApp会根据url地址自动补全子应用的静态资源，如js、css、�
 > 开启inline后会稍微损耗性能，建议在开发环境中使用。
 
 ## destroy
-- Desc: `卸载时是否强制删除缓存资源`
+- Desc: `卸载时强制删除缓存资源`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' destroy></micro-app>`
 
@@ -73,7 +73,7 @@ MicroApp会根据url地址自动补全子应用的静态资源，如js、css、�
 
 
 ## ssr
-- Desc: `是否开启ssr模式`
+- Desc: `开启ssr模式`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' ssr></micro-app>`
@@ -82,7 +82,7 @@ MicroApp会根据url地址自动补全子应用的静态资源，如js、css、�
 当子应用是ssr应用时，需要设置ssr属性，此时micro-app会根据ssr模式加载子应用。
 
 ## keep-alive
-- Desc: `是否开启keep-alive模式`
+- Desc: `开启keep-alive模式`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' keep-alive></micro-app>`
@@ -93,7 +93,7 @@ MicroApp会根据url地址自动补全子应用的静态资源，如js、css、�
 keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者同时存在时，keep-alive将失效。
 
 ## disable-memory-router
-- Desc: `是否关闭虚拟路由系统`
+- Desc: `关闭虚拟路由系统`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' disable-memory-router></micro-app>`
@@ -120,7 +120,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
   2. 当
 
 ## keep-router-state
-- Desc: `是否保留路由状态`
+- Desc: `保留路由状态`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' keep-router-state></micro-app>`
@@ -134,7 +134,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
   2. 当设置了`default-page`时`keep-router-state`将失效，因为它的优先级小于`default-page`
 
 ## disable-patch-request
-- Desc: `是否关闭子应用请求的自动补全功能`
+- Desc: `关闭子应用请求的自动补全功能`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' disable-patch-request></micro-app>`
@@ -161,7 +161,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 ```
 
 ## fiber
-- Desc: `是否开启fiber模式`
+- Desc: `开启fiber模式`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' fiber></micro-app>`
@@ -173,7 +173,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 
 
 ## shadowDOM
-- Desc: `是否开启shadowDOM`
+- Desc: `开启shadowDOM`
 - Type: `string(boolean)`
 - Default: `false`
 - 使用方式: 

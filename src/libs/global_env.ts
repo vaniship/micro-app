@@ -35,6 +35,10 @@ declare global {
   interface HTMLStyleElement {
     __MICRO_APP_HAS_SCOPED__?: boolean
   }
+
+  interface HTMLElement {
+    reload(destroy?: boolean): Promise<boolean>
+  }
 }
 
 const globalEnv: Record<string, any> = {}

@@ -4,7 +4,7 @@ import jsxCustomEvent from '@micro-zoe/micro-app/polyfill/jsx-custom-event'
 import React from 'react'
 import { Spin, Row, Col, Button, Modal } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons';
-import microApp, { unmountApp, unmountAllApps } from '@micro-zoe/micro-app'
+import microApp from '@micro-zoe/micro-app'
 import config from '../../config'
 import './react16.less'
 
@@ -113,18 +113,22 @@ export default class App extends React.Component {
   }
 
   // 主动卸载应用
-  handleUnmountMySelf = () => {
+  useUnmountApp = () => {
     // unmountApp 会删除micro-app元素
     // 当先通过unmountApp卸载应用后再通过setState控制元素展示，会导致react报错，因为micro-app元素已经不存在了
     // 此处先通过setState控制应用卸载，再通过unmountApp删除缓存状态，避免报错
     this.setState({
       showMicroApp: false,
     }, () => {
-      unmountApp(this.state.name, {
+      microApp.unmountApp(this.state.name, {
         // destroy: true,
         clearAliveState: true,
-      }).then(() => {
-        console.log('unmountApp方法 -- 卸载成功')
+      }).then((result) => {
+        if (result) {
+          console.log('unmountApp方法 -- 卸载成功')
+        } else {
+          console.log('unmountApp方法 -- 卸载失败')
+        }
       })
     })
   }
@@ -178,6 +182,16 @@ export default class App extends React.Component {
 
   handleGlobalDataForBaseApp = (data) => {
     console.log(`这是全局数据--基座应用-${this.state.name}`, data)
+  }
+
+  useReload = () => {
+    microApp.reload(this.state.name, true).then((result) => {
+      if (result) {
+        console.log('执行 microApp.reload 重新渲染成功')
+      } else {
+        console.log('执行 microApp.reload 重新渲染失败')
+      }
+    })
   }
 
   componentDidMount () {
@@ -236,7 +250,7 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.dispatchGlobalData}>发送全局数据</Button>
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
             <Button type="primary" onClick={this.handleModal}>modal内嵌应用</Button>
-            <Button type="primary" onClick={this.handleUnmountMySelf}>主动卸载应用</Button>
+            <Button type="primary" onClick={this.useUnmountApp}>主动卸载应用</Button>
             <Button type="primary" onClick={this.jumpToHome}>基座控制子应用跳转home</Button>
             <Button type="primary" onClick={this.jumpToPage2}>基座控制子应用跳转page2</Button>
             <Button type="primary" onClick={this.jumpToInline}>基座控制子应用跳转inline</Button>
@@ -246,6 +260,7 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.useCurrentRoute}>基座调用router.current</Button>
             <Button type="primary" onClick={this.useRouterAttachToURL}>基座调用router.attachToURL</Button>
             <Button type="primary" onClick={this.useRouterAttachAllToURL}>基座调用router.attachAllToURL</Button>
+            <Button type="primary" onClick={this.useReload}>基座调用reload方法</Button>
             <Button type="primary" onClick={this.changeTestNum}>{this.state.testNum}</Button>
           </Col>
           <Col span={18} className='app-con-react16'>
@@ -268,7 +283,7 @@ export default class App extends React.Component {
                   onDataChange={this.handleDataChange}
                   baseRoute='/micro-app/demo/react16'
                   // keep-alive
-                  destroy
+                  // destroy
                   // inline
                   // disableSandbox
                   // disable-sandbox

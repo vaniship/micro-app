@@ -14,11 +14,12 @@ import {
   isPlainObject,
   formatAppName,
   getRootContainer,
+  isString,
 } from './libs/utils'
 import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
-import { appStates, keepAliveStates } from './libs/constants'
+import { appStates, keepAliveStates, lifeCycles } from './libs/constants'
 import { router } from './sandbox'
 
 /**
@@ -60,7 +61,7 @@ type unmountAppOptions = {
  * @param options unmountAppOptions
  * @returns Promise<void>
  */
-export function unmountApp (appName: string, options?: unmountAppOptions): Promise<void> {
+export function unmountApp (appName: string, options?: unmountAppOptions): Promise<boolean> {
   const app = appInstanceMap.get(formatAppName(appName))
   return new Promise((resolve) => { // eslint-disable-line
     if (app) {
@@ -68,31 +69,31 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
         if (options?.destroy) {
           app.actionsForCompletelyDestroy()
         }
-        resolve()
+        resolve(true)
       } else if (app.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN) {
         if (options?.destroy) {
-          app.unmount(true, resolve)
+          app.unmount(true, resolve.bind(null, true))
         } else if (options?.clearAliveState) {
-          app.unmount(false, resolve)
+          app.unmount(false, resolve.bind(null, true))
         } else {
-          resolve()
+          resolve(true)
         }
       } else {
         const container = getRootContainer(app.container!)
         const unmountHandler = () => {
-          container.removeEventListener('unmount', unmountHandler)
-          container.removeEventListener('afterhidden', afterhiddenHandler)
-          resolve()
+          container.removeEventListener(lifeCycles.UNMOUNT, unmountHandler)
+          container.removeEventListener(lifeCycles.AFTERHIDDEN, afterhiddenHandler)
+          resolve(true)
         }
 
         const afterhiddenHandler = () => {
-          container.removeEventListener('unmount', unmountHandler)
-          container.removeEventListener('afterhidden', afterhiddenHandler)
-          resolve()
+          container.removeEventListener(lifeCycles.UNMOUNT, unmountHandler)
+          container.removeEventListener(lifeCycles.AFTERHIDDEN, afterhiddenHandler)
+          resolve(true)
         }
 
-        container.addEventListener('unmount', unmountHandler)
-        container.addEventListener('afterhidden', afterhiddenHandler)
+        container.addEventListener(lifeCycles.UNMOUNT, unmountHandler)
+        container.addEventListener(lifeCycles.AFTERHIDDEN, afterhiddenHandler)
 
         if (options?.destroy) {
           let destroyAttrValue, destoryAttrValue
@@ -104,8 +105,8 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
 
           container.removeAttribute('destroy')
 
-          typeof destroyAttrValue === 'string' && container.setAttribute('destroy', destroyAttrValue)
-          typeof destoryAttrValue === 'string' && container.setAttribute('destory', destoryAttrValue)
+          isString(destroyAttrValue) && container.setAttribute('destroy', destroyAttrValue)
+          isString(destoryAttrValue) && container.setAttribute('destory', destoryAttrValue)
         } else if (options?.clearAliveState && container.hasAttribute('keep-alive')) {
           const keepAliveAttrValue = container.getAttribute('keep-alive')!
 
@@ -119,21 +120,51 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
       }
     } else {
       logWarn(`app ${appName} does not exist`)
-      resolve()
+      resolve(false)
     }
   })
 }
 
 // unmount all apps in turn
-export function unmountAllApps (options?: unmountAppOptions): Promise<void> {
-  return Array.from(appInstanceMap.keys()).reduce((pre, next) => pre.then(() => unmountApp(next, options)), Promise.resolve())
+export function unmountAllApps (options?: unmountAppOptions): Promise<boolean> {
+  return Array.from(appInstanceMap.keys()).reduce((pre, next) => pre.then(() => unmountApp(next, options)), Promise.resolve(true))
+}
+
+/**
+ * Re render app from the command line
+ * microApp.reload(destroy)
+ * @param appName app.name
+ * @param destroy unmount app with destroy mode
+ * @returns Promise<boolean>
+ */
+export function reload (appName: string, destroy?: boolean): Promise<boolean> {
+  return new Promise((resolve) => {
+    const app = appInstanceMap.get(formatAppName(appName))
+    if (app) {
+      const rootContainer = app.container && getRootContainer(app.container)
+      if (rootContainer) {
+        resolve(rootContainer.reload(destroy))
+      } else {
+        logWarn(`app ${appName} is not rendered, cannot use reload`)
+        resolve(false)
+      }
+    } else {
+      logWarn(`app ${appName} does not exist`)
+      resolve(false)
+    }
+  })
 }
 
 export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigType {
   tagName = 'micro-app'
   options: OptionsType = {}
-  preFetch = preFetch
   router: Router = router
+  preFetch = preFetch
+  unmountApp = unmountApp
+  unmountAllApps = unmountAllApps
+  getActiveApps = getActiveApps
+  getAllApps = getAllApps
+  reload = reload
   start (options?: OptionsType): void {
     if (!isBrowser || !window.customElements) {
       return logError('micro-app is not supported in this environment')

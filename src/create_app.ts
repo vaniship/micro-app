@@ -361,7 +361,7 @@ export default class CreateApp implements AppInterface {
   }
 
   // hidden app when disconnectedCallback called with keep-alive
-  public hiddenKeepAliveApp (): void {
+  public hiddenKeepAliveApp (callback?: CallableFunction): void {
     const oldContainer = this.container
 
     cloneContainer(
@@ -389,6 +389,8 @@ export default class CreateApp implements AppInterface {
 
     // called after lifeCyclesEvent
     this.sandBox?.removeRouteInfoForKeepAliveApp()
+
+    callback && callback()
   }
 
   // show app when connectedCallback called with keep-alive

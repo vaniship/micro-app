@@ -149,7 +149,7 @@ declare module '@micro-app/types' {
     actionsForCompletelyDestroy (): void
 
     // hidden app when disconnectedCallback with keep-alive
-    hiddenKeepAliveApp (): void
+    hiddenKeepAliveApp (callback?: CallableFunction): void
 
     // show app when connectedCallback with keep-alive
     showKeepAliveApp (container: HTMLElement | ShadowRoot): void

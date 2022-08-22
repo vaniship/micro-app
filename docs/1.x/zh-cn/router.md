@@ -6,6 +6,54 @@ MicroApp通过自定义location和history，实现了一套虚拟路由系统，
 
 虚拟路由系统还提供了丰富的功能，帮助用户提升开发效率和使用体验。
 
+## 配置项
+#### 1、关闭虚拟路由系统
+虚拟路由系统是默认开启的，设置`disable-memory-router`可以进行关闭，此时子应用将基于浏览器路由进行渲染，参考[browser-router](/zh-cn/browser-router)
+
+**使用方式：**
+
+1、关闭某个子应用的虚拟路由
+```html
+<micro-app name='xx' url='xx' disable-memory-router></micro-app>
+```
+
+2、关闭所有子应用的虚拟路由
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 在start中增加配置
+microApp.start({
+  'disable-memory-router': true, // 关闭虚拟路由
+})
+```
+
+#### 2、保留路由状态
+默认情况下，子应用卸载后重新渲染，将和首次加载一样渲染子应用的首页。
+
+设置`keep-router-state`可以保留子应用路由状态，在卸载后重新渲染时将恢复卸载前的页面（页面中的状态不保留）。
+
+**使用方式：**
+
+1、保留某个子应用的路由状态
+```html
+<micro-app name='xx' url='xx' keep-router-state></micro-app>
+```
+
+2、保留所有子应用的路由状态
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 在start中增加配置
+microApp.start({
+  'keep-router-state': true, // 保留路由状态
+})
+```
+
+注意：
+  1. 如果关闭了虚拟路由系统，`keep-router-state`也将失效。
+  2. 当设置了`default-page`时`keep-router-state`将失效，因为它的优先级小于`default-page`
+
+
 
 ## 导航
 通过虚拟路由系统，我们可以方便的进行跨应用的跳转，如：

@@ -50,10 +50,10 @@ export function defineElement (tagName: string): void {
     private cacheData: Record<PropertyKey, unknown> | null = null
     private connectedCount = 0
     private connectStateMap: Map<number, boolean> = new Map()
-    appName = '' // app name
-    appUrl = '' // app url
-    ssrUrl = '' // html path in ssr mode
-    version = version
+    public appName = '' // app name
+    public appUrl = '' // app url
+    public ssrUrl = '' // html path in ssr mode
+    public version = version
 
     // 👇 Configuration
     // name: app name
@@ -66,7 +66,7 @@ export function defineElement (tagName: string): void {
     // baseRoute: route prefix, default is ''
     // keep-alive: open keep-alive mode
 
-    connectedCallback (): void {
+    public connectedCallback (): void {
       const cacheCount = ++this.connectedCount
       this.connectStateMap.set(cacheCount, true)
       /**
@@ -80,13 +80,40 @@ export function defineElement (tagName: string): void {
             this.appName,
             lifeCycles.CREATED,
           )
-          this.initialMount()
+          this.handleConnected()
         }
       })
     }
 
-    disconnectedCallback (): void {
+    public disconnectedCallback (): void {
       this.connectStateMap.set(this.connectedCount, false)
+      this.handleDisconnected()
+    }
+
+    /**
+     * Re render app from the command line
+     * MicroAppElement.reload(destroy)
+     */
+    public reload (destroy?: boolean): Promise<boolean> {
+      return new Promise((resolve) => {
+        const handleAfterReload = () => {
+          this.removeEventListener(lifeCycles.MOUNTED, handleAfterReload)
+          this.removeEventListener(lifeCycles.AFTERSHOW, handleAfterReload)
+          resolve(true)
+        }
+        this.addEventListener(lifeCycles.MOUNTED, handleAfterReload)
+        this.addEventListener(lifeCycles.AFTERSHOW, handleAfterReload)
+        this.handleDisconnected(destroy, () => {
+          this.handleConnected()
+        })
+      })
+    }
+
+    /**
+     * common action for unmount
+     * @param destroy reload param
+     */
+    private handleDisconnected (destroy = false, callback?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
@@ -94,15 +121,15 @@ export function defineElement (tagName: string): void {
         app.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN
       ) {
         // keep-alive
-        if (this.getKeepAliveModeResult()) {
-          this.handleHiddenKeepAliveApp()
+        if (this.getKeepAliveModeResult() && !destroy) {
+          this.handleHiddenKeepAliveApp(callback)
         } else {
-          this.handleUnmount(this.getDestroyCompatibleResult())
+          this.handleUnmount(destroy || this.getDestroyCompatibleResult(), callback)
         }
       }
     }
 
-    attributeChangedCallback (attr: ObservedAttrName, _oldVal: string, newVal: string): void {
+    public attributeChangedCallback (attr: ObservedAttrName, _oldVal: string, newVal: string): void {
       if (
         this.legalAttribute(attr, newVal) &&
         this[attr === ObservedAttrName.NAME ? 'appName' : 'appUrl'] !== newVal
@@ -140,13 +167,13 @@ export function defineElement (tagName: string): void {
 
     // handle for connectedCallback run before attributeChangedCallback
     private handleInitialNameAndUrl (): void {
-      this.connectStateMap.get(this.connectedCount) && this.initialMount()
+      this.connectStateMap.get(this.connectedCount) && this.handleConnected()
     }
 
     /**
      * first mount of this app
      */
-    private initialMount (): void {
+    private handleConnected (): void {
       if (!this.appName || !this.appUrl) return
 
       if (this.getDisposeResult('shadowDOM') && !this.shadowRoot && isFunction(this.attachShadow)) {
@@ -306,6 +333,28 @@ export function defineElement (tagName: string): void {
       return true
     }
 
+    // create app instance
+    private handleCreateApp (): void {
+      /**
+       * actions for destroy old app
+       * fix of unmounted umd app with disableSandbox
+       */
+      if (appInstanceMap.has(this.appName)) {
+        appInstanceMap.get(this.appName)!.actionsForCompletelyDestroy()
+      }
+
+      new CreateApp({
+        name: this.appName,
+        url: this.appUrl,
+        scopecss: this.isScopecss(),
+        useSandbox: this.isSandbox(),
+        inline: this.getDisposeResult('inline'),
+        esmodule: this.getDisposeResult('esmodule'),
+        container: this.shadowRoot ?? this,
+        ssrUrl: this.ssrUrl,
+      })
+    }
+
     /**
      * mount app
      * some serious note before mount:
@@ -336,28 +385,6 @@ export function defineElement (tagName: string): void {
       })
     }
 
-    // create app instance
-    private handleCreateApp (): void {
-      /**
-       * actions for destroy old app
-       * fix of unmounted umd app with disableSandbox
-       */
-      if (appInstanceMap.has(this.appName)) {
-        appInstanceMap.get(this.appName)!.actionsForCompletelyDestroy()
-      }
-
-      new CreateApp({
-        name: this.appName,
-        url: this.appUrl,
-        scopecss: this.isScopecss(),
-        useSandbox: this.isSandbox(),
-        inline: this.getDisposeResult('inline'),
-        esmodule: this.getDisposeResult('esmodule'),
-        container: this.shadowRoot ?? this,
-        ssrUrl: this.ssrUrl,
-      })
-    }
-
     /**
      * unmount app
      * @param destroy delete cache resources when unmount
@@ -368,21 +395,20 @@ export function defineElement (tagName: string): void {
         app &&
         app.getAppState() !== appStates.UNMOUNT
       ) {
-        app.unmount(
-          destroy,
-          unmountCb,
-        )
+        app.unmount(destroy, unmountCb)
       }
     }
 
     // hidden app when disconnectedCallback called with keep-alive
-    private handleHiddenKeepAliveApp (): void {
+    private handleHiddenKeepAliveApp (callback?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
         app.getAppState() !== appStates.UNMOUNT &&
         app.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN
-      ) app.hiddenKeepAliveApp()
+      ) {
+        app.hiddenKeepAliveApp(callback)
+      }
     }
 
     // show app when connectedCallback called with keep-alive

@@ -246,7 +246,7 @@ interface unmountAppParams {
   clearAliveState?: boolean;
 }
 
-function unmountApp(appName: string, options?: unmountAppParams): Promise<void>
+function unmountApp(appName: string, options?: unmountAppParams): Promise<boolean>
 ```
 
 **使用方式：**
@@ -288,7 +288,7 @@ interface unmountAppParams {
   clearAliveState?: boolean;
 }
 
-function unmountAllApps(appName: string, options?: unmountAppParams): Promise<void>
+function unmountAllApps(appName: string, options?: unmountAppParams): Promise<boolean>
 ```
 
 **使用方式：**
@@ -305,6 +305,45 @@ unmountAllApps({ clearAliveState: true }).then(() => console.log('卸载成功')
 // 如果destroy和clearAliveState同时为true，则clearAliveState将失效
 unmountAllApps({ destroy: true, clearAliveState: true }).then(() => console.log('卸载成功'))
 ```
+
+
+## reload
+**描述：**重新渲染子应用
+
+**版本限制：** 1.0.0及以上版本
+
+**介绍：**
+```js
+/**
+ * @param appName 应用名称，必传
+ * @param destroy 重新渲染时是否彻底删除缓存值，可选
+ */
+function reload(appName: string, destroy?: boolean): Promise<boolean>
+```
+
+**使用方式：**
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 案例一：重新渲染子应用my-app
+microApp.reload('my-app').then((result) => {
+  if (result) {
+    console.log('重新渲染成功')
+  } else {
+    console.log('重新渲染失败')
+  }
+})
+
+// 案例二：重新渲染子应用my-app，并彻底删除缓存值
+microApp.reload('my-app', true).then((result) => {
+  if (result) {
+    console.log('重新渲染成功')
+  } else {
+    console.log('重新渲染失败')
+  }
+})
+```
+
 
 ## setData
 **描述：**向指定的子应用发送数据
