@@ -56,6 +56,11 @@ function controlBase () {
 }
 
 function Page1() {
+  function dispatchData () {
+    window.microApp?.dispatch({'from': '来自微应用react16的数据' + (+new Date())})
+    window.microApp?.dispatch({ childKey: '子应用发送的第二个数据' })
+  }
+
   useEffect(() => {
   //   loadModules(["esri/Map", "esri/views/MapView"])
   //   .then(([Map, MapView]) => {
@@ -92,7 +97,7 @@ function Page1() {
       </header>
       <div className='btn-con2' clstag="pageclick|keycount|home2013|08a">
         <Space direction='vertical'>
-          <Button type="primary" onClick={() => window.microApp?.dispatch({'from': '来自微应用react16的数据' + (+new Date())})}>
+          <Button type="primary" onClick={dispatchData}>
             向基座应用发送数据
           </Button>
           <Button type="primary" onClick={getDataFromBase}>

@@ -515,7 +515,7 @@ export function defineElement (tagName: string): void {
      */
     set data (value: Record<PropertyKey, unknown> | null) {
       if (this.appName) {
-        microApp.setData(this.appName, value!)
+        microApp.setData(this.appName, value as Record<PropertyKey, unknown>)
       } else {
         this.cacheData = value
       }
@@ -534,5 +534,5 @@ export function defineElement (tagName: string): void {
     }
   }
 
-  window.customElements.define(tagName, MicroAppElement)
+  globalEnv.rawWindow.customElements.define(tagName, MicroAppElement)
 }

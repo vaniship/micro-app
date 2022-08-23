@@ -3,7 +3,7 @@ import type {
   MicroAppConfigType,
   AppInterface,
   Router,
-  appName,
+  AppName,
 } from '@micro-app/types'
 import { defineElement } from './micro_app_element'
 import preFetch, { getGlobalAssets } from './prefetch'
@@ -27,9 +27,9 @@ import { router } from './sandbox'
  * @param excludeHiddenApp exclude hidden keep-alive app, default is false
  * @returns active apps
  */
-export function getActiveApps (excludeHiddenApp = false): appName[] {
-  const activeApps: appName[] = []
-  appInstanceMap.forEach((app: AppInterface, appName: appName) => {
+export function getActiveApps (excludeHiddenApp = false): AppName[] {
+  const activeApps: AppName[] = []
+  appInstanceMap.forEach((app: AppInterface, appName: AppName) => {
     if (
       appStates.UNMOUNT !== app.getAppState() &&
       !app.isPrefetch &&

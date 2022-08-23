@@ -181,18 +181,18 @@ export class EventCenterForMicroApp extends EventCenterForGlobal {
   dispatch (data: Record<PropertyKey, unknown>): void {
     removeDomScope()
 
-    eventCenter.dispatch(formatEventName(this.appName, false), data)
+    eventCenter.dispatch(formatEventName(this.appName, false), data, () => {
+      const app = appInstanceMap.get(this.appName)
+      if (app?.container && isPlainObject(data)) {
+        const event = new CustomEvent('datachange', {
+          detail: {
+            data: eventCenter.getData(formatEventName(this.appName, false))
+          }
+        })
 
-    const app = appInstanceMap.get(this.appName)
-    if (app?.container && isPlainObject(data)) {
-      const event = new CustomEvent('datachange', {
-        detail: {
-          data,
-        }
-      })
-
-      getRootContainer(app.container).dispatchEvent(event)
-    }
+        getRootContainer(app.container).dispatchEvent(event)
+      }
+    })
   }
 
   /**

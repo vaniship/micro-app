@@ -7,7 +7,7 @@ declare module '@micro-app/types' {
 
   type microAppWindowType = Window & any
 
-  type appName = string
+  type AppName = string
 
   type SourceAddress = string
 

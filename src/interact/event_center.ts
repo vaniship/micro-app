@@ -1,14 +1,15 @@
-import { CallableFunctionForInteract } from '@micro-app/types'
-import { logError, isFunction, isPlainObject } from '../libs/utils'
+/* eslint-disable no-cond-assign */
+import { CallableFunctionForInteract, AppName } from '@micro-app/types'
+import { logError, isFunction, isPlainObject, assign, defer } from '../libs/utils'
 
 export default class EventCenter {
-  eventList = new Map<string, {
+  public eventList = new Map<string, {
     data: Record<PropertyKey, unknown>,
     callbacks: Set<CallableFunctionForInteract>,
   }>()
 
   // whether the name is legal
-  isLegalName (name: string): boolean {
+  private isLegalName (name: string): boolean {
     if (!name) {
       logError('event-center: Invalid name')
       return false
@@ -17,13 +18,34 @@ export default class EventCenter {
     return true
   }
 
+  private queue: string[] = []
+
+  // add appName to queue
+  private enqueue (name: AppName, nextStep?: CallableFunction): void {
+    (!this.queue.includes(name) && this.queue.push(name) === 1) && defer(() => {
+      this.process()
+      nextStep?.()
+    })
+  }
+
+  // run task
+  private process = (): void => {
+    let name: string | void
+    while (name = this.queue.shift()) {
+      const eventInfo = this.eventList.get(name)!
+      for (const f of eventInfo.callbacks) {
+        f(eventInfo.data)
+      }
+    }
+  }
+
   /**
    * add listener
    * @param name event name
    * @param f listener
    * @param autoTrigger If there is cached data when first bind listener, whether it needs to trigger, default is false
    */
-  on (name: string, f: CallableFunctionForInteract, autoTrigger = false): void {
+  public on (name: string, f: CallableFunctionForInteract, autoTrigger = false): void {
     if (this.isLegalName(name)) {
       if (!isFunction(f)) {
         return logError('event-center: Invalid callback function')
@@ -46,7 +68,7 @@ export default class EventCenter {
   }
 
   // remove listener, but the data is not cleared
-  off (name: string, f?: CallableFunctionForInteract): void {
+  public off (name: string, f?: CallableFunctionForInteract): void {
     if (this.isLegalName(name)) {
       const eventInfo = this.eventList.get(name)
       if (eventInfo) {
@@ -60,20 +82,18 @@ export default class EventCenter {
   }
 
   // dispatch data
-  dispatch (name: string, data: Record<PropertyKey, unknown>): void {
+  public dispatch (
+    name: string,
+    data: Record<PropertyKey, unknown>,
+    nextStep?: CallableFunction,
+  ): void {
     if (this.isLegalName(name)) {
       if (!isPlainObject(data)) {
         return logError('event-center: data must be object')
       }
       let eventInfo = this.eventList.get(name)
       if (eventInfo) {
-        // Update when the data is not equal
-        if (eventInfo.data !== data) {
-          eventInfo.data = data
-          for (const f of eventInfo.callbacks) {
-            f(data)
-          }
-        }
+        eventInfo.data = assign({}, eventInfo.data, data)
       } else {
         eventInfo = {
           data: data,
@@ -81,11 +101,13 @@ export default class EventCenter {
         }
         this.eventList.set(name, eventInfo)
       }
+      // add to queue, event eventInfo is null
+      this.enqueue(name, nextStep)
     }
   }
 
   // get data
-  getData (name: string): Record<PropertyKey, unknown> | null {
+  public getData (name: string): Record<PropertyKey, unknown> | null {
     const eventInfo = this.eventList.get(name)
     return eventInfo?.data ?? null
   }

@@ -10,6 +10,7 @@ import './react16.less'
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
+const globalData1 = { type: '全局数据' }
 export default class App extends React.Component {
   state = {
     data: {
@@ -66,18 +67,28 @@ export default class App extends React.Component {
 
   changeData = () => {
     this.setState({
-      data: {
-        name: +new Date(),
-      },
+      data: { name: '通过data属性修改的数据' },
     })
   }
 
   dispatchData = () => {
-    microApp.setData(this.state.name, {dispatch: 'data from dispatch' + (+new Date())})
+    // 全新数据
+    microApp.setData(this.state.name, { dispatch: 'data from dispatch' + (+new Date()) })
+
+    // 相同的data
+    microApp.setData(this.state.name, this.state.data)
+
+    // 数据内容不同
+    microApp.setData(this.state.name, { key2: '新的key' })
   }
 
   dispatchGlobalData = () => {
-    microApp.setGlobalData({name: '全局数据' + (+new Date())})
+    // 发送新的数据
+    // microApp.setGlobalData({name: '全局数据' + (+new Date())})
+
+    // 合并值
+    microApp.setGlobalData({a: 1})
+    microApp.setGlobalData({b: 2})
   }
 
   handleDataChange = (e) => {
