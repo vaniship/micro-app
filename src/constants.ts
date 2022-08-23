@@ -33,6 +33,25 @@ export enum keepAliveStates {
   KEEP_ALIVE_HIDDEN = 'keep_alive_hidden',
 }
 
+// micro-app config
+export enum MicroAppConfig {
+  DESTROY = 'destroy',
+  DESTORY = 'destory',
+  INLINE = 'inline',
+  DISABLESCOPECSS = 'disableScopecss',
+  DISABLESANDBOX = 'disableSandbox',
+  DISABLE_SCOPECSS = 'disable-scopecss',
+  DISABLE_SANDBOX = 'disable-sandbox',
+  DISABLE_MEMORY_ROUTER = 'disable-memory-router',
+  DISABLE_PATCH_REQUEST = 'disable-patch-request',
+  KEEP_ROUTER_STATE = 'keep-router-state',
+  HIDDEN_ROUTER = 'hidden-router',
+  KEEP_ALIVE = 'keep-alive',
+  ESMODULE = 'esmodule',
+  SSR = 'ssr',
+  FIBER = 'fiber',
+}
+
 /**
  * global key must be static key, they can not rewrite
  * e.g.

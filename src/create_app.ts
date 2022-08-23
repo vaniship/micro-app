@@ -8,7 +8,7 @@ import type {
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
 import { execScripts } from './source/scripts'
-import { appStates, lifeCycles, keepAliveStates } from './libs/constants'
+import { appStates, lifeCycles, keepAliveStates } from './constants'
 import SandBox from './sandbox'
 import {
   isFunction,

@@ -1,6 +1,6 @@
 import type {
   OptionsType,
-  MicroAppConfigType,
+  MicroAppBaseType,
   AppInterface,
   Router,
   AppName,
@@ -15,11 +15,12 @@ import {
   formatAppName,
   getRootContainer,
   isString,
+  pureCreateElement,
 } from './libs/utils'
 import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
-import { appStates, keepAliveStates, lifeCycles } from './libs/constants'
+import { appStates, keepAliveStates, lifeCycles, MicroAppConfig } from './constants'
 import { router } from './sandbox'
 
 /**
@@ -155,7 +156,49 @@ export function reload (appName: string, destroy?: boolean): Promise<boolean> {
   })
 }
 
-export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigType {
+interface RenderAppOptions {
+  name: string
+  url: string,
+  container: string | Element
+  [key: string]: unknown
+  [Symbol.iterator]: () => any
+}
+
+export function renderApp (options: RenderAppOptions): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (!isPlainObject<RenderAppOptions>(options)) return logWarn('Options must be an object')
+    const container: Element | null = options.container instanceof Element ? options.container : isString(options.container) ? document.getElementById(options.container) : null
+    if (!container) return logWarn('Target container is not a DOM element.')
+
+    const microAppElement = pureCreateElement<any>(microApp.tagName)
+
+    microAppElement.setAttribute('name', options.name)
+    microAppElement.setAttribute('url', options.url)
+
+    for (const key of options) {
+      if (key in MicroAppConfig) {
+        microAppElement.setAttribute(key, options[key])
+      }
+    }
+
+    const handleMount = () => {
+      microAppElement.removeEventListener(lifeCycles.MOUNTED, handleMount)
+      microAppElement.removeEventListener(lifeCycles.ERROR, handleError)
+      resolve(true)
+    }
+    const handleError = () => {
+      microAppElement.removeEventListener(lifeCycles.MOUNTED, handleMount)
+      microAppElement.removeEventListener(lifeCycles.ERROR, handleError)
+      resolve(false)
+    }
+    microAppElement.addEventListener(lifeCycles.MOUNTED, handleMount)
+    microAppElement.addEventListener(lifeCycles.ERROR, handleError)
+
+    container.appendChild(microAppElement)
+  })
+}
+
+export class MicroApp extends EventCenterForBaseApp implements MicroAppBaseType {
   tagName = 'micro-app'
   options: OptionsType = {}
   router: Router = router
@@ -184,7 +227,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
 
     initGlobalEnv()
 
-    if (isPlainObject(options)) {
+    if (isPlainObject<OptionsType>(options)) {
       this.options = options
       options['disable-scopecss'] = options['disable-scopecss'] ?? options.disableScopecss
       options['disable-sandbox'] = options['disable-sandbox'] ?? options.disableSandbox
@@ -214,4 +257,6 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppConfigTyp
   }
 }
 
-export default new MicroApp()
+const microApp = new MicroApp()
+
+export default microApp

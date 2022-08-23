@@ -63,7 +63,7 @@ export function isFunction (target: unknown): target is Function {
 }
 
 // is PlainObject
-export function isPlainObject (target: unknown): target is Record<PropertyKey, unknown> {
+export function isPlainObject <T = Record<PropertyKey, unknown>> (target: unknown): target is T {
   return toString.call(target) === '[object Object]'
 }
 

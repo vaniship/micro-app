@@ -246,8 +246,7 @@ declare module '@micro-app/types' {
     css?: string[],
   }
 
-  type OptionsType = {
-    tagName?: string
+  interface MicroAppConfig {
     shadowDOM?: boolean
     destroy?: boolean
     destory?: boolean
@@ -266,6 +265,10 @@ declare module '@micro-app/types' {
     esmodule?: boolean
     ssr?: boolean
     fiber?: boolean
+  }
+
+  interface OptionsType extends MicroAppConfig {
+    tagName?: string
     lifeCycles?: lifeCyclesType
     preFetchApps?: prefetchParamList
     plugins?: plugins
@@ -275,7 +278,7 @@ declare module '@micro-app/types' {
   }
 
   // MicroApp config
-  interface MicroAppConfigType {
+  interface MicroAppBaseType {
     tagName: string
     options: OptionsType
     preFetch(apps: prefetchParamList): void

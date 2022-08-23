@@ -22,7 +22,7 @@ import {
   appStates,
   lifeCycles,
   keepAliveStates,
-} from './libs/constants'
+} from './constants'
 import CreateApp, { appInstanceMap } from './create_app'
 import { patchSetAttribute } from './source/patch'
 import microApp from './micro_app'
