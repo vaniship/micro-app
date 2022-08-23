@@ -105,6 +105,10 @@ export function isURL (target: unknown): target is URL {
   return target instanceof URL
 }
 
+export function isElement (target: unknown): target is Element {
+  return target instanceof Element
+}
+
 // is ProxyDocument
 export function isProxyDocument (target: unknown): target is Document {
   return toString.call(target) === '[object ProxyDocument]'

@@ -16,6 +16,7 @@ import {
   getRootContainer,
   isString,
   pureCreateElement,
+  isElement,
 } from './libs/utils'
 import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
@@ -167,8 +168,8 @@ interface RenderAppOptions {
 export function renderApp (options: RenderAppOptions): Promise<boolean> {
   return new Promise((resolve) => {
     if (!isPlainObject<RenderAppOptions>(options)) return logWarn('Options must be an object')
-    const container: Element | null = options.container instanceof Element ? options.container : isString(options.container) ? document.getElementById(options.container) : null
-    if (!container) return logWarn('Target container is not a DOM element.')
+    const container: Element | null = isElement(options.container) ? options.container : isString(options.container) ? document.getElementById(options.container) : null
+    if (!isElement(container)) return logWarn('Target container is not a DOM element.')
 
     const microAppElement = pureCreateElement<any>(microApp.tagName)
 
