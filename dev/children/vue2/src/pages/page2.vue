@@ -78,7 +78,7 @@
       <span class="el-dropdown-link">
         下拉菜单<i class="el-icon-arrow-down el-icon--right"></i>
       </span>
-      <el-dropdown-menu slot="dropdown" ref="dropdown">
+      <el-dropdown-menu slot="dropdown">
         <el-dropdown-item icon="el-icon-plus">黄金糕</el-dropdown-item>
         <el-dropdown-item icon="el-icon-circle-plus">狮子头</el-dropdown-item>
         <el-dropdown-item icon="el-icon-circle-plus-outline">螺蛳粉</el-dropdown-item>
@@ -160,12 +160,6 @@ export default {
     if (!window.umdGlobalKey) {
       alert('umdGlobalKey missing')
     }
-
-
-  },
-  beforeDestroy () {
-    // BUG：页面跳转和router-view更新时不会自动收起，且会移动到浏览器左上角
-    // this.$refs.dropdown.popperElm.parentNode.removeChild(this.$refs.dropdown.popperElm)
   },
   methods: {
     submitForm(formName) {

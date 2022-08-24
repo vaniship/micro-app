@@ -27,6 +27,12 @@ export enum lifeCycles {
   AFTERHIDDEN = 'afterhidden',
 }
 
+// global event of child app
+export enum microGlobalEvent {
+  ONMOUNT = 'onmount',
+  ONUNMOUNT = 'onunmount',
+}
+
 // keep-alive status
 export enum keepAliveStates {
   KEEP_ALIVE_SHOW = 'keep_alive_show',

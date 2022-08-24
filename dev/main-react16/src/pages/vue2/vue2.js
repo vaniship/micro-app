@@ -40,17 +40,17 @@ function Vue2 () {
   useEffect(() => {
     console.time('vue2')
     console.time('mounted-vue2')
-    const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
-      console.log('micro-app 全局 beforeEach: ', to, from, appName, window.location.hash)
-    })
+    // const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
+    //   console.log('micro-app 全局 beforeEach: ', to, from, appName, window.location.hash)
+    // })
 
-    const releaseAfterEach1 = microApp.router.afterEach((to, from, appName) => {
-      console.log('micro-app 全局 afterEach: ', to, from, appName, window.location.hash)
-    })
-    return () => {
-      releaseBeforeEach1()
-      releaseAfterEach1()
-    }
+    // const releaseAfterEach1 = microApp.router.afterEach((to, from, appName) => {
+    //   console.log('micro-app 全局 afterEach: ', to, from, appName, window.location.hash)
+    // })
+    // return () => {
+    //   releaseBeforeEach1()
+    //   releaseAfterEach1()
+    // }
   }, [])
   return (
     <div>

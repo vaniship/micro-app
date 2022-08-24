@@ -87,6 +87,16 @@ console.timeEnd('react#16');
 //   window.mount()
 // }
 
+/* ---------------------- micro-app 自定义全局事件 --------------------- */
+
+window.onmount = () => {
+  console.log('子应用 window.onmount 事件')
+}
+
+window.onunmount = () => {
+  console.log('子应用 window.onunmount 事件')
+}
+
 /* ---------------------- 全局事件 --------------------- */
 // document.addEventListener('click', function () {
 //   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)

@@ -1,6 +1,6 @@
 /* eslint-disable no-cond-assign */
 import { CallableFunctionForInteract, AppName } from '@micro-app/types'
-import { logError, isFunction, isPlainObject, assign, defer } from '../libs/utils'
+import { logError, isFunction, isPlainObject, assign, macro } from '../libs/utils'
 
 export default class EventCenter {
   public eventList = new Map<string, {
@@ -22,10 +22,11 @@ export default class EventCenter {
 
   // add appName to queue
   private enqueue (name: AppName, nextStep?: CallableFunction): void {
-    (!this.queue.includes(name) && this.queue.push(name) === 1) && defer(() => {
+    // Because web framework use micro task to update data, so we use macro task here
+    (!this.queue.includes(name) && this.queue.push(name) === 1) && macro(() => {
       this.process()
       nextStep?.()
-    })
+    }, 1)
   }
 
   // run task

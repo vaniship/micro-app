@@ -8,8 +8,13 @@ import type {
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
 import { execScripts } from './source/scripts'
-import { appStates, lifeCycles, keepAliveStates } from './constants'
 import SandBox from './sandbox'
+import {
+  appStates,
+  lifeCycles,
+  keepAliveStates,
+  microGlobalEvent,
+} from './constants'
 import {
   isFunction,
   cloneContainer,
@@ -196,7 +201,7 @@ export default class CreateApp implements AppInterface {
            */
           this.umdHookUnmount = unmount as Func
           // if mount & unmount is function, the sub app is umd mode
-          if (isFunction(mount) && isFunction(unmount)) {
+          if (isFunction(mount)) {
             this.umdHookMount = mount as Func
             this.umdMode = true
             if (this.sandBox) this.sandBox.proxyWindow.__MICRO_APP_UMD_MODE__ = true
@@ -245,6 +250,7 @@ export default class CreateApp implements AppInterface {
   private dispatchMountedEvent (): void {
     if (appStates.UNMOUNT !== this.state) {
       this.state = appStates.MOUNTED
+      this.getGlobalEventListener(microGlobalEvent.ONMOUNT)?.()
       dispatchLifecyclesEvent(
         this.container!,
         this.name,
@@ -281,6 +287,9 @@ export default class CreateApp implements AppInterface {
         logError('an error occurred in the unmount function \n', this.name, e)
       }
     }
+
+    // call window.onunmount listener of child app
+    this.getGlobalEventListener(microGlobalEvent.ONUNMOUNT)?.()
 
     // dispatch unmount event to micro app
     dispatchCustomEventToMicroApp('unmount', this.name)
@@ -474,5 +483,11 @@ export default class CreateApp implements AppInterface {
     }
 
     return {}
+  }
+
+  private getGlobalEventListener (eventName: string): Func | null {
+    // @ts-ignore
+    const listener = this.sandBox?.proxyWindow[eventName]
+    return isFunction(listener) ? listener : null
   }
 }

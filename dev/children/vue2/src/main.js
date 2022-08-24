@@ -11,6 +11,10 @@ import App from './App.vue'
 Vue.config.productionTip = false
 Vue.use(ElementUI)
 
+window.microApp.addDataListener(() => {
+  console.log('顶层监听函数 addDataListener')
+})
+
 const router = new VueRouter({
   // vue-router在hash模式下不支持base，可以用一个根页面进行包裹
   // base: window.__MICRO_APP_BASE_ROUTE__ || '/',
@@ -18,14 +22,14 @@ const router = new VueRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
-  console.log('vue2 路由钩子 beforeEach', to, from, location.href)
-  next()
-})
+// router.beforeEach((to, from, next) => {
+//   console.log('vue2 路由钩子 beforeEach', to, from, location.href)
+//   next()
+// })
 
-router.afterEach((to, from) => {
-  console.log('vue2 路由钩子 afterEach', to, from, location.href)
-})
+// router.afterEach((to, from) => {
+//   console.log('vue2 路由钩子 afterEach', to, from, location.href)
+// })
 
 let app = null
 

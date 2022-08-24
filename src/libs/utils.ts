@@ -164,6 +164,15 @@ export function defer (fn: Func, ...args: unknown[]): void {
 }
 
 /**
+ * async execution with macro task
+ * @param fn callback
+ * @param args params
+ */
+export function macro (fn: Func, ...args: unknown[]): void {
+  setTimeout(fn.bind(null, ...args), 1)
+}
+
+/**
  * create URL as MicroLocation
  */
 export const createURL = (function (): (path: string | URL, base?: string) => MicroLocation {
