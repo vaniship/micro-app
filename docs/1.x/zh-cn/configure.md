@@ -108,7 +108,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 
 
 ## default-page
-- Desc: `指定初次渲染的页面`
+- Desc: `指定默认渲染的页面`
 - Type: `string`
 - Default: `''`
 - 使用方式: `<micro-app name='xx' url='xx' default-page='页面地址'></micro-app>`
@@ -148,7 +148,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 如：`fetch('/api/data')` 兜底为 `fetch(主应用域名 + '/api/data')`
 
 ## baseroute
-- Desc: `子应用的基础路由`
+- Desc: `设置子应用的基础路由`
 - Type: `string`
 - Default: `''`
 - 使用方式: `<micro-app name='xx' url='xx' baseroute='/my-page/'></micro-app>`

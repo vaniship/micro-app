@@ -22,7 +22,7 @@ export default class App extends React.Component {
     showLoading: true,
     showMicroApp: true,
     testNum: 0,
-    modal1: false,
+    showModal: false,
   }
 
   handleCreated = () => {
@@ -117,12 +117,6 @@ export default class App extends React.Component {
     })
   }
 
-  handleModal = () => {
-    this.setState({
-      modal1: !this.state.modal1,
-    })
-  }
-
   // 主动卸载应用
   useUnmountApp = () => {
     // unmountApp 会删除micro-app元素
@@ -195,6 +189,7 @@ export default class App extends React.Component {
     console.log(`这是全局数据--基座应用-${this.state.name}`, data)
   }
 
+  // 手动重新加载子应用
   useReload = () => {
     microApp.reload(this.state.name, true).then((result) => {
       if (result) {
@@ -202,6 +197,82 @@ export default class App extends React.Component {
       } else {
         console.log('执行 microApp.reload 重新渲染失败')
       }
+    })
+  }
+
+  // 手动渲染子应用
+  useRenderApp = () => {
+    this.setState({
+      showModal: !this.state.showModal,
+    }, () => {
+      setTimeout(() => {
+        microApp.renderApp({
+          name: 'manual',
+          url: this.state.url,
+          container: '#manual-con',
+          // inline: true,
+          // 'keep-alive': true,
+          // destroy: true,
+          // disableSandbox: true,
+          // 'disable-sandbox': true,
+          // disableScopecss: true,
+          // 'disable-scopecss': true,
+          // shadowDOM: true,
+          // 'disable-memory-router': true,
+          // 'keep-router-state': true,
+          // 'hidden-router': true,
+          // 'disable-patch-request': true,
+          // esmodule: true,
+          // fiber: true,
+          // ssr: true,
+          // baseroute: '/micro-app/demo/react16',
+          // 'default-page'='/micro-app/react16/page2'
+          data: { from: '来自动态modal的数据' },
+          onDataChange: (e) => {
+            Modal.info({
+              title: '来自子应用manual的数据',
+              content: (
+                <div>
+                  <p>{JSON.stringify(e.detail.data)}</p>
+                </div>
+              ),
+              onOk() {},
+            });
+          },
+          lifeCycles: {
+            created (e) {
+              console.log('created - renderApp', e)
+            },
+            beforemount (e) {
+              console.log('beforemount - renderApp', e)
+            },
+            mounted (e) {
+              console.log('mounted - renderApp', e)
+            },
+            unmount (e) {
+              console.log('unmount - renderApp', e)
+            },
+            error (e) {
+              console.log('error - renderApp', e)
+            },
+            beforeshow (e) {
+              console.log('beforeshow - renderApp', e)
+            },
+            aftershow (e) {
+              console.log('aftershow - renderApp', e)
+            },
+            afterhidden (e) {
+              console.log('afterhidden - renderApp', e)
+            },
+          },
+        }).then((result) => {
+          if (result) {
+            console.log('执行 microApp.renderApp 手动渲染成功')
+          } else {
+            console.log('执行 microApp.renderApp 手动渲染失败')
+          }
+        })
+      }, 1)
     })
   }
 
@@ -260,7 +331,6 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.dispatchData}>dispatch方法发送数据</Button>
             <Button type="primary" onClick={this.dispatchGlobalData}>发送全局数据</Button>
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
-            <Button type="primary" onClick={this.handleModal}>modal内嵌应用</Button>
             <Button type="primary" onClick={this.useUnmountApp}>主动卸载应用</Button>
             <Button type="primary" onClick={this.jumpToHome}>基座控制子应用跳转home</Button>
             <Button type="primary" onClick={this.jumpToPage2}>基座控制子应用跳转page2</Button>
@@ -271,7 +341,8 @@ export default class App extends React.Component {
             <Button type="primary" onClick={this.useCurrentRoute}>基座调用router.current</Button>
             <Button type="primary" onClick={this.useRouterAttachToURL}>基座调用router.attachToURL</Button>
             <Button type="primary" onClick={this.useRouterAttachAllToURL}>基座调用router.attachAllToURL</Button>
-            <Button type="primary" onClick={this.useReload}>基座调用reload方法</Button>
+            <Button type="primary" onClick={this.useReload}>重新加载子应用-reload</Button>
+            <Button type="primary" onClick={this.useRenderApp}>手动加载子应用-renderApp</Button>
             <Button type="primary" onClick={this.changeTestNum}>{this.state.testNum}</Button>
           </Col>
           <Col span={18} className='app-con-react16'>
@@ -292,7 +363,7 @@ export default class App extends React.Component {
                   onAftershow={this.handleAftershow}
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
-                  baseRoute='/micro-app/demo/react16'
+                  baseroute='/micro-app/demo/react16'
                   // keep-alive
                   // destroy
                   // inline
@@ -308,28 +379,23 @@ export default class App extends React.Component {
                   // disable-patch-request
                   // esmodule
                   // fiber
+                  // ssr
                 >
                 </micro-app>
               )
             }
             {/* <iframe src={this.state.url} onLoad={this.mounted} width='700' height='700'></iframe> */}
             <Modal
-              visible={this.state.modal1}
+              visible={this.state.showModal}
               maskClosable={true}
               title="Title"
               width={500}
               height={500}
               destroyOnClose
-              onOk={() => this.setState({modal1: false})}
-              onCancel={() => this.setState({modal1: false})}
+              onOk={() => this.setState({showModal: false})}
+              onCancel={() => this.setState({showModal: false})}
             >
-              <micro-app
-                name='modal-app1'
-                url={this.state.url}
-                // baseRoute='/micro-app/demo/react16'
-                // disableSandbox
-                // macro
-              />
+              <div id='manual-con'></div>
             </Modal>
           </Col>
         </Row>

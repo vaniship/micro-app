@@ -237,13 +237,13 @@ interface unmountAppParams {
    * 对于已经卸载的应用: 当子应用已经卸载或keep-alive应用已经推入后台，则清除应用状态及缓存资源
    * 对于正在运行的应用: 当子应用正在运行，则卸载应用并删除状态及缓存资源
    */
-  destroy?: boolean;
+  destroy?: boolean
   /**
    * clearAliveState: 是否清空应用的缓存状态，默认值：false
    * 解释: 如果子应用是keep-alive，则卸载并清空状态，并保留缓存资源，如果子应用不是keep-alive，则执行正常卸载流程，并保留缓存资源
    * 补充: 无论keep-alive应用正在运行还是已经推入后台，都将执行卸载操作，清空应用缓存状态，并保留缓存资源
    */
-  clearAliveState?: boolean;
+  clearAliveState?: boolean
 }
 
 function unmountApp(appName: string, options?: unmountAppParams): Promise<boolean>
@@ -279,13 +279,13 @@ interface unmountAppParams {
    * 对于已经卸载的应用: 当子应用已经卸载或keep-alive应用已经推入后台，则清除应用状态及缓存资源
    * 对于正在运行的应用: 当子应用正在运行，则卸载应用并删除状态及缓存资源
    */
-  destroy?: boolean;
+  destroy?: boolean
   /**
    * clearAliveState: 是否清空应用的缓存状态，默认值：false
    * 解释: 如果子应用是keep-alive，则卸载并清空状态，并保留缓存资源，如果子应用不是keep-alive，则执行正常卸载流程，并保留缓存资源
    * 补充: 无论keep-alive应用正在运行还是已经推入后台，都将执行卸载操作，清空应用缓存状态，并保留缓存资源
    */
-  clearAliveState?: boolean;
+  clearAliveState?: boolean
 }
 
 function unmountAllApps(appName: string, options?: unmountAppParams): Promise<boolean>
@@ -340,6 +340,84 @@ microApp.reload('my-app', true).then((result) => {
     console.log('重新渲染成功')
   } else {
     console.log('重新渲染失败')
+  }
+})
+```
+
+## renderApp
+**描述：**手动渲染子应用
+
+**介绍：**
+```js
+interface RenderAppOptions {
+  name: string, // 应用名称，必传
+  url: string, // 应用地址，必传
+  container: string | Element, // 应用容器或选择器，必传
+  inline?: boolean, // 开启内联模式运行js，可选
+  'disable-scopecss'?: boolean, // 关闭样式隔离，可选
+  'disable-sandbox'?: boolean, // 关闭沙箱，可选
+  'disable-memory-router'?: boolean, // 关闭虚拟路由系统，可选
+  'default-page'?: string, // 指定默认渲染的页面，可选
+  'keep-router-state'?: boolean, // 保留路由状态，可选
+  'disable-patch-request'?: boolean, // 关闭子应用请求的自动补全功能，可选
+  'keep-alive'?: boolean, // 开启keep-alive模式，可选
+  destroy?: boolean, // 卸载时强制删除缓存资源，可选
+  fiber?: boolean, // 开启fiber模式，可选
+  baseroute?: string, // 设置子应用的基础路由，可选
+  ssr?: boolean, // 开启ssr模式，可选
+  shadowDOM?: boolean, // 开启shadowDOM，可选
+  data?: Object, // 传递给子应用的数据，可选
+  onDataChange?: Function, // 获取子应用发送数据的监听函数，可选
+  // 注册子应用的生命周期
+  lifeCycles?: {
+    created(e: CustomEvent): void, // 加载资源前触发
+    beforemount(e: CustomEvent): void, // 加载资源完成后，开始渲染之前触发
+    mounted(e: CustomEvent): void, // 子应用渲染结束后触发
+    unmount(e: CustomEvent): void, // 子应用卸载时触发
+    error(e: CustomEvent): void, // 子应用渲染出错时触发
+    beforeshow(e: CustomEvent): void, // 子应用推入前台之前触发（keep-alive模式特有）
+    aftershow(e: CustomEvent): void, // 子应用推入前台之后触发（keep-alive模式特有）
+    afterhidden(e: CustomEvent): void, // 子应用推入后台时触发（keep-alive模式特有）
+  },
+}
+
+/**
+ * @param options RenderAppOptions 配置项
+ */
+function renderApp(options: RenderAppOptions): Promise<boolean>
+```
+
+**使用方式：**
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 案例一
+microApp.renderApp({
+  name: 'my-app',
+  url: 'http://localhost:3000',
+  container: '#container',
+}).then((result) => {
+  if (result) {
+    console.log('渲染成功')
+  } else {
+    console.log('渲染失败')
+  }
+})
+
+// 案例二
+microApp.renderApp({
+  name: 'my-app',
+  url: 'http://localhost:3000',
+  container: '#container',
+  inline: true,
+  data: { key: '初始化数据' },
+  lifeCycles: {
+    mounted () {
+      console.log('子应用已经渲染')
+    },
+    unmount () {
+      console.log('子应用已经卸载')
+    },
   }
 })
 ```

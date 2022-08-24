@@ -57,7 +57,7 @@ function controlBase () {
 
 function Page1() {
   function dispatchData () {
-    window.microApp?.dispatch({'from': '来自微应用react16的数据' + (+new Date())})
+    window.microApp?.dispatch({'from': `来自子应用${window.__MICRO_APP_NAME__}的数据` + (+new Date())})
     window.microApp?.dispatch({ childKey: '子应用发送的第二个数据' })
   }
 

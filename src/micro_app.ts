@@ -4,6 +4,9 @@ import type {
   AppInterface,
   Router,
   AppName,
+  Func,
+  lifeCyclesType,
+  MicroAppConfig,
 } from '@micro-app/types'
 import { defineElement } from './micro_app_element'
 import preFetch, { getGlobalAssets } from './prefetch'
@@ -17,11 +20,12 @@ import {
   isString,
   pureCreateElement,
   isElement,
+  isFunction,
 } from './libs/utils'
 import { EventCenterForBaseApp } from './interact'
 import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
-import { appStates, keepAliveStates, lifeCycles, MicroAppConfig } from './constants'
+import { appStates, keepAliveStates, lifeCycles } from './constants'
 import { router } from './sandbox'
 
 /**
@@ -157,41 +161,65 @@ export function reload (appName: string, destroy?: boolean): Promise<boolean> {
   })
 }
 
-interface RenderAppOptions {
-  name: string
+interface RenderAppOptions extends MicroAppConfig {
+  name: string,
   url: string,
-  container: string | Element
-  [key: string]: unknown
-  [Symbol.iterator]: () => any
+  container: string | Element,
+  baseroute?: string,
+  'default-page'?: string,
+  data?: Record<PropertyKey, unknown>,
+  onDataChange?: Func,
+  lifeCycles?: lifeCyclesType,
+  [key: string]: unknown,
 }
 
+/**
+ * Manually render app
+ * @param options RenderAppOptions
+ * @returns Promise<boolean>
+ */
 export function renderApp (options: RenderAppOptions): Promise<boolean> {
   return new Promise((resolve) => {
-    if (!isPlainObject<RenderAppOptions>(options)) return logWarn('Options must be an object')
-    const container: Element | null = isElement(options.container) ? options.container : isString(options.container) ? document.getElementById(options.container) : null
-    if (!isElement(container)) return logWarn('Target container is not a DOM element.')
+    if (!isPlainObject<RenderAppOptions>(options)) return logError('renderApp options must be an object')
+    const container: Element | null = isElement(options.container) ? options.container : isString(options.container) ? document.querySelector(options.container) : null
+    if (!isElement(container)) return logError('Target container is not a DOM element.')
 
     const microAppElement = pureCreateElement<any>(microApp.tagName)
 
-    microAppElement.setAttribute('name', options.name)
-    microAppElement.setAttribute('url', options.url)
-
-    for (const key of options) {
-      if (key in MicroAppConfig) {
-        microAppElement.setAttribute(key, options[key])
+    for (const attr in options) {
+      if (attr === 'onDataChange') {
+        if (isFunction(options[attr])) {
+          microAppElement.addEventListener('datachange', options[attr])
+        }
+      } else if (attr === 'lifeCycles') {
+        const lifeCycleConfig = options[attr]
+        if (isPlainObject(lifeCycleConfig)) {
+          for (const lifeName in lifeCycleConfig) {
+            if (lifeName.toUpperCase() in lifeCycles && isFunction(lifeCycleConfig[lifeName])) {
+              microAppElement.addEventListener(lifeName.toLowerCase(), lifeCycleConfig[lifeName])
+            }
+          }
+        }
+      } else if (attr !== 'container') {
+        microAppElement.setAttribute(attr, options[attr])
       }
     }
 
     const handleMount = () => {
-      microAppElement.removeEventListener(lifeCycles.MOUNTED, handleMount)
-      microAppElement.removeEventListener(lifeCycles.ERROR, handleError)
+      releaseListener()
       resolve(true)
     }
+
     const handleError = () => {
-      microAppElement.removeEventListener(lifeCycles.MOUNTED, handleMount)
-      microAppElement.removeEventListener(lifeCycles.ERROR, handleError)
+      releaseListener()
       resolve(false)
     }
+
+    const releaseListener = () => {
+      microAppElement.removeEventListener(lifeCycles.MOUNTED, handleMount)
+      microAppElement.removeEventListener(lifeCycles.ERROR, handleError)
+    }
+
     microAppElement.addEventListener(lifeCycles.MOUNTED, handleMount)
     microAppElement.addEventListener(lifeCycles.ERROR, handleError)
 
@@ -209,6 +237,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppBaseType 
   getActiveApps = getActiveApps
   getAllApps = getAllApps
   reload = reload
+  renderApp = renderApp
   start (options?: OptionsType): void {
     if (!isBrowser || !window.customElements) {
       return logError('micro-app is not supported in this environment')

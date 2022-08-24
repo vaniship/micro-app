@@ -109,6 +109,10 @@ export function isElement (target: unknown): target is Element {
   return target instanceof Element
 }
 
+export function isNode (target: unknown): target is Node {
+  return target instanceof Node
+}
+
 // is ProxyDocument
 export function isProxyDocument (target: unknown): target is Document {
   return toString.call(target) === '[object ProxyDocument]'

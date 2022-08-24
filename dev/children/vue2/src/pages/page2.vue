@@ -165,7 +165,7 @@ export default {
   },
   beforeDestroy () {
     // BUG：页面跳转和router-view更新时不会自动收起，且会移动到浏览器左上角
-    this.$refs.dropdown.popperElm.parentNode.removeChild(this.$refs.dropdown.popperElm)
+    // this.$refs.dropdown.popperElm.parentNode.removeChild(this.$refs.dropdown.popperElm)
   },
   methods: {
     submitForm(formName) {

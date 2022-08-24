@@ -187,14 +187,14 @@ declare module '@micro-app/types' {
 
   // lifeCycles
   interface lifeCyclesType {
-    created?(e?: CustomEvent): void
-    beforemount?(e?: CustomEvent): void
-    mounted?(e?: CustomEvent): void
-    unmount?(e?: CustomEvent): void
-    error?(e?: CustomEvent): void
-    beforeshow?(e?: CustomEvent): void
-    aftershow?(e?: CustomEvent): void
-    afterhidden?(e?: CustomEvent): void
+    created(e: CustomEvent): void
+    beforemount(e: CustomEvent): void
+    mounted(e: CustomEvent): void
+    unmount(e: CustomEvent): void
+    error(e: CustomEvent): void
+    beforeshow(e: CustomEvent): void
+    aftershow(e: CustomEvent): void
+    afterhidden(e: CustomEvent): void
   }
 
   type AssetsChecker = (url: string) => boolean;

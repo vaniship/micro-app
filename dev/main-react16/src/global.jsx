@@ -56,21 +56,30 @@ microApp.start({
   // ssr: true,
   // preFetchApps: prefetchConfig,
   lifeCycles: {
-    created () {
-      console.log('created 全局监听')
+    created (e) {
+      console.log('created 全局监听', e)
     },
     beforemount (e) {
       console.log('beforemount 全局监听', e)
     },
-    mounted () {
-      console.log('mounted 全局监听')
+    mounted (e) {
+      console.log('mounted 全局监听', e)
     },
-    unmount () {
-      console.log('unmount 全局监听')
+    unmount (e) {
+      console.log('unmount 全局监听', e)
     },
-    error () {
-      console.log('error 全局监听')
-    }
+    error (e) {
+      console.log('error 全局监听', e)
+    },
+    beforeshow (e) {
+      console.log('beforeshow 全局监听', e)
+    },
+    aftershow (e) {
+      console.log('aftershow 全局监听', e)
+    },
+    afterhidden (e) {
+      console.log('afterhidden 全局监听', e)
+    },
   },
   plugins: {
     global: [

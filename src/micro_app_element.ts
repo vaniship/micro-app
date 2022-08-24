@@ -222,7 +222,7 @@ export function defineElement (tagName: string): void {
           }
           this.handleCreateApp()
         } else {
-          logError(`app name conflict, an app named: ${this.appName} with url: ${existAppUrl} is running`, this.appName)
+          logError(`app name conflict, an app named: ${this.appName} with url: ${existAppUrl} is running`)
         }
       } else {
         this.handleCreateApp()
@@ -247,7 +247,7 @@ export function defineElement (tagName: string): void {
             !existApp.isPrefetch
           ) {
             this.setAttribute('name', this.appName)
-            return logError(`app name conflict, an app named ${formatAttrName} is running`, this.appName)
+            return logError(`app name conflict, an app named ${formatAttrName} is running`)
           }
         }
 
@@ -305,7 +305,7 @@ export function defineElement (tagName: string): void {
             this.handleShowKeepAliveApp(existApp)
           } else {
             // the hidden keep-alive app is still active
-            logError(`app name conflict, an app named ${this.appName} is running`, this.appName)
+            logError(`app name conflict, an app named ${this.appName} is running`)
           }
         } else if (existApp.url === this.appUrl && existApp.ssrUrl === this.ssrUrl) {
           // mount app

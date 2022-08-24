@@ -12,6 +12,8 @@ import {
   isUniqueElement,
   isProxyDocument,
   isFunction,
+  isElement,
+  isNode,
 } from '../libs/utils'
 import scopedCSS from '../sandbox/scoped_css'
 import { extractLinkFromHtml, formatDynamicLink } from './links'
@@ -208,7 +210,7 @@ function commonElementHandler (
 ) {
   const currentAppName = getCurrentAppName()
   if (
-    newChild instanceof Node &&
+    isNode(newChild) &&
     (
       newChild.__MICRO_APP_NAME__ ||
       (currentAppName && !newChild.__PURE_ELEMENT__)
@@ -217,7 +219,7 @@ function commonElementHandler (
     newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
     if (app?.container) {
-      if (newChild instanceof Element) {
+      if (isElement(newChild)) {
         if (/^(img|script)$/i.test(newChild.tagName)) {
           if (newChild.hasAttribute('src')) {
             globalEnv.rawSetAttribute.call(newChild, 'src', CompletionPath(newChild.getAttribute('src')!, app.url))
@@ -241,7 +243,7 @@ function commonElementHandler (
       return rawMethod.call(parent, newChild)
     }
   } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
-    if (!(newChild instanceof Node) && currentAppName) {
+    if (!isNode(newChild) && currentAppName) {
       const app = appInstanceMap.get(currentAppName)
       if (app?.container) {
         if (parent === document.head) {

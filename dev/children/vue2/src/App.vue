@@ -7,7 +7,9 @@
       </el-tabs>
     </div>
     <div @click="reload">点击刷新</div>
-    <router-view v-if="showView"></router-view>
+    <!-- <keep-alive> -->
+      <router-view v-if="showView"></router-view>
+    <!-- </keep-alive> -->
   </div>
 </template>
 
