@@ -26,7 +26,7 @@ import {
 } from './scripts'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
-import { fixReactHMRConflict } from '../sandbox/adapter'
+import { fixReactHMRConflict, setParentNode } from '../sandbox/adapter'
 
 // Record element and map element
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
@@ -128,19 +128,26 @@ function invokePrototypeMethod (
   targetChild: Node,
   passiveChild?: Node | null,
 ): any {
-  const hijackElement = getHijackElement(parent, app)
+  const hijackParent = getHijackParent(parent, app)
   /**
    * If passiveChild is not the child node, insertBefore replaceChild will have a problem, at this time, it will be degraded to appendChild
    * E.g: document.head.insertBefore(targetChild, document.head.childNodes[0])
    */
-  if (hijackElement) {
+  if (hijackParent) {
+    /**
+     * WARNING:
+     * Verifying that the parentNode of the targetChild points to document.body will not cause other problems ?
+     */
+    if (hijackParent.tagName === 'MICRO-APP-BODY' && rawMethod !== globalEnv.rawRemoveChild) {
+      setParentNode(targetChild, document.body)
+    }
     /**
      * 1. If passiveChild exists, it must be insertBefore or replaceChild
      * 2. When removeChild, targetChild may not be in microAppHead or head
      */
-    if (passiveChild && !hijackElement.contains(passiveChild)) {
-      return globalEnv.rawAppendChild.call(hijackElement, targetChild)
-    } else if (rawMethod === globalEnv.rawRemoveChild && !hijackElement.contains(targetChild)) {
+    if (passiveChild && !hijackParent.contains(passiveChild)) {
+      return globalEnv.rawAppendChild.call(hijackParent, targetChild)
+    } else if (rawMethod === globalEnv.rawRemoveChild && !hijackParent.contains(targetChild)) {
       if (parent.contains(targetChild)) {
         return rawMethod.call(parent, targetChild)
       }
@@ -156,14 +163,14 @@ function invokePrototypeMethod (
       fixReactHMRConflict(app)
     }
 
-    return invokeRawMethod(rawMethod, hijackElement, targetChild, passiveChild)
+    return invokeRawMethod(rawMethod, hijackParent, targetChild, passiveChild)
   }
 
   return invokeRawMethod(rawMethod, parent, targetChild, passiveChild)
 }
 
 // head/body map to micro-app-head/micro-app-body
-function getHijackElement (node: Node, app: AppInterface) {
+function getHijackParent (node: Node, app: AppInterface): HTMLElement | null | undefined {
   if (node === document.head) {
     return app?.container?.querySelector('micro-app-head')
   }

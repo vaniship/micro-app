@@ -1,6 +1,6 @@
 import type { SandBoxAdapter, AppInterface } from '@micro-app/types'
 import globalEnv from '../libs/global_env'
-import { defer } from '../libs/utils'
+import { defer, rawDefineProperty } from '../libs/utils'
 
 export default class Adapter implements SandBoxAdapter {
   constructor () {
@@ -73,17 +73,22 @@ export function fixReactHMRConflict (app: AppInterface): void {
 export function throttleDeferForParentNode (proxyDocument: Document): void {
   const html = globalEnv.rawDocument.firstElementChild
   if (html && html.parentNode !== proxyDocument) {
-    setRootParentNode(html, proxyDocument)
+    setParentNode(html, proxyDocument)
     defer(() => {
-      setRootParentNode(html, globalEnv.rawDocument)
+      setParentNode(html, globalEnv.rawDocument)
     })
   }
 }
 
-export function setRootParentNode (root: Element, value: Document): void {
-  const descriptor = Object.getOwnPropertyDescriptor(root, 'parentNode')
+/**
+ * Modify the point of parentNode
+ * @param target target Node
+ * @param value parentNode
+ */
+export function setParentNode (target: Node, value: Document | Element): void {
+  const descriptor = Object.getOwnPropertyDescriptor(target, 'parentNode')
   if (!descriptor || descriptor.configurable) {
-    Object.defineProperty(root, 'parentNode', {
+    rawDefineProperty(target, 'parentNode', {
       value,
       configurable: true,
     })
