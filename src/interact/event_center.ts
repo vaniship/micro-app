@@ -185,6 +185,10 @@ export default class EventCenter {
           callbacks: new Set(),
         }
         this.eventList.set(name, eventInfo)
+        /**
+         * When sent data to parent, eventInfo probably does not exist, because parent may listen to datachange
+         */
+        eventInfo.force = true
       }
       // add to queue, event eventInfo is null
       this.enqueue(name, nextStep, dispatchDataEvent)
