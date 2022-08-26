@@ -67,19 +67,41 @@ export default class App extends React.Component {
 
   changeData = () => {
     this.setState({
-      data: { name: '通过data属性修改的数据' },
+      data: { name: '通过data属性修改的数据', date: new Date() },
     })
   }
 
   dispatchData = () => {
-    // 全新数据
-    microApp.setData(this.state.name, { dispatch: 'data from dispatch' + (+new Date()) })
+    // // 全新数据
+    // microApp.setData(this.state.name, { dispatch: 'data from dispatch' + (+new Date()) })
 
-    // 相同的data
-    microApp.setData(this.state.name, this.state.data)
+    // // 相同的data
+    // microApp.setData(this.state.name, this.state.data)
 
     // 数据内容不同
-    microApp.setData(this.state.name, { key2: '新的key' })
+    microApp.setData(this.state.name, { key2: '新的key2' }, () => {
+      console.log('数据已经发送完成')
+
+      // 循环嵌套
+      // microApp.setData(this.state.name, { key4: '新的key4' }, () => {
+      //   console.log('循环嵌套发送数据完成1')
+      // })
+    })
+
+    // 强制发送数据
+    microApp.forceSetData(this.state.name, { key3: '新的key3' }, () => {
+      console.log('强制发送数据完成')
+
+      // 循环嵌套
+      // microApp.setData(this.state.name, { key5: '新的key5' }, () => {
+      //   console.log('循环嵌套发送数据完成2')
+      // })
+    })
+  }
+
+  // 清空数据
+  clearData = () => {
+    microApp.clearData(this.state.name)
   }
 
   dispatchGlobalData = () => {
@@ -88,11 +110,24 @@ export default class App extends React.Component {
 
     // 合并值
     microApp.setGlobalData({a: 1})
-    microApp.setGlobalData({b: 2})
+
+    microApp.setGlobalData({b: 2}, () => {
+      console.log('发送全局数据成功')
+    })
+
+    microApp.forceSetGlobalData({c: 3}, () => {
+      console.log('强制发送全局数据成功')
+    })
+
+    microApp.setGlobalData({d: 4})
+  }
+
+  clearGlobalData = () => {
+    microApp.clearGlobalData()
   }
 
   handleDataChange = (e) => {
-    console.log('通过生命周周期监听到来自子应用的数据', e)
+    console.log('通过生命周期onDataChange监听到来自子应用的数据', e)
     Modal.info({
       title: '来自子应用的数据',
       content: (
@@ -102,6 +137,10 @@ export default class App extends React.Component {
       ),
       onOk() {},
     });
+
+    // microApp.setData(this.state.name, {
+    //   time: new Date(),
+    // })
   }
 
   toggleShow = () => {
@@ -328,8 +367,10 @@ export default class App extends React.Component {
           <Col span={6} className='btn-con'>
             <Button type="primary" onClick={this.toggleShow}>微应用是否展示</Button>
             <Button type="primary" onClick={this.changeData}>data属性发送数据</Button>
-            <Button type="primary" onClick={this.dispatchData}>dispatch方法发送数据</Button>
+            <Button type="primary" onClick={this.dispatchData}>手动发送数据</Button>
+            <Button type="primary" onClick={this.clearData}>手动清空数据</Button>
             <Button type="primary" onClick={this.dispatchGlobalData}>发送全局数据</Button>
+            {/* <Button type="primary" onClick={this.clearGlobalData}>清空全局数据</Button> */}
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
             <Button type="primary" onClick={this.useUnmountApp}>主动卸载应用</Button>
             <Button type="primary" onClick={this.jumpToHome}>基座控制子应用跳转home</Button>
@@ -380,6 +421,7 @@ export default class App extends React.Component {
                   // esmodule
                   // fiber
                   // ssr
+                  // clear-data
                 >
                 </micro-app>
               )

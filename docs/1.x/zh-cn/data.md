@@ -57,15 +57,57 @@ window.microApp.clearDataListener()
 window.microApp.dispatch({type: '子应用发送给主应用的数据'})
 ```
 
-发送数据时会将新旧值进行合并，且多次dispatch操作会在下一帧合并为一次执行。
+dispatch只接受对象作为参数，它发送的数据都会被缓存下来。
+
+micro-app会遍历新旧值中的每个key判断值是否有变化，如果所有数据都相同则不会发送（注意：只会遍历第一层key），如果数据有变化则将**新旧值进行合并**后发送。
+
+例如：
+```js
+// 第一次发送数据，记入缓存值 {name: 'jack'}，然后发送 
+window.microApp.dispatch({name: 'jack'})
+```
 
 ```js
-window.microApp.dispatch({a: 1})
-
-window.microApp.dispatch({b: 2})
-
-// 上面的数据会在下一帧合并为对象{a: 1, b: 2}一次性发送给主应用
+// 第二次发送数据，将新旧值合并为 {name: 'jack', age: 20}，记入缓存值，然后发送 
+window.microApp.dispatch({age: 20})
 ```
+
+```js
+// 第三次发送数据，新旧值合并为 {name: 'jack', age: 20}，与缓存值相同，不再发送
+window.microApp.dispatch({age: 20})
+```
+
+**dispatch是异步执行的，多个dispatch会在下一帧合并为一次执行。**
+
+例如：
+```js
+window.microApp.dispatch({name: 'jack'})
+window.microApp.dispatch({age: 20})
+
+// 上面的数据会在下一帧合并为对象{name: 'jack', age: 20}一次性发送给主应用
+```
+
+**dispatch第二个参数为回调函数，它会在数据发送结束后执行**
+
+例如：
+```js
+window.microApp.dispatch({city: 'HK'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+
+##### forceDispatch：强制发送
+
+forceDispatch方法拥有和dispatch一样的参数和行为，唯一不同的是forceDispatch会强制发送数据，无论数据是否变化。
+
+例如：
+```js
+// 强制发送数据，无论缓存中是否已经存在 name: 'jack' 的值
+window.microApp.forceDispatch({name: 'jack'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+
 
 ## 三、主应用向子应用发送数据
 主应用向子应用发送数据有两种方式：
@@ -126,17 +168,57 @@ import microApp from '@micro-zoe/micro-app'
 microApp.setData('my-app', {type: '新的数据'})
 ```
 
-发送数据时会将新旧值进行合并，且多次setData操作会在下一帧合并为一次执行。
+setData第一个参数为子应用名称，第二个参数为传递的数据，它发送的数据都会被缓存下来。
+
+micro-app会遍历新旧值中的每个key判断值是否有变化，如果所有数据都相同则不会发送（注意：只会遍历第一层key），如果数据有变化则将**新旧值进行合并**后发送。
+
+例如：
+```js
+// 第一次发送数据，记入缓存值 {name: 'jack'}，然后发送 
+microApp.setData('my-app', {name: 'jack'})
+```
 
 ```js
-import microApp from '@micro-zoe/micro-app'
-
-microApp.setData('my-app', {a: 1})
-
-microApp.setData('my-app', {b: 2})
-
-// 上面的数据会在下一帧合并为对象{a: 1, b: 2}一次性发送给子应用my-app
+// 第二次发送数据，将新旧值合并为 {name: 'jack', age: 20}，记入缓存值，然后发送 
+microApp.setData('my-app', {age: 20})
 ```
+
+```js
+// 第三次发送数据，新旧值合并为 {name: 'jack', age: 20}，与缓存值相同，不再发送
+microApp.setData('my-app', {age: 20})
+```
+
+**setData是异步执行的，多个setData会在下一帧合并为一次执行。**
+
+例如：
+```js
+microApp.setData('my-app', {name: 'jack'})
+microApp.setData('my-app', {age: 20})
+
+// 上面的数据会在下一帧合并为对象{name: 'jack', age: 20}一次性发送给子应用my-app
+```
+
+**setData第三个参数为回调函数，它会在数据发送结束后执行**
+
+例如：
+```js
+microApp.setData('my-app', {city: 'HK'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+
+##### forceSetData：强制发送
+
+forceSetData方法拥有和setData一样的参数和行为，唯一不同的是forceSetData会强制发送数据，无论数据是否变化。
+
+例如：
+```js
+// 强制发送数据，无论缓存中是否已经存在 name: 'jack' 的值
+microApp.forceSetData('my-app', {name: 'jack'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+
 
 ## 四、主应用获取来自子应用的数据
 主应用获取来自子应用的数据有三种方式：
@@ -236,6 +318,35 @@ microApp.removeDataListener('my-app', dataListener)
 microApp.clearDataListener('my-app')
 ```
 
+## 五、清空数据
+由于通信的数据会被缓存，即便子应用被卸载也不会清空，这可能会导致一些困扰，此时可以主动清空缓存数据来解决。
+
+<!-- tabs:start -->
+#### ** 主应用 **
+
+#### 方式一：配置项 - clear-data
+- 使用方式: `<micro-app clear-data></micro-app>`
+
+当设置了`clear-data`，子应用卸载时会同时清空主应用发送给当前子应用，和当前子应用发送给主应用的数据。
+
+[destroy](/zh-cn/configure?id=destroy)也有同样的效果。
+
+#### 方式二：手动清空 - clearData
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 清空主应用发送给子应用 my-app 的数据
+microApp.clearData('my-app')
+```
+
+#### ** 子应用 **
+
+#### 方式一：手动清空 - clearData
+```js
+// 清空当前子应用发送给主应用的数据
+window.microApp.clearData()
+```
+<!-- tabs:end -->
 
 ## 全局数据通信
 全局数据通信会向主应用和所有子应用发送数据，在跨应用通信的场景中适用。
@@ -259,30 +370,117 @@ window.microApp.setGlobalData({type: '全局数据'})
 ```
 <!-- tabs:end -->
 
-发送数据时会将新旧值进行合并，且多次setGlobalData操作会在下一帧合并为一次执行。
+
+setGlobalData只接受对象作为参数，它发送的数据都会被缓存下来。
+
+micro-app会遍历新旧值中的每个key判断值是否有变化，如果所有数据都相同则不会发送（注意：只会遍历第一层key），如果数据有变化则将**新旧值进行合并**后发送。
+
+例如：
 
 <!-- tabs:start -->
 #### ** 主应用 **
 ```js
-import microApp from '@micro-zoe/micro-app'
+// 第一次发送数据，记入缓存值 {name: 'jack'}，然后发送 
+microApp.setGlobalData({name: 'jack'})
+```
 
-microApp.setGlobalData({a: 1})
+```js
+// 第二次发送数据，将新旧值合并为 {name: 'jack', age: 20}，记入缓存值，然后发送 
+microApp.setGlobalData({age: 20})
+```
 
-microApp.setGlobalData({b: 2})
-
-// 上面的数据会在下一帧合并为对象{a: 1, b: 2}一次性发送
+```js
+// 第三次发送数据，新旧值合并为 {name: 'jack', age: 20}，与缓存值相同，不再发送
+microApp.setGlobalData({age: 20})
 ```
 
 #### ** 子应用 **
 
 ```js
-window.microApp.setGlobalData({a: 1})
+// 第一次发送数据，记入缓存值 {name: 'jack'}，然后发送 
+window.microApp.setGlobalData({name: 'jack'})
+```
 
-window.microApp.setGlobalData({b: 2})
+```js
+// 第二次发送数据，将新旧值合并为 {name: 'jack', age: 20}，记入缓存值，然后发送 
+window.microApp.setGlobalData({age: 20})
+```
 
-// 上面的数据会在下一帧合并为对象{a: 1, b: 2}一次性发送
+```js
+// 第三次发送数据，新旧值合并为 {name: 'jack', age: 20}，与缓存值相同，不再发送
+window.microApp.setGlobalData({age: 20})
 ```
 <!-- tabs:end -->
+
+
+**setGlobalData是异步执行的，多个setGlobalData会在下一帧合并为一次执行。**
+
+例如：
+<!-- tabs:start -->
+#### ** 主应用 **
+```js
+microApp.setGlobalData({name: 'jack'})
+microApp.setGlobalData({age: 20})
+
+// 上面的数据会在下一帧合并为对象{name: 'jack', age: 20}一次性发送给主应用
+```
+
+#### ** 子应用 **
+
+```js
+window.microApp.setGlobalData({name: 'jack'})
+window.microApp.setGlobalData({age: 20})
+
+// 上面的数据会在下一帧合并为对象{name: 'jack', age: 20}一次性发送给主应用
+```
+<!-- tabs:end -->
+
+
+**setGlobalData第二个参数为回调函数，它会在数据发送结束后执行**
+
+例如：
+<!-- tabs:start -->
+#### ** 主应用 **
+```js
+microApp.setGlobalData({city: 'HK'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+
+#### ** 子应用 **
+
+```js
+window.microApp.setGlobalData({city: 'HK'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+<!-- tabs:end -->
+
+
+##### forceSetGlobalData：强制发送
+
+forceSetGlobalData方法拥有和setGlobalData一样的参数和行为，唯一不同的是forceSetGlobalData会强制发送数据，无论数据是否变化。
+
+例如：
+<!-- tabs:start -->
+#### ** 主应用 **
+```js
+// 强制发送数据，无论缓存中是否已经存在 name: 'jack' 的值
+microApp.forceSetGlobalData({name: 'jack'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+
+#### ** 子应用 **
+
+```js
+// 强制发送数据，无论缓存中是否已经存在 name: 'jack' 的值
+window.microApp.forceSetGlobalData({name: 'jack'}, () => {
+  console.log('数据已经发送完成')
+})
+```
+<!-- tabs:end -->
+
 
 
 #### 获取全局数据
@@ -339,6 +537,23 @@ window.microApp.clearGlobalDataListener()
 ```
 <!-- tabs:end -->
 
+#### 清空全局数据
+<!-- tabs:start -->
+#### ** 主应用 **
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 清空全局数据
+microApp.clearGlobalData()
+```
+
+#### ** 子应用 **
+
+```js
+// 清空全局数据
+window.microApp.clearGlobalData()
+```
+<!-- tabs:end -->
 
 ## 关闭沙箱后的通信方式
 沙箱关闭后，子应用默认的通信功能失效，此时可以通过手动注册通信对象实现一致的功能。

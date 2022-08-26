@@ -59,6 +59,7 @@ export function getAllApps (): string[] {
 type unmountAppOptions = {
   destroy?: boolean // destroy app, default is false
   clearAliveState?: boolean // clear keep-alive app state, default is false
+  clearData?: boolean // clear data from base app & child app
 }
 
 /**
@@ -78,9 +79,17 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
         resolve(true)
       } else if (app.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN) {
         if (options?.destroy) {
-          app.unmount(true, resolve.bind(null, true))
+          app.unmount({
+            destroy: true,
+            clearData: true,
+            unmountcb: resolve.bind(null, true)
+          })
         } else if (options?.clearAliveState) {
-          app.unmount(false, resolve.bind(null, true))
+          app.unmount({
+            destroy: false,
+            clearData: !!options.clearData,
+            unmountcb: resolve.bind(null, true)
+          })
         } else {
           resolve(true)
         }
@@ -115,13 +124,28 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
           isString(destoryAttrValue) && container.setAttribute('destory', destoryAttrValue)
         } else if (options?.clearAliveState && container.hasAttribute('keep-alive')) {
           const keepAliveAttrValue = container.getAttribute('keep-alive')!
-
           container.removeAttribute('keep-alive')
+
+          let clearDataAttrValue
+          if (options.clearData) {
+            clearDataAttrValue = container.getAttribute('clear-data')
+            container.setAttribute('clear-data', 'true')
+          }
+
           container.parentNode!.removeChild(container)
 
           container.setAttribute('keep-alive', keepAliveAttrValue)
+          isString(clearDataAttrValue) && container.setAttribute('clear-data', clearDataAttrValue)
         } else {
+          let clearDataAttrValue
+          if (options?.clearData) {
+            clearDataAttrValue = container.getAttribute('clear-data')
+            container.setAttribute('clear-data', 'true')
+          }
+
           container.parentNode!.removeChild(container)
+
+          isString(clearDataAttrValue) && container.setAttribute('clear-data', clearDataAttrValue)
         }
       }
     } else {

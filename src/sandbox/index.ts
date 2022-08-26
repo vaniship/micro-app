@@ -184,16 +184,19 @@ export default class SandBox implements SandBoxInterface {
    * @param umdMode is umd mode
    * @param keepRouteState prevent reset route
    * @param clearEventSource clear MicroEventSource when destroy
+   * @param clearData clear data from base app
    */
   public stop ({
     umdMode,
     keepRouteState,
     clearEventSource,
+    clearData,
   }: SandBoxStopParams): void {
     if (this.active) {
       this.releaseEffect()
       this.microAppWindow.microApp.clearDataListener()
       this.microAppWindow.microApp.clearGlobalDataListener()
+      clearData && this.microAppWindow.microApp.clearData()
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)

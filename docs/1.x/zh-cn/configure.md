@@ -40,9 +40,21 @@ MicroApp会根据url地址自动补全子应用的静态资源，如js、css、�
 - Default: `false`
 - 使用方式: `<micro-app name='xx' url='xx' destroy></micro-app>`
 
-默认情况下，子应用被卸载后会缓存静态资源，以便在重新渲染时获得更好的性能。
+默认情况下，子应用被卸载后不会删除缓存的静态资源和数据，以便在重新渲染时获得更好的性能。
 
-开启destroy，子应用在卸载后会清空缓存资源，再次渲染时重新请求数据。
+开启destroy，子应用在卸载后会清空缓存资源和数据，当重新渲染时将和初次渲染的行为保持一致。
+
+## clear-data
+- Desc: `卸载时清空数据通讯中的缓存数据`
+- Default: `false`
+- 使用方式: `<micro-app name='xx' url='xx' clear-data></micro-app>`
+
+默认情况下，子应用被卸载后数据通讯中的缓存数据会被保留，如果你希望清空这些数据，设置`clear-data`即可。
+
+子应用卸载时会同时清空主应用发送给当前子应用，和当前子应用发送给主应用的数据。
+
+[destroy](/zh-cn/configure?id=destroy)也有同样的效果。
+
 
 ## disable-scopecss
 - Desc: `关闭样式隔离`

@@ -1,10 +1,12 @@
 /* eslint-disable no-cond-assign */
 import { CallableFunctionForInteract, AppName } from '@micro-app/types'
-import { logError, isFunction, isPlainObject, assign, macro } from '../libs/utils'
+import { logError, isFunction, isPlainObject, assign, defer } from '../libs/utils'
 
 export default class EventCenter {
   public eventList = new Map<string, {
     data: Record<PropertyKey, unknown>,
+    tempData?: Record<PropertyKey, unknown> | null,
+    force?: boolean,
     callbacks: Set<CallableFunctionForInteract>,
   }>()
 
@@ -19,25 +21,81 @@ export default class EventCenter {
   }
 
   private queue: string[] = []
+  private recordStep: Record<string, {
+    nextStepList: Array<CallableFunction>,
+    dispatchDataEvent?: CallableFunction,
+  } | null> = {}
 
   // add appName to queue
-  private enqueue (name: AppName, nextStep?: CallableFunction): void {
-    // Because web framework use micro task to update data, so we use macro task here
-    (!this.queue.includes(name) && this.queue.push(name) === 1) && macro(() => {
-      this.process()
-      nextStep?.()
-    }, 1)
+  private enqueue (
+    name: AppName,
+    nextStep: CallableFunction,
+    dispatchDataEvent?: CallableFunction,
+  ): void {
+    // this.nextStepList.push(nextStep)
+    if (this.recordStep[name]) {
+      this.recordStep[name]!.nextStepList.push(nextStep)
+      dispatchDataEvent && (this.recordStep[name]!.dispatchDataEvent = dispatchDataEvent)
+    } else {
+      this.recordStep[name] = {
+        nextStepList: [nextStep],
+        dispatchDataEvent,
+      }
+    }
+    /**
+     * The micro task is executed async when the second render of child.
+     * We should ensure that the data changes are executed before binding the listening function
+     */
+    (!this.queue.includes(name) && this.queue.push(name) === 1) && defer(this.process)
   }
 
   // run task
   private process = (): void => {
     let name: string | void
-    while (name = this.queue.shift()) {
+    const temRecordStep = this.recordStep
+    const queue = this.queue
+    this.recordStep = {}
+    this.queue = []
+    while (name = queue.shift()) {
       const eventInfo = this.eventList.get(name)!
-      for (const f of eventInfo.callbacks) {
-        f(eventInfo.data)
+      // clear tempData, force before exec nextStep
+      const tempData = eventInfo.tempData
+      const force = eventInfo.force
+      eventInfo.tempData = null
+      eventInfo.force = false
+      if (force || !this.isEqual(eventInfo.data, tempData)) {
+        eventInfo.data = tempData || eventInfo.data
+        for (const f of eventInfo.callbacks) {
+          f(eventInfo.data)
+        }
+
+        temRecordStep[name]!.dispatchDataEvent?.()
+
+        /**
+         * WARING:
+         * If data of other app is sent in nextStep, it may cause confusion of tempData and force
+         */
+        temRecordStep[name]!.nextStepList.forEach((nextStep) => nextStep())
       }
     }
+  }
+
+  /**
+   * In react, each setState will trigger setData, so we need a filter operation to avoid repeated trigger
+   */
+  private isEqual (
+    oldData: Record<PropertyKey, unknown>,
+    newData: Record<PropertyKey, unknown> | null | void,
+  ): boolean {
+    if (!newData || Object.keys(oldData).length !== Object.keys(newData).length) return false
+
+    for (const key in oldData) {
+      if (Object.prototype.hasOwnProperty.call(oldData, key)) {
+        if (oldData[key] !== newData[key]) return false
+      }
+    }
+
+    return true
   }
 
   /**
@@ -59,7 +117,14 @@ export default class EventCenter {
           callbacks: new Set(),
         }
         this.eventList.set(name, eventInfo)
-      } else if (autoTrigger && Object.getOwnPropertyNames(eventInfo.data).length) {
+      } else if (
+        autoTrigger &&
+        Object.keys(eventInfo.data).length &&
+        (
+          !this.queue.includes(name) ||
+          this.isEqual(eventInfo.data, eventInfo.tempData)
+        )
+      ) {
         // auto trigger when data not null
         f(eventInfo.data)
       }
@@ -69,7 +134,10 @@ export default class EventCenter {
   }
 
   // remove listener, but the data is not cleared
-  public off (name: string, f?: CallableFunctionForInteract): void {
+  public off (
+    name: string,
+    f?: CallableFunctionForInteract,
+  ): void {
     if (this.isLegalName(name)) {
       const eventInfo = this.eventList.get(name)
       if (eventInfo) {
@@ -82,19 +150,35 @@ export default class EventCenter {
     }
   }
 
+  /**
+   * clearData
+   */
+  public clearData (name: string): void {
+    if (this.isLegalName(name)) {
+      const eventInfo = this.eventList.get(name)
+      if (eventInfo) {
+        eventInfo.data = {}
+      }
+    }
+  }
+
   // dispatch data
   public dispatch (
     name: string,
     data: Record<PropertyKey, unknown>,
-    nextStep?: CallableFunction,
+    nextStep: CallableFunction,
+    force?: boolean,
+    dispatchDataEvent?: CallableFunction,
   ): void {
     if (this.isLegalName(name)) {
       if (!isPlainObject(data)) {
         return logError('event-center: data must be object')
       }
+
       let eventInfo = this.eventList.get(name)
       if (eventInfo) {
-        eventInfo.data = assign({}, eventInfo.data, data)
+        eventInfo.tempData = assign({}, eventInfo.tempData || eventInfo.data, data)
+        !eventInfo.force && (eventInfo.force = !!force)
       } else {
         eventInfo = {
           data: data,
@@ -103,7 +187,7 @@ export default class EventCenter {
         this.eventList.set(name, eventInfo)
       }
       // add to queue, event eventInfo is null
-      this.enqueue(name, nextStep)
+      this.enqueue(name, nextStep, dispatchDataEvent)
     }
   }
 

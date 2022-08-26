@@ -27,6 +27,7 @@ declare module '@micro-app/types' {
     umdMode: boolean
     keepRouteState: boolean
     clearEventSource: boolean
+    clearData: boolean
   }
 
   interface SandBoxInterface {
@@ -99,6 +100,13 @@ declare module '@micro-app/types' {
     disablePatchRequest: boolean
     fiber: boolean
     esmodule: boolean
+
+  }
+
+  interface UnmountParam {
+    destroy: boolean,
+    clearData: boolean
+    unmountcb?: CallableFunction
   }
 
   // app instance
@@ -135,7 +143,7 @@ declare module '@micro-app/types' {
     mount (mountParams: MountParam): void
 
     // unmount app
-    unmount (destroy: boolean, unmountcb?: CallableFunction): void
+    unmount (unmountParam: UnmountParam): void
 
     // app rendering error
     onerror (e: Error): void
@@ -262,6 +270,7 @@ declare module '@micro-app/types' {
     'keep-router-state'?: boolean
     'hidden-router'?: boolean
     'keep-alive'?: boolean
+    'clear-data'?: boolean
     esmodule?: boolean
     ssr?: boolean
     fiber?: boolean

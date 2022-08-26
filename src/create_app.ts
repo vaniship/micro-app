@@ -4,6 +4,7 @@ import type {
   sourceType,
   SandBoxInterface,
   MountParam,
+  UnmountParam,
 } from '@micro-app/types'
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
@@ -22,11 +23,12 @@ import {
   logError,
   getRootContainer,
   isObject,
+  callFnWithTryCatch,
 } from './libs/utils'
 import dispatchLifecyclesEvent, { dispatchCustomEventToMicroApp } from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
 import { releasePatchSetAttribute } from './source/patch'
-import { getActiveApps } from './micro_app'
+import microApp, { getActiveApps } from './micro_app'
 import sourceCenter from './source/source_center'
 
 // micro app instances
@@ -201,13 +203,13 @@ export default class CreateApp implements AppInterface {
            */
           this.umdHookUnmount = unmount as Func
           // if mount & unmount is function, the sub app is umd mode
-          if (isFunction(mount)) {
+          if (isFunction(mount) && isFunction(unmount)) {
             this.umdHookMount = mount as Func
             this.umdMode = true
             if (this.sandBox) this.sandBox.proxyWindow.__MICRO_APP_UMD_MODE__ = true
             // this.sandBox?.recordUmdSnapshot()
             try {
-              umdHookMountResult = this.umdHookMount()
+              umdHookMountResult = this.umdHookMount(microApp.getData(this.name, true))
             } catch (e) {
               logError('an error occurred in the mount function \n', this.name, e)
             }
@@ -250,7 +252,15 @@ export default class CreateApp implements AppInterface {
   private dispatchMountedEvent (): void {
     if (appStates.UNMOUNT !== this.state) {
       this.state = appStates.MOUNTED
-      this.getGlobalEventListener(microGlobalEvent.ONMOUNT)?.()
+      // call window.onmount of child app
+      callFnWithTryCatch(
+        this.getGlobalEventListener(microGlobalEvent.ONMOUNT),
+        this.name,
+        `window.${microGlobalEvent.ONMOUNT}`,
+        microApp.getData(this.name, true)
+      )
+
+      // dispatch event mounted to parent
       dispatchLifecyclesEvent(
         this.container!,
         this.name,
@@ -265,7 +275,11 @@ export default class CreateApp implements AppInterface {
    * @param destroy completely destroy, delete cache resources
    * @param unmountcb callback of unmount
    */
-  public unmount (destroy: boolean, unmountcb?: CallableFunction): void {
+  public unmount ({
+    destroy,
+    clearData,
+    unmountcb,
+  }: UnmountParam): void {
     if (this.state === appStates.LOAD_FAILED) {
       destroy = true
     }
@@ -282,19 +296,23 @@ export default class CreateApp implements AppInterface {
      */
     if (isFunction(this.umdHookUnmount)) {
       try {
-        umdHookUnmountResult = this.umdHookUnmount()
+        umdHookUnmountResult = this.umdHookUnmount(microApp.getData(this.name, true))
       } catch (e) {
         logError('an error occurred in the unmount function \n', this.name, e)
       }
     }
 
-    // call window.onunmount listener of child app
-    this.getGlobalEventListener(microGlobalEvent.ONUNMOUNT)?.()
+    // call window.onunmount of child app
+    callFnWithTryCatch(
+      this.getGlobalEventListener(microGlobalEvent.ONUNMOUNT),
+      this.name,
+      `window.${microGlobalEvent.ONUNMOUNT}`,
+    )
 
     // dispatch unmount event to micro app
     dispatchCustomEventToMicroApp('unmount', this.name)
 
-    this.handleUnmounted(destroy, umdHookUnmountResult, unmountcb)
+    this.handleUnmounted(destroy, clearData, umdHookUnmountResult, unmountcb)
   }
 
   /**
@@ -305,15 +323,16 @@ export default class CreateApp implements AppInterface {
    */
   private handleUnmounted (
     destroy: boolean,
+    clearData: boolean,
     umdHookUnmountResult: any,
     unmountcb?: CallableFunction,
   ): void {
     if (isPromise(umdHookUnmountResult)) {
       umdHookUnmountResult
-        .then(() => this.actionsForUnmount(destroy, unmountcb))
-        .catch(() => this.actionsForUnmount(destroy, unmountcb))
+        .then(() => this.actionsForUnmount(destroy, clearData, unmountcb))
+        .catch(() => this.actionsForUnmount(destroy, clearData, unmountcb))
     } else {
-      this.actionsForUnmount(destroy, unmountcb)
+      this.actionsForUnmount(destroy, clearData, unmountcb)
     }
   }
 
@@ -322,7 +341,11 @@ export default class CreateApp implements AppInterface {
    * @param destroy completely destroy, delete cache resources
    * @param unmountcb callback of unmount
    */
-  private actionsForUnmount (destroy: boolean, unmountcb?: CallableFunction): void {
+  private actionsForUnmount (
+    destroy: boolean,
+    clearData: boolean,
+    unmountcb?: CallableFunction
+  ): void {
     if (destroy) {
       this.actionsForCompletelyDestroy()
     } else if (this.umdMode && (this.container as Element).childElementCount) {
@@ -332,6 +355,11 @@ export default class CreateApp implements AppInterface {
     if (this.umdMode) {
       this.sandBox?.recordUmdSnapshot()
     }
+
+    if (clearData || destroy) {
+      microApp.clearData(this.name)
+    }
+
     /**
      * this.container maybe contains micro-app element, stop sandbox should exec after cloneContainer
      * NOTE:
@@ -342,6 +370,7 @@ export default class CreateApp implements AppInterface {
       umdMode: this.umdMode,
       keepRouteState: this.keepRouteState && !destroy,
       clearEventSource: !this.umdMode || destroy,
+      clearData: clearData || destroy,
     })
     if (!getActiveApps().length) {
       releasePatchSetAttribute()

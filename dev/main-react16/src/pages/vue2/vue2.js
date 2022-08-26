@@ -59,7 +59,7 @@ function Vue2 () {
         <Col span={6} className='btn-con'>
           <Button
             type='primary'
-            onClick={() => changeData({from: '来自基座的数据' + (+new Date())})}
+            onClick={() => changeData({msg: '来自基座的数据' + (+new Date())})}
             style={{width: '120px'}}
           >
             发送数据
@@ -86,6 +86,7 @@ function Vue2 () {
         // inline
         // disable-scopecss
         // disableSandbox
+        clear-data
       >
       </micro-app>
     </div>

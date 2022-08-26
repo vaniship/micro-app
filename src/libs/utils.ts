@@ -164,15 +164,6 @@ export function defer (fn: Func, ...args: unknown[]): void {
 }
 
 /**
- * async execution with macro task
- * @param fn callback
- * @param args params
- */
-export function macro (fn: Func, ...args: unknown[]): void {
-  setTimeout(fn.bind(null, ...args), 1)
-}
-
-/**
  * create URL as MicroLocation
  */
 export const createURL = (function (): (path: string | URL, base?: string) => MicroLocation {
@@ -591,4 +582,23 @@ export function serialExecFiberTasks (tasks: fiberTasks): Promise<void> | null {
  */
 export function isInlineScript (address: string): boolean {
   return address.startsWith('inline-')
+}
+
+/**
+ * call function with try catch
+ * @param fn target function
+ * @param appName app.name
+ * @param args arguments
+ */
+export function callFnWithTryCatch (
+  fn: Func | null,
+  appName: string,
+  msgSuffix: string,
+  ...args: unknown[]
+): void {
+  try {
+    isFunction(fn) && fn(...args)
+  } catch (e) {
+    logError(`an error occurred in app ${appName} ${msgSuffix} \n`, null, e)
+  }
 }

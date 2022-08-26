@@ -52,11 +52,22 @@ class EventCenterForGlobal {
    * dispatch global data
    * @param data data
    */
-  setGlobalData (data: Record<PropertyKey, unknown>): void {
+  setGlobalData (
+    data: Record<PropertyKey, unknown>,
+    nextStep?: CallableFunction,
+    force?: boolean,
+  ): void {
     // clear dom scope before dispatch global data, apply to micro app
     removeDomScope()
 
-    eventCenter.dispatch('global', data)
+    eventCenter.dispatch('global', data, () => isFunction(nextStep) && nextStep(), force)
+  }
+
+  forceSetGlobalData (
+    data: Record<PropertyKey, unknown>,
+    nextStep?: CallableFunction,
+  ): void {
+    this.setGlobalData(data, nextStep, true)
   }
 
   /**
@@ -64,6 +75,13 @@ class EventCenterForGlobal {
    */
   getGlobalData (): Record<PropertyKey, unknown> | null {
     return eventCenter.getData('global')
+  }
+
+  /**
+   * clear global data
+   */
+  clearGlobalData (): void {
+    eventCenter.clearData('global')
   }
 
   /**
@@ -122,8 +140,30 @@ export class EventCenterForBaseApp extends EventCenterForGlobal {
    * @param appName app.name
    * @param data data
    */
-  setData (appName: string, data: Record<PropertyKey, unknown>): void {
-    eventCenter.dispatch(formatEventName(formatAppName(appName), true), data)
+  setData (
+    appName: string,
+    data: Record<PropertyKey, unknown>,
+    nextStep?: CallableFunction,
+    force?: boolean,
+  ): void {
+    eventCenter.dispatch(formatEventName(formatAppName(appName), true), data, () => isFunction(nextStep) && nextStep(), force)
+  }
+
+  forceSetData (
+    appName: string,
+    data: Record<PropertyKey, unknown>,
+    nextStep?: CallableFunction,
+  ): void {
+    this.setData(appName, data, nextStep, true)
+  }
+
+  /**
+   * clear data from base app
+   * @param appName app.name
+   * @param fromBaseApp whether clear data from child app, default is true
+   */
+  clearData (appName: string, fromBaseApp = true): void {
+    eventCenter.clearData(formatEventName(formatAppName(appName), fromBaseApp))
   }
 
   /**
@@ -170,29 +210,46 @@ export class EventCenterForMicroApp extends EventCenterForGlobal {
   /**
    * get data from base app
    */
-  getData (): Record<PropertyKey, unknown> | null {
-    return eventCenter.getData(formatEventName(this.appName, true))
+  getData (fromBaseApp = true): Record<PropertyKey, unknown> | null {
+    return eventCenter.getData(formatEventName(this.appName, fromBaseApp))
   }
 
   /**
    * dispatch data to base app
    * @param data data
    */
-  dispatch (data: Record<PropertyKey, unknown>): void {
+  dispatch (data: Record<PropertyKey, unknown>, nextStep?: CallableFunction, force?: boolean): void {
     removeDomScope()
 
-    eventCenter.dispatch(formatEventName(this.appName, false), data, () => {
-      const app = appInstanceMap.get(this.appName)
-      if (app?.container && isPlainObject(data)) {
-        const event = new CustomEvent('datachange', {
-          detail: {
-            data: eventCenter.getData(formatEventName(this.appName, false))
-          }
-        })
+    eventCenter.dispatch(
+      formatEventName(this.appName, false),
+      data,
+      () => isFunction(nextStep) && nextStep(),
+      force,
+      () => {
+        const app = appInstanceMap.get(this.appName)
+        if (app?.container && isPlainObject(data)) {
+          const event = new CustomEvent('datachange', {
+            detail: {
+              data: eventCenter.getData(formatEventName(this.appName, false))
+            }
+          })
 
-        getRootContainer(app.container).dispatchEvent(event)
-      }
-    })
+          getRootContainer(app.container).dispatchEvent(event)
+        }
+      })
+  }
+
+  forceDispatch (data: Record<PropertyKey, unknown>, nextStep?: CallableFunction): void {
+    this.dispatch(data, nextStep, true)
+  }
+
+  /**
+   * clear data from child app
+   * @param fromBaseApp whether clear data from base app, default is false
+   */
+  clearData (fromBaseApp = false): void {
+    eventCenter.clearData(formatEventName(this.appName, fromBaseApp))
   }
 
   /**

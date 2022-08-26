@@ -8,6 +8,7 @@ import './index.css';
 import Router from './router';
 import { Modal, notification } from 'antd';
 import subMicroApp from '@micro-zoe/micro-app'
+// import { atan2 } from 'mathjs' // 卡死
 
 // 循环内嵌
 subMicroApp.start({
@@ -46,54 +47,56 @@ window.addEventListener('appstate-change', function (e) {
 })
 
 /* ----------------------分割线-默认模式--------------------- */
-ReactDOM.render(
-  <React.StrictMode>
-    <Router />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+// ReactDOM.render(
+//   <React.StrictMode>
+//     <Router />
+//   </React.StrictMode>,
+//   document.getElementById('root')
+// );
 
-// 注册unmount函数，卸载时会自动执行
-window.unmount = () => {
-  ReactDOM.unmountComponentAtNode(document.getElementById('root'));
-  console.log('微应用react16卸载了 -- 默认模式');
-}
+// // 注册unmount函数，卸载时会自动执行
+// window.unmount = () => {
+//   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
+//   console.log('微应用react16卸载了 -- 默认模式');
+// }
 
-console.timeEnd('react#16');
+// console.timeEnd('react#16');
 
 /* ----------------------分割线-umd模式--------------------- */
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
-// window.mount = () => {
-//   ReactDOM.render(
-//     <React.StrictMode>
-//       <Router />
-//     </React.StrictMode>,
-//     document.getElementById('root')
-//   );
-//   console.log('微应用react16渲染了 -- UMD模式');
-//   console.timeEnd('react#16');
-// }
+window.mount = (data) => {
+  ReactDOM.render(
+    <React.StrictMode>
+      <Router />
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
+  console.log('微应用react16渲染了 -- UMD模式', data);
+  console.timeEnd('react#16');
+}
 
-// // 👇 将卸载操作放入 unmount 函数
-// window.unmount = () => {
-//   // 卸载时关闭弹窗
-//   notification.destroy()
-//   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
-//   console.log('微应用react16卸载了 -- UMD模式');
-// }
+// 👇 将卸载操作放入 unmount 函数
+window.unmount = (data) => {
+  // 卸载时关闭弹窗
+  notification.destroy()
+  ReactDOM.unmountComponentAtNode(document.getElementById('root'));
+  console.log('微应用react16卸载了 -- UMD模式', data);
+}
 
-// // 如果不在微前端环境，则直接执行mount渲染
-// if (!window.__MICRO_APP_ENVIRONMENT__) {
-//   window.mount()
-// }
+// 如果不在微前端环境，则直接执行mount渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
+  window.mount()
+}
 
 /* ---------------------- micro-app 自定义全局事件 --------------------- */
 
-window.onmount = () => {
-  console.log('子应用 window.onmount 事件')
+window.onmount = (data) => {
+  // throw new Error('sfsdfsf')
+  console.log('子应用 window.onmount 事件', data)
 }
 
 window.onunmount = () => {
+  // throw new Error('sfsdfsf')
   console.log('子应用 window.onunmount 事件')
 }
 
@@ -138,6 +141,16 @@ window.onunmount = () => {
 // const link1 = document.createElement('link')
 // link1.setAttribute('href', 'http://127.0.0.1:8080/facefont.css')
 // document.head.appendChild(link1)
+
+// 测试 micro-app-body 顶层元素parentNode指向 document.body
+// const dynamicDiv1 = document.createElement('div')
+// dynamicDiv1.innerHTML = '测试parentNode'
+// document.body.appendChild(dynamicDiv1)
+
+// setTimeout(() => {
+//   console.assert(dynamicDiv1.parentNode === document.body)
+//   dynamicDiv1.parentNode.removeChild(dynamicDiv1)
+// }, 5000);
 
 
 

@@ -11,8 +11,8 @@ import App from './App.vue'
 Vue.config.productionTip = false
 Vue.use(ElementUI)
 
-window.microApp.addDataListener(() => {
-  console.log('顶层监听函数 addDataListener')
+window.microApp.addDataListener((data) => {
+  console.log('顶层监听函数 addDataListener', data)
 })
 
 const router = new VueRouter({

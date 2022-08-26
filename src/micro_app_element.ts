@@ -389,13 +389,17 @@ export function defineElement (tagName: string): void {
      * unmount app
      * @param destroy delete cache resources when unmount
      */
-    private handleUnmount (destroy: boolean, unmountCb?: CallableFunction): void {
+    private handleUnmount (destroy: boolean, unmountcb?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
         app.getAppState() !== appStates.UNMOUNT
       ) {
-        app.unmount(destroy, unmountCb)
+        app.unmount({
+          destroy,
+          clearData: this.getDisposeResult('clear-data'),
+          unmountcb,
+        })
       }
     }
 

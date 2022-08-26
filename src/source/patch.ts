@@ -14,6 +14,7 @@ import {
   isFunction,
   isElement,
   isNode,
+  rawDefineProperty,
 } from '../libs/utils'
 import scopedCSS from '../sandbox/scoped_css'
 import { extractLinkFromHtml, formatDynamicLink } from './links'
@@ -26,7 +27,7 @@ import {
 } from './scripts'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
-import { fixReactHMRConflict, setParentNode } from '../sandbox/adapter'
+import { fixReactHMRConflict } from '../sandbox/adapter'
 
 // Record element and map element
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
@@ -136,10 +137,23 @@ function invokePrototypeMethod (
   if (hijackParent) {
     /**
      * WARNING:
-     * Verifying that the parentNode of the targetChild points to document.body will not cause other problems ?
+     * Verifying that the parentNode of the targetChild points to document.body will cause other problems ?
      */
     if (hijackParent.tagName === 'MICRO-APP-BODY' && rawMethod !== globalEnv.rawRemoveChild) {
-      setParentNode(targetChild, document.body)
+      const descriptor = Object.getOwnPropertyDescriptor(targetChild, 'parentNode')
+      if (!descriptor || descriptor.configurable) {
+        rawDefineProperty(targetChild, 'parentNode', {
+          configurable: true,
+          get () {
+            /**
+             * When operate child from parentNode async, Element.prototype may reset
+             * e.g.
+             * target.parentNode.remove(target)
+             */
+            return Element.prototype.removeChild === globalEnv.rawRemoveChild ? hijackParent : document.body
+          },
+        })
+      }
     }
     /**
      * 1. If passiveChild exists, it must be insertBefore or replaceChild
