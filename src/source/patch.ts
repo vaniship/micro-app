@@ -168,9 +168,8 @@ function invokePrototypeMethod (
       return targetChild
     }
 
-    // TODO: __DEV__
     if (
-      process.env.NODE_ENV !== 'production' &&
+      __DEV__ &&
       targetChild instanceof HTMLIFrameElement &&
       rawMethod === globalEnv.rawAppendChild
     ) {

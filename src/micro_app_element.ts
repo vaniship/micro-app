@@ -211,7 +211,7 @@ export function defineElement (tagName: string): void {
           this.handleAppMount(app)
         } else if (app.isPrefetch || app.getAppState() === appStates.UNMOUNT) {
           if (
-            process.env.NODE_ENV !== 'production' &&
+            __DEV__ &&
             app.scopecss === this.isScopecss() &&
             app.useSandbox === this.isSandbox()
           ) {

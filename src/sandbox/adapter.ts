@@ -25,10 +25,9 @@ export default class Adapter implements SandBoxAdapter {
     'Vue',
   ]
 
-  // TODO: __DEV__ process.env.NODE_ENV !== 'production'
   // adapter for react
   private injectReactHRMProperty (): void {
-    if (process.env.NODE_ENV !== 'production') {
+    if (__DEV__) {
       // react child in non-react env
       this.staticEscapeProperties.push('__REACT_ERROR_OVERLAY_GLOBAL_HOOK__')
       // in react parent
@@ -52,7 +51,7 @@ export function fixBabelPolyfill6 (): void {
  * Issue: https://github.com/micro-zoe/micro-app/issues/382
  */
 export function fixReactHMRConflict (app: AppInterface): void {
-  if (process.env.NODE_ENV !== 'production') {
+  if (__DEV__) {
     const rawReactErrorHook = globalEnv.rawWindow.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__
     const childReactErrorHook = app.sandBox?.proxyWindow.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__
     if (rawReactErrorHook && childReactErrorHook) {

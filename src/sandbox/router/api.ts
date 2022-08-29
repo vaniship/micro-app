@@ -243,7 +243,7 @@ function createRouterApi (): RouterApi {
     function setDefaultPage (options: SetDefaultPageOptions): () => boolean {
       const appName = formatAppName(options.name)
       if (!appName || !options.path) {
-        if (process.env.NODE_ENV !== 'production') {
+        if (__DEV__) {
           if (!appName) {
             logWarn(`setDefaultPage: invalid appName "${appName}"`)
           } else {
@@ -288,7 +288,7 @@ function createRouterApi (): RouterApi {
             return true
           }
         })
-      } else if (process.env.NODE_ENV !== 'production') {
+      } else if (__DEV__) {
         logWarn('setBaseAppRouter: Invalid base router')
       }
     }
