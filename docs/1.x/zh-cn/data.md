@@ -24,10 +24,10 @@ const data = window.microApp.getData() // 返回主应用下发的data数据
  * 如果在子应用渲染结束前主应用发送数据，则在绑定监听函数前数据已经发送，在初始化后不会触发绑定函数，
  * 但这个数据会放入缓存中，此时可以设置autoTrigger为true主动触发一次监听函数来获取数据。
  */
-window.microApp.addDataListener(dataListener: Function, autoTrigger?: boolean)
+window.microApp.addDataListener(dataListener: (data: Object) => any, autoTrigger?: boolean)
 
 // 解绑监听函数
-window.microApp.removeDataListener(dataListener: Function)
+window.microApp.removeDataListener(dataListener: (data: Object) => any)
 
 // 清空当前子应用的所有绑定函数(全局数据函数除外)
 window.microApp.clearDataListener()
@@ -39,6 +39,9 @@ window.microApp.clearDataListener()
 function dataListener (data) {
   console.log('来自主应用的数据', data)
 }
+
+// 监听数据变化
+window.microApp.addDataListener(dataListener)
 
 // 监听数据变化，初始化时如果有数据则主动触发一次
 window.microApp.addDataListener(dataListener, true)
@@ -77,7 +80,7 @@ window.microApp.dispatch({age: 20})
 window.microApp.dispatch({age: 20})
 ```
 
-**dispatch是异步执行的，多个dispatch会在下一帧合并为一次执行。**
+##### dispatch是异步执行的，多个dispatch会在下一帧合并为一次执行
 
 例如：
 ```js
@@ -87,7 +90,7 @@ window.microApp.dispatch({age: 20})
 // 上面的数据会在下一帧合并为对象{name: 'jack', age: 20}一次性发送给主应用
 ```
 
-**dispatch第二个参数为回调函数，它会在数据发送结束后执行**
+##### dispatch第二个参数为回调函数，它会在数据发送结束后执行
 
 例如：
 ```js
@@ -95,6 +98,36 @@ window.microApp.dispatch({city: 'HK'}, () => {
   console.log('数据已经发送完成')
 })
 ```
+
+##### 当数据监听函数有返回值时，会作为dispatch回调函数的入参
+
+例如：
+
+*主应用：*
+```js
+import microApp from '@micro-zoe/micro-app'
+
+microApp.addDataListener('my-app', (data) => {
+  console.log('来自子应用my-app的数据', data)
+
+  return '返回值1'
+})
+
+microApp.addDataListener('my-app', (data) => {
+  console.log('来自子应用my-app的数据', data)
+
+  return '返回值2'
+})
+```
+
+*子应用：*
+```js
+// 返回值会放入数组中传递给dispatch的回调函数
+window.microApp.dispatch({city: 'HK'}, (res: any[]) => {
+  console.log(res) // ['返回值1', '返回值2']
+})
+```
+
 
 ##### forceDispatch：强制发送
 
@@ -188,7 +221,7 @@ microApp.setData('my-app', {age: 20})
 microApp.setData('my-app', {age: 20})
 ```
 
-**setData是异步执行的，多个setData会在下一帧合并为一次执行。**
+##### setData是异步执行的，多个setData会在下一帧合并为一次执行
 
 例如：
 ```js
@@ -198,12 +231,39 @@ microApp.setData('my-app', {age: 20})
 // 上面的数据会在下一帧合并为对象{name: 'jack', age: 20}一次性发送给子应用my-app
 ```
 
-**setData第三个参数为回调函数，它会在数据发送结束后执行**
+##### setData第三个参数为回调函数，它会在数据发送结束后执行
 
 例如：
 ```js
 microApp.setData('my-app', {city: 'HK'}, () => {
   console.log('数据已经发送完成')
+})
+```
+
+##### 当数据监听函数有返回值时，会作为setData回调函数的入参
+
+例如：
+
+*子应用：*
+```js
+window.microApp.addDataListener((data) => {
+  console.log('来自主应用的数据', data)
+
+  return '返回值1'
+})
+
+window.microApp.addDataListener((data) => {
+  console.log('来自主应用的数据', data)
+
+  return '返回值2'
+})
+```
+
+*主应用：*
+```js
+// 返回值会放入数组中传递给setData的回调函数
+microApp.setData('my-app', {city: 'HK'}, (res: any[]) => {
+  console.log(res) // ['返回值1', '返回值2']
 })
 ```
 
@@ -278,6 +338,8 @@ export default {
 ```
 <!-- tabs:end -->
 
+注意：`datachange`绑定函数的返回值不会作为子应用dispatch回调函数的入参，它的返回值没有任何作用。
+
 #### 方式3: 绑定监听函数
 
 绑定监听函数需要通过`name`指定子应用，此值和`<micro-app>`元素中的`name`一致。
@@ -290,10 +352,10 @@ import microApp from '@micro-zoe/micro-app'
  * dataListener: 绑定函数
  * autoTrigger: 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次，默认为false
  */
-microApp.addDataListener(appName: string, dataListener: Function, autoTrigger?: boolean)
+microApp.addDataListener(appName: string, dataListener: (data: Object) => any, autoTrigger?: boolean)
 
 // 解绑监听指定子应用的函数
-microApp.removeDataListener(appName: string, dataListener: Function)
+microApp.removeDataListener(appName: string, dataListener: (data: Object) => any)
 
 // 清空所有监听指定子应用的函数
 microApp.clearDataListener(appName: string)
@@ -413,7 +475,7 @@ window.microApp.setGlobalData({age: 20})
 <!-- tabs:end -->
 
 
-**setGlobalData是异步执行的，多个setGlobalData会在下一帧合并为一次执行。**
+##### setGlobalData是异步执行的，多个setGlobalData会在下一帧合并为一次执行
 
 例如：
 <!-- tabs:start -->
@@ -436,7 +498,7 @@ window.microApp.setGlobalData({age: 20})
 <!-- tabs:end -->
 
 
-**setGlobalData第二个参数为回调函数，它会在数据发送结束后执行**
+##### setGlobalData第二个参数为回调函数，它会在数据发送结束后执行
 
 例如：
 <!-- tabs:start -->
@@ -452,6 +514,55 @@ microApp.setGlobalData({city: 'HK'}, () => {
 ```js
 window.microApp.setGlobalData({city: 'HK'}, () => {
   console.log('数据已经发送完成')
+})
+```
+<!-- tabs:end -->
+
+##### 当全局数据的监听函数有返回值时，会作为setGlobalData回调函数的入参
+
+例如：
+<!-- tabs:start -->
+#### ** 主应用 **
+```js
+microApp.addGlobalDataListener((data) => {
+  console.log('全局数据', data)
+
+  return '返回值1'
+})
+
+microApp.addGlobalDataListener((data) => {
+  console.log('全局数据', data)
+
+  return '返回值2'
+})
+```
+
+```js
+// 返回值会放入数组中传递给setGlobalData的回调函数
+microApp.setGlobalData({city: 'HK'}, (res: any[]) => {
+  console.log(res) // ['返回值1', '返回值2']
+})
+```
+
+#### ** 子应用 **
+```js
+window.microApp.addGlobalDataListener((data) => {
+  console.log('全局数据', data)
+
+  return '返回值1'
+})
+
+window.microApp.addGlobalDataListener((data) => {
+  console.log('全局数据', data)
+
+  return '返回值2'
+})
+```
+
+```js
+// 返回值会放入数组中传递给setGlobalData的回调函数
+window.microApp.setGlobalData({city: 'HK'}, (res: any[]) => {
+  console.log(res) // ['返回值1', '返回值2']
 })
 ```
 <!-- tabs:end -->
@@ -503,10 +614,10 @@ function dataListener (data) {
  * dataListener: 绑定函数
  * autoTrigger: 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次，默认为false
  */
-microApp.addGlobalDataListener(dataListener: Function, autoTrigger?: boolean)
+microApp.addGlobalDataListener(dataListener: (data: Object) => any, autoTrigger?: boolean)
 
 // 解绑监听函数
-microApp.removeGlobalDataListener(dataListener: Function)
+microApp.removeGlobalDataListener(dataListener: (data: Object) => any)
 
 // 清空主应用绑定的所有全局数据监听函数
 microApp.clearGlobalDataListener()
@@ -527,10 +638,10 @@ function dataListener (data) {
  * dataListener: 绑定函数
  * autoTrigger: 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次，默认为false
  */
-window.microApp.addGlobalDataListener(dataListener: Function, autoTrigger?: boolean)
+window.microApp.addGlobalDataListener(dataListener: (data: Object) => any, autoTrigger?: boolean)
 
 // 解绑监听函数
-window.microApp.removeGlobalDataListener(dataListener: Function)
+window.microApp.removeGlobalDataListener(dataListener: (data: Object) => any)
 
 // 清空当前子应用绑定的所有全局数据监听函数
 window.microApp.clearGlobalDataListener()
@@ -583,10 +694,10 @@ function dataListener (data) {
  * dataListener: 绑定函数
  * autoTrigger: 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次，默认为false
  */
-window.eventCenterForAppxx.addDataListener(dataListener: Function, autoTrigger?: boolean)
+window.eventCenterForAppxx.addDataListener(dataListener: (data: Object) => any, autoTrigger?: boolean)
 
 // 解绑监听函数
-window.eventCenterForAppxx.removeDataListener(dataListener: Function)
+window.eventCenterForAppxx.removeDataListener(dataListener: (data: Object) => any)
 
 // 清空当前子应用的所有绑定函数(全局数据函数除外)
 window.eventCenterForAppxx.clearDataListener()
@@ -594,12 +705,3 @@ window.eventCenterForAppxx.clearDataListener()
 // 子应用向主应用发送数据，只接受对象作为参数
 window.eventCenterForAppxx.dispatch({type: '子应用发送的数据'})
 ```
-
-
-> [!TIP]
->
-> 1、data只接受对象类型
->
-> 2、数据变化时会进行严格对比(===)，相同的data对象不会触发更新。
->
-> 3、在子应用卸载时，子应用中所有的数据绑定函数会自动解绑，主应用中的数据解绑需要开发者手动处理。

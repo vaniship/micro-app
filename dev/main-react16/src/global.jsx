@@ -161,6 +161,16 @@ microApp.start({
   }
 })
 
+// microApp.start({
+//   plugins: {
+//     global: [
+//       {
+//         scopeProperties: ['AMap'],
+//       }
+//     ],
+//   },
+// })
+
 // ----------------------分割线--测试全局方法--------------------- //
 // setTimeout(() => {
 //   unmountAllApps({

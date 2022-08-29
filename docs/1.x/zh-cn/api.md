@@ -288,7 +288,7 @@ interface unmountAppParams {
   clearAliveState?: boolean
 }
 
-function unmountAllApps(appName: string, options?: unmountAppParams): Promise<boolean>
+function unmountAllApps(options?: unmountAppParams): Promise<boolean>
 ```
 
 **使用方式：**

@@ -28,6 +28,7 @@ window.addEventListener('click', () => {
 
 window.microApp?.addDataListener((data) => {
   console.log('懒加载的数据监听', data)
+  return { listen: 'from page2.js' }
 })
 
 const StyledButton = styled.button`

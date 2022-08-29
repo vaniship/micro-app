@@ -23,6 +23,7 @@ window.microApp?.addDataListener((data) => {
     description: JSON.stringify(data),
     duration: 1,
   })
+  return { listen: 'from index.js' }
 }, true)
 
 function handleGlobalData(data) {
@@ -36,6 +37,10 @@ function handleGlobalData(data) {
     ),
     onOk() {},
   });
+
+  return {
+    msg: '子应用接收全局数据成功'
+  }
 }
 
 // 全局数据监听

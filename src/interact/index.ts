@@ -60,7 +60,12 @@ class EventCenterForGlobal {
     // clear dom scope before dispatch global data, apply to micro app
     removeDomScope()
 
-    eventCenter.dispatch('global', data, () => isFunction(nextStep) && nextStep(), force)
+    eventCenter.dispatch(
+      'global',
+      data,
+      (resArr: unknown[]) => isFunction(nextStep) && nextStep(resArr),
+      force,
+    )
   }
 
   forceSetGlobalData (
@@ -146,7 +151,12 @@ export class EventCenterForBaseApp extends EventCenterForGlobal {
     nextStep?: CallableFunction,
     force?: boolean,
   ): void {
-    eventCenter.dispatch(formatEventName(formatAppName(appName), true), data, () => isFunction(nextStep) && nextStep(), force)
+    eventCenter.dispatch(
+      formatEventName(formatAppName(appName), true),
+      data,
+      (resArr: unknown[]) => isFunction(nextStep) && nextStep(resArr),
+      force,
+    )
   }
 
   forceSetData (
@@ -224,7 +234,7 @@ export class EventCenterForMicroApp extends EventCenterForGlobal {
     eventCenter.dispatch(
       formatEventName(this.appName, false),
       data,
-      () => isFunction(nextStep) && nextStep(),
+      (resArr: unknown[]) => isFunction(nextStep) && nextStep(resArr),
       force,
       () => {
         const app = appInstanceMap.get(this.appName)

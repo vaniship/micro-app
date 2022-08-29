@@ -79,8 +79,8 @@ export default class App extends React.Component {
     // microApp.setData(this.state.name, this.state.data)
 
     // 数据内容不同
-    microApp.setData(this.state.name, { key2: '新的key2' }, () => {
-      console.log('数据已经发送完成')
+    microApp.setData(this.state.name, { key2: '新的key2' }, (res) => {
+      console.log('数据已经发送完成', res)
 
       // 循环嵌套
       // microApp.setData(this.state.name, { key4: '新的key4' }, () => {
@@ -89,8 +89,8 @@ export default class App extends React.Component {
     })
 
     // 强制发送数据
-    microApp.forceSetData(this.state.name, { key3: '新的key3' }, () => {
-      console.log('强制发送数据完成')
+    microApp.forceSetData(this.state.name, { key3: '新的key3' }, (res) => {
+      console.log('强制发送数据完成', res)
 
       // 循环嵌套
       // microApp.setData(this.state.name, { key5: '新的key5' }, () => {
@@ -111,12 +111,12 @@ export default class App extends React.Component {
     // 合并值
     microApp.setGlobalData({a: 1})
 
-    microApp.setGlobalData({b: 2}, () => {
-      console.log('发送全局数据成功')
+    microApp.setGlobalData({b: 2}, (res) => {
+      console.log('发送全局数据成功', res)
     })
 
-    microApp.forceSetGlobalData({c: 3}, () => {
-      console.log('强制发送全局数据成功')
+    microApp.forceSetGlobalData({c: 3}, (res) => {
+      console.log('强制发送全局数据成功', res)
     })
 
     microApp.setGlobalData({d: 4})
@@ -226,6 +226,7 @@ export default class App extends React.Component {
 
   handleGlobalDataForBaseApp = (data) => {
     console.log(`这是全局数据--基座应用-${this.state.name}`, data)
+    return {msg: '主应用接收全局数据成功'}
   }
 
   // 手动重新加载子应用
@@ -321,6 +322,7 @@ export default class App extends React.Component {
 
     microApp.addDataListener(this.state.name, (data) => {
       console.log('来自子应用react16的数据', data)
+      return {msg: '接受子应用的数据成功'}
     })
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)

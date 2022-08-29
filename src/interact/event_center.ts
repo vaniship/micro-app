@@ -63,10 +63,12 @@ export default class EventCenter {
       const force = eventInfo.force
       eventInfo.tempData = null
       eventInfo.force = false
+      let resArr: unknown[]
       if (force || !this.isEqual(eventInfo.data, tempData)) {
         eventInfo.data = tempData || eventInfo.data
         for (const f of eventInfo.callbacks) {
-          f(eventInfo.data)
+          const res = f(eventInfo.data)
+          res && (resArr ??= []).push(res)
         }
 
         temRecordStep[name]!.dispatchDataEvent?.()
@@ -75,7 +77,7 @@ export default class EventCenter {
          * WARING:
          * If data of other app is sent in nextStep, it may cause confusion of tempData and force
          */
-        temRecordStep[name]!.nextStepList.forEach((nextStep) => nextStep())
+        temRecordStep[name]!.nextStepList.forEach((nextStep) => nextStep(resArr))
       }
     }
   }

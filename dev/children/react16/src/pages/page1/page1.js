@@ -58,8 +58,8 @@ function controlBase () {
 function Page1() {
   function dispatchData () {
     // window.microApp?.dispatch({'from': `来自子应用${window.__MICRO_APP_NAME__}的数据` + (+new Date())})
-    window.microApp?.dispatch({ childKey: '子应用发送的第二个数据' }, () => {
-      console.log('向基座发送数据完成')
+    window.microApp?.dispatch({ childKey: '子应用发送的第二个数据' }, (res) => {
+      console.log('向基座发送数据完成', res)
 
       // 循环嵌套
       // window.microApp?.dispatch({ childKey4: '子应用发送的第4个数据' }, () => {
@@ -67,8 +67,8 @@ function Page1() {
       // })
     })
     // 强制发送数据
-    window.microApp?.forceDispatch({ childKey3: '子应用发送的第三个数据' }, () => {
-      console.log('强制向基座发送数据完成')
+    window.microApp?.forceDispatch({ childKey3: '子应用发送的第三个数据' }, (res) => {
+      console.log('强制向基座发送数据完成', res)
     })
   }
 
