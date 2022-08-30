@@ -7,6 +7,7 @@ import type {
   Func,
   lifeCyclesType,
   MicroAppConfig,
+  GetActiveAppsParam,
 } from '@micro-app/types'
 import { defineElement } from './micro_app_element'
 import preFetch, { getGlobalAssets } from './prefetch'
@@ -31,14 +32,22 @@ import { router } from './sandbox'
 /**
  * if app not prefetch & not unmount, then app is active
  * @param excludeHiddenApp exclude hidden keep-alive app, default is false
+ * @param excludePreRender exclude pre render app
  * @returns active apps
  */
-export function getActiveApps (excludeHiddenApp = false): AppName[] {
+export function getActiveApps ({
+  excludeHiddenApp = false,
+  excludePreRender = false,
+}: GetActiveAppsParam = {}): AppName[] {
   const activeApps: AppName[] = []
   appInstanceMap.forEach((app: AppInterface, appName: AppName) => {
     if (
       appStates.UNMOUNT !== app.getAppState() &&
-      !app.isPrefetch &&
+      (
+        !app.isPrefetch || (
+          app.preRender && !excludePreRender
+        )
+      ) &&
       (
         !excludeHiddenApp ||
         keepAliveStates.KEEP_ALIVE_HIDDEN !== app.getKeepAliveState()
@@ -82,12 +91,14 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
           app.unmount({
             destroy: true,
             clearData: true,
+            keepRouteState: true,
             unmountcb: resolve.bind(null, true)
           })
         } else if (options?.clearAliveState) {
           app.unmount({
             destroy: false,
             clearData: !!options.clearData,
+            keepRouteState: true,
             unmountcb: resolve.bind(null, true)
           })
         } else {

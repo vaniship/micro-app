@@ -21,7 +21,7 @@ function Angular11 () {
   return (
     <div>
       <Col span={6} className='btn-con'>
-        <Button type="primary" onClick={jumpToPage2ByBase}>基座控制子应用跳转page2</Button>
+        <Button type="primary" onClick={jumpToPage2ByBase}>控制子应用跳转page2</Button>
       </Col>
       {
         showLoading && <Spin indicator={antIcon} />

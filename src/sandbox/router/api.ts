@@ -8,6 +8,7 @@ import type {
   GuardLocation,
   AccurateGuard,
   SetDefaultPageOptions,
+  AttachAllToURLParam,
 } from '@micro-app/types'
 import {
   encodeMicroPath,
@@ -70,6 +71,7 @@ function createRouterApi (): RouterApi {
     state: unknown,
   ): void {
     navigateWithNativeEvent(
+      appName,
       methodName,
       setMicroPathToURL(
         appName,
@@ -101,7 +103,7 @@ function createRouterApi (): RouterApi {
           return logError(`navigation failed, memory router of app ${appName} is closed`)
         }
         // active apps, include hidden keep-alive app
-        if (getActiveApps().includes(appName)) {
+        if (getActiveApps({ excludePreRender: true }).includes(appName)) {
           const microLocation = app!.sandBox!.proxyWindow.location as MicroLocation
           const targetLocation = createURL(to.path, microLocation.href)
           // Only get path data, even if the origin is different from microApp
@@ -204,6 +206,7 @@ function createRouterApi (): RouterApi {
     const app = appInstanceMap.get(appName)!
     if (app.sandBox && app.useMemoryRouter) {
       attachRouteToBrowserURL(
+        appName,
         setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
         setMicroState(appName, getMicroState(appName)),
       )
@@ -223,10 +226,17 @@ function createRouterApi (): RouterApi {
 
   /**
    * Attach all active app router info to browser url
-   * exclude hidden keep-alive app
+   * @param includeHiddenApp include hidden keep-alive app
+   * @param includePreRender include preRender app
    */
-  function attachAllToURL (includeHiddenApp = false): void {
-    getActiveApps(!includeHiddenApp).forEach(appName => commonHandlerForAttachToURL(appName))
+  function attachAllToURL ({
+    includeHiddenApp = false,
+    includePreRender = false,
+  }: AttachAllToURLParam): void {
+    getActiveApps({
+      excludeHiddenApp: !includeHiddenApp,
+      excludePreRender: !includePreRender,
+    }).forEach(appName => commonHandlerForAttachToURL(appName))
   }
 
   function createDefaultPageApi (): CreateDefaultPage {

@@ -138,18 +138,28 @@ preFetch(() => [
 **介绍：**
 ```js
 /**
+ * getActiveApps接受一个对象作为参数，详情如下：
  * @param excludeHiddenApp 是否过滤处于隐藏状态的keep-alive应用，默认false
+ * @param excludePreRender 是否过滤预渲染的应用，默认false
  */
-function getActiveApps(excludeHiddenApp?: boolean): string[]
+function getActiveApps({ 
+  excludeHiddenApp?: boolean,
+  excludePreRender?: boolean,
+}): string[]
 ```
 
 **使用方式：**
 ```js
 import { getActiveApps } from '@micro-zoe/micro-app'
 
-getActiveApps() // [子应用name, 子应用name, ...]
+// 获取所有正在运行的应用的名称
+getActiveApps() // [子应用1name, 子应用2name, ...]
 
-getActiveApps(true) // 处于隐藏状态的keep-alive将会被过滤
+// 获取所有正在运行的应用的名称，但不包括已经处于隐藏状态的keep-alive应用
+getActiveApps({ excludeHiddenApp: true })
+
+// 获取所有正在运行的应用的名称，但不包括预渲染应用
+getActiveApps({ excludePreRender: true })
 ```
 
 ## getAllApps

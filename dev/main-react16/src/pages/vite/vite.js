@@ -42,7 +42,7 @@ function vite () {
           >
             发送数据
           </Button>
-          <Button type="primary" onClick={jumpToPage2}>基座控制子应用跳转page2</Button>
+          <Button type="primary" onClick={jumpToPage2}>控制子应用跳转page2</Button>
         </Col>
       </div>
       {

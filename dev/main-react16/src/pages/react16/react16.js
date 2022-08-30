@@ -375,15 +375,15 @@ export default class App extends React.Component {
             {/* <Button type="primary" onClick={this.clearGlobalData}>清空全局数据</Button> */}
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
             <Button type="primary" onClick={this.useUnmountApp}>主动卸载应用</Button>
-            <Button type="primary" onClick={this.jumpToHome}>基座控制子应用跳转home</Button>
-            <Button type="primary" onClick={this.jumpToPage2}>基座控制子应用跳转page2</Button>
-            <Button type="primary" onClick={this.jumpToInline}>基座控制子应用跳转inline</Button>
-            <Button type="primary" onClick={this.useRouterGo}>基座调用router.go</Button>
-            <Button type="primary" onClick={this.useRouterBack}>基座调用router.back</Button>
-            <Button type="primary" onClick={this.useRouterForward}>基座调用router.forward</Button>
-            <Button type="primary" onClick={this.useCurrentRoute}>基座调用router.current</Button>
-            <Button type="primary" onClick={this.useRouterAttachToURL}>基座调用router.attachToURL</Button>
-            <Button type="primary" onClick={this.useRouterAttachAllToURL}>基座调用router.attachAllToURL</Button>
+            <Button type="primary" onClick={this.jumpToHome}>控制子应用跳转home</Button>
+            <Button type="primary" onClick={this.jumpToPage2}>控制子应用跳转page2</Button>
+            <Button type="primary" onClick={this.jumpToInline}>控制子应用跳转inline</Button>
+            <Button type="primary" onClick={this.useRouterGo}>调用router.go</Button>
+            <Button type="primary" onClick={this.useRouterBack}>调用router.back</Button>
+            <Button type="primary" onClick={this.useRouterForward}>调用router.forward</Button>
+            <Button type="primary" onClick={this.useCurrentRoute}>调用router.current</Button>
+            <Button type="primary" onClick={this.useRouterAttachToURL}>调用router.attachToURL</Button>
+            <Button type="primary" onClick={this.useRouterAttachAllToURL}>调用router.attachAllToURL</Button>
             <Button type="primary" onClick={this.useReload}>重新加载子应用-reload</Button>
             <Button type="primary" onClick={this.useRenderApp}>手动加载子应用-renderApp</Button>
             <Button type="primary" onClick={this.changeTestNum}>{this.state.testNum}</Button>
@@ -407,7 +407,7 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseroute='/micro-app/demo/react16'
-                  // keep-alive
+                  keep-alive
                   // destroy
                   // inline
                   // disableSandbox

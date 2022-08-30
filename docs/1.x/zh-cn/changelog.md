@@ -8,6 +8,25 @@
 
 ---
 
+### 1.0.0-alpha.8
+
+`2022-09-02`
+
+- **New**
+
+  - 🆕 新增了rollup中__DEV__配置，优化开发体验。
+  - 🆕 更新了`getActiveApps`方法，增加参数`excludePreRender`。
+  - 🆕 更新了`attachAllToURL`方法，增加参数`includePreRender`。
+
+- **Bug Fix**
+
+  - 🐞 修复了在部分场景下，应用卸载后删除元素导致removeChild方法被循环调用的问题。
+
+- **Update**
+
+  - 🚀 优化了数据通讯系统，增加回调函数的返回值。
+
+
 ### 1.0.0-alpha.7
 
 `2022-08-26`

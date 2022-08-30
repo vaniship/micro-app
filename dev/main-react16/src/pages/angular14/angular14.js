@@ -21,9 +21,9 @@ function Angular14 () {
   return (
     <div>
       <Col span={6} className='btn-con'>
-        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/')}>基座控制子应用跳转home</Button>
-        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/material')}>基座控制子应用跳转material</Button>
-        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/page3')}>基座控制子应用跳转page3</Button>
+        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/')}>控制子应用跳转home</Button>
+        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/material')}>控制子应用跳转material</Button>
+        <Button type="primary" onClick={jumpToPage.bind(this, '/micro-app/angular14/page3')}>控制子应用跳转page3</Button>
       </Col>
       {
         showLoading && <Spin indicator={antIcon} />

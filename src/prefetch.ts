@@ -57,23 +57,25 @@ function preFetchInSerial (options: prefetchParam): Promise<void> {
         const app = new CreateApp({
           name: options.name,
           url: options.url,
+          isPrefetch: true,
           scopecss: !(options['disable-scopecss'] ?? options.disableScopecss ?? microApp.options['disable-scopecss']),
           useSandbox: !(options['disable-sandbox'] ?? options.disableSandbox ?? microApp.options['disable-sandbox']),
           inline: options.inline ?? microApp.options.inline,
           esmodule: options.esmodule ?? microApp.options.esmodule,
-          isPrefetch: true,
+          // level: isNumber(options.level) ?? 2,
+          preRender: options.preRender === true ? {} : options.preRender,
         })
 
         const oldOnload = app.onLoad
         const oldOnLoadError = app.onLoadError
-        app.onLoad = (html: HTMLElement): void => {
+        app.onLoad = (...rests): void => {
           resolve()
-          oldOnload.call(app, html)
+          oldOnload.call(app, ...rests)
         }
 
-        app.onLoadError = (e: Error): void => {
+        app.onLoadError = (...rests): void => {
           resolve()
-          oldOnLoadError.call(app, e)
+          oldOnLoadError.call(app, ...rests)
         }
       } else {
         resolve()

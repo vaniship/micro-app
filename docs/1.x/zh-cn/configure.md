@@ -129,7 +129,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 
 注意：
   1. 如果关闭了虚拟路由系统，`default-page`也将失效。
-  2. 当
+
 
 ## keep-router-state
 - Desc: `保留路由状态`

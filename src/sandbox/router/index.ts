@@ -73,6 +73,7 @@ export function updateBrowserURLWithLocation (
   if (defaultPage) updateMicroLocation(appName, defaultPage, microLocation, 'prevent')
   // attach microApp route info to browser URL
   attachRouteToBrowserURL(
+    appName,
     setMicroPathToURL(appName, microLocation),
     setMicroState(
       appName,
@@ -110,6 +111,7 @@ export function clearRouteStateFromURL (
  */
 export function removeStateAndPathFromBrowser (appName: string): void {
   attachRouteToBrowserURL(
+    appName,
     removeMicroPathFromURL(appName),
     removeMicroState(appName, globalEnv.rawWindow.history.state),
   )

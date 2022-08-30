@@ -146,11 +146,11 @@ function invokePrototypeMethod (
           configurable: true,
           get () {
             /**
-             * When operate child from parentNode async, Element.prototype may reset
+             * When operate child from parentNode async, may have been unmount
              * e.g.
              * target.parentNode.remove(target)
              */
-            return Element.prototype.removeChild === globalEnv.rawRemoveChild ? hijackParent : document.body
+            return !app.container ? hijackParent : document.body
           },
         })
       }
@@ -330,7 +330,7 @@ export function patchElementPrototypeMethods (): void {
       try {
         return globalEnv.rawRemoveChild.call(this, oldChild) as T
       } catch {
-        return oldChild?.parentNode?.removeChild(oldChild) as T
+        return (oldChild?.parentNode && globalEnv.rawRemoveChild.call(oldChild.parentNode, oldChild)) as T
       }
     }
 

@@ -2,7 +2,7 @@
 import type { MicroLocation, GuardLocation, ShadowLocation } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, rawDefineProperties, createURL, noop } from '../../libs/utils'
-import { setMicroPathToURL } from './core'
+import { setMicroPathToURL, isEffectiveApp } from './core'
 import { dispatchNativeEvent } from './event'
 import { executeNavigationGuard } from './api'
 import { nativeHistoryNavigate, navigateWithNativeEvent } from './history'
@@ -58,13 +58,13 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         let oldHref = null
         if (targetLocation.hash !== shadowLocation.hash) {
           if (setMicroPathResult.isAttach2Hash) oldHref = rawLocation.href
-          nativeHistoryNavigate(methodName, setMicroPathResult.fullPath)
+          nativeHistoryNavigate(appName, methodName, setMicroPathResult.fullPath)
         }
 
         if (targetLocation.hash) {
-          dispatchNativeEvent(false, oldHref)
+          dispatchNativeEvent(appName, false, oldHref)
         } else {
-          rawLocation.reload()
+          rawReload()
         }
         return void 0
       /**
@@ -72,8 +72,8 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
        * so we imitate behavior of browser (reload)
        */
       } else if (setMicroPathResult.isAttach2Hash) {
-        nativeHistoryNavigate(methodName, setMicroPathResult.fullPath)
-        rawLocation.reload()
+        nativeHistoryNavigate(appName, methodName, setMicroPathResult.fullPath)
+        rawReload()
         return void 0
       }
 
@@ -105,12 +105,12 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
    * @param targetPath target fullPath
    * @param key pathname/search
    */
-  function handleForPathNameAndSearch (targetPath: string, key: string) {
+  function handleForPathNameAndSearch (targetPath: string, key: string): void {
     const targetLocation = createURL(targetPath, url)
     // When the browser url has a hash value, the same pathname/search will not refresh browser
     if (targetLocation[key] === shadowLocation[key] && shadowLocation.hash) {
       // The href has not changed, not need to dispatch hashchange event
-      dispatchNativeEvent(false)
+      dispatchNativeEvent(appName, false)
     } else {
       /**
        * When the value is the same, no new route stack will be added
@@ -119,11 +119,16 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
        * search: ?query ==> ?query#hash
        */
       nativeHistoryNavigate(
+        appName,
         targetLocation[key] === shadowLocation[key] ? 'replaceState' : 'pushState',
         setMicroPathToURL(appName, targetLocation).fullPath,
       )
-      rawLocation.reload()
+      rawReload()
     }
+  }
+
+  function rawReload () {
+    isEffectiveApp(appName) && rawLocation.reload()
   }
 
   /**
@@ -134,8 +139,10 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
     href: createPropertyDescriptor(
       (): string => shadowLocation.href,
       (value: string): void => {
-        const targetPath = commonHandler(value, 'pushState')
-        if (targetPath) rawLocation.href = targetPath
+        if (isEffectiveApp(appName)) {
+          const targetPath = commonHandler(value, 'pushState')
+          if (targetPath) rawLocation.href = targetPath
+        }
       }
     ),
     pathname: createPropertyDescriptor(
@@ -160,6 +167,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
         // The same hash will not trigger popStateEvent
         if (targetLocation.hash !== shadowLocation.hash) {
           navigateWithNativeEvent(
+            appName,
             'pushState',
             setMicroPathToURL(appName, targetLocation),
             false,
@@ -175,8 +183,10 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
 
   const createLocationMethod = (locationMethodName: string) => {
     return function (value: string | URL) {
-      const targetPath = commonHandler(value, locationMethodName === 'assign' ? 'pushState' : 'replaceState')
-      if (targetPath) rawLocation[locationMethodName](targetPath)
+      if (isEffectiveApp(appName)) {
+        const targetPath = commonHandler(value, locationMethodName === 'assign' ? 'pushState' : 'replaceState')
+        if (targetPath) rawLocation[locationMethodName](targetPath)
+      }
     }
   }
 

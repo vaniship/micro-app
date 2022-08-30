@@ -564,9 +564,14 @@ router.attachToURL(name: string)
 
 /**
  * 将所有正在运行的子应用路由信息同步到浏览器地址上
+ * 它接受一个对象作为参数，详情如下：
  * @param {boolean} includeHiddenApp 是否包含已经隐藏的keep-alive应用，默认为false
+ * @param {boolean} includePreRender 是否包含预渲染应用，默认为false
  */
-router.attachAllToURL(includeHiddenApp: boolean)
+router.attachAllToURL({
+  includeHiddenApp?: boolean,
+  includePreRender?: boolean,
+})
 ```
 
 **示例：**
@@ -577,9 +582,12 @@ import microApp from '@micro-zoe/micro-app'
 // 将my-app的路由信息同步到浏览器地址上
 microApp.router.attachToURL('my-app')
 
-// 将所有正在运行的子应用路由信息同步到浏览器地址上，不包含处于隐藏状态的keep-alive应用
+// 将所有正在运行的子应用路由信息同步到浏览器地址上，不包含处于隐藏状态的keep-alive应用和预渲染应用
 microApp.router.attachAllToURL()
 
 // 将所有正在运行的子应用路由信息同步到浏览器地址上，包含处于隐藏状态的keep-alive应用
-microApp.router.attachAllToURL(true)
+microApp.router.attachAllToURL({ includeHiddenApp: true })
+
+// 将所有正在运行的子应用路由信息同步到浏览器地址上，包含预渲染应用
+microApp.router.attachAllToURL({ includePreRender: true })
 ```

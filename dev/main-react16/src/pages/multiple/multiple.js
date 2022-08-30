@@ -75,12 +75,12 @@ function Vue3 () {
           手动发送数据
         </Button>
         <Button type="primary" onClick={() => changename('react163')}>改变react16的name</Button>
-        <Button type="primary" onClick={jumpToReactHome}>基座控制React子应用跳转home</Button>
-        <Button type="primary" onClick={jumpToReactPage2}>基座控制React子应用跳转page2</Button>
-        <Button type="primary" onClick={jumpToReactInline}>基座控制React子应用跳转inline</Button>
-        <Button type="primary" onClick={jumpToVueHome}>基座控制Vue子应用跳转home</Button>
-        <Button type="primary" onClick={jumpToVuePage2}>基座控制Vue子应用跳转page2</Button>
-        <Button type="primary" onClick={jumpToVueTable}>基座控制Vue子应用跳转table</Button>
+        <Button type="primary" onClick={jumpToReactHome}>控制React子应用跳转home</Button>
+        <Button type="primary" onClick={jumpToReactPage2}>控制React子应用跳转page2</Button>
+        <Button type="primary" onClick={jumpToReactInline}>控制React子应用跳转inline</Button>
+        <Button type="primary" onClick={jumpToVueHome}>控制Vue子应用跳转home</Button>
+        <Button type="primary" onClick={jumpToVuePage2}>控制Vue子应用跳转page2</Button>
+        <Button type="primary" onClick={jumpToVueTable}>控制Vue子应用跳转table</Button>
       </Col>
       </div>
       {

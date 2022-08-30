@@ -11,7 +11,7 @@ import App from './App.vue'
 Vue.config.productionTip = false
 Vue.use(ElementUI)
 
-window.microApp.addDataListener((data) => {
+window.microApp?.addDataListener((data) => {
   console.log('顶层监听函数 addDataListener', data)
 })
 
@@ -72,3 +72,6 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 }
 
 // -------------------分割线------------------ //
+
+// window.location.href = 'http://localhost:4001/micro-app/vue2/#/page2'
+// window.location.href = 'http://localhost:4001/micro-app/vue2/page2'

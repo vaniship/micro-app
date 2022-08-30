@@ -14,6 +14,7 @@ import {
   isPlainObject,
   createURL,
 } from '../../libs/utils'
+import { appInstanceMap } from '../../create_app'
 
 // set micro app state to origin state
 export function setMicroState (
@@ -42,7 +43,6 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
     }
   }
 
-  // 生成新的state对象
   return assign({}, rawState)
 }
 
@@ -56,14 +56,17 @@ const ENC_EQ_RE = /=/g // %M2
 const DEC_AD_RE = /%M1/g // &
 const DEC_EQ_RE = /%M2/g // =
 
+// encode path with special symbol
 export function encodeMicroPath (path: string): string {
   return encodeURIComponent(commonDecode(path).replace(ENC_AD_RE, '%M1').replace(ENC_EQ_RE, '%M2'))
 }
 
+// decode path
 export function decodeMicroPath (path: string): string {
   return commonDecode(path).replace(DEC_AD_RE, '&').replace(DEC_EQ_RE, '=')
 }
 
+// Recursively resolve address
 function commonDecode (path: string): string {
   try {
     const decPath = decodeURIComponent(path)
@@ -74,13 +77,16 @@ function commonDecode (path: string): string {
   }
 }
 
-// 格式化query参数key，防止与原有参数的冲突
+// Format the query parameter key to prevent conflicts with the original parameters
 function formatQueryAppName (appName: string) {
   // return `app-${appName}`
   return appName
 }
 
-// 根据浏览器url参数，获取当前子应用的path
+/**
+ * Get app fullPath from browser url
+ * @param appName app.name
+ */
 export function getMicroPathFromURL (appName: string): string | null {
   const rawLocation = globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(rawLocation.search, rawLocation.hash)
@@ -88,7 +94,11 @@ export function getMicroPathFromURL (appName: string): string | null {
   return isString(microPath) ? decodeMicroPath(microPath) : null
 }
 
-// 将name=encodeUrl地址插入到浏览器url上
+/**
+ * Attach child app fullPath to browser url
+ * @param appName app.name
+ * @param microLocation location of child app
+ */
 export function setMicroPathToURL (appName: string, microLocation: MicroLocation): HandleMicroPathResult {
   let { pathname, search, hash } = globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(search, hash)
@@ -98,8 +108,12 @@ export function setMicroPathToURL (appName: string, microLocation: MicroLocation
     microLocation.hash
   )
 
-  let isAttach2Hash = false // 基座是否是hash模式，这个其实也不准，只是表示参数加到了hash上
-  // hash存在且search不存在，则认为是hash路由
+  /**
+   * Is parent is hash router
+   * In fact, this is not true. It just means that the parameter is added to the hash
+   */
+  let isAttach2Hash = false
+  // If hash exists and search does not exist, it is considered as a hash route
   if (hash && !search) {
     isAttach2Hash = true
     if (queryObject.hashQuery) {
@@ -128,7 +142,11 @@ export function setMicroPathToURL (appName: string, microLocation: MicroLocation
   }
 }
 
-// 将name=encodeUrl的参数从浏览器url上删除
+/**
+ * Delete child app fullPath from browser url
+ * @param appName app.name
+ * @param targetLocation target Location, default is rawLocation
+ */
 export function removeMicroPathFromURL (appName: string, targetLocation?: MicroLocation): HandleMicroPathResult {
   let { pathname, search, hash } = targetLocation || globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(search, hash)
@@ -152,7 +170,7 @@ export function removeMicroPathFromURL (appName: string, targetLocation?: MicroL
 }
 
 /**
- * 根据location获取query对象
+ * Format search, hash to object
  */
 function getQueryObjectFromURL (search: string, hash: string): LocationQuery {
   const queryObject: LocationQuery = {}
@@ -176,4 +194,17 @@ export function getNoHashMicroPathFromURL (appName: string, baseUrl: string): st
   if (!microPath) return ''
   const formatLocation = createURL(microPath, baseUrl)
   return formatLocation.origin + formatLocation.pathname + formatLocation.search
+}
+
+/**
+ * Effect app is an app that can perform route navigation
+ * NOTE: Invalid app action
+ * 1. prevent update browser url, dispatch popStateEvent, reload browser
+ * 2. It can update path with pushState/replaceState
+ * 3. Can not update path outside (with router api)
+ * 3. Can not update path by location
+ */
+export function isEffectiveApp (appName: string): boolean {
+  const app = appInstanceMap.get(appName)
+  return !!(app && !app.isPrefetch)
 }

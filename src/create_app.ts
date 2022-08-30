@@ -5,11 +5,12 @@ import type {
   SandBoxInterface,
   MountParam,
   UnmountParam,
+  PreRenderParam,
 } from '@micro-app/types'
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
 import { execScripts } from './source/scripts'
-import SandBox from './sandbox'
+import SandBox, { router } from './sandbox'
 import {
   appStates,
   lifeCycles,
@@ -24,6 +25,8 @@ import {
   getRootContainer,
   isObject,
   callFnWithTryCatch,
+  assign,
+  pureCreateElement,
 } from './libs/utils'
 import dispatchLifecyclesEvent, { dispatchCustomEventToMicroApp } from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
@@ -45,6 +48,7 @@ export interface CreateAppParam {
   container?: HTMLElement | ShadowRoot
   ssrUrl?: string
   isPrefetch?: boolean
+  preRender?: PreRenderParam
 }
 
 export default class CreateApp implements AppInterface {
@@ -55,6 +59,7 @@ export default class CreateApp implements AppInterface {
   private umdHookMount: Func | null = null
   private umdHookUnmount: Func | null = null
   private libraryName: string | null = null
+  private preRenderEvent?: CallableFunction[]
   public umdMode = false
   public source: sourceType
   public sandBox: SandBoxInterface | null = null
@@ -66,8 +71,8 @@ export default class CreateApp implements AppInterface {
   public inline: boolean
   public esmodule: boolean
   public ssrUrl: string
-  public isPrefetch
-  public keepRouteState = false
+  public isPrefetch: boolean
+  public preRender?: PreRenderParam
   public fiber = false
   public useMemoryRouter = true
 
@@ -81,6 +86,7 @@ export default class CreateApp implements AppInterface {
     esmodule,
     ssrUrl,
     isPrefetch,
+    preRender,
   }: CreateAppParam) {
     this.name = name
     this.url = url
@@ -93,8 +99,9 @@ export default class CreateApp implements AppInterface {
     this.container = container ?? null
     this.ssrUrl = ssrUrl ?? ''
 
-    // not exist when normal 👇
+    // exist only prefetch 👇
     this.isPrefetch = isPrefetch ?? false
+    this.preRender = preRender
 
     // init actions
     appInstanceMap.set(this.name, this)
@@ -120,6 +127,38 @@ export default class CreateApp implements AppInterface {
       if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
         // @ts-ignore
         getRootContainer(this.container!).mount(this)
+      } else if (this.preRender) {
+        /**
+         * PreRender is an option of prefetch, it will render app during prefetch
+         * Limit:
+         * 1. fiber forced on
+         * 2. only virtual router support
+         * NOTE:
+         * 1. pushState/replaceState in child can update microLocation, but will not attach router info to browser url
+         * 2. prevent dispatch popstate/hashchange event to browser
+         * 3. all navigation actions of location are invalid (In the future, we can consider update microLocation without trigger browser reload)
+         * 4. lifecycle event will not trigger when prerender
+         * Special scenes
+         * 1. unmount prerender app when loading
+         * 2. unmount prerender app when exec js
+         * 2. unmount prerender app after exec js
+         */
+        const container = pureCreateElement('div')
+        container.setAttribute('prerender', 'true')
+        this.sandBox?.setPreRenderState(true)
+        this.mount(
+          assign({
+            container,
+            inline: this.inline,
+            useMemoryRouter: true,
+            baseroute: '',
+            fiber: true,
+            esmodule: this.esmodule,
+          }, {
+            defaultPage: this.preRender['default-page'] || '',
+            disablePatchRequest: this.preRender['disable-patch-request'] || false,
+          })
+        )
       }
     }
   }
@@ -140,42 +179,69 @@ export default class CreateApp implements AppInterface {
   /**
    * mount app
    * @param container app container
-   * @param inline js runs in inline mode
+   * @param inline run js in inline mode
+   * @param useMemoryRouter use virtual router
+   * @param defaultPage default page of virtual router
    * @param baseroute route prefix, default is ''
-   * @param keepRouteState keep route state when unmount, default is false
    * @param disablePatchRequest prevent rewrite request method of child app
+   * @param fiber run js in fiber mode
+   * @param esmodule support type='module' script
    */
   public mount ({
     container,
     inline,
-    esmodule,
     useMemoryRouter,
-    baseroute,
-    keepRouteState,
     defaultPage,
+    baseroute,
     disablePatchRequest,
     fiber,
+    esmodule,
     // hiddenRouter,
   }: MountParam): void {
-    this.container = container
-    this.inline = inline
-    this.esmodule = esmodule
-    this.keepRouteState = keepRouteState
-    this.fiber = fiber
-    // use in sandbox/effect
-    this.useMemoryRouter = useMemoryRouter
-    // this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
-
     if (this.loadSourceLevel !== 2) {
       this.state = appStates.LOADING
       return
     }
 
-    dispatchLifecyclesEvent(
-      this.container,
-      this.name,
-      lifeCycles.BEFOREMOUNT,
-    )
+    // TODO: test shadowDOM
+    if (
+      this.container instanceof HTMLDivElement &&
+      this.container.hasAttribute('prerender')
+    ) {
+      // this.container is <div prerender='true'></div>
+      cloneContainer(this.container as Element, container as Element, false)
+      // set this.container of <micro-app></micro-app>
+      this.container = container
+      this.preRenderEvent?.forEach((cb) => {
+        cb()
+      })
+      // reset preRender config
+      this.preRender = this.preRenderEvent = undefined
+      // attach router info to browser url
+      router.attachToURL(this.name)
+      return this.sandBox?.setPreRenderState(false)
+    }
+    this.container = container
+    this.inline = inline
+    this.esmodule = esmodule
+    this.fiber = fiber
+    // use in sandbox/effect
+    this.useMemoryRouter = useMemoryRouter
+    // this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
+
+    const dispatchBeforeMount = () => {
+      dispatchLifecyclesEvent(
+        this.container!,
+        this.name,
+        lifeCycles.BEFOREMOUNT,
+      )
+    }
+
+    if (this.preRender) {
+      (this.preRenderEvent ??= []).push(dispatchBeforeMount)
+    } else {
+      dispatchBeforeMount()
+    }
 
     this.state = appStates.MOUNTING
 
@@ -218,7 +284,12 @@ export default class CreateApp implements AppInterface {
 
         if (!hasDispatchMountedEvent && (isFinished === true || this.umdMode)) {
           hasDispatchMountedEvent = true
-          this.handleMounted(umdHookMountResult)
+          const dispatchMounted = () => this.handleMounted(umdHookMountResult)
+          if (this.preRender) {
+            (this.preRenderEvent ??= []).push(dispatchMounted)
+          } else {
+            dispatchMounted()
+          }
         }
       })
     } else {
@@ -273,11 +344,14 @@ export default class CreateApp implements AppInterface {
    * unmount app
    * NOTE: Do not add any params on account of unmountApp
    * @param destroy completely destroy, delete cache resources
+   * @param clearData clear data of dateCenter
+   * @param keepRouteState keep route state when unmount, default is false
    * @param unmountcb callback of unmount
    */
   public unmount ({
     destroy,
     clearData,
+    keepRouteState,
     unmountcb,
   }: UnmountParam): void {
     if (this.state === appStates.LOAD_FAILED) {
@@ -312,40 +386,58 @@ export default class CreateApp implements AppInterface {
     // dispatch unmount event to micro app
     dispatchCustomEventToMicroApp('unmount', this.name)
 
-    this.handleUnmounted(destroy, clearData, umdHookUnmountResult, unmountcb)
+    this.handleUnmounted(
+      destroy,
+      clearData,
+      keepRouteState,
+      umdHookUnmountResult,
+      unmountcb
+    )
   }
 
   /**
    * handle for promise umdHookUnmount
    * @param destroy completely destroy, delete cache resources
+   * @param clearData clear data of dateCenter
+   * @param keepRouteState keep route state when unmount, default is false
    * @param umdHookUnmountResult result of umdHookUnmount
    * @param unmountcb callback of unmount
    */
   private handleUnmounted (
     destroy: boolean,
     clearData: boolean,
+    keepRouteState: boolean,
     umdHookUnmountResult: any,
     unmountcb?: CallableFunction,
   ): void {
+    const unmountParam: UnmountParam = {
+      destroy,
+      clearData,
+      keepRouteState,
+      unmountcb,
+    }
     if (isPromise(umdHookUnmountResult)) {
       umdHookUnmountResult
-        .then(() => this.actionsForUnmount(destroy, clearData, unmountcb))
-        .catch(() => this.actionsForUnmount(destroy, clearData, unmountcb))
+        .then(() => this.actionsForUnmount(unmountParam))
+        .catch(() => this.actionsForUnmount(unmountParam))
     } else {
-      this.actionsForUnmount(destroy, clearData, unmountcb)
+      this.actionsForUnmount(unmountParam)
     }
   }
 
   /**
    * actions for unmount app
    * @param destroy completely destroy, delete cache resources
+   * @param clearData clear data of dateCenter
+   * @param keepRouteState keep route state when unmount, default is false
    * @param unmountcb callback of unmount
    */
-  private actionsForUnmount (
-    destroy: boolean,
-    clearData: boolean,
-    unmountcb?: CallableFunction
-  ): void {
+  private actionsForUnmount ({
+    destroy,
+    clearData,
+    keepRouteState,
+    unmountcb
+  }: UnmountParam): void {
     if (destroy) {
       this.actionsForCompletelyDestroy()
     } else if (this.umdMode && (this.container as Element).childElementCount) {
@@ -368,7 +460,7 @@ export default class CreateApp implements AppInterface {
      */
     this.sandBox?.stop({
       umdMode: this.umdMode,
-      keepRouteState: this.keepRouteState && !destroy,
+      keepRouteState: keepRouteState && !destroy,
       clearEventSource: !this.umdMode || destroy,
       clearData: clearData || destroy,
     })
@@ -385,6 +477,7 @@ export default class CreateApp implements AppInterface {
 
     this.container!.innerHTML = ''
     this.container = null
+    this.preRenderEvent = undefined
 
     unmountcb && unmountcb()
   }

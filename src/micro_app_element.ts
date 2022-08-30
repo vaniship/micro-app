@@ -374,14 +374,13 @@ export function defineElement (tagName: string): void {
       app.mount({
         container: this.shadowRoot ?? this,
         inline: this.getDisposeResult('inline'),
-        esmodule: this.getDisposeResult('esmodule'),
         useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
-        baseroute: this.getBaseRouteCompatible(),
-        keepRouteState: this.getDisposeResult('keep-router-state'),
         defaultPage: this.getDefaultPageValue(),
-        hiddenRouter: this.getDisposeResult('hidden-router'),
+        baseroute: this.getBaseRouteCompatible(),
         disablePatchRequest: this.getDisposeResult('disable-patch-request'),
         fiber: this.getDisposeResult('fiber'),
+        esmodule: this.getDisposeResult('esmodule'),
+        // hiddenRouter: this.getDisposeResult('hidden-router'),
       })
     }
 
@@ -398,6 +397,7 @@ export function defineElement (tagName: string): void {
         app.unmount({
           destroy,
           clearData: this.getDisposeResult('clear-data'),
+          keepRouteState: this.getDisposeResult('keep-router-state'),
           unmountcb,
         })
       }

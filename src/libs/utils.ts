@@ -57,6 +57,11 @@ export function isBoolean (target: unknown): target is boolean {
   return typeof target === 'boolean'
 }
 
+// is Number
+export function isNumber (target: unknown): target is Number {
+  return typeof target === 'number'
+}
+
 // is function
 export function isFunction (target: unknown): target is Function {
   return typeof target === 'function'

@@ -73,6 +73,7 @@ export type MicroAppWindowDataType = {
   __MICRO_APP_BASE_URL__: string,
   __MICRO_APP_BASE_ROUTE__: string,
   __MICRO_APP_UMD_MODE__: boolean,
+  __MICRO_APP_PRE_RENDER__: boolean
   microApp: EventCenterForMicroApp,
   rawWindow: Window,
   rawDocument: Document,
@@ -257,6 +258,10 @@ export default class SandBox implements SandBoxInterface {
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
+  public setPreRenderState (state: boolean): void {
+    this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
+  }
+
   /**
    * get scopeProperties and escapeProperties from plugins & adapter
    * @param appName app name
@@ -408,6 +413,7 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow.__MICRO_APP_URL__ = url
     microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
     microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
+    microAppWindow.__MICRO_APP_PRE_RENDER__ = false
     microAppWindow.rawWindow = globalEnv.rawWindow
     microAppWindow.rawDocument = globalEnv.rawDocument
     microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {

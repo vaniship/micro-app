@@ -41,6 +41,7 @@ declare module '@micro-app/types' {
     rebuildUmdSnapshot (): void
     setRouteInfoForKeepAliveApp (): void
     removeRouteInfoForKeepAliveApp (): void
+    setPreRenderState (state: boolean): void
   }
 
   interface SandBoxAdapter {
@@ -90,23 +91,27 @@ declare module '@micro-app/types' {
   }
 
   interface MountParam {
-    container: HTMLElement | ShadowRoot
-    inline: boolean
-    useMemoryRouter: boolean
-    baseroute: string
-    keepRouteState: boolean
-    defaultPage: string
-    hiddenRouter: boolean
-    disablePatchRequest: boolean
-    fiber: boolean
-    esmodule: boolean
-
+    container: HTMLElement | ShadowRoot // app container
+    inline: boolean // run js in inline mode
+    useMemoryRouter: boolean // use virtual router
+    defaultPage: string // default page of virtual router
+    baseroute: string // route prefix, default is ''
+    disablePatchRequest: boolean // prevent rewrite request method of child app
+    fiber: boolean // run js in fiber mode
+    esmodule: boolean // support type='module' script
+    // hiddenRouter: boolean
   }
 
   interface UnmountParam {
-    destroy: boolean,
-    clearData: boolean
-    unmountcb?: CallableFunction
+    destroy: boolean, // completely destroy, delete cache resources
+    clearData: boolean // clear data of dateCenter
+    keepRouteState: boolean // keep route state when unmount, default is false
+    unmountcb?: CallableFunction // callback of unmount
+  }
+
+  interface PreRenderParam {
+    'default-page'?: string,
+    'disable-patch-request'?: boolean
   }
 
   // app instance
@@ -122,10 +127,10 @@ declare module '@micro-app/types' {
     ssrUrl: string // html path in ssr mode
     isPrefetch: boolean // whether prefetch app, default is false
     container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, div(keep-alive)
-    keepRouteState: boolean // keep route state when unmount, default is false
     umdMode: boolean // is umd mode
     fiber: boolean // fiber mode
     useMemoryRouter: boolean // use virtual router
+    preRender?: PreRenderParam
     // defaultPage: string // default page when mount
     // baseroute: string // route prefix, default is ''
     // hiddenRouter: boolean // hide router info of child from browser url
@@ -177,7 +182,7 @@ declare module '@micro-app/types' {
     attributeChangedCallback (a: 'name' | 'url', o: string, n: string): void
   }
 
-  type prefetchParam = {
+  interface prefetchParam {
     name: string,
     url: string,
     // old config 👇
@@ -188,6 +193,7 @@ declare module '@micro-app/types' {
     'disable-sandbox'?: boolean
     inline?: boolean
     esmodule?: boolean
+    preRender?: PreRenderParam
   }
 
   // prefetch params
@@ -245,6 +251,11 @@ declare module '@micro-app/types' {
         processHtml?: (code: string, url: string) => string
       }>
     }
+  }
+
+  type GetActiveAppsParam = {
+    excludeHiddenApp?: boolean,
+    excludePreRender?: boolean,
   }
 
   type fetchType = (url: string, options: Record<string, unknown>, appName: string | null) => Promise<string>
@@ -364,6 +375,11 @@ declare module '@micro-app/types' {
     path: string,
   }
 
+  type AttachAllToURLParam = {
+    includeHiddenApp?: boolean,
+    includePreRender?: boolean,
+  }
+
   // Router API for developer
   interface Router {
     // current route of all apps
@@ -436,7 +452,7 @@ declare module '@micro-app/types' {
     /**
      * Attach all active app router info to browser url
      */
-    attachAllToURL(): void
+    attachAllToURL(options: AttachAllToURLParam): void
     /**
      * Record base app router, let child app control base app navigation
      * It is global data

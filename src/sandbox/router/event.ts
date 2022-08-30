@@ -2,7 +2,7 @@ import type { MicroLocation } from '@micro-app/types'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
 import { formatEventName } from '../effect'
-import { getMicroPathFromURL, getMicroState } from './core'
+import { getMicroPathFromURL, getMicroState, isEffectiveApp } from './core'
 import { updateMicroLocation } from './location'
 import globalEnv from '../../libs/global_env'
 import { removeDomScope, isFunction } from '../../libs/utils'
@@ -25,7 +25,10 @@ export function addHistoryListener (appName: string): CallableFunction {
      * 1. unmount app & hidden keep-alive app will not receive popstate event
      * 2. filter out onlyForBrowser
      */
-    if (getActiveApps(true).includes(appName) && !e.onlyForBrowser) {
+    if (
+      getActiveApps({ excludeHiddenApp: true, excludePreRender: true }).includes(appName) &&
+      !e.onlyForBrowser
+    ) {
       const microPath = getMicroPathFromURL(appName)
       const app = appInstanceMap.get(appName)!
       const proxyWindow = app.sandBox!.proxyWindow
@@ -143,14 +146,21 @@ function dispatchNativeHashChangeEvent (oldHref: string): void {
 
 /**
  * dispatch popstate & hashchange event to browser
+ * @param appName app.name
  * @param onlyForBrowser only dispatch event to browser
  * @param oldHref old href of rawWindow.location
  */
-export function dispatchNativeEvent (onlyForBrowser: boolean, oldHref?: string): void {
+export function dispatchNativeEvent (
+  appName: string,
+  onlyForBrowser: boolean,
+  oldHref?: string,
+): void {
   // clear element scope before dispatch global event
   removeDomScope()
-  dispatchNativePopStateEvent(onlyForBrowser)
-  if (oldHref) {
-    dispatchNativeHashChangeEvent(oldHref)
+  if (isEffectiveApp(appName)) {
+    dispatchNativePopStateEvent(onlyForBrowser)
+    if (oldHref) {
+      dispatchNativeHashChangeEvent(oldHref)
+    }
   }
 }

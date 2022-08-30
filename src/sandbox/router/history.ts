@@ -8,7 +8,7 @@ import type {
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { isString, createURL, isPlainObject, isURL, assign, isFunction, removeDomScope } from '../../libs/utils'
-import { setMicroPathToURL, setMicroState, getMicroState, getMicroPathFromURL } from './core'
+import { setMicroPathToURL, setMicroState, getMicroState, getMicroPathFromURL, isEffectiveApp } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
 import bindFunctionToRawObject from '../bind_function'
@@ -29,6 +29,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
         const targetLocation = createURL(rests[2], microLocation.href)
         if (targetLocation.origin === microLocation.origin) {
           navigateWithNativeEvent(
+            appName,
             methodName,
             setMicroPathToURL(appName, targetLocation),
             true,
@@ -43,7 +44,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
         }
       }
 
-      nativeHistoryNavigate(methodName, rests[2], rests[0], rests[1])
+      nativeHistoryNavigate(appName, methodName, rests[2], rests[0], rests[1])
     }
   }
 
@@ -76,19 +77,23 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
 
 /**
  * navigate to new path base on native method of history
+ * @param appName app.name
  * @param methodName pushState/replaceState
  * @param fullPath full path
  * @param state history.state, default is null
  * @param title history.title, default is ''
  */
 export function nativeHistoryNavigate (
+  appName: string,
   methodName: string,
   fullPath: string,
   state: unknown = null,
   title = '',
 ): void {
-  const method = methodName === 'pushState' ? globalEnv.rawPushState : globalEnv.rawReplaceState
-  method.call(globalEnv.rawWindow.history, state, title, fullPath)
+  if (isEffectiveApp(appName)) {
+    const method = methodName === 'pushState' ? globalEnv.rawPushState : globalEnv.rawReplaceState
+    method.call(globalEnv.rawWindow.history, state, title, fullPath)
+  }
 }
 
 /**
@@ -98,6 +103,7 @@ export function nativeHistoryNavigate (
  * 2. proxyHistory.pushState/replaceState with limited popstateEvent
  * 3. api microApp.router.push/replace
  * 4. proxyLocation.hash = xxx
+ * @param appName app.name
  * @param methodName pushState/replaceState
  * @param result result of add/remove microApp path on browser url
  * @param onlyForBrowser only dispatch event to browser
@@ -105,31 +111,36 @@ export function nativeHistoryNavigate (
  * @param title history.title, not required
  */
 export function navigateWithNativeEvent (
+  appName: string,
   methodName: string,
   result: HandleMicroPathResult,
   onlyForBrowser: boolean,
   state?: unknown,
   title?: string,
 ): void {
-  const rawLocation = globalEnv.rawWindow.location
-  const oldFullPath = rawLocation.pathname + rawLocation.search + rawLocation.hash
-  const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
-  // navigate with native history method
-  nativeHistoryNavigate(methodName, result.fullPath, state, title)
-  if (oldFullPath !== result.fullPath) dispatchNativeEvent(onlyForBrowser, oldHref)
+  if (isEffectiveApp(appName)) {
+    const rawLocation = globalEnv.rawWindow.location
+    const oldFullPath = rawLocation.pathname + rawLocation.search + rawLocation.hash
+    const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
+    // navigate with native history method
+    nativeHistoryNavigate(appName, methodName, result.fullPath, state, title)
+    if (oldFullPath !== result.fullPath) dispatchNativeEvent(appName, onlyForBrowser, oldHref)
+  }
 }
 
 /**
  * update browser url when mount/unmount/hidden/show/attachToURL/attachAllToURL
  * just attach microRoute info to browser, dispatch event to base app(exclude child)
+ * @param appName app.name
  * @param result result of add/remove microApp path on browser url
  * @param state history.state
  */
 export function attachRouteToBrowserURL (
+  appName: string,
   result: HandleMicroPathResult,
   state: MicroState,
 ): void {
-  navigateWithNativeEvent('replaceState', result, true, state)
+  navigateWithNativeEvent(appName, 'replaceState', result, true, state)
 }
 
 /**
@@ -162,10 +173,14 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
      * 2. Unable to catch when base app navigate with location
      * 3. When in nest app, rawPushState/rawReplaceState has been modified by parent
      */
-    getActiveApps(true).forEach(appName => {
+    getActiveApps({
+      excludeHiddenApp: true,
+      excludePreRender: true,
+    }).forEach(appName => {
       const app = appInstanceMap.get(appName)!
       if (app.sandBox && app.useMemoryRouter && !getMicroPathFromURL(appName)) {
         attachRouteToBrowserURL(
+          appName,
           setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
           setMicroState(appName, getMicroState(appName)),
         )
