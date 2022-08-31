@@ -1,4 +1,4 @@
-import type { Func } from '@micro-app/types'
+import type { Func, AppInterface } from '@micro-app/types'
 import { isSupportModuleScript, isBrowser, getCurrentAppName, assign } from './utils'
 import { rejectMicroAppStyle } from '../source/patch'
 
@@ -38,6 +38,7 @@ declare global {
 
   interface HTMLElement {
     reload(destroy?: boolean): Promise<boolean>
+    mount(app: AppInterface): void
   }
 }
 

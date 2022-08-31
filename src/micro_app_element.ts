@@ -370,7 +370,7 @@ export function defineElement (tagName: string): void {
     /**
      * public mount action for micro_app_element & create_app
      */
-    public mount (app: AppInterface) {
+    public mount (app: AppInterface): void {
       app.mount({
         container: this.shadowRoot ?? this,
         inline: this.getDisposeResult('inline'),

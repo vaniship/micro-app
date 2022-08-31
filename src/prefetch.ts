@@ -17,6 +17,7 @@ import {
 import { fetchSource } from './source/fetch'
 import sourceCenter from './source/source_center'
 import microApp from './micro_app'
+import { PREFETCH_LEVEL } from './constants'
 
 /**
  * preFetch([
@@ -62,15 +63,14 @@ function preFetchInSerial (options: prefetchParam): Promise<void> {
           useSandbox: !(options['disable-sandbox'] ?? options.disableSandbox ?? microApp.options['disable-sandbox']),
           inline: options.inline ?? microApp.options.inline,
           esmodule: options.esmodule ?? microApp.options.esmodule,
-          // level: isNumber(options.level) ?? 2,
-          preRender: options.preRender === true ? {} : options.preRender,
+          prefetchLevel: options.level && PREFETCH_LEVEL.includes(options.level) ? options.level : microApp.options.prefetchLevel && PREFETCH_LEVEL.includes(microApp.options.prefetchLevel) ? microApp.options.prefetchLevel : 2,
         })
 
         const oldOnload = app.onLoad
         const oldOnLoadError = app.onLoadError
-        app.onLoad = (...rests): void => {
+        app.onLoad = (html: HTMLElement): void => {
           resolve()
-          oldOnload.call(app, ...rests)
+          oldOnload.call(app, html, options['default-page'], options['disable-patch-request'])
         }
 
         app.onLoadError = (...rests): void => {

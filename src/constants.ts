@@ -59,6 +59,8 @@ export enum MicroAppConfig {
   FIBER = 'fiber',
 }
 
+export const PREFETCH_LEVEL: number[] = [1, 2, 3]
+
 /**
  * global key must be static key, they can not rewrite
  * e.g.

@@ -109,11 +109,6 @@ declare module '@micro-app/types' {
     unmountcb?: CallableFunction // callback of unmount
   }
 
-  interface PreRenderParam {
-    'default-page'?: string,
-    'disable-patch-request'?: boolean
-  }
-
   // app instance
   interface AppInterface {
     source: sourceType // source list
@@ -125,12 +120,13 @@ declare module '@micro-app/types' {
     inline: boolean //  whether js runs in inline script mode, default is false
     esmodule: boolean // support esmodule in script
     ssrUrl: string // html path in ssr mode
-    isPrefetch: boolean // whether prefetch app, default is false
     container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, div(keep-alive)
     umdMode: boolean // is umd mode
     fiber: boolean // fiber mode
     useMemoryRouter: boolean // use virtual router
-    preRender?: PreRenderParam
+    isPrefetch: boolean // whether prefetch app, default is false
+    isPrerender: boolean
+    prefetchLevel?: number
     // defaultPage: string // default page when mount
     // baseroute: string // route prefix, default is ''
     // hiddenRouter: boolean // hide router info of child from browser url
@@ -139,7 +135,7 @@ declare module '@micro-app/types' {
     loadSourceCode (): void
 
     // resource is loaded
-    onLoad (html: HTMLElement): void
+    onLoad (html: HTMLElement, defaultPage?: string, disablePatchRequest?: boolean): void
 
     // Error loading HTML
     onLoadError (e: Error): void
@@ -193,7 +189,9 @@ declare module '@micro-app/types' {
     'disable-sandbox'?: boolean
     inline?: boolean
     esmodule?: boolean
-    preRender?: PreRenderParam
+    level?: number
+    'default-page'?: string
+    'disable-patch-request'?: boolean
   }
 
   // prefetch params
@@ -285,6 +283,7 @@ declare module '@micro-app/types' {
     esmodule?: boolean
     ssr?: boolean
     fiber?: boolean
+    prefetchLevel?: number
   }
 
   interface OptionsType extends MicroAppConfig {

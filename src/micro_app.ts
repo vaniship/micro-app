@@ -45,7 +45,7 @@ export function getActiveApps ({
       appStates.UNMOUNT !== app.getAppState() &&
       (
         !app.isPrefetch || (
-          app.preRender && !excludePreRender
+          app.isPrerender && !excludePreRender
         )
       ) &&
       (

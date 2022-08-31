@@ -3,46 +3,51 @@ import microApp, { unmountApp, unmountAllApps } from '@micro-zoe/micro-app'
 import config from './config'
 
 const prefetchConfig = [
-  // {
-  //   name: 'vite',
-  //   url: `${config.vite}micro-app/vite`,
-  //   esmodule: true,
-  //   // inline: true,
-  //   // 'disable-sandbox': true,
-  // },
+  {
+    name: 'vite',
+    url: `${config.vite}micro-app/vite`,
+    esmodule: true,
+    // level: 1,
+    // inline: true,
+    // 'disable-sandbox': true,
+  },
   {
     name: 'vue2',
     url: `${config.vue2}micro-app/vue2`,
     // 'disable-scopecss': true,
-    preRender: {
-      'default-page': '/micro-app/vue2/#/page2',
-      'disable-patch-request': false,
-    }
+    // level: 3,
+    // 'default-page': '/micro-app/vue2/#/page2',
+    // 'disable-patch-request': false,
   },
-  // {
-  //   name: 'react16',
-  //   url: `${config.react16}micro-app/react16`,
-  // },
-  // {
-  //   name: 'react17',
-  //   url: `${config.react17}micro-app/react17`,
-  // },
-  // {
-  //   name: 'vue3',
-  //   url: `${config.vue3}micro-app/vue3`,
-  // },
-  // {
-  //   name: 'angular11',
-  //   url: `${config.angular11}micro-app/angular11`,
-  // },
-  // {
-  //   name: 'angular14',
-  //   url: `${config.angular14}micro-app/angular14`,
-  //   esmodule: true,
-  // },
+  {
+    name: 'react16',
+    url: `${config.react16}micro-app/react16?a=1`,
+    // level: 3,
+  },
+  {
+    name: 'react17',
+    url: `${config.react17}micro-app/react17`,
+    // level: 1,
+  },
+  {
+    name: 'vue3',
+    url: `${config.vue3}micro-app/vue3`,
+    level: 3,
+  },
+  {
+    name: 'angular11',
+    url: `${config.angular11}micro-app/angular11`,
+    // level: 1,
+  },
+  {
+    name: 'angular14',
+    url: `${config.angular14}micro-app/angular14`,
+    esmodule: true,
+    // level: 1,
+  },
 ]
 
-microApp.preFetch(prefetchConfig)
+// microApp.preFetch(prefetchConfig)
 
 microApp.start({
   // shadowDOM: true,
@@ -59,6 +64,7 @@ microApp.start({
   // esmodule: true,
   // ssr: true,
   // preFetchApps: prefetchConfig,
+  // prefetchLevel: 3,
   lifeCycles: {
     created (e) {
       console.log('created 全局监听', e)

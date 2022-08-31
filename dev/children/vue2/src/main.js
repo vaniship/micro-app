@@ -75,3 +75,7 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 
 // window.location.href = 'http://localhost:4001/micro-app/vue2/#/page2'
 // window.location.href = 'http://localhost:4001/micro-app/vue2/page2'
+
+window.addEventListener('click', () => {
+  console.log('___子应用vue2的全局click事件___')
+})

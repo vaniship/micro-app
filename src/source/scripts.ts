@@ -297,7 +297,7 @@ export function fetchScriptsFromHtml (
   for (const address of scriptList) {
     const scriptInfo = sourceCenter.script.getInfo(address)!
     const appSpaceData = scriptInfo.appSpace[app.name]
-    if ((!appSpaceData.defer && !appSpaceData.async) || (app.isPrefetch && !app.preRender)) {
+    if ((!appSpaceData.defer && !appSpaceData.async) || (app.isPrefetch && !app.isPrerender)) {
       fetchScriptPromise.push(scriptInfo.code ? scriptInfo.code : fetchSource(address, app.name))
       fetchScriptPromiseInfo.push([address, scriptInfo])
     }
@@ -350,7 +350,7 @@ export function fetchScriptSuccess (
    * 2. if app is inline or script is esmodule, skip this step
    * 3. if global parseResult not exist, the current script occupies the position, when js is reused, parseResult is reference
    */
-  if (app.isPrefetch && !app.preRender) {
+  if (app.isPrefetch && app.prefetchLevel === 2) {
     const appSpaceData = scriptInfo.appSpace[app.name]
     /**
      * When prefetch app is replaced by a new app in the processing phase, since the scriptInfo is common, when the scriptInfo of the prefetch app is processed, it may have already been processed.

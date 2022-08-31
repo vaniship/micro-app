@@ -5,7 +5,6 @@ import type {
   SandBoxInterface,
   MountParam,
   UnmountParam,
-  PreRenderParam,
 } from '@micro-app/types'
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
@@ -25,7 +24,6 @@ import {
   getRootContainer,
   isObject,
   callFnWithTryCatch,
-  assign,
   pureCreateElement,
 } from './libs/utils'
 import dispatchLifecyclesEvent, { dispatchCustomEventToMicroApp } from './interact/lifecycles_event'
@@ -48,7 +46,7 @@ export interface CreateAppParam {
   container?: HTMLElement | ShadowRoot
   ssrUrl?: string
   isPrefetch?: boolean
-  preRender?: PreRenderParam
+  prefetchLevel?: number
 }
 
 export default class CreateApp implements AppInterface {
@@ -72,7 +70,8 @@ export default class CreateApp implements AppInterface {
   public esmodule: boolean
   public ssrUrl: string
   public isPrefetch: boolean
-  public preRender?: PreRenderParam
+  public isPrerender: boolean
+  public prefetchLevel?: number
   public fiber = false
   public useMemoryRouter = true
 
@@ -86,7 +85,7 @@ export default class CreateApp implements AppInterface {
     esmodule,
     ssrUrl,
     isPrefetch,
-    preRender,
+    prefetchLevel,
   }: CreateAppParam) {
     this.name = name
     this.url = url
@@ -101,7 +100,8 @@ export default class CreateApp implements AppInterface {
 
     // exist only prefetch 👇
     this.isPrefetch = isPrefetch ?? false
-    this.preRender = preRender
+    this.isPrerender = prefetchLevel === 3
+    this.prefetchLevel = prefetchLevel
 
     // init actions
     appInstanceMap.set(this.name, this)
@@ -119,25 +119,30 @@ export default class CreateApp implements AppInterface {
   /**
    * When resource is loaded, mount app if it is not prefetch or unmount
    */
-  public onLoad (html: HTMLElement): void {
+  public onLoad (
+    html: HTMLElement,
+    defaultPage?: string,
+    disablePatchRequest?: boolean,
+  ): void {
     if (++this.loadSourceLevel === 2) {
       this.source.html = html
       this.state = appStates.LOADED
 
       if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
-        // @ts-ignore
         getRootContainer(this.container!).mount(this)
-      } else if (this.preRender) {
+      } else if (this.isPrerender) {
         /**
          * PreRender is an option of prefetch, it will render app during prefetch
          * Limit:
          * 1. fiber forced on
          * 2. only virtual router support
-         * NOTE:
+         *
+         * NOTE: (4P: not - update browser url, dispatch popstateEvent, reload window, dispatch lifecycle event)
          * 1. pushState/replaceState in child can update microLocation, but will not attach router info to browser url
          * 2. prevent dispatch popstate/hashchange event to browser
          * 3. all navigation actions of location are invalid (In the future, we can consider update microLocation without trigger browser reload)
          * 4. lifecycle event will not trigger when prerender
+         *
          * Special scenes
          * 1. unmount prerender app when loading
          * 2. unmount prerender app when exec js
@@ -146,19 +151,16 @@ export default class CreateApp implements AppInterface {
         const container = pureCreateElement('div')
         container.setAttribute('prerender', 'true')
         this.sandBox?.setPreRenderState(true)
-        this.mount(
-          assign({
-            container,
-            inline: this.inline,
-            useMemoryRouter: true,
-            baseroute: '',
-            fiber: true,
-            esmodule: this.esmodule,
-          }, {
-            defaultPage: this.preRender['default-page'] || '',
-            disablePatchRequest: this.preRender['disable-patch-request'] || false,
-          })
-        )
+        this.mount({
+          container,
+          inline: this.inline,
+          useMemoryRouter: true,
+          baseroute: '',
+          fiber: true,
+          esmodule: this.esmodule,
+          defaultPage: defaultPage ?? '',
+          disablePatchRequest: disablePatchRequest ?? false,
+        })
       }
     }
   }
@@ -199,24 +201,47 @@ export default class CreateApp implements AppInterface {
     // hiddenRouter,
   }: MountParam): void {
     if (this.loadSourceLevel !== 2) {
+      /**
+       * unmount prefetch app when loading source, when mount again before loading end,
+       * isPrefetch & isPrerender will be reset, and this.container sill be null
+       * so we should set this.container
+       */
+      this.container = container
+      // mount before prerender exec mount (loading source), set isPrerender to false
+      this.isPrerender = false
+      // reset app state to LOADING
       this.state = appStates.LOADING
       return
     }
 
-    // TODO: test shadowDOM
+    /**
+     * Mount app with prerender, this.container is empty
+     * When rendering again, identify prerender by this.container
+     * Transfer the contents of div to the <micro-app> tag
+     *
+     * Special scenes:
+     * 1. mount before prerender exec mount (loading source)
+     * 2. mount when prerender js is running
+     * 3. mount after prerender js exec
+     *
+     * TODO: test shadowDOM
+     */
     if (
       this.container instanceof HTMLDivElement &&
       this.container.hasAttribute('prerender')
     ) {
-      // this.container is <div prerender='true'></div>
+      // current this.container is <div prerender='true'></div>
       cloneContainer(this.container as Element, container as Element, false)
-      // set this.container of <micro-app></micro-app>
+      /**
+       * set this.container to <micro-app></micro-app>
+       * NOTE:
+       * must before exec this.preRenderEvent?.forEach((cb) => cb())
+       */
       this.container = container
-      this.preRenderEvent?.forEach((cb) => {
-        cb()
-      })
-      // reset preRender config
-      this.preRender = this.preRenderEvent = undefined
+      this.preRenderEvent?.forEach((cb) => cb())
+      // reset isPrerender config
+      this.isPrerender = false
+      this.preRenderEvent = undefined
       // attach router info to browser url
       router.attachToURL(this.name)
       return this.sandBox?.setPreRenderState(false)
@@ -237,7 +262,7 @@ export default class CreateApp implements AppInterface {
       )
     }
 
-    if (this.preRender) {
+    if (this.isPrerender) {
       (this.preRenderEvent ??= []).push(dispatchBeforeMount)
     } else {
       dispatchBeforeMount()
@@ -285,7 +310,7 @@ export default class CreateApp implements AppInterface {
         if (!hasDispatchMountedEvent && (isFinished === true || this.umdMode)) {
           hasDispatchMountedEvent = true
           const dispatchMounted = () => this.handleMounted(umdHookMountResult)
-          if (this.preRender) {
+          if (this.isPrerender) {
             (this.preRenderEvent ??= []).push(dispatchMounted)
           } else {
             dispatchMounted()
@@ -475,11 +500,16 @@ export default class CreateApp implements AppInterface {
       lifeCycles.UNMOUNT,
     )
 
-    this.container!.innerHTML = ''
-    this.container = null
-    this.preRenderEvent = undefined
+    this.resetConfig()
 
     unmountcb && unmountcb()
+  }
+
+  private resetConfig () {
+    this.container!.innerHTML = ''
+    this.container = null
+    this.isPrerender = false
+    this.preRenderEvent = undefined
   }
 
   // actions for completely destroy
