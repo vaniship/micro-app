@@ -18,7 +18,7 @@ import { UploadOutlined, InboxOutlined } from '@ant-design/icons';
 import styled from 'styled-components'
 import './page2.css'
 import bigImg from '../../assets/big-img.jpeg';
-import { Message } from '@alifd/next';
+// import { Button as AButton, Message } from '@alifd/next';
 
 // 测试umd二次渲染时全局变量是否丢失
 window.umdGlobalKey = 'umdGlobalKey'
@@ -97,7 +97,8 @@ const Page2 = () => {
       <img src={bigImg} alt="" width="100" />
       <div>{count}</div>
       <div>
-        <StyledButton onClick={() => Message.success("success")}>测试styled-components的样式</StyledButton >
+        <StyledButton>测试styled-components的样式</StyledButton >
+        {/* <AButton type="primary" onClick={() => Message.success("success")}>Message</AButton> */}
       </div>
       <div className="test-btn" onClick={testClick}>test</div>
       <Form

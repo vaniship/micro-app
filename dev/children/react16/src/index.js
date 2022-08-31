@@ -8,7 +8,7 @@ import './index.css';
 import Router from './router';
 import { Modal, notification } from 'antd';
 import subMicroApp from '@micro-zoe/micro-app';
-import '@alifd/next/dist/next.css';
+// import '@alifd/next/dist/next.css';
 // import { atan2 } from 'mathjs' // 卡死
 
 // 循环内嵌
