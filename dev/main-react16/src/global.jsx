@@ -65,6 +65,7 @@ microApp.start({
   // ssr: true,
   // preFetchApps: prefetchConfig,
   // prefetchLevel: 3,
+  // prefetchDelay: 10000,
   lifeCycles: {
     created (e) {
       console.log('created 全局监听', e)

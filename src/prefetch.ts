@@ -41,12 +41,14 @@ export default function preFetch (apps: prefetchParamList, delay?: number): void
     return logError('preFetch is only supported in browser environment')
   }
 
-  const delayTime = delay ?? microApp.options.preFetchDelay
+  requestIdleCallback(() => {
+    const delayTime = delay ?? microApp.options.prefetchDelay
 
-  setTimeout(() => {
-    // releasePrefetchEffect()
-    preFetchInSerial(apps)
-  }, isNumber(delayTime) ? delayTime : 3000)
+    setTimeout(() => {
+      // releasePrefetchEffect()
+      preFetchInSerial(apps)
+    }, isNumber(delayTime) ? delayTime : 3000)
+  })
 
   // const handleOnLoad = (): void => {
   //   releasePrefetchEffect()

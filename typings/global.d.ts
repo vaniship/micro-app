@@ -300,7 +300,7 @@ declare module '@micro-app/types' {
     ssr?: boolean
     fiber?: boolean
     prefetchLevel?: number
-    preFetchDelay?: number
+    prefetchDelay?: number
   }
 
   interface OptionsType extends MicroAppConfig {
