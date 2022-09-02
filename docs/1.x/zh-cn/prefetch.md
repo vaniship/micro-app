@@ -4,14 +4,14 @@
 
 ### 语法
 ```js
-microApp.preFetch(Array\<options\> | () => Array\<options\>, delay?: number)
+microApp.preFetch(apps: app[] | () => app[], delay?: number)
 ```
 ### 参数
-**Array\<options\> | () => Array\<options\>**
+**apps**
 
 第一个参数为一个数组或一个返回数组的函数，数组传入的配置如下：
 ```js
-options: {
+app: {
   name: string, // 应用名称，必传
   url: string, // 应用地址，必传
   esmodule: boolean, // 是否支持esmodule，vite应用必传，其它应用可选
