@@ -7,6 +7,7 @@ import type {
   SandBoxAdapter,
   SandBoxStartParams,
   SandBoxStopParams,
+  EffectController,
 } from '@micro-app/types'
 import {
   EventCenterForMicroApp,
@@ -87,9 +88,7 @@ const globalPropertyList: Array<PropertyKey> = ['window', 'self', 'globalThis']
 
 export default class SandBox implements SandBoxInterface {
   static activeCount = 0 // number of active sandbox
-  private recordUmdEffect!: CallableFunction
-  private rebuildUmdEffect!: CallableFunction
-  private releaseEffect!: CallableFunction
+  private effectController: EffectController
   private removeHistoryListener!: CallableFunction
   private adapter: SandBoxAdapter
   /**
@@ -117,7 +116,7 @@ export default class SandBox implements SandBoxInterface {
     // create proxyWindow with Proxy(microAppWindow)
     this.proxyWindow = this.createProxyWindow(appName)
     // Rewrite global event listener & timeout
-    assign(this, effect(appName, this.microAppWindow))
+    this.effectController = effect(appName, this.microAppWindow)
     // inject global properties
     this.initStaticGlobalKeys(this.microAppWindow, appName, url)
   }
@@ -194,10 +193,8 @@ export default class SandBox implements SandBoxInterface {
     clearData,
   }: SandBoxStopParams): void {
     if (this.active) {
-      this.releaseEffect()
-      this.microAppWindow.microApp.clearDataListener()
-      this.microAppWindow.microApp.clearGlobalDataListener()
-      clearData && this.microAppWindow.microApp.clearData()
+      // clear global event, timeout, data listener
+      this.releaseGlobalEffect(clearData)
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)
@@ -237,10 +234,34 @@ export default class SandBox implements SandBoxInterface {
     }
   }
 
-  // record umd snapshot before the first execution of umdHookMount
-  public recordUmdSnapshot (): void {
+  /**
+   * clear global event, timeout, data listener
+   * Scenes:
+   * 1. unmount of normal/umd app
+   * 2. hidden keep-alive app
+   * 3. after init prerender app
+   * @param clearData clear data from base app
+   */
+  public releaseGlobalEffect (clearData = false): void {
+    this.effectController.releaseEffect()
+    this.microAppWindow.microApp.clearDataListener()
+    this.microAppWindow.microApp.clearGlobalDataListener()
+    if (clearData) {
+      microApp.clearData(this.microAppWindow.__MICRO_APP_NAME__)
+      this.microAppWindow.microApp.clearData()
+    }
+  }
+
+  /**
+   * record umd snapshot before the first execution of umdHookMount
+   * Scenes:
+   * 1. exec umdMountHook in umd mode
+   * 2. hidden keep-alive app
+   * 3. after init prerender app
+   */
+  public recordEffectSnapshot (): void {
     // this.microAppWindow.__MICRO_APP_UMD_MODE__ = true
-    this.recordUmdEffect()
+    this.effectController.recordEffect()
     recordDataCenterSnapshot(this.microAppWindow.microApp)
 
     // this.recordUmdInjectedValues = new Map<PropertyKey, unknown>()
@@ -250,14 +271,15 @@ export default class SandBox implements SandBoxInterface {
   }
 
   // rebuild umd snapshot before remount umd app
-  public rebuildUmdSnapshot (): void {
+  public rebuildEffectSnapshot (): void {
     // this.recordUmdInjectedValues!.forEach((value: unknown, key: PropertyKey) => {
     //   Reflect.set(this.proxyWindow, key, value)
     // })
-    this.rebuildUmdEffect()
+    this.effectController.rebuildEffect()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
+  // set __MICRO_APP_PRE_RENDER__ state
   public setPreRenderState (state: boolean): void {
     this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
   }

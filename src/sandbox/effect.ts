@@ -1,9 +1,10 @@
-import type { microAppWindowType } from '@micro-app/types'
+import type { microAppWindowType, EffectController } from '@micro-app/types'
 import {
   getCurrentAppName,
+  setCurrentAppName,
+  removeDomScope,
   logWarn,
   isFunction,
-  isBoundFunction,
   rawDefineProperty,
 } from '../libs/utils'
 import { appInstanceMap } from '../create_app'
@@ -104,8 +105,11 @@ export function effectDocumentEvent (): void {
     const appName = getCurrentAppName()
     /**
      * ignore bound function of document event in umd mode, used to solve problem of react global events
+     * update in 2022-09-02:
+     * boundFunction is no longer exclude, because events in UMD mode will not cleared from v1.0.0-alpha.4
+     * if (appName && !(appInstanceMap.get(appName)?.umdMode && isBoundFunction(listener))) {
      */
-    if (appName && !(appInstanceMap.get(appName)?.umdMode && isBoundFunction(listener))) {
+    if (appName) {
       const appListenersMap = documentEventListenerMap.get(appName)
       if (appListenersMap) {
         const appListenerList = appListenersMap.get(type)
@@ -128,7 +132,12 @@ export function effectDocumentEvent (): void {
     options?: boolean | AddEventListenerOptions,
   ): void {
     const appName = getCurrentAppName()
-    if (appName && !(appInstanceMap.get(appName)?.umdMode && isBoundFunction(listener))) {
+    /**
+     * update in 2022-09-02:
+     * boundFunction is no longer exclude, because events in UMD mode will not cleared from v1.0.0-alpha.4
+     * if (appName && !(appInstanceMap.get(appName)?.umdMode && isBoundFunction(listener))) {
+     */
+    if (appName) {
       const appListenersMap = documentEventListenerMap.get(appName)
       if (appListenersMap) {
         const appListenerList = appListenersMap.get(type)
@@ -151,7 +160,7 @@ export function releaseEffectDocumentEvent (): void {
  * Rewrite side-effect events
  * @param microAppWindow micro window
  */
-export default function effect (appName: string, microAppWindow: microAppWindowType): Record<string, CallableFunction> {
+export default function effect (appName: string, microAppWindow: microAppWindowType): EffectController {
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const intervalIdMap = new Map<number, timeInfo>()
   const timeoutIdMap = new Map<number, timeInfo>()
@@ -227,85 +236,96 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
     rawClearTimeout.call(rawWindow, timeoutId)
   }
 
-  const umdWindowListenerMap = new Map<string, Set<MicroEventListener>>()
-  const umdDocumentListenerMap = new Map<string, Set<MicroEventListener>>()
-  let umdIntervalIdMap = new Map<number, timeInfo>()
-  let umdTimeoutIdMap = new Map<number, timeInfo>()
-  let umdOnClickHandler: unknown
+  const sstWindowListenerMap = new Map<string, Set<MicroEventListener>>()
+  const sstDocumentListenerMap = new Map<string, Set<MicroEventListener>>()
+  let sstIntervalIdMap = new Map<number, timeInfo>()
+  let sstTimeoutIdMap = new Map<number, timeInfo>()
+  let sstOnClickHandler: unknown
 
-  const clearUmdSnapshotData = () => {
-    umdWindowListenerMap.clear()
-    umdIntervalIdMap.clear()
-    umdTimeoutIdMap.clear()
-    umdDocumentListenerMap.clear()
-    umdOnClickHandler = null
+  const clearSnapshotData = () => {
+    sstWindowListenerMap.clear()
+    sstIntervalIdMap.clear()
+    sstTimeoutIdMap.clear()
+    sstDocumentListenerMap.clear()
+    sstOnClickHandler = null
   }
 
-  // record event and timer before exec umdMountHook
-  const recordUmdEffect = () => {
+  /**
+   * record event and timer
+   * Scenes:
+   * 1. exec umdMountHook in umd mode
+   * 2. hidden keep-alive app
+   * 3. after init prerender app
+   */
+  const recordEffect = (): void => {
     // record window event
     eventListenerMap.forEach((listenerList, type) => {
       if (listenerList.size) {
-        umdWindowListenerMap.set(type, new Set(listenerList))
+        sstWindowListenerMap.set(type, new Set(listenerList))
       }
     })
 
     // record timers
     if (intervalIdMap.size) {
-      umdIntervalIdMap = new Map(intervalIdMap)
+      sstIntervalIdMap = new Map(intervalIdMap)
     }
 
     if (timeoutIdMap.size) {
-      umdTimeoutIdMap = new Map(timeoutIdMap)
+      sstTimeoutIdMap = new Map(timeoutIdMap)
     }
 
     // record onclick handler
-    umdOnClickHandler = documentClickListMap.get(appName)
+    sstOnClickHandler = documentClickListMap.get(appName)
 
     // record document event
     const documentAppListenersMap = documentEventListenerMap.get(appName)
     if (documentAppListenersMap) {
       documentAppListenersMap.forEach((listenerList, type) => {
         if (listenerList.size) {
-          umdDocumentListenerMap.set(type, new Set(listenerList))
+          sstDocumentListenerMap.set(type, new Set(listenerList))
         }
       })
     }
   }
 
-  // rebuild event and timer before remount umd app
-  const rebuildUmdEffect = () => {
+  // rebuild event and timer before remount app
+  const rebuildEffect = (): void => {
     // rebuild window event
-    umdWindowListenerMap.forEach((listenerList, type) => {
+    sstWindowListenerMap.forEach((listenerList, type) => {
       for (const listener of listenerList) {
         microAppWindow.addEventListener(type, listener, listener?.__MICRO_APP_MARK_OPTIONS__)
       }
     })
 
     // rebuild timer
-    umdIntervalIdMap.forEach((info: timeInfo) => {
+    sstIntervalIdMap.forEach((info: timeInfo) => {
       microAppWindow.setInterval(info.handler, info.timeout, ...info.args)
     })
 
-    umdTimeoutIdMap.forEach((info: timeInfo) => {
+    sstTimeoutIdMap.forEach((info: timeInfo) => {
       microAppWindow.setTimeout(info.handler, info.timeout, ...info.args)
     })
 
     // rebuild onclick event
-    umdOnClickHandler && documentClickListMap.set(appName, umdOnClickHandler)
+    sstOnClickHandler && documentClickListMap.set(appName, sstOnClickHandler)
 
-    // rebuild document event
-    umdDocumentListenerMap.forEach((listenerList, type) => {
+    /**
+     * rebuild document event
+     * WARNING!!: do not delete setCurrentAppName & removeDomScope
+     */
+    setCurrentAppName(appName)
+    sstDocumentListenerMap.forEach((listenerList, type) => {
       for (const listener of listenerList) {
         document.addEventListener(type, listener, listener?.__MICRO_APP_MARK_OPTIONS__)
       }
     })
+    removeDomScope()
 
-    clearUmdSnapshotData()
+    clearSnapshotData()
   }
 
   // release all event listener & interval & timeout when unmount app
-  const releaseEffect = () => {
+  const releaseEffect = (): void => {
     // Clear window binding events
     if (eventListenerMap.size) {
       eventListenerMap.forEach((listenerList, type) => {
@@ -347,8 +367,8 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   }
 
   return {
-    recordUmdEffect,
-    rebuildUmdEffect,
+    recordEffect,
+    rebuildEffect,
     releaseEffect,
   }
 }

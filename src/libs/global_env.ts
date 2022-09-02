@@ -1,15 +1,11 @@
-import type { Func, AppInterface } from '@micro-app/types'
+import type {
+  Func,
+  AppInterface,
+  RequestIdleCallbackInfo,
+  RequestIdleCallbackOptions,
+} from '@micro-app/types'
 import { isSupportModuleScript, isBrowser, getCurrentAppName, assign } from './utils'
 import { rejectMicroAppStyle } from '../source/patch'
-
-type RequestIdleCallbackOptions = {
-  timeout: number
-}
-
-type RequestIdleCallbackInfo = {
-  readonly didTimeout: boolean
-  timeRemaining: () => number
-}
 
 declare global {
   interface Window {

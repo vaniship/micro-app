@@ -13,6 +13,7 @@ import {
   isString,
   isFunction,
   promiseRequestIdle,
+  isNumber,
 } from './libs/utils'
 import { fetchSource } from './source/fetch'
 import sourceCenter from './source/source_center'
@@ -35,21 +36,43 @@ import { PREFETCH_LEVEL } from './constants'
  *  2: disableScopecss, disableSandbox, disableMemoryRouter must be same with micro-app element, if conflict, the one who executes first shall prevail
  * @param apps micro apps
  */
-export default function preFetch (apps: prefetchParamList): void {
+export default function preFetch (apps: prefetchParamList, delay?: number): void {
   if (!isBrowser) {
     return logError('preFetch is only supported in browser environment')
   }
-  requestIdleCallback(() => {
-    isFunction(apps) && (apps = apps())
 
-    if (isArray(apps)) {
-      apps.reduce((pre, next) => pre.then(() => preFetchInSerial(next)), Promise.resolve())
-    }
-  })
+  const delayTime = delay ?? microApp.options.preFetchDelay
+
+  setTimeout(() => {
+    // releasePrefetchEffect()
+    preFetchInSerial(apps)
+  }, isNumber(delayTime) ? delayTime : 3000)
+
+  // const handleOnLoad = (): void => {
+  //   releasePrefetchEffect()
+  //   requestIdleCallback(() => {
+  //     preFetchInSerial(apps)
+  //   })
+  // }
+
+  // const releasePrefetchEffect = (): void => {
+  //   window.removeEventListener('load', handleOnLoad)
+  //   clearTimeout(preFetchTime)
+  // }
+
+  // window.addEventListener('load', handleOnLoad)
+}
+
+function preFetchInSerial (apps: prefetchParamList): void {
+  isFunction(apps) && (apps = apps())
+
+  if (isArray(apps)) {
+    apps.reduce((pre, next) => pre.then(() => preFetchAction(next)), Promise.resolve())
+  }
 }
 
 // sequential preload app
-function preFetchInSerial (options: prefetchParam): Promise<void> {
+function preFetchAction (options: prefetchParam): Promise<void> {
   return promiseRequestIdle((resolve: PromiseConstructor['resolve']) => {
     if (isPlainObject(options) && navigator.onLine) {
       options.name = formatAppName(options.name)

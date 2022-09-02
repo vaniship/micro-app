@@ -2,12 +2,14 @@
 
 为了不影响主应用的性能，预加载会在浏览器空闲时间执行。
 
-### 定义
+### 语法
+```js
+microApp.preFetch(Array\<options\> | () => Array\<options\>, delay?: number)
+```
+### 参数
+**Array\<options\> | () => Array\<options\>**
 
-**microApp.preFetch(Array\<options\> | () => Array\<options\>)**
-
-preFetch接受一个数组或一个返回数组的函数，数组传入的配置如下：
-
+第一个参数为一个数组或一个返回数组的函数，数组传入的配置如下：
 ```js
 options: {
   name: string, // 应用名称，必传
@@ -22,7 +24,27 @@ options: {
 }
 ```
 
-### 解释
+**delay** `可选`
+
+第二个参数为延迟执行的时间，以毫秒为单位，默认值：3000。
+
+在预加载中，我们会使用[requestIdleCallback](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestIdleCallback)包裹每个预加载的操作，以减小对主应用的影响，但这不是完美无缺的，所以我们增加了一个延迟，在延迟时间结束后才开始预加载操作，进一步降低对主应用影响的可能性。
+
+如果你仍然觉得主应用受到了影响，可以增加延迟时间。
+
+***修改delay的默认值：***
+
+我们可以在start方法中修改delay的默认值：
+```js
+import microApp from '@micro-zoe/micro-app'
+
+microApp.start({
+  preFetchDelay: 5000, // 修改delay默认值为5000
+})
+```
+
+
+### 进阶
 预加载JS资源分为三个步骤，对应上述参数 - `level`：
 - 1、加载静态资源(字符串）
 - 2、将字符串解析成可执行代码 
@@ -81,6 +103,11 @@ microApp.start({
     { name: 'my-app4', url: 'xxx', level: 3, 'default-page': '/page2' }, // 加载资源、解析并渲染子应用的page2页面
   ],
 })
+
+// 设置延迟时间，5秒钟之后执行预加载
+microApp.preFetch([
+  { name: 'my-app1', url: 'xxx' }, // 加载资源并解析
+], 5000)
 ```
 
 ### vite应用
@@ -94,7 +121,7 @@ microApp.preFetch([
 ])
 ```
 
-### 补充说明
+### 补充
 正常情况下，预加载只需要设置name和url，其它参数不需要设置。
 
 但我们还是建议预加载的配置和`<micro-app>`元素上的配置保持一致，虽然这不是必须的。

@@ -221,8 +221,8 @@ export default class CreateApp implements AppInterface {
      *
      * Special scenes:
      * 1. mount before prerender exec mount (loading source)
-     * 2. mount when prerender js is running
-     * 3. mount after prerender js exec
+     * 2. mount when prerender js executing
+     * 3. mount after prerender js exec end
      *
      * TODO: test shadowDOM
      */
@@ -230,6 +230,14 @@ export default class CreateApp implements AppInterface {
       this.container instanceof HTMLDivElement &&
       this.container.hasAttribute('prerender')
     ) {
+      /**
+       * rebuild effect event of window, document, data center
+       * explain:
+       * 1. rebuild before exec mount, do nothing
+       * 2. rebuild when js executing, recovery recorded effect event, because prerender fiber mode
+       * 3. rebuild after js exec end, normal recovery effect event
+       */
+      this.sandBox?.rebuildEffectSnapshot()
       // current this.container is <div prerender='true'></div>
       cloneContainer(this.container as Element, container as Element, false)
       /**
@@ -298,7 +306,7 @@ export default class CreateApp implements AppInterface {
             this.umdHookMount = mount as Func
             this.umdMode = true
             if (this.sandBox) this.sandBox.proxyWindow.__MICRO_APP_UMD_MODE__ = true
-            // this.sandBox?.recordUmdSnapshot()
+            // this.sandBox?.recordEffectSnapshot()
             try {
               umdHookMountResult = this.umdHookMount(microApp.getData(this.name, true))
             } catch (e) {
@@ -312,13 +320,14 @@ export default class CreateApp implements AppInterface {
           const dispatchMounted = () => this.handleMounted(umdHookMountResult)
           if (this.isPrerender) {
             (this.preRenderEvent ??= []).push(dispatchMounted)
+            this.recordAndReleaseEffect()
           } else {
             dispatchMounted()
           }
         }
       })
     } else {
-      this.sandBox?.rebuildUmdSnapshot()
+      this.sandBox?.rebuildEffectSnapshot()
       try {
         umdHookMountResult = this.umdHookMount!()
       } catch (e) {
@@ -470,11 +479,7 @@ export default class CreateApp implements AppInterface {
     }
 
     if (this.umdMode) {
-      this.sandBox?.recordUmdSnapshot()
-    }
-
-    if (clearData || destroy) {
-      microApp.clearData(this.name)
+      this.sandBox?.recordEffectSnapshot()
     }
 
     /**
@@ -551,11 +556,15 @@ export default class CreateApp implements AppInterface {
     // called after lifeCyclesEvent
     this.sandBox?.removeRouteInfoForKeepAliveApp()
 
+    this.recordAndReleaseEffect()
+
     callback && callback()
   }
 
   // show app when connectedCallback called with keep-alive
   public showKeepAliveApp (container: HTMLElement | ShadowRoot): void {
+    this.sandBox?.rebuildEffectSnapshot()
+
     // dispatch beforeShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {
       appState: 'beforeshow',
@@ -641,5 +650,16 @@ export default class CreateApp implements AppInterface {
     // @ts-ignore
     const listener = this.sandBox?.proxyWindow[eventName]
     return isFunction(listener) ? listener : null
+  }
+
+  /**
+   * Record global effect and then release (effect: global event, timeout, data listener)
+   * Scenes:
+   * 1. hidden keep-alive app
+   * 2. after init prerender app
+   */
+  private recordAndReleaseEffect (): void {
+    this.sandBox?.recordEffectSnapshot()
+    this.sandBox?.releaseGlobalEffect()
   }
 }

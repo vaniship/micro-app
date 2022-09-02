@@ -24,7 +24,11 @@ import bigImg from '../../assets/big-img.jpeg';
 window.umdGlobalKey = 'umdGlobalKey'
 
 window.addEventListener('click', () => {
-  console.log('测试umd懒加载页面二次渲染全局事件')
+  console.log('测试umd懒加载页面二次渲染全局事件 - window.click')
+})
+
+document.addEventListener('click', () => {
+  console.log('测试umd懒加载页面二次渲染全局事件 - document.click')
 })
 
 window.microApp?.addDataListener((data) => {

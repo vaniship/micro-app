@@ -15,15 +15,15 @@ const prefetchConfig = [
     name: 'vue2',
     url: `${config.vue2}micro-app/vue2`,
     // 'disable-scopecss': true,
-    // level: 3,
-    // 'default-page': '/micro-app/vue2/#/page2',
+    level: 3,
+    'default-page': '/micro-app/vue2/#/page2',
     // 'disable-patch-request': false,
   },
-  {
-    name: 'react16',
-    url: `${config.react16}micro-app/react16`,
-    // level: 3,
-  },
+  // {
+  //   name: 'react16',
+  //   url: `${config.react16}micro-app/react16`,
+  //   // level: 3,
+  // },
   {
     name: 'react17',
     url: `${config.react17}micro-app/react17`,
@@ -47,7 +47,7 @@ const prefetchConfig = [
   },
 ]
 
-// microApp.preFetch(prefetchConfig)
+microApp.preFetch(prefetchConfig)
 
 microApp.start({
   // shadowDOM: true,

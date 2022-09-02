@@ -13,7 +13,22 @@ declare module '@micro-app/types' {
 
   type AttrsType = Map<string, string>
 
+  type RequestIdleCallbackOptions = {
+    timeout: number
+  }
+
+  type RequestIdleCallbackInfo = {
+    readonly didTimeout: boolean
+    timeRemaining: () => number
+  }
+
   type fiberTasks = Array<() => Promise<void>> | null
+
+  interface EffectController {
+    recordEffect(): void
+    rebuildEffect(): void
+    releaseEffect(): void
+  }
 
   interface SandBoxStartParams {
     umdMode: boolean
@@ -35,10 +50,11 @@ declare module '@micro-app/types' {
     microAppWindow: Window // Proxy target
     start (startParams: SandBoxStartParams): void
     stop (stopParams: SandBoxStopParams): void
+    releaseGlobalEffect (clearData?: boolean): void
     // record umd snapshot before the first execution of umdHookMount
-    recordUmdSnapshot (): void
+    recordEffectSnapshot (): void
     // rebuild umd snapshot before remount umd app
-    rebuildUmdSnapshot (): void
+    rebuildEffectSnapshot (): void
     setRouteInfoForKeepAliveApp (): void
     removeRouteInfoForKeepAliveApp (): void
     setPreRenderState (state: boolean): void
@@ -284,6 +300,7 @@ declare module '@micro-app/types' {
     ssr?: boolean
     fiber?: boolean
     prefetchLevel?: number
+    preFetchDelay?: number
   }
 
   interface OptionsType extends MicroAppConfig {
