@@ -47,7 +47,7 @@ const prefetchConfig = [
   },
 ]
 
-microApp.preFetch(prefetchConfig)
+// microApp.preFetch(prefetchConfig)
 
 microApp.start({
   // shadowDOM: true,

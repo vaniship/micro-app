@@ -312,6 +312,80 @@ window.microApp.router.forward()
 <!-- tabs:end -->
 
 
+
+## 设置默认页面
+
+子应用加载后会默认渲染首页，但我们常常希望子应用加载后渲染指定的页面，此时可以设置`defaultPage`指定子应用渲染的页面。
+
+**方式一：设置default-page属性**
+```html
+<micro-app default-page='页面地址'></micro-app>
+```
+
+**示例：**
+
+```html
+<!-- 不带域名的地址 -->
+<micro-app name='my-app' url='http://localhost:3000/' default-page='/page1'></micro-app>
+
+<!-- 带域名的地址 -->
+<micro-app name='my-app' url='http://localhost:3000/' default-page='http://localhost:3000/page1'></micro-app>
+
+<!-- 带查询参数 -->
+<micro-app name='my-app' url='http://localhost:3000/' default-page='/page1?id=9527'></micro-app>
+
+<!-- 带hash -->
+<micro-app name='my-app' url='http://localhost:3000/' default-page='/page1#hash'></micro-app>
+```
+
+**方式二：通过router API设置**
+```js
+/**
+ * 设置子应用默认页面
+ * @param {string} name 必填，子应用的name
+ * @param {string} path 必填，页面地址
+ */
+router.setDefaultPage(name: string, path: string)
+
+/**
+ * 删除子应用默认页面
+ * @param {string} name 必填，子应用的name
+ */
+router.removeDefaultPage(name: string)
+
+/**
+ * 获取子应用默认页面
+ * @param {string} name 必填，子应用的name
+ */
+router.getDefaultPage(name: string)
+```
+
+**示例：**
+
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 不带域名的地址
+microApp.router.setDefaultPage({name: 'my-app', path: '/page1'})
+
+// 带域名的地址
+microApp.router.setDefaultPage({name: 'my-app', path: 'http://localhost:3000/page1'})
+
+// 带查询参数
+microApp.router.setDefaultPage({name: 'my-app', path: '/page1?id=9527'})
+
+// 带hash
+microApp.router.setDefaultPage({name: 'my-app', path: '/page1#hash'})
+
+// 删除子应用my-app的默认页面
+router.removeDefaultPage('my-app')
+
+// 获取子应用my-app的默认页面
+const defaultPage = router.getDefaultPage('my-app')
+```
+
+
+
 ## 导航守卫
 导航守卫用于监听子应用的路由变化，类似于vue-router的全局守卫，不同点是MicroApp的导航守卫无法取消跳转。
 
@@ -399,79 +473,6 @@ const cancelCallback = microApp.router.afterEach((to, from, appName) => {
 // 解绑路由监听
 cancelCallback()
 ```
-
-
-## 设置默认页面
-
-子应用加载后会默认渲染首页，但我们常常希望子应用加载后渲染指定的页面，此时可以设置`defaultPage`指定子应用渲染的页面。
-
-**方式一：设置micro-app元素的default-page属性**
-```html
-<micro-app default-page='页面地址'></micro-app>
-```
-
-**示例：**
-
-```html
-<!-- 不带域名的地址 -->
-<micro-app name='my-app' url='http://localhost:3000/' default-page='/page1'></micro-app>
-
-<!-- 带域名的地址 -->
-<micro-app name='my-app' url='http://localhost:3000/' default-page='http://localhost:3000/page1'></micro-app>
-
-<!-- 带查询参数 -->
-<micro-app name='my-app' url='http://localhost:3000/' default-page='/page1?id=9527'></micro-app>
-
-<!-- 带hash -->
-<micro-app name='my-app' url='http://localhost:3000/' default-page='/page1#hash'></micro-app>
-```
-
-**方式二：通过router API设置**
-```js
-/**
- * 设置子应用默认页面
- * @param {string} name 必填，子应用的name
- * @param {string} path 必填，页面地址
- */
-router.setDefaultPage(name: string, path: string)
-
-/**
- * 删除子应用默认页面
- * @param {string} name 必填，子应用的name
- */
-router.removeDefaultPage(name: string)
-
-/**
- * 获取子应用默认页面
- * @param {string} name 必填，子应用的name
- */
-router.getDefaultPage(name: string)
-```
-
-**示例：**
-
-```js
-import microApp from '@micro-zoe/micro-app'
-
-// 不带域名的地址
-microApp.router.setDefaultPage({name: 'my-app', path: '/page1'})
-
-// 带域名的地址
-microApp.router.setDefaultPage({name: 'my-app', path: 'http://localhost:3000/page1'})
-
-// 带查询参数
-microApp.router.setDefaultPage({name: 'my-app', path: '/page1?id=9527'})
-
-// 带hash
-microApp.router.setDefaultPage({name: 'my-app', path: '/page1#hash'})
-
-// 删除子应用my-app的默认页面
-router.removeDefaultPage('my-app')
-
-// 获取子应用my-app的默认页面
-const defaultPage = router.getDefaultPage('my-app')
-```
-
 
 ## 获取路由信息
 **介绍：**获取子应用的路由信息，返回值与子应用的location相同

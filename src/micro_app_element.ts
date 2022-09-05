@@ -73,6 +73,7 @@ export function defineElement (tagName: string): void {
        * In some special scenes, such as vue's keep-alive, the micro-app will be inserted and deleted twice in an instant
        * So we execute the mount method async and record connectState to prevent repeated rendering
        */
+      const effectiveApp = this.appName && this.appUrl
       defer(() => {
         if (this.connectStateMap.get(cacheCount)) {
           dispatchLifecyclesEvent(
@@ -80,7 +81,12 @@ export function defineElement (tagName: string): void {
             this.appName,
             lifeCycles.CREATED,
           )
-          this.handleConnected()
+          /**
+           * If insert micro-app element without name or url, and set them in next action like angular,
+           * handleConnected will be executed twice, causing the app render repeatedly,
+           * so we only execute handleConnected() if url and name exist when connectedCallback
+           */
+          effectiveApp && this.handleConnected()
         }
       })
     }
