@@ -16,6 +16,9 @@
 
   - 🐞 修复了angular框架下，micro-app设置动态url导致应用多次渲染的问题。
 
+- **Update**
+
+  - 🚀 增加对document的缓存，优化沙箱性能。
 
 
 ### 1.0.0-alpha.8

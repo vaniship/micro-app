@@ -454,7 +454,6 @@ export default class SandBox implements SandBoxInterface {
         configurable: false,
         enumerable: true,
         get () {
-          throttleDeferForSetAppName(appName)
           // return globalEnv.rawDocument
           return proxyDocument
         },
@@ -463,7 +462,6 @@ export default class SandBox implements SandBoxInterface {
         configurable: false,
         enumerable: false,
         get () {
-          throttleDeferForSetAppName(appName)
           // return globalEnv.rawRootDocument
           return MicroDocument
         },
@@ -678,11 +676,11 @@ export default class SandBox implements SandBoxInterface {
         return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
       },
       set: (target: Document, key: PropertyKey, value: unknown): boolean => {
-        // Fix TypeError: Illegal invocation when set document.title
-        Reflect.set(target, key, value)
         /**
-         * If the set method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
+         * 1. Fix TypeError: Illegal invocation when set document.title
+         * 2. If the set method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
          */
+        Reflect.set(target, key, value)
         return true
       }
     })
