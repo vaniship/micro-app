@@ -32,8 +32,6 @@ export function createMicroFetch (url: string, target?: Window['fetch']): Window
      * When fetch rewrite by baseApp, domScope still active when exec rawWindow.fetch
      * If baseApp operate dom in fetch, it will cause error
      * The same for XMLHttpRequest, EventSource
-     * e.g.
-     * baseApp: <script crossorigin src="https://sgm-static.jd.com/sgm-2.8.0.js" name="SGMH5" sid="6f88a6e4ba4b4ae5acef2ec22c075085" appKey="jdb-adminb2b-pc"></script>
      */
     removeDomScope()
     return rawFetch.call(globalEnv.rawWindow, input, init, ...rests)
