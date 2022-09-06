@@ -358,22 +358,22 @@ window.addEventListener('hashchange', (e) => {
 
 
 /* ---------------------- body, head, title, meta --------------------- */
-console.log('document.body: ', document.body)
-console.log(`document.querySelector('body'): `, document.querySelector('body'))
-console.log(`document.getElementsByTagName('body')[0]: `, document.getElementsByTagName('body')[0])
+// console.log('document.body: ', document.body)
+// console.log(`document.querySelector('body'): `, document.querySelector('body'))
+// console.log(`document.getElementsByTagName('body')[0]: `, document.getElementsByTagName('body')[0])
 
-console.log('document.head: ', document.head)
-console.log(`document.querySelector('head'): `, document.querySelector('head'))
-console.log(`document.getElementsByTagName('head')[0]: `, document.getElementsByTagName('head')[0])
+// console.log('document.head: ', document.head)
+// console.log(`document.querySelector('head'): `, document.querySelector('head'))
+// console.log(`document.getElementsByTagName('head')[0]: `, document.getElementsByTagName('head')[0])
 
-console.log('document.title: ', document.title)
-console.log(`document.querySelector('title'): `, document.querySelector('title'))
-console.log(`document.getElementsByTagName('title')[0]: `, document.getElementsByTagName('title')[0])
+// console.log('document.title: ', document.title)
+// console.log(`document.querySelector('title'): `, document.querySelector('title'))
+// console.log(`document.getElementsByTagName('title')[0]: `, document.getElementsByTagName('title')[0])
 
-document.title = '子应用react16'
+// document.title = '子应用react16'
 
-console.log('document.meta: ', document.meta)
-console.log(`document.querySelector('meta'): `, document.querySelector('meta'))
-console.log(`document.getElementsByTagName('meta')[0]: `, document.getElementsByTagName('meta')[0])
+// console.log('document.meta: ', document.meta)
+// console.log(`document.querySelector('meta'): `, document.querySelector('meta'))
+// console.log(`document.getElementsByTagName('meta')[0]: `, document.getElementsByTagName('meta')[0])
 
-console.log('document.firstElementChild: ', document.firstElementChild)
+// console.log('document.firstElementChild: ', document.firstElementChild)
