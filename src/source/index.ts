@@ -60,6 +60,14 @@ function flatChildren (
     } else if (dom instanceof HTMLImageElement && dom.hasAttribute('src')) {
       dom.setAttribute('src', CompletionPath(dom.getAttribute('src')!, app.url))
     }
+    /**
+     * Don't remove meta and title, they have some special scenes
+     * e.g.
+     * document.querySelector('meta[name="viewport"]') // for flexible
+     * document.querySelector('meta[name="baseurl"]').baseurl // for api request
+     *
+     * Title point to main app title, child app title used to be compatible with some special scenes
+     */
     // else if (dom instanceof HTMLMetaElement || dom instanceof HTMLTitleElement) {
     //   parent.removeChild(dom)
     // }
