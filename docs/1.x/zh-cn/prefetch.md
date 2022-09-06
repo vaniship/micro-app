@@ -20,7 +20,7 @@ app: {
   'disable-sandbox': boolean, // 是否关闭沙盒，可选
   level: number, // 预加载等级，可选（分为三个等级：1、2、3，1表示只加载资源，2表示加载并解析，3表示加载解析并渲染，默认为2）
   'default-page': string, // 指定默认渲染的页面，level为3时才会生效，可选
-  'disable-patch-request': boolean // 关闭子应用请求的自动补全功能，level为3时才会生效，可选
+  'disable-patch-request': boolean, // 关闭子应用请求的自动补全功能，level为3时才会生效，可选
 }
 ```
 

@@ -25,16 +25,21 @@ import { PREFETCH_LEVEL } from './constants'
  *  {
  *    name: string,
  *    url: string,
- *    disableScopecss?: boolean,
- *    disableSandbox?: boolean,
- *    disableMemoryRouter?: boolean,
+ *    esmodule: boolean,
+ *    inline: boolean,
+ *    'disable-scopecss': boolean,
+ *    'disable-sandbox': boolean,
+ *    level: number,
+ *    'default-page': string,
+ *    'disable-patch-request': boolean,
  *  },
  *  ...
  * ])
  * Note:
- *  1: preFetch is asynchronous and is performed only when the browser is idle
- *  2: disableScopecss, disableSandbox, disableMemoryRouter must be same with micro-app element, if conflict, the one who executes first shall prevail
- * @param apps micro apps
+ *  1: preFetch is async and is performed only when the browser is idle
+ *  2: options of prefetch preferably match the config of the micro-app element, although this is not required
+ * @param apps micro app options
+ * @param delay delay time
  */
 export default function preFetch (apps: prefetchParamList, delay?: number): void {
   if (!isBrowser) {
@@ -42,8 +47,12 @@ export default function preFetch (apps: prefetchParamList, delay?: number): void
   }
 
   requestIdleCallback(() => {
-    const delayTime = delay ?? microApp.options.prefetchDelay
+    const delayTime = isNumber(delay) ? delay : microApp.options.prefetchDelay
 
+    /**
+     * TODO: remove setTimeout
+     * Is there a better way?
+     */
     setTimeout(() => {
       // releasePrefetchEffect()
       preFetchInSerial(apps)
