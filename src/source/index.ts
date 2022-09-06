@@ -57,11 +57,12 @@ function flatChildren (
       }
     } else if (dom instanceof HTMLScriptElement) {
       extractScriptElement(dom, parent, app)
-    } else if (dom instanceof HTMLMetaElement || dom instanceof HTMLTitleElement) {
-      parent.removeChild(dom)
     } else if (dom instanceof HTMLImageElement && dom.hasAttribute('src')) {
       dom.setAttribute('src', CompletionPath(dom.getAttribute('src')!, app.url))
     }
+    // else if (dom instanceof HTMLMetaElement || dom instanceof HTMLTitleElement) {
+    //   parent.removeChild(dom)
+    // }
   }
 }
 

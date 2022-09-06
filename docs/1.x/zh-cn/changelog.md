@@ -15,10 +15,12 @@
 - **Bug Fix**
 
   - 🐞 修复了angular框架下，micro-app设置动态url导致应用多次渲染的问题。
+  - 🐞 修复了子应用title、meta元素丢失的问题。
 
 - **Update**
 
   - 🚀 增加对document的缓存，优化沙箱性能。
+  - 🚀 更新了title元素的处理逻辑，子应用的title元素兜底到主应用，确保title全局唯一。
 
 
 ### 1.0.0-alpha.8
