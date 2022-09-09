@@ -407,7 +407,7 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseroute='/micro-app/demo/react16'
-                  keep-alive
+                  // keep-alive
                   // destroy
                   // inline
                   // disableSandbox

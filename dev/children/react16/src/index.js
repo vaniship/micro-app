@@ -1,3 +1,4 @@
+/* eslint-disable */
 // import './public-path';
 // import 'babel-polyfill'
 // import '@babel/polyfill'
@@ -283,6 +284,19 @@ window.escapeKey3 = 'escapeKey3'
 window.escapeKey4 = 'escapeKey4'
 window.escapeKey5 = 'escapeKey5' // should be undefined in rawWindow
 window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
+
+
+console.log('scopeProperties scopeKeySpe: ', scopeKeySpe)
+console.log('scopeProperties window.scopeKeySpe: ', window.scopeKeySpe)
+
+console.log('scopeProperties Vue: ', Vue)
+console.log('scopeProperties window.Vue: ', window.Vue)
+
+window.Vue = Vue ? Vue : 'child Vue'
+
+console.log('scopeProperties Vue: ', Vue)
+console.log('scopeProperties window.Vue: ', window.Vue)
+
 
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */

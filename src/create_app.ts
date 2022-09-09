@@ -553,8 +553,10 @@ export default class CreateApp implements AppInterface {
       lifeCycles.AFTERHIDDEN,
     )
 
-    // called after lifeCyclesEvent
-    this.sandBox?.removeRouteInfoForKeepAliveApp()
+    if (this.useMemoryRouter) {
+      // called after lifeCyclesEvent
+      this.sandBox?.removeRouteInfoForKeepAliveApp()
+    }
 
     this.recordAndReleaseEffect()
 
@@ -587,8 +589,10 @@ export default class CreateApp implements AppInterface {
 
     this.keepAliveState = keepAliveStates.KEEP_ALIVE_SHOW
 
-    // called before lifeCyclesEvent
-    this.sandBox?.setRouteInfoForKeepAliveApp()
+    if (this.useMemoryRouter) {
+      // called before lifeCyclesEvent
+      this.sandBox?.setRouteInfoForKeepAliveApp()
+    }
 
     // dispatch afterShow event to micro-app
     dispatchCustomEventToMicroApp('appstate-change', this.name, {

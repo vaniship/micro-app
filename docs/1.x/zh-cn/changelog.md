@@ -16,6 +16,8 @@
 
   - 🐞 修复了angular框架下，micro-app设置动态url导致应用多次渲染的问题。
   - 🐞 修复了子应用title、meta元素丢失的问题。
+  - 🐞 修复了部分场景下`scopeProperties`可以逃逸的问题。
+  - 🐞 修复了关闭虚拟路由系统时keep-alive应用依然可以触发虚拟路由系统的问题。
 
 - **Update**
 

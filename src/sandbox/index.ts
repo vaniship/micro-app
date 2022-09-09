@@ -156,8 +156,9 @@ export default class SandBox implements SandBoxInterface {
       }
 
       /**
-       * 1. prevent the key deleted during sandBox.stop after rewrite
-       * 2. umd mode will not delete any keys during sandBox.stop
+       * 1. Prevent the key deleted during sandBox.stop after rewrite
+       * 2. Umd mode will not delete any keys during sandBox.stop
+       * 3. It must not be umd mode when call sandbox.start at the first time
        */
       if (!umdMode) {
         this.initGlobalKeysWhenStart(
@@ -443,6 +444,7 @@ export default class SandBox implements SandBoxInterface {
       pureCreateElement,
       router,
     })
+
     this.setProxyDocument(microAppWindow, appName)
     this.setMappingPropertiesWithRawDescriptor(microAppWindow)
   }
@@ -529,6 +531,7 @@ export default class SandBox implements SandBoxInterface {
     microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
     this.setHijackProperty(microAppWindow, appName)
     if (!disablePatchRequest) this.patchRequestApi(microAppWindow, appName, url)
+    this.setScopeProperties(microAppWindow)
   }
 
   // set hijack Properties to microAppWindow
@@ -597,6 +600,19 @@ export default class SandBox implements SandBoxInterface {
           microEventSource = createMicroEventSource(appName, url, value)
         },
       },
+    })
+  }
+
+  /**
+   * Init scope keys to microAppWindow, prevent fall to rawWindow from with(microAppWindow)
+   * like: if (!xxx) {}
+   * NOTE:
+   * 1. Symbol.unscopables cannot affect undefined keys
+   * 2. Doesn't use for window.xxx because it fall to proxyWindow
+   */
+  setScopeProperties (microAppWindow: microAppWindowType): void {
+    this.scopeProperties.forEach((key: PropertyKey) => {
+      Reflect.set(microAppWindow, key, microAppWindow[key])
     })
   }
 

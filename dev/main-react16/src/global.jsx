@@ -49,6 +49,9 @@ const prefetchConfig = [
 
 // microApp.preFetch(prefetchConfig)
 
+window['scopeKeySpe'] = 'value from base app'
+window.Vue = 'Vue from base'
+
 microApp.start({
   // shadowDOM: true,
   // inline: true,
@@ -95,7 +98,7 @@ microApp.start({
   plugins: {
     global: [
       {
-        scopeProperties: ['scopeKey1', 'scopeKey2'],
+        scopeProperties: ['scopeKey1', 'scopeKey2', 'scopeKeySpe'],
         escapeProperties: ['escapeKey1', 'escapeKey2'],
         options: {a: 1,},
         loader(code, url, options) {
