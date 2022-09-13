@@ -13,6 +13,8 @@ import {
   Row,
   Col,
   message,
+  Drawer,
+  Modal,
 } from 'antd';
 import { UploadOutlined, InboxOutlined } from '@ant-design/icons';
 import styled from 'styled-components'
@@ -67,6 +69,8 @@ const normFile = (e) => {
 
 const Page2 = () => {
   const [count, changeCount] = useState(0)
+  const [open, setOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const onFinish = (values) => {
     console.log('Received values of form: ', values);
     message.success('This is a success message');
@@ -75,6 +79,26 @@ const Page2 = () => {
   const testClick = () => {
     console.log(444444444)
   }
+
+  const showDrawer = () => {
+    setOpen(true);
+  };
+
+  const onClose = () => {
+    setOpen(false);
+  };
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
     console.log('react16 page2 useEffect')
@@ -309,6 +333,30 @@ const Page2 = () => {
           </Button>
         </Form.Item>
       </Form>
+      <div className='demo-list'>
+        <br />
+        <br />
+        <h1>抽屉</h1>
+        <Button type="primary" onClick={showDrawer}>
+          Open
+        </Button>
+        <Drawer title="Basic Drawer" placement="right" onClose={onClose} open={open}>
+          <p>Some contents...</p>
+          <p>Some contents...</p>
+          <p>Some contents...</p>
+        </Drawer>
+        <br />
+        <br />
+        <h1>对话框</h1>
+        <Button type="primary" onClick={showModal}>
+          Open Modal
+        </Button>
+        <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+          <p>Some contents...</p>
+          <p>Some contents...</p>
+          <p>Some contents...</p>
+        </Modal>
+      </div>
     </div>
   );
 };

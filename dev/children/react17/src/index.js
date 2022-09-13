@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+// import 'antd/dist/antd.css';
 
 // 发送数据
 window.microApp?.dispatch({'from': '来自微应用react17的数据' + (+new Date())})
