@@ -185,10 +185,10 @@ function invokePrototypeMethod (
 // head/body map to micro-app-head/micro-app-body
 function getHijackParent (node: Node, app: AppInterface): HTMLElement | null | undefined {
   if (node === document.head) {
-    return app?.container?.querySelector('micro-app-head')
+    return app?.querySelector<HTMLElement>('micro-app-head')
   }
   if (node === document.body) {
-    return app?.container?.querySelector('micro-app-body')
+    return app?.querySelector<HTMLElement>('micro-app-body')
   }
   return null
 }
@@ -267,9 +267,9 @@ function commonElementHandler (
       const app = appInstanceMap.get(currentAppName)
       if (app?.container) {
         if (parent === document.head) {
-          return rawMethod.call(app.container.querySelector('micro-app-head'), newChild)
+          return rawMethod.call(app.querySelector('micro-app-head'), newChild)
         } else if (parent === document.body) {
-          return rawMethod.call(app.container.querySelector('micro-app-body'), newChild)
+          return rawMethod.call(app.querySelector('micro-app-body'), newChild)
         }
       }
     }
@@ -343,6 +343,31 @@ export function patchElementPrototypeMethods (): void {
     this.__MICRO_APP_NAME__ && (clonedNode.__MICRO_APP_NAME__ = this.__MICRO_APP_NAME__)
     return clonedNode
   }
+
+  function getQueryTarget (node: Node): Node | null {
+    const currentAppName = getCurrentAppName()
+    if ((node === document.body || node === document.head) && currentAppName) {
+      const app = appInstanceMap.get(currentAppName)
+      if (app?.container) {
+        if (node === document.body) {
+          return app.querySelector('micro-app-body')
+        } else if (node === document.head) {
+          return app.querySelector('micro-app-head')
+        }
+      }
+    }
+    return null
+  }
+
+  Element.prototype.querySelector = function querySelector (selectors: string): Node | null {
+    const target = getQueryTarget(this) ?? this
+    return globalEnv.rawElementQuerySelector.call(target, selectors)
+  }
+
+  Element.prototype.querySelectorAll = function querySelectorAll (selectors: string): NodeListOf<Node> {
+    const target = getQueryTarget(this) ?? this
+    return globalEnv.rawElementQuerySelectorAll.call(target, selectors)
+  }
 }
 
 /**
@@ -402,7 +427,7 @@ function patchDocument () {
       return globalEnv.rawQuerySelector.call(_this, selectors)
     }
 
-    return appInstanceMap.get(currentAppName)?.container?.querySelector(selectors) ?? null
+    return appInstanceMap.get(currentAppName)?.querySelector(selectors) ?? null
   }
 
   function querySelectorAll (this: Document, selectors: string): any {
@@ -418,7 +443,7 @@ function patchDocument () {
       return globalEnv.rawQuerySelectorAll.call(_this, selectors)
     }
 
-    return appInstanceMap.get(currentAppName)?.container?.querySelectorAll(selectors) ?? []
+    return appInstanceMap.get(currentAppName)?.querySelectorAll(selectors) ?? []
   }
 
   rawRootDocument.prototype.querySelector = querySelector
@@ -550,6 +575,8 @@ export function releasePatches (): void {
   Element.prototype.append = globalEnv.rawAppend
   Element.prototype.prepend = globalEnv.rawPrepend
   Element.prototype.cloneNode = globalEnv.rawCloneNode
+  Element.prototype.querySelector = globalEnv.rawElementQuerySelector
+  Element.prototype.querySelectorAll = globalEnv.rawElementQuerySelectorAll
 }
 
 // exec when last child unmount
