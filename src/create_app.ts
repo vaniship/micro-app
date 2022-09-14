@@ -666,4 +666,14 @@ export default class CreateApp implements AppInterface {
     this.sandBox?.recordEffectSnapshot()
     this.sandBox?.releaseGlobalEffect()
   }
+
+  public querySelector (selectors: string): Node | null {
+    const target = this.container
+    return target ? globalEnv.rawElementQuerySelector.call(target, selectors) : null
+  }
+
+  public querySelectorAll (selectors: string): NodeListOf<Node> {
+    const target = this.container
+    return target ? globalEnv.rawElementQuerySelectorAll.call(target, selectors) : []
+  }
 }

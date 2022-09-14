@@ -498,7 +498,7 @@ export function runScript (
 
       if (!replaceElement) {
         // TEST IGNORE
-        app.container?.querySelector('micro-app-body')!.appendChild(scriptElement)
+        app.querySelector('micro-app-body')?.appendChild(scriptElement)
       }
     } else {
       runParsedFunction(app, scriptInfo)
