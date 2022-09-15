@@ -340,7 +340,13 @@ const Page2 = () => {
         <Button type="primary" onClick={showDrawer}>
           Open
         </Button>
-        <Drawer title="Basic Drawer" placement="right" onClose={onClose} open={open}>
+        <Drawer
+          title="Basic Drawer"
+          placement="right"
+          onClose={onClose}
+          open={open}
+          // getContainer={(target) => console.log(11111, target)}
+        >
           <p>Some contents...</p>
           <p>Some contents...</p>
           <p>Some contents...</p>

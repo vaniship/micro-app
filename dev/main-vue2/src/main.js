@@ -36,33 +36,6 @@ microApp.start({
   },
   plugins: {
     modules: {
-      react16: [{
-        loader(code, url) {
-          if (code.indexOf('sockjs-node') > -1) {
-            console.log('react16插件', url)
-            code = code.replace('window.location.port', '3001')
-          }
-          return code
-        }
-      }],
-      react162: [{
-        loader(code, url) {
-          if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
-            console.log('react16插件', url)
-            code = code.replace('window.location.port', '3001')
-          }
-          return code
-        }
-      }],
-      react17: [{
-        loader(code, url) {
-          if (process.env.NODE_ENV === 'development' && code.indexOf('sockjs-node') > -1) {
-            console.log('react17插件', url)
-            code = code.replace('window.location.port', '3002')
-          }
-          return code
-        }
-      }],
       vite: [{
         loader(code) {
           if (process.env.NODE_ENV === 'development') {
