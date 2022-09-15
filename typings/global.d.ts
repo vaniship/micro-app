@@ -126,7 +126,7 @@ declare module '@micro-app/types' {
   }
 
   // app instance
-  interface AppInterface {
+  interface AppInterface extends Pick<ParentNode, 'querySelector' | 'querySelectorAll'> {
     source: sourceType // source list
     sandBox: SandBoxInterface | null // sandbox
     name: string // app name
