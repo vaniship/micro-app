@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useState, useEffect } from 'react'
-import { BrowserRouter, Switch, Route, Redirect, Link } from 'react-router-dom'
+import { BrowserRouter, Switch, Route, Redirect, useHistory } from 'react-router-dom'
 import Page1 from './pages/page1/page1'
 import { Menu } from 'antd';
 import { MailOutlined, AppstoreOutlined } from '@ant-design/icons';
@@ -17,12 +17,16 @@ function getDefaultKey () {
   return 'home'
 }
 
-
-function App () {
+function HeadMenu () {
+  const history = useHistory()
   const [selectedKey, changeSelectedKey ] = useState(getDefaultKey())
+
   function handleSelect ({ selectedKeys }) {
-    changeSelectedKey(selectedKeys[0])
+    const key = selectedKeys[0]
+    history.push('/' + key)
+    changeSelectedKey(key)
   }
+
   useEffect(() => {
     const handlePopstate = () => changeSelectedKey(getDefaultKey())
     window.addEventListener('popstate', handlePopstate)
@@ -30,24 +34,52 @@ function App () {
       window.removeEventListener('popstate', handlePopstate)
     }
   }, [])
+
+  const items = [
+    {
+      label: 'home',
+      key: 'home',
+      icon: <AppstoreOutlined />,
+      // children: [<Link to='/'>home</Link>],
+    },
+    {
+      label: 'page2',
+      key: 'page2',
+      icon: <MailOutlined />,
+      // children: [<Link to='/page2'>page2</Link>],
+    },
+    {
+      label: 'inline',
+      key: 'inline',
+      icon: <MailOutlined />,
+      // children: [<Link to='/inline'>inline</Link>],
+    },
+  ];
+  return (
+    <Menu
+      mode="horizontal"
+      selectedKeys={[selectedKey]}
+      style={{marginBottom: '5px'}}
+      onSelect={handleSelect}
+      items={items}
+    >
+      {/* <Menu.Item key='home' icon={<AppstoreOutlined />}>
+        <Link to='/'>home</Link>
+      </Menu.Item>
+      <Menu.Item key='page2' icon={<MailOutlined />}>
+        <Link to='/page2'>page2</Link>
+      </Menu.Item>
+      <Menu.Item key='inline' icon={<MailOutlined />}>
+        <Link to='/inline'>inline</Link>
+      </Menu.Item> */}
+    </Menu>
+  )
+}
+
+function App () {
   return (
     <BrowserRouter basename={window.__MICRO_APP_BASE_ROUTE__ || '/micro-app/react16/'} >
-      <Menu
-        mode="horizontal"
-        selectedKeys={[selectedKey]}
-        style={{marginBottom: '5px'}}
-        onSelect={handleSelect}
-      >
-        <Menu.Item key='home' icon={<AppstoreOutlined />}>
-          <Link to='/'>home</Link>
-        </Menu.Item>
-        <Menu.Item key='page2' icon={<MailOutlined />}>
-          <Link to='/page2'>page2</Link>
-        </Menu.Item>
-        <Menu.Item key='inline' icon={<MailOutlined />}>
-          <Link to='/inline'>inline</Link>
-        </Menu.Item>
-      </Menu>
+      <HeadMenu />
       <Switch>
         <Route path="/" exact>
           <Page1 />

@@ -6,8 +6,7 @@ import logo from '../../assets/logo.svg';
 import './page1.css';
 // import { loadModules, loadCss } from "esri-loader";
 // loadCss();
-
-
+// import LeaderLine from './leader-line.js'
 
 const StyledButton = styled.button`
   background: transparent;
@@ -73,6 +72,7 @@ function Page1() {
     })
   }
 
+
   useEffect(() => {
   //   loadModules(["esri/Map", "esri/views/MapView"])
   //   .then(([Map, MapView]) => {
@@ -90,6 +90,12 @@ function Page1() {
   //   .catch((err) => {
   //     console.error(err);
   //   });
+
+  // new LeaderLine(
+  //   document.getElementById('start'),
+  //   document.getElementById('end')
+  // );
+
   }, [])
   return (
     <div className="App">
@@ -132,7 +138,9 @@ function Page1() {
       <div>
         <a href={`${process.env.NODE_ENV === 'production' ? window.location.origin : 'http://localhost:3001'}/micro-app/react16/static/media/logo.6ce24c58.svg`} download="w3logo" onClick={download}>下载</a>
       </div>
-      <div id='view-div'></div>
+      {/* <div id='view-div'></div> */}
+      {/* <div id="start">start</div>
+      <div id="end">end</div> */}
     </div>
   );
 }

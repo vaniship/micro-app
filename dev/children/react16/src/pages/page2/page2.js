@@ -334,34 +334,38 @@ const Page2 = () => {
         </Form.Item>
       </Form>
       <div className='demo-list'>
-        <br />
-        <br />
-        <h1>抽屉</h1>
-        <Button type="primary" onClick={showDrawer}>
-          Open
-        </Button>
-        <Drawer
-          title="Basic Drawer"
-          placement="right"
-          onClose={onClose}
-          open={open}
-          // getContainer={(target) => console.log(11111, target)}
-        >
-          <p>Some contents...</p>
-          <p>Some contents...</p>
-          <p>Some contents...</p>
-        </Drawer>
-        <br />
-        <br />
-        <h1>对话框</h1>
-        <Button type="primary" onClick={showModal}>
-          Open Modal
-        </Button>
-        <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-          <p>Some contents...</p>
-          <p>Some contents...</p>
-          <p>Some contents...</p>
-        </Modal>
+        <div>
+          <br />
+          <br />
+          <h1>抽屉</h1>
+          <Button type="primary" onClick={showDrawer}>
+            Open
+          </Button>
+          <Drawer
+            title="Basic Drawer"
+            placement="right"
+            onClose={onClose}
+            open={open}
+            // getContainer={(target) => console.log(11111, target)}
+          >
+            <p>Some contents...</p>
+            <p>Some contents...</p>
+            <p>Some contents...</p>
+          </Drawer>
+        </div>
+        <div>
+          <br />
+          <br />
+          <h1>对话框</h1>
+          <Button type="primary" onClick={showModal}>
+            Open Modal
+          </Button>
+          <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+            <p>Some contents...</p>
+            <p>Some contents...</p>
+            <p>Some contents...</p>
+          </Modal>
+        </div>
       </div>
     </div>
   );
