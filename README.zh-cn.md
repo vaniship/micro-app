@@ -145,6 +145,9 @@ yarn start # 访问 http://localhost:3000
   支持，详情请查看[nextjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nextjs)、[nuxtjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nuxtjs)
 </details>
 
+# 开发交流
+[官方交流微信群](./Contact.md)
+
 # 贡献者们
 <a href="https://github.com/micro-zoe/micro-app/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=micro-zoe/micro-app" />
