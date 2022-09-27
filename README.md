@@ -147,6 +147,9 @@ For more commands, see [DEVELOP](https://github.com/micro-zoe/micro-app/blob/mas
   Yes, please see [nextjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nextjs), [nuxtjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nuxtjs) for details.
 </details>
 
+# Communication
+[Official Wechat group](./Contact.md)
+
 # Contributors
 <a href="https://github.com/micro-zoe/micro-app/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=micro-zoe/micro-app" />
