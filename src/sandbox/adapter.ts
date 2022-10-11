@@ -71,7 +71,7 @@ export function fixReactHMRConflict (app: AppInterface): void {
  */
 export function throttleDeferForParentNode (proxyDocument: Document): void {
   const html = globalEnv.rawDocument.firstElementChild
-  if (html && html.parentNode !== proxyDocument) {
+  if (html?.parentNode === globalEnv.rawDocument) {
     setParentNode(html, proxyDocument)
     defer(() => {
       setParentNode(html, globalEnv.rawDocument)
