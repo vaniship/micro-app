@@ -368,6 +368,21 @@ export function patchElementPrototypeMethods (): void {
     const target = getQueryTarget(this) ?? this
     return globalEnv.rawElementQuerySelectorAll.call(target, selectors)
   }
+
+  rawDefineProperty(Element.prototype, 'innerHTML', {
+    get () {
+      return globalEnv.rawInnerHTMLDesc.get.call(this)
+    },
+    set (code: string) {
+      globalEnv.rawInnerHTMLDesc.set.call(this, code)
+      const currentAppName = getCurrentAppName()
+      Array.from(this.children).forEach((child) => {
+        if (isElement(child) && currentAppName) {
+          child.__MICRO_APP_NAME__ = currentAppName
+        }
+      })
+    }
+  })
 }
 
 /**
@@ -577,6 +592,7 @@ export function releasePatches (): void {
   Element.prototype.cloneNode = globalEnv.rawCloneNode
   Element.prototype.querySelector = globalEnv.rawElementQuerySelector
   Element.prototype.querySelectorAll = globalEnv.rawElementQuerySelectorAll
+  rawDefineProperty(Element.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
 }
 
 // exec when last child unmount

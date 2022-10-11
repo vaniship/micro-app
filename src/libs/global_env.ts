@@ -64,6 +64,7 @@ export function initGlobalEnv (): void {
     const rawCloneNode = Element.prototype.cloneNode
     const rawElementQuerySelector = Element.prototype.querySelector
     const rawElementQuerySelectorAll = Element.prototype.querySelectorAll
+    const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML')
 
     const rawCreateElement = rawRootDocument.prototype.createElement
     const rawCreateElementNS = rawRootDocument.prototype.createElementNS
@@ -120,6 +121,8 @@ export function initGlobalEnv (): void {
       rawCloneNode,
       rawElementQuerySelector,
       rawElementQuerySelectorAll,
+      rawInnerHTMLDesc,
+
       rawCreateElement,
       rawCreateElementNS,
       rawCreateDocumentFragment,

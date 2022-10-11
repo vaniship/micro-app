@@ -22,6 +22,7 @@
       </ul>
       <button @click="renderNode">渲染一万个元素</button>
     </div>
+    <router-link to="/page2">page2</router-link>
   </div>
 </template>
 

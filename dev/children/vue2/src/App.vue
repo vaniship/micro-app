@@ -10,6 +10,7 @@
     <!-- <keep-alive> -->
       <router-view v-if="showView"></router-view>
     <!-- </keep-alive> -->
+    <div id="test-innerHTML"></div>
   </div>
 </template>
 
@@ -27,6 +28,7 @@ export default {
     window.addEventListener('popstate', () => {
       this.activeName =location.href.includes('#/page2') ? 'page2': '/'
     })
+    document.getElementById('test-innerHTML').innerHTML = '<span>3333333333</span>'
   },
   components: {
 
