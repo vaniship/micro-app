@@ -14,7 +14,7 @@
   <a href="https://github.com/micro-zoe/micro-app/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/@micro-zoe/micro-app.svg" alt="license"/>
   </a>
-  <a href="./Contact.md">
+  <a href="https://github.com/micro-zoe/micro-app/blob/dev/Contact.md">
     <img src="https://img.shields.io/badge/chat-wechat-blue" alt="WeChat">
   </a>
   <a href="https://travis-ci.com/github/micro-zoe/micro-app">
