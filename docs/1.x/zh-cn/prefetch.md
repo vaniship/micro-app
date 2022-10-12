@@ -39,7 +39,7 @@ app: {
 import microApp from '@micro-zoe/micro-app'
 
 microApp.start({
-  prefetchDelay: 5000, // 修改delay默认值为5000
+  prefetchDelay: 5000, // 修改delay默认值为5000ms
 })
 ```
 

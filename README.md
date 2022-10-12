@@ -14,8 +14,8 @@
   <a href="https://github.com/micro-zoe/micro-app/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/@micro-zoe/micro-app.svg" alt="license"/>
   </a>
-  <a href="https://gitter.im/microzoe/micro-app">
-    <img src="https://badges.gitter.im/microzoe/micro-app.svg" alt="gitter">
+  <a href="./Contact.md">
+    <img src="https://img.shields.io/badge/chat-wechat-blue" alt="WeChat">
   </a>
   <a href="https://travis-ci.com/github/micro-zoe/micro-app">
     <img src="https://api.travis-ci.com/micro-zoe/micro-app.svg?branch=master" alt="travis"/>
@@ -25,7 +25,7 @@
   </a>
 </p>
 
-English｜[简体中文](./README.zh-cn.md)｜[Documentation](https://micro-zoe.github.io/micro-app/)｜[Discussions](https://github.com/micro-zoe/micro-app/discussions)｜[Gitter](https://gitter.im/microzoe/micro-app)
+English｜[简体中文](./README.zh-cn.md)｜[Documentation](https://micro-zoe.github.io/micro-app/)｜[Discussions](https://github.com/micro-zoe/micro-app/discussions)｜[WeChat](./Contact.md)
 
 # 📖Introduction
 micro-app is a micro front-end framework launched by JD Retail. It renders based on webcomponent-like and realizes the micro front-end from component thinking, it aiming to reduce the difficulty of getting started and improve work efficiency. 
@@ -146,9 +146,6 @@ For more commands, see [DEVELOP](https://github.com/micro-zoe/micro-app/blob/mas
   
   Yes, please see [nextjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nextjs), [nuxtjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nuxtjs) for details.
 </details>
-
-# Communication
-[Official Wechat group](./Contact.md)
 
 # Contributors
 <a href="https://github.com/micro-zoe/micro-app/graphs/contributors">
