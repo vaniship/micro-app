@@ -154,6 +154,10 @@ export function extractScriptElement (
     script.hasAttribute('ignore') ||
     checkIgnoreUrl(src, app.name)
   ) {
+    // 配置为忽略的脚本，清空 rawDocument.currentScript，避免被忽略的脚本内获取 currentScript 出错
+    if (globalEnv.rawDocument?.currentScript) {
+      delete globalEnv.rawDocument.currentScript
+    }
     return null
   } else if (
     (globalEnv.supportModuleScript && script.noModule) ||
