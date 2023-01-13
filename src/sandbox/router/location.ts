@@ -2,10 +2,11 @@
 import type { MicroLocation, GuardLocation, ShadowLocation } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, rawDefineProperties, createURL, noop } from '../../libs/utils'
-import { setMicroPathToURL, isEffectiveApp } from './core'
+import { setMicroPathToURL, isEffectiveApp, isIframeSandbox } from './core'
 import { dispatchNativeEvent } from './event'
 import { executeNavigationGuard } from './api'
 import { nativeHistoryNavigate, navigateWithNativeEvent } from './history'
+import { appInstanceMap } from '../../create_app'
 
 const shadowLocationKeys: ReadonlyArray<keyof MicroLocation> = ['href', 'pathname', 'search', 'hash']
 // origin is readonly, so we ignore when updateMicroLocation
@@ -201,7 +202,7 @@ export function createMicroLocation (appName: string, url: string): MicroLocatio
 /**
  * create guardLocation by microLocation, used for router guard
  */
-function createGuardLocation (appName: string, microLocation: MicroLocation): GuardLocation {
+export function createGuardLocation (appName: string, microLocation: MicroLocation): GuardLocation {
   const guardLocation = oAssign({ name: appName }, microLocation) as GuardLocation
   // The prototype values on the URL needs to be manually transferred
   for (const key of guardLocationKeys) guardLocation[key] = microLocation[key]
@@ -234,16 +235,21 @@ export function updateMicroLocation (
   microLocation: MicroLocation,
   type?: string,
 ): void {
-  const newLocation = createURL(path, microLocation.href)
   // record old values of microLocation to `from`
   const from = createGuardLocation(appName, microLocation)
-  for (const key of locationKeys) {
-    if (shadowLocationKeys.includes(key)) {
-      // reference of shadowLocation
-      microLocation.shadowLocation[key] = newLocation[key] as string
-    } else {
-      // @ts-ignore reference of microLocation
-      microLocation[key] = newLocation[key]
+  if (isIframeSandbox(appName)) {
+    const microHistory = appInstanceMap.get(appName)!.sandBox.microAppWindow.history
+    microHistory.replaceState(null, '', path)
+  } else {
+    const newLocation = createURL(path, microLocation.href)
+    for (const key of locationKeys) {
+      if (shadowLocationKeys.includes(key)) {
+        // reference of shadowLocation
+        microLocation.shadowLocation[key] = newLocation[key] as string
+      } else {
+        // @ts-ignore reference of microLocation
+        microLocation[key] = newLocation[key]
+      }
     }
   }
   // update latest values of microLocation to `to`

@@ -1,28 +1,42 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
-import Page1 from './pages/page1.vue'
-import Page2 from './pages/page2.vue'
+import routes from './router'
 
-const routes = [
-  { path: '/', component: Page1 },
-  { path: '/page2', component: Page2 },
-]
+function handleMicroData () {
+  console.log('child-vite getData:', window.microApp?.getData())
 
-// const router = VueRouter.createRouter({
-//   history: VueRouter.createWebHashHistory('/micro-app/vite/'),
+  // 监听基座下发的数据变化
+  window.microApp?.addDataListener((data) => {
+    console.log('child-vite addDataListener:', data)
+  })
+
+  // 向基座发送数据
+  setTimeout(() => {
+    window.microApp?.dispatch({ myname: 'child-vite' })
+  }, 3000)
+}
+
+/* ----------------------分割线-默认模式--------------------- */
+// const router = createRouter({
+//   history: createWebHashHistory(),
 //   routes,
 // })
 
 // const app = createApp(App)
 // app.use(router)
 // app.mount('#vite-app')
+// console.log('微应用vite渲染了 -- 默认模式')
 
+// handleMicroData()
+
+
+/* ----------------------分割线-umd模式--------------------- */
 let app = null
 let router = null
 let history = null
 // 将渲染操作放入 mount 函数
-function mount () {
+window.mount = (data) => {
   history = createWebHashHistory()
   router = createRouter({
     history,
@@ -33,40 +47,55 @@ function mount () {
   app.use(router)
   app.mount('#vite-app')
 
-  console.log('微应用child-vite渲染了')
+  console.log('微应用vite渲染了 -- UMD模式', data);
 
-  // eventCenterForVite 是基座添加到window的数据通信对象
-  // 主动获取基座下发的数据
-  // safari12 not support ?.
-  console.log('child-vite getData:', window.eventCenterForVite && window.eventCenterForVite.getData())
-
-  // 监听基座下发的数据变化
-  window.eventCenterForVite && window.eventCenterForVite.addDataListener((data) => {
-    console.log('child-vite addDataListener:', data)
-  })
-
-  // 向基座发送数据
-  setTimeout(() => {
-    window.eventCenterForVite && window.eventCenterForVite.dispatch({ myname: 'child-vite' })
-  }, 3000)
+  handleMicroData()
 }
 
 // 将卸载操作放入 unmount 函数
-function unmount () {
+window.unmount = () => {
   app && app.unmount()
   history && history.destroy()
-  // 卸载所有数据监听函数
-  window.eventCenterForVite && window.eventCenterForVite.clearDataListener()
   app = null
   router = null
   history = null
-  console.log('微应用child-vite卸载了')
+  console.log('微应用vite卸载了 -- UMD模式');
 }
 
-// 微前端环境下，注册mount和unmount方法
-if (window.__MICRO_APP_BASE_APPLICATION__) {
-  window['micro-app-vite'] = { mount, unmount }
-} else {
-  // 非微前端环境直接渲染
+// 非微前端环境直接渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
   mount()
 }
+
+/* ---------------------- micro-app 自定义全局事件 --------------------- */
+
+window.onmount = (data) => {
+  // throw new Error('sfsdfsf')
+  console.log('子应用 window.onmount 事件', data)
+}
+
+window.onunmount = () => {
+  // throw new Error('sfsdfsf')
+  console.log('子应用 window.onunmount 事件')
+}
+
+/* ---------------------- 全局事件 --------------------- */
+// document.addEventListener('click', function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
+// }, false)
+
+// document.onclick = () => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+// }
+
+// window.addEventListener('scroll', () => {
+//   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
+// }, false)
+
+// setInterval(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+// }, 5000)
+
+// setTimeout(() => {
+//   location.hash = '#/page2'
+// }, 3000);

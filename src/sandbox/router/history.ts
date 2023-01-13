@@ -7,11 +7,11 @@ import type {
   HandleMicroPathResult,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import { isString, createURL, isPlainObject, isURL, assign, isFunction, removeDomScope } from '../../libs/utils'
+import { isString, createURL, isPlainObject, isURL, assign, removeDomScope } from '../../libs/utils'
 import { setMicroPathToURL, setMicroState, getMicroState, getMicroPathFromURL, isEffectiveApp } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
-import bindFunctionToRawObject from '../bind_function'
+import bindFunctionToRawTarget from '../bind_function'
 import { getActiveApps } from '../../micro_app'
 import { appInstanceMap } from '../../create_app'
 
@@ -60,8 +60,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
       } else if (key === 'replaceState') {
         return replaceState
       }
-      const rawValue = Reflect.get(target, key)
-      return isFunction(rawValue) ? bindFunctionToRawObject(target, rawValue, 'HISTORY') : rawValue
+      return bindFunctionToRawTarget<History, HistoryProxyValue>(Reflect.get(target, key), target, 'HISTORY')
     },
     set (target: History, key: PropertyKey, value: unknown): boolean {
       Reflect.set(target, key, value)

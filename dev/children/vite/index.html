@@ -7,6 +7,14 @@
     <title>Vite App</title>
     <script>
       console.log('common script in vite')
+
+      window.addEventListener('popstate', (e) => {
+        console.log('子应用 popstate', 'state:', e.state)
+      }, false)
+
+    </script>
+    <script type="module">
+      console.log('我不应该执行2遍', '22222222222')
     </script>
   </head>
   <body>

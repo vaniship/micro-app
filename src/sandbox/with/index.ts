@@ -1,7 +1,7 @@
 /* eslint-disable no-cond-assign */
 import type {
   microAppWindowType,
-  SandBoxInterface,
+  WithSandBoxInterface,
   plugins,
   MicroLocation,
   SandBoxAdapter,
@@ -13,9 +13,9 @@ import {
   EventCenterForMicroApp,
   rebuildDataCenterSnapshot,
   recordDataCenterSnapshot,
-} from '../interact'
-import globalEnv from '../libs/global_env'
-import { initEnvOfNestedApp } from '../libs/nest_app'
+} from '../../interact'
+import globalEnv from '../../libs/global_env'
+import { initEnvOfNestedApp } from '../../libs/nest_app'
 import {
   getEffectivePath,
   isArray,
@@ -27,13 +27,12 @@ import {
   throttleDeferForSetAppName,
   rawDefineProperty,
   rawDefineProperties,
-  isFunction,
   rawHasOwnProperty,
   pureCreateElement,
   assign,
-} from '../libs/utils'
-import microApp from '../micro_app'
-import bindFunctionToRawObject from './bind_function'
+} from '../../libs/utils'
+import microApp from '../../micro_app'
+import bindFunctionToRawTarget from '../bind_function'
 import effect, {
   effectDocumentEvent,
   releaseEffectDocumentEvent,
@@ -41,7 +40,7 @@ import effect, {
 import {
   patchElementPrototypeMethods,
   releasePatches,
-} from '../source/patch'
+} from '../../source/patch'
 import createMicroRouter, {
   router,
   initRouteStateWithURL,
@@ -51,7 +50,7 @@ import createMicroRouter, {
   updateBrowserURLWithLocation,
   patchHistory,
   releasePatchHistory,
-} from './router'
+} from '../router'
 import Adapter, {
   fixBabelPolyfill6,
   throttleDeferForParentNode,
@@ -60,11 +59,11 @@ import {
   createMicroFetch,
   useMicroEventSource,
   createMicroXMLHttpRequest,
-} from './request'
+} from '../request'
 export {
   router,
   getNoHashMicroPathFromURL,
-} from './router'
+} from '../router'
 
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean,
@@ -86,7 +85,7 @@ export type proxyWindow = WindowProxy & MicroAppWindowDataType
 const { createMicroEventSource, clearMicroEventSource } = useMicroEventSource()
 const globalPropertyList: Array<PropertyKey> = ['window', 'self', 'globalThis']
 
-export default class SandBox implements SandBoxInterface {
+export default class WithSandBox implements WithSandBoxInterface {
   static activeCount = 0 // number of active sandbox
   private effectController: EffectController
   private removeHistoryListener!: CallableFunction
@@ -169,7 +168,7 @@ export default class SandBox implements SandBoxInterface {
         )
       }
 
-      if (++SandBox.activeCount === 1) {
+      if (++WithSandBox.activeCount === 1) {
         effectDocumentEvent()
         patchElementPrototypeMethods()
         initEnvOfNestedApp()
@@ -225,7 +224,7 @@ export default class SandBox implements SandBoxInterface {
         this.escapeKeys.clear()
       }
 
-      if (--SandBox.activeCount === 0) {
+      if (--WithSandBox.activeCount === 0) {
         releaseEffectDocumentEvent()
         releasePatches()
         releasePatchHistory()
@@ -327,9 +326,7 @@ export default class SandBox implements SandBoxInterface {
           this.scopeProperties.includes(key)
         ) return Reflect.get(target, key)
 
-        const rawValue = Reflect.get(rawWindow, key)
-
-        return isFunction(rawValue) ? bindFunctionToRawObject(rawWindow, rawValue) : rawValue
+        return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
       },
       set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
         if (this.active) {
@@ -688,8 +685,7 @@ export default class SandBox implements SandBoxInterface {
         if (key === 'createElement') return createElement
         if (key === Symbol.toStringTag) return 'ProxyDocument'
         if (key === 'defaultView') return this.proxyWindow
-        const rawValue = Reflect.get(target, key)
-        return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
+        return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
       },
       set: (target: Document, key: PropertyKey, value: unknown): boolean => {
         /**
@@ -730,8 +726,7 @@ export default class SandBox implements SandBoxInterface {
     Object.setPrototypeOf(MicroDocument.prototype, new Proxy(rawRootDocument.prototype, {
       get (target: Document, key: PropertyKey): unknown {
         throttleDeferForSetAppName(appName)
-        const rawValue = Reflect.get(target, key)
-        return isFunction(rawValue) ? bindFunctionToRawObject(rawDocument, rawValue, 'DOCUMENT') : rawValue
+        return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
       },
       set (target: Document, key: PropertyKey, value: unknown): boolean {
         Reflect.set(target, key, value)

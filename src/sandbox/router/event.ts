@@ -1,14 +1,11 @@
-import type { MicroLocation } from '@micro-app/types'
+import type { MicroLocation, PopStateListener, MicroPopStateEvent } from '@micro-app/types'
 import { appInstanceMap } from '../../create_app'
 import { getActiveApps } from '../../micro_app'
-import { formatEventName } from '../effect'
+import { formatEventName } from '../with/effect'
 import { getMicroPathFromURL, getMicroState, isEffectiveApp } from './core'
 import { updateMicroLocation } from './location'
 import globalEnv from '../../libs/global_env'
 import { removeDomScope, isFunction } from '../../libs/utils'
-
-type PopStateListener = (this: Window, e: PopStateEvent) => void
-type MicroPopStateEvent = PopStateEvent & { onlyForBrowser?: boolean }
 
 /**
  * dispatch PopStateEvent & HashChangeEvent to child app

@@ -2,14 +2,16 @@ import type {
   Func,
   AppInterface,
   sourceType,
-  SandBoxInterface,
+  WithSandBoxInterface,
   MountParam,
   UnmountParam,
 } from '@micro-app/types'
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
 import { execScripts } from './source/scripts'
-import SandBox, { router } from './sandbox'
+import WithSandBox from './sandbox/with'
+import IframeSandbox from './sandbox/iframe'
+import { router } from './sandbox/router'
 import {
   appStates,
   lifeCycles,
@@ -25,6 +27,7 @@ import {
   isObject,
   callFnWithTryCatch,
   pureCreateElement,
+  isDivElement,
 } from './libs/utils'
 import dispatchLifecyclesEvent, { dispatchCustomEventToMicroApp } from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
@@ -43,6 +46,7 @@ export interface CreateAppParam {
   useSandbox: boolean
   inline?: boolean
   esmodule?: boolean
+  iframe?: boolean
   container?: HTMLElement | ShadowRoot
   ssrUrl?: string
   isPrefetch?: boolean
@@ -60,7 +64,8 @@ export default class CreateApp implements AppInterface {
   private preRenderEvent?: CallableFunction[]
   public umdMode = false
   public source: sourceType
-  public sandBox: SandBoxInterface | null = null
+  // TODO: 类型优化，去掉any
+  public sandBox: WithSandBoxInterface | null | any = null
   public name: string
   public url: string
   public container: HTMLElement | ShadowRoot | null
@@ -68,6 +73,7 @@ export default class CreateApp implements AppInterface {
   public useSandbox: boolean
   public inline: boolean
   public esmodule: boolean
+  public iframe: boolean
   public ssrUrl: string
   public isPrefetch: boolean
   public isPrerender: boolean
@@ -83,6 +89,7 @@ export default class CreateApp implements AppInterface {
     useSandbox,
     inline,
     esmodule,
+    iframe,
     ssrUrl,
     isPrefetch,
     prefetchLevel,
@@ -93,6 +100,7 @@ export default class CreateApp implements AppInterface {
     this.scopecss = this.useSandbox && scopecss
     this.inline = inline ?? false
     this.esmodule = esmodule ?? false
+    this.iframe = iframe ?? false
 
     // not exist when prefetch 👇
     this.container = container ?? null
@@ -107,7 +115,9 @@ export default class CreateApp implements AppInterface {
     appInstanceMap.set(this.name, this)
     this.source = { html: null, links: new Set(), scripts: new Set() }
     this.loadSourceCode()
-    this.useSandbox && (this.sandBox = new SandBox(name, url))
+    if (this.useSandbox) {
+      this.sandBox = this.iframe ? new IframeSandbox(name, url) : new WithSandBox(name, url)
+    }
   }
 
   // Load resources
@@ -125,43 +135,46 @@ export default class CreateApp implements AppInterface {
     disablePatchRequest?: boolean,
   ): void {
     if (++this.loadSourceLevel === 2) {
-      this.source.html = html
-      this.state = appStates.LOADED
+      const nextAction = () => {
+        this.source.html = html
+        this.state = appStates.LOADED
 
-      if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
-        getRootContainer(this.container!).mount(this)
-      } else if (this.isPrerender) {
-        /**
-         * PreRender is an option of prefetch, it will render app during prefetch
-         * Limit:
-         * 1. fiber forced on
-         * 2. only virtual router support
-         *
-         * NOTE: (4P: not - update browser url, dispatch popstateEvent, reload window, dispatch lifecycle event)
-         * 1. pushState/replaceState in child can update microLocation, but will not attach router info to browser url
-         * 2. prevent dispatch popstate/hashchange event to browser
-         * 3. all navigation actions of location are invalid (In the future, we can consider update microLocation without trigger browser reload)
-         * 4. lifecycle event will not trigger when prerender
-         *
-         * Special scenes
-         * 1. unmount prerender app when loading
-         * 2. unmount prerender app when exec js
-         * 2. unmount prerender app after exec js
-         */
-        const container = pureCreateElement('div')
-        container.setAttribute('prerender', 'true')
-        this.sandBox?.setPreRenderState(true)
-        this.mount({
-          container,
-          inline: this.inline,
-          useMemoryRouter: true,
-          baseroute: '',
-          fiber: true,
-          esmodule: this.esmodule,
-          defaultPage: defaultPage ?? '',
-          disablePatchRequest: disablePatchRequest ?? false,
-        })
+        if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
+          getRootContainer(this.container!).mount(this)
+        } else if (this.isPrerender) {
+          /**
+           * PreRender is an option of prefetch, it will render app during prefetch
+           * Limit:
+           * 1. fiber forced on
+           * 2. only virtual router support
+           *
+           * NOTE: (4P: not - update browser url, dispatch popstateEvent, reload window, dispatch lifecycle event)
+           * 1. pushState/replaceState in child can update microLocation, but will not attach router info to browser url
+           * 2. prevent dispatch popstate/hashchange event to browser
+           * 3. all navigation actions of location are invalid (In the future, we can consider update microLocation without trigger browser reload)
+           * 4. lifecycle event will not trigger when prerender
+           *
+           * Special scenes
+           * 1. unmount prerender app when loading
+           * 2. unmount prerender app when exec js
+           * 2. unmount prerender app after exec js
+           */
+          const container = pureCreateElement('div')
+          container.setAttribute('prerender', 'true')
+          this.sandBox?.setPreRenderState(true)
+          this.mount({
+            container,
+            inline: this.inline,
+            useMemoryRouter: true,
+            baseroute: '',
+            fiber: true,
+            esmodule: this.esmodule,
+            defaultPage: defaultPage ?? '',
+            disablePatchRequest: disablePatchRequest ?? false,
+          })
+        }
       }
+      this.iframe ? this.sandBox.sandboxReady.then(nextAction) : nextAction()
     }
   }
 
@@ -227,7 +240,7 @@ export default class CreateApp implements AppInterface {
      * TODO: test shadowDOM
      */
     if (
-      this.container instanceof HTMLDivElement &&
+      isDivElement(this.container) &&
       this.container.hasAttribute('prerender')
     ) {
       /**
@@ -329,7 +342,7 @@ export default class CreateApp implements AppInterface {
     } else {
       this.sandBox?.rebuildEffectSnapshot()
       try {
-        umdHookMountResult = this.umdHookMount!()
+        umdHookMountResult = this.umdHookMount!(microApp.getData(this.name, true))
       } catch (e) {
         logError('an error occurred in the mount function \n', this.name, e)
       }
@@ -668,12 +681,10 @@ export default class CreateApp implements AppInterface {
   }
 
   public querySelector (selectors: string): Node | null {
-    const target = this.container
-    return target ? globalEnv.rawElementQuerySelector.call(target, selectors) : null
+    return this.container ? globalEnv.rawElementQuerySelector.call(this.container, selectors) : null
   }
 
   public querySelectorAll (selectors: string): NodeListOf<Node> {
-    const target = this.container
-    return target ? globalEnv.rawElementQuerySelectorAll.call(target, selectors) : []
+    return this.container ? globalEnv.rawElementQuerySelectorAll.call(this.container, selectors) : []
   }
 }

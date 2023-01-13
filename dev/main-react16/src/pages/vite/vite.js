@@ -4,13 +4,13 @@ import jsxCustomEvent from '@micro-zoe/micro-app/polyfill/jsx-custom-event'
 import { useState } from 'react'
 import { Button, Spin, Col } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
-import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
+// import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
 import config from '../../config'
 import './vite.less'
 import microApp from '@micro-zoe/micro-app'
 
 // 注册子应用vite的数据通信对象
-window.eventCenterForVite = new EventCenterForMicroApp('vite')
+// window.eventCenterForVite = new EventCenterForMicroApp('vite')
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
@@ -20,7 +20,7 @@ function vite () {
 
   function handleMounted () {
     hideLoading(false)
-    console.log('生命周期: vite 渲染完成了')
+    console.log('生命周期：mounted -- vite')
   }
 
   function handleDataChange (e) {
@@ -29,6 +29,10 @@ function vite () {
 
   function jumpToPage2 () {
     microApp.router.push({name: 'vite', path: '/micro-app/vite/#/page2'})
+  }
+
+  function jumpToPage3 () {
+    microApp.router.push({name: 'vite', path: '/micro-app/vite/#/page3'})
   }
 
   return (
@@ -43,6 +47,7 @@ function vite () {
             发送数据
           </Button>
           <Button type="primary" onClick={jumpToPage2}>控制子应用跳转page2</Button>
+          <Button type="primary" onClick={jumpToPage3}>控制子应用跳转page3</Button>
         </Col>
       </div>
       {
@@ -58,9 +63,13 @@ function vite () {
         onDataChange={handleDataChange}
         // destroy
         inline
-        disableSandbox
+        // disableSandbox
+        iframe
+        // keep-router-state
       >
       </micro-app>
+
+      {/* <iframe src={`${config.vite}micro-app/vite/`} width='100%' height='600px'></iframe> */}
     </div>
   )
 }
