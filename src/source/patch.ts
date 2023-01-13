@@ -573,7 +573,7 @@ export function patchSetAttribute (): void {
         appName &&
         appInstanceMap.has(appName) &&
         (
-          ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
+          ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
           (key === 'href' && /^link$/i.test(this.tagName))
         )
       ) {
