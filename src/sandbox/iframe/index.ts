@@ -22,12 +22,17 @@ import {
 } from '../../interact'
 import globalEnv from '../../libs/global_env'
 import {
-  initRouteStateWithURL,
-  clearRouteStateFromURL,
   patchIframeRoute,
   initMicroLocation,
-  addHistoryListener,
 } from './route'
+import {
+  router,
+  initRouteStateWithURL,
+  clearRouteStateFromURL,
+  addHistoryListener,
+  removeStateAndPathFromBrowser,
+  updateBrowserURLWithLocation,
+} from '../router'
 import bindFunctionToRawTarget from '../bind_function'
 import {
   hijackMicroLocationKeys,
@@ -102,9 +107,9 @@ export default class IframeSandbox {
     this.patchIframe(this.microAppWindow, (resolve: CallableFunction) => {
       this.createIframeTemplate(this.microAppWindow)
       this.createIframeBase(this.microAppWindow)
-      // run before patchIframeRoute
-      initMicroLocation(appName, this.microAppWindow, browserHost + childFullPath)
       patchIframeRoute(appName, this.microAppWindow)
+      // run after patchIframeRoute
+      initMicroLocation(appName, this.microAppWindow, childFullPath)
       this.windowEffect = patchIframeWindow(appName, this.microAppWindow)
       this.documentEffect = patchIframeDocument(appName, this.microAppWindow, this.proxyLocation)
       this.patchIframeNode(appName, this.microAppWindow)
@@ -128,6 +133,8 @@ export default class IframeSandbox {
         this.removeHistoryListener = addHistoryListener(
           this.microAppWindow.__MICRO_APP_NAME__,
         )
+      } else {
+        this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
       }
       // TODO: 两种沙箱同时存在 activeCount 计数有问题，改为统一记录
       if (++IframeSandbox.activeCount === 1) {
@@ -218,6 +225,7 @@ export default class IframeSandbox {
       removeDomScope,
       pureCreateElement,
       proxyLocation: this.proxyLocation,
+      router,
     })
   }
 
@@ -270,15 +278,22 @@ export default class IframeSandbox {
     childHost: string,
   ): void {
     const rawLocation = globalEnv.rawWindow.location
+    /**
+     * TODO: 核心是无论如何不能让iframe进行内部的跳转，所有跳转都通过浏览器路由拦截和实现，子应用跳转只有一种情况，那就是replaceState
+     * 1、正常的跳转有pushState/replaceState拦截和处理，但是对于直接通过location跳转的情况则无法拦截，但是可以通过监听popstate和hashchange再做一次拦截，来处理上面无法拦截的场景
+     * 2、对于href、pathname、assign、replace等跳转需要刷新浏览器的场景，还需要特殊处理，只能通过proxy代理处理，但是对于esm的环境暂时还是无解的。
+     *    总之location上的信息修改很容易导致浏览器刷新，放在iframe环境下会导致iframe刷新但是如何同步这些信息到浏览器？
+     *    这些跳转不会触发任何事件信息，直接刷新浏览器，我们也应该这样，类似于虚拟路有的做法
+     */
     this.proxyLocation = new Proxy(microAppWindow.location, {
-      get: (target: Location, key: string): unknown => {
+      get: (_target: Location, key: string): unknown => {
         // host hostname port protocol
         if (hijackMicroLocationKeys.includes(key)) {
           return childStaticLocation[key]
         }
 
         if (key === 'href') {
-          return target[key].replace(browserHost, childHost)
+          return microAppWindow.location[key].replace(browserHost, childHost)
         }
 
         if (key === 'reload') {
@@ -291,10 +306,13 @@ export default class IframeSandbox {
          *  1、跳转可能会导致iframe刷新，效果和浏览器刷新一致，会导致window和document重置，定义的所有变量都将失效
          *    解决方式：使用基座assign、replace，转换成拼接后的url地址跳转，参考虚拟路由的location
          */
-
-        return bindFunctionToRawTarget<Location>(Reflect.get(target, key), target, 'LOCATION')
+        return bindFunctionToRawTarget<Location>(
+          Reflect.get(microAppWindow.location, key),
+          microAppWindow.location,
+          'LOCATION',
+        )
       },
-      set: (target: Location, key: string, value: unknown): boolean => {
+      set: (_target: Location, key: string, value: unknown): boolean => {
         /**
          * TODO:
          * 1、将跳转后的信息同步到浏览器
@@ -306,7 +324,7 @@ export default class IframeSandbox {
          *  1、非esm参考虚拟路由，模拟所有可能的情况，拼接地址后同步到浏览器
          *  2、对于esm应用，只能通过下发window.__MICRO_APP_LOCATION__/window.microApp.proxyLocation进行操作
          */
-        Reflect.set(target, key, value)
+        Reflect.set(microAppWindow.location, key, value)
         return true
       }
     })
@@ -473,5 +491,16 @@ export default class IframeSandbox {
       this.microAppWindow.location as MicroLocation,
       keepRouteState,
     )
+  }
+
+  public setRouteInfoForKeepAliveApp (): void {
+    updateBrowserURLWithLocation(
+      this.microAppWindow.__MICRO_APP_NAME__,
+      this.microAppWindow.location as MicroLocation,
+    )
+  }
+
+  public removeRouteInfoForKeepAliveApp (): void {
+    removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 }

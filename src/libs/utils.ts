@@ -106,9 +106,8 @@ export function isShadowRoot (target: unknown): target is ShadowRoot {
   return typeof ShadowRoot !== 'undefined' && target instanceof ShadowRoot
 }
 
-// TODO: iframe URL
 export function isURL (target: unknown): target is URL {
-  return target instanceof URL
+  return target instanceof URL || !!(target as URL)?.href
 }
 
 // iframe element not instanceof base app Element, use tagName instead

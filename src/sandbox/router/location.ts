@@ -2,7 +2,7 @@
 import type { MicroLocation, GuardLocation, ShadowLocation } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, rawDefineProperties, createURL, noop } from '../../libs/utils'
-import { setMicroPathToURL, isEffectiveApp, isIframeSandbox } from './core'
+import { setMicroPathToURL, isEffectiveApp, isIframeSandbox, getMicroState } from './core'
 import { dispatchNativeEvent } from './event'
 import { executeNavigationGuard } from './api'
 import { nativeHistoryNavigate, navigateWithNativeEvent } from './history'
@@ -237,11 +237,11 @@ export function updateMicroLocation (
 ): void {
   // record old values of microLocation to `from`
   const from = createGuardLocation(appName, microLocation)
+  const newLocation = createURL(path, microLocation.href)
   if (isIframeSandbox(appName)) {
-    const microHistory = appInstanceMap.get(appName)!.sandBox.microAppWindow.history
-    microHistory.replaceState(null, '', path)
+    const microAppWindow = appInstanceMap.get(appName)!.sandBox.microAppWindow
+    microAppWindow.rawReplaceState?.call(microAppWindow.history, getMicroState(appName), '', newLocation.href)
   } else {
-    const newLocation = createURL(path, microLocation.href)
     for (const key of locationKeys) {
       if (shadowLocationKeys.includes(key)) {
         // reference of shadowLocation

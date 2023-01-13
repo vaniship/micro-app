@@ -7,8 +7,22 @@ import type {
   HandleMicroPathResult,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import { isString, createURL, isPlainObject, isURL, assign, removeDomScope } from '../../libs/utils'
-import { setMicroPathToURL, setMicroState, getMicroState, getMicroPathFromURL, isEffectiveApp } from './core'
+import {
+  isString,
+  createURL,
+  isPlainObject,
+  isURL,
+  assign,
+  removeDomScope,
+} from '../../libs/utils'
+import {
+  setMicroPathToURL,
+  setMicroState,
+  getMicroState,
+  getMicroPathFromURL,
+  isEffectiveApp,
+  isIframeSandbox,
+} from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
 import bindFunctionToRawTarget from '../bind_function'
@@ -25,31 +39,32 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
   const rawHistory = globalEnv.rawWindow.history
   function getMicroHistoryMethod (methodName: string): CallableFunction {
     return function (...rests: any[]): void {
+      // TODO: 测试iframe的URL兼容isURL的情况
       if (isString(rests[2]) || isURL(rests[2])) {
         const targetLocation = createURL(rests[2], microLocation.href)
-        if (targetLocation.origin === microLocation.origin) {
-          navigateWithNativeEvent(
-            appName,
-            methodName,
-            setMicroPathToURL(appName, targetLocation),
-            true,
-            setMicroState(appName, rests[0]),
-            rests[1],
-          )
-          const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-          if (targetFullPath !== microLocation.fullPath) {
-            updateMicroLocation(appName, targetFullPath, microLocation)
-          }
-          return void 0
+        const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+        navigateWithNativeEvent(
+          appName,
+          methodName,
+          setMicroPathToURL(appName, targetLocation),
+          true,
+          setMicroState(appName, rests[0]),
+          rests[1],
+        )
+        if (targetFullPath !== microLocation.fullPath) {
+          updateMicroLocation(appName, targetFullPath, microLocation)
         }
+        appInstanceMap.get(appName)?.sandBox.updateIframeBase?.()
+      } else {
+        nativeHistoryNavigate(appName, methodName, rests[2], rests[0], rests[1])
       }
-
-      nativeHistoryNavigate(appName, methodName, rests[2], rests[0], rests[1])
     }
   }
 
   const pushState = getMicroHistoryMethod('pushState')
   const replaceState = getMicroHistoryMethod('replaceState')
+
+  if (isIframeSandbox(appName)) return { pushState, replaceState } as MicroHistory
 
   return new Proxy(rawHistory, {
     get (target: History, key: PropertyKey): HistoryProxyValue {
@@ -87,7 +102,7 @@ export function nativeHistoryNavigate (
   methodName: string,
   fullPath: string,
   state: unknown = null,
-  title = '',
+  title: unknown = '',
 ): void {
   if (isEffectiveApp(appName)) {
     const method = methodName === 'pushState' ? globalEnv.rawPushState : globalEnv.rawReplaceState
@@ -120,6 +135,7 @@ export function navigateWithNativeEvent (
   if (isEffectiveApp(appName)) {
     const rawLocation = globalEnv.rawWindow.location
     const oldFullPath = rawLocation.pathname + rawLocation.search + rawLocation.hash
+    // oldHref use for hashChangeEvent of base app
     const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
     // navigate with native history method
     nativeHistoryNavigate(appName, methodName, result.fullPath, state, title)

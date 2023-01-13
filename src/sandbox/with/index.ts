@@ -41,8 +41,9 @@ import {
   patchElementPrototypeMethods,
   releasePatches,
 } from '../../source/patch'
-import createMicroRouter, {
+import {
   router,
+  createMicroRouter,
   initRouteStateWithURL,
   clearRouteStateFromURL,
   addHistoryListener,
@@ -639,30 +640,30 @@ export default class WithSandBox implements WithSandBoxInterface {
 
   private initRouteState (defaultPage: string): void {
     initRouteStateWithURL(
-      this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.location as MicroLocation,
+      this.microAppWindow.__MICRO_APP_NAME__,
+      this.microAppWindow.location as MicroLocation,
       defaultPage,
     )
   }
 
   private clearRouteState (keepRouteState: boolean): void {
     clearRouteStateFromURL(
-      this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.__MICRO_APP_URL__,
-      this.proxyWindow.location as MicroLocation,
+      this.microAppWindow.__MICRO_APP_NAME__,
+      this.microAppWindow.__MICRO_APP_URL__,
+      this.microAppWindow.location as MicroLocation,
       keepRouteState,
     )
   }
 
   public setRouteInfoForKeepAliveApp (): void {
     updateBrowserURLWithLocation(
-      this.proxyWindow.__MICRO_APP_NAME__,
-      this.proxyWindow.location as MicroLocation,
+      this.microAppWindow.__MICRO_APP_NAME__,
+      this.microAppWindow.location as MicroLocation,
     )
   }
 
   public removeRouteInfoForKeepAliveApp (): void {
-    removeStateAndPathFromBrowser(this.proxyWindow.__MICRO_APP_NAME__)
+    removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 
   /**
