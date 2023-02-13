@@ -331,6 +331,10 @@ export default class WithSandBox implements WithSandBoxInterface {
       },
       set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
         if (this.active) {
+          /**
+           * TODO:
+           * 1、location域名相同，子应用内部跳转时的处理
+           */
           if (this.adapter.escapeSetterKeyList.includes(key)) {
             Reflect.set(rawWindow, key, value)
           } else if (

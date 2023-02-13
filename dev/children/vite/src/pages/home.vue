@@ -4,7 +4,7 @@
     <HelloWorld msg="Hello Vue 3 + Vite" />
     <router-link to="/page2">Go to page2</router-link>
     <div>
-      <button @click="testHref">测试href跳转</button>
+      <button @click="testHref">测试location跳转</button>
     </div>
   </div>
 </template>
@@ -16,7 +16,14 @@ import { defineProps, reactive } from 'vue'
 const url = reactive(new URL('../assets/logo.png', import.meta.url).href)
 
 const testHref = () => {
-  location.href = '/micro-app/vite/#/page2'
+  // 通过原生跳转会导致报错
+  // location.href = 'http://localhost:7001/micro-app/vite/#/page2' // 报错
+  // location.href = '/micro-app/vite/#/page2' // 报错
+  // location.href = 'https://www.baidu.com/' // 报错
+  // location.href = 'http://localhost:3000/micro-app/vite/#/page2' // -- 不报错 --
+
+
+  // window.microApp.location.href = '/micro-app/vite/#/page2'
 }
 
 // This starter template is using Vue 3 experimental <script setup> SFCs

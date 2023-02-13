@@ -1,10 +1,10 @@
-import Page1 from './pages/page1.vue'
+import Home from './pages/home.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Page1
+    component: Home
   },
   {
     path: '/page2',

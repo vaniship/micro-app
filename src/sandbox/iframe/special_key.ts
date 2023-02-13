@@ -63,6 +63,7 @@ export const hijackMicroLocationKeys = [
   'hostname',
   'port',
   'protocol',
+  'origin',
 ]
 
 // 有shadowRoot则代理到shadowRoot否则代理到原生document上 (属性)

@@ -33,9 +33,11 @@ import {
   removeStateAndPathFromBrowser,
   updateBrowserURLWithLocation,
 } from '../router'
+import {
+  createMicroLocation,
+} from '../router/location'
 import bindFunctionToRawTarget from '../bind_function'
 import {
-  hijackMicroLocationKeys,
   globalPropertyList,
 } from './special_key'
 import {
@@ -91,6 +93,7 @@ export default class IframeSandbox {
     // exec before initStaticGlobalKeys
     this.createProxyLocation(
       appName,
+      url,
       this.microAppWindow,
       childStaticLocation,
       browserHost,
@@ -108,7 +111,7 @@ export default class IframeSandbox {
       this.createIframeTemplate(this.microAppWindow)
       this.createIframeBase(this.microAppWindow)
       patchIframeRoute(appName, this.microAppWindow)
-      // run after patchIframeRoute
+      // exec after patchIframeRoute
       initMicroLocation(appName, this.microAppWindow, childFullPath)
       this.windowEffect = patchIframeWindow(appName, this.microAppWindow)
       this.documentEffect = patchIframeDocument(appName, this.microAppWindow, this.proxyLocation)
@@ -224,7 +227,7 @@ export default class IframeSandbox {
     this.microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
       removeDomScope,
       pureCreateElement,
-      proxyLocation: this.proxyLocation,
+      location: this.proxyLocation,
       router,
     })
   }
@@ -272,63 +275,20 @@ export default class IframeSandbox {
 
   private createProxyLocation (
     appName: string,
+    url: string,
     microAppWindow: microAppWindowType,
     childStaticLocation: MicroLocation,
     browserHost: string,
     childHost: string,
   ): void {
-    const rawLocation = globalEnv.rawWindow.location
-    /**
-     * TODO: 核心是无论如何不能让iframe进行内部的跳转，所有跳转都通过浏览器路由拦截和实现，子应用跳转只有一种情况，那就是replaceState
-     * 1、正常的跳转有pushState/replaceState拦截和处理，但是对于直接通过location跳转的情况则无法拦截，但是可以通过监听popstate和hashchange再做一次拦截，来处理上面无法拦截的场景
-     * 2、对于href、pathname、assign、replace等跳转需要刷新浏览器的场景，还需要特殊处理，只能通过proxy代理处理，但是对于esm的环境暂时还是无解的。
-     *    总之location上的信息修改很容易导致浏览器刷新，放在iframe环境下会导致iframe刷新但是如何同步这些信息到浏览器？
-     *    这些跳转不会触发任何事件信息，直接刷新浏览器，我们也应该这样，类似于虚拟路有的做法
-     */
-    this.proxyLocation = new Proxy(microAppWindow.location, {
-      get: (_target: Location, key: string): unknown => {
-        // host hostname port protocol
-        if (hijackMicroLocationKeys.includes(key)) {
-          return childStaticLocation[key]
-        }
-
-        if (key === 'href') {
-          // do not use target, because target may be deleted
-          return microAppWindow.location[key].replace(browserHost, childHost)
-        }
-
-        if (key === 'reload') {
-          return rawLocation.reload.bind(rawLocation)
-        }
-
-        /**
-         * TODO: 处理assign、replace
-         * 注意：
-         *  1、跳转可能会导致iframe刷新，效果和浏览器刷新一致，会导致window和document重置，定义的所有变量都将失效
-         *    解决方式：使用基座assign、replace，转换成拼接后的url地址跳转，参考虚拟路由的location
-         */
-        return bindFunctionToRawTarget<Location>(
-          Reflect.get(microAppWindow.location, key),
-          microAppWindow.location,
-          'LOCATION',
-        )
-      },
-      set: (_target: Location, key: string, value: unknown): boolean => {
-        /**
-         * TODO:
-         * 1、将跳转后的信息同步到浏览器
-         * 2、location的跳转肯能会导致浏览器刷新，问题参考上面 assign、replace
-         * 3、esm应用没有proxyLocation，通过location的跳转必然会导致一系列的问题
-         * 4、href跳转时处理host替换
-         *
-         * 解决方式：
-         *  1、非esm参考虚拟路由，模拟所有可能的情况，拼接地址后同步到浏览器
-         *  2、对于esm应用，只能通过下发window.__MICRO_APP_LOCATION__/window.microApp.proxyLocation进行操作
-         */
-        Reflect.set(microAppWindow.location, key, value)
-        return true
-      }
-    })
+    this.proxyLocation = createMicroLocation(
+      appName,
+      url,
+      microAppWindow,
+      childStaticLocation,
+      browserHost,
+      childHost,
+    )
   }
 
   private createProxyWindow (appName: string, microAppWindow: microAppWindowType): void {
@@ -345,6 +305,14 @@ export default class IframeSandbox {
         return bindFunctionToRawTarget(Reflect.get(target, key), target)
       },
       set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
+        /**
+         * TODO:
+         * 1、location域名相同，子应用内部跳转时的处理
+         * 2、和with沙箱的变量相同，提取成公共数组
+         */
+        if (key === 'location') {
+          return Reflect.set(globalEnv.rawWindow, key, value)
+        }
         Reflect.set(target, key, value)
         return true
       },
@@ -411,7 +379,6 @@ export default class IframeSandbox {
     // TODO: 更多场景适配
     microRootNode.prototype.replaceChild = function replaceChild <T extends Node> (node: Node, child: T): T {
       reWriteElementInfo(node, microAppWindow, appName)
-      // console.log(7777777, node)
       if (isScriptElement(node) && node.__PURE_ELEMENT__) {
         return rawMicroReplaceChild.call(this, node, child)
       }

@@ -8,7 +8,6 @@ import {
   createMicroHistory,
 } from '../router/history'
 import {
-  rawDefineProperty,
   assign,
 } from '../../libs/utils'
 
@@ -23,17 +22,10 @@ export function initMicroLocation (
   microAppWindow: microAppWindowType,
   childFullPath: string,
 ): void {
-  const microLocation = microAppWindow.location
-  rawDefineProperty(microLocation, 'fullPath', {
-    enumerable: true,
-    configurable: true,
-    get: () => microLocation.pathname + microLocation.search + microLocation.hash,
-  })
-
   updateMicroLocation(
     appName,
     childFullPath,
-    microLocation,
+    microAppWindow.location,
     'prevent'
   )
 }

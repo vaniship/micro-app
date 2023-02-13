@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import routes from './router'
 
@@ -19,7 +19,7 @@ function handleMicroData () {
 
 /* ----------------------分割线-默认模式--------------------- */
 // const router = createRouter({
-//   history: createWebHashHistory(),
+//   history: createWebHistory(),
 //   routes,
 // })
 
@@ -37,7 +37,7 @@ let router = null
 let history = null
 // 将渲染操作放入 mount 函数
 window.mount = (data) => {
-  history = createWebHashHistory()
+  history = createWebHistory(import.meta.env.BASE_URL)
   router = createRouter({
     history,
     routes,
@@ -101,3 +101,38 @@ window.onunmount = () => {
 // }, 3000);
 
 console.log('vite子应用的全局变量', window)
+
+
+/* ---------------------- location 跳转 --------------------- */
+// 依次放开每个注释来，尽可能覆盖所有场景
+setTimeout(() => {
+  // window.microApp.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
+  window.microApp.location.href = '/micro-app/vite/page2'
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2' // path改变，刷新浏览器
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2/' // hash从有到无，刷新浏览器
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite'
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/' // path相同，刷新浏览器
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/?a=1' // search变化，刷新浏览器
+
+
+  // window.microApp.location.pathname = '/micro-app/vite/page2' // path改变，刷新浏览器
+  // window.microApp.location.pathname = '/micro-app/vite/page2#hash1' // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
+  // window.microApp.location.pathname = '/micro-app/vite/page2?b=2'
+
+  // window.microApp.location.search = '?c=3' // search改变，刷新浏览器
+  // window.microApp.location.search = '?c=3' // search不变，刷新浏览器
+
+  // window.microApp.location.hash = '#a' // hash改变，刷新浏览器
+  // window.microApp.location.hash = '#a' // hash不变，刷新浏览器
+
+
+  // window.microApp.location.assign('http://localhost:7001/micro-app/vite/page2') // path改变，刷新浏览器
+  // window.microApp.location.assign('http://localhost:7001/micro-app/vite/page2#abc') // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+
+  // window.microApp.location.replace('http://localhost:7001/micro-app/vite/page2') // 同上
+  // window.microApp.location.replace('http://localhost:7001/micro-app/vite/page2#abc') // 同上
+  console.log(111111, window.location, window.microApp.location)
+
+  // window.history.scrollRestoration = 'manual'
+}, 5000);

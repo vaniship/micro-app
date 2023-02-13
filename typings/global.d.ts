@@ -346,13 +346,7 @@ declare module '@micro-app/types' {
   type PopStateListener = (this: Window, e: PopStateEvent) => void
   type MicroPopStateEvent = PopStateEvent & { onlyForBrowser?: boolean }
 
-  interface ShadowLocation {
-    [k: string]: string
-  }
-
   interface MicroLocation extends Location, URL {
-    // shadowLocation is the current location information (href, pathname, search, hash)
-    shadowLocation: ShadowLocation
     fullPath: string
     [key: string]: any
   }

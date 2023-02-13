@@ -12,7 +12,7 @@ export function reWriteElementInfo <T extends Node> (
   appName: string,
 ): T {
   if (!element.__MICRO_APP_NAME__) {
-    const proxyLocation = microAppWindow.microApp.proxyLocation
+    const proxyLocation = microAppWindow.microApp.location
     rawDefineProperties(element, {
       baseURI: {
         configurable: true,
