@@ -293,6 +293,7 @@ export default class IframeSandbox {
         }
 
         if (key === 'href') {
+          // do not use target, because target may be deleted
           return microAppWindow.location[key].replace(browserHost, childHost)
         }
 

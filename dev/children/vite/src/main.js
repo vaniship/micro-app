@@ -99,3 +99,5 @@ window.onunmount = () => {
 // setTimeout(() => {
 //   location.hash = '#/page2'
 // }, 3000);
+
+console.log('vite子应用的全局变量', window)

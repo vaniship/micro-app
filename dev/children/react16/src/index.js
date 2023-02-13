@@ -325,15 +325,17 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
 
 /* ---------------------- location 跳转 --------------------- */
-// setTimeout(() => {
-//   // window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
-//   // window.location.pathname = '/micro-app/react16/page2#fff'
-//   // window.location.assign('http://localhost:3001/micro-app/react16/page2#eee')
-//   // window.location.replace('http://localhost:3001/micro-app/react16/page2#eee')
-//   console.log(111111, window.location)
+setTimeout(() => {
+  // window.location.href = 'http://localhost:3001/micro-app/react16/page2'
+  // window.location.href = 'https://www.baidu.com/'
+  // window.location.href = 'http://localhost:3001/micro-app/react16/#abc'
+  // window.location.pathname = '/micro-app/react16/page2#fff'
+  // window.location.assign('http://localhost:3001/micro-app/react16/page2#eee')
+  // window.location.replace('http://localhost:3001/micro-app/react16/page2#eee')
+  // console.log(111111, window.location)
 
-//   // window.history.scrollRestoration = 'manual'
-// }, 5000);
+  // window.history.scrollRestoration = 'manual'
+}, 5000);
 
 
 /* ---------------------- popstate 和 hashchange --------------------- */
