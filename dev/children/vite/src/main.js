@@ -100,7 +100,7 @@ window.onunmount = () => {
 //   location.hash = '#/page2'
 // }, 3000);
 
-console.log('vite子应用的全局变量', window)
+console.log('vite子应用的全局变量1', window)
 
 
 /* ---------------------- location 跳转 --------------------- */
