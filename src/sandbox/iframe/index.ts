@@ -90,6 +90,7 @@ export default class IframeSandbox {
 
     this.microAppWindow = iframe.contentWindow
 
+    // TODO: 优化代码
     // exec before initStaticGlobalKeys
     this.createProxyLocation(
       appName,

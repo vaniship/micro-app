@@ -131,7 +131,10 @@ export function createMicroLocation (
     return function (value: string | URL) {
       if (isEffectiveApp(appName)) {
         const targetPath = commonHandler(value, locationMethodName === 'assign' ? 'pushState' : 'replaceState')
-        if (targetPath) rawLocation[locationMethodName](targetPath)
+        if (targetPath) {
+          // Same as href, complete targetPath with browser origin in vite env
+          rawLocation[locationMethodName](createURL(targetPath, rawLocation.origin).href)
+        }
       }
     }
   }
@@ -146,7 +149,10 @@ export function createMicroLocation (
     get: () => proxyLocation.pathname + proxyLocation.search + proxyLocation.hash,
   })
 
-  const proxyLocation = new Proxy(getTarget(), {
+  /**
+   * location.assign/replace is readonly, cannot be proxy, so we use empty object as proxy target
+   */
+  const proxyLocation = new Proxy({} as Location, {
     get: (_: Location, key: string): unknown => {
       const target = getTarget()
       if (isIframe) {
@@ -173,7 +179,17 @@ export function createMicroLocation (
         const target = getTarget()
         if (key === 'href') {
           const targetPath = commonHandler(value, 'pushState')
-          if (targetPath) rawLocation.href = targetPath
+          /**
+           * In vite, targetPath without origin will be completed with child origin
+           * So we use browser origin to complete targetPath to avoid this problem
+           * But, why child app can affect browser jump?
+           * Guess(need check):
+           *  1. Vite records the origin when init
+           *  2. Listen for browser jump and automatically complete the address
+           */
+          if (targetPath) {
+            rawLocation.href = createURL(targetPath, rawLocation.origin).href
+          }
         } else if (key === 'pathname') {
           const targetPath = ('/' + value).replace(/^\/+/, '/') + proxyLocation.search + proxyLocation.hash
           handleForPathNameAndSearch(targetPath, 'pathname')

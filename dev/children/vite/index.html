@@ -12,6 +12,9 @@
         console.log('子应用 popstate', 'state:', e.state)
       }, false)
 
+      window.onhashchange = (e) => {
+        console.log('子应用 onhashchange', e)
+      }
     </script>
     <script type="module">
       console.log('我不应该执行2遍', '22222222222')

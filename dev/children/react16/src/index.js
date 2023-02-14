@@ -343,8 +343,8 @@ setTimeout(() => {
   // window.location.search = '?c=3' // search改变，刷新浏览器
   // window.location.search = '?c=3' // search不变，刷新浏览器
 
-  // window.location.hash = '#a' // hash改变，刷新浏览器
-  // window.location.hash = '#a' // hash不变，刷新浏览器
+  // window.location.hash = '#a' // hash改变，不刷新浏览器
+  // window.location.hash = '#a' // hash不变，不刷新浏览器
 
 
   // window.location.assign('http://localhost:3001/micro-app/react16/page2') // path改变，刷新浏览器

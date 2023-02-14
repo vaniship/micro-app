@@ -22,8 +22,9 @@ const testHref = () => {
   // location.href = 'https://www.baidu.com/' // 报错
   // location.href = 'http://localhost:3000/micro-app/vite/#/page2' // -- 不报错 --
 
-
-  // window.microApp.location.href = '/micro-app/vite/#/page2'
+  // vite环境下，通过window.microApp.location进行跳转
+  // window.microApp.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
+  window.microApp.location.href = '/micro-app/vite/page2'
 }
 
 // This starter template is using Vue 3 experimental <script setup> SFCs

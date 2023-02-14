@@ -254,7 +254,6 @@ function commonElementHandler (
       currentAppName
     )
   ) {
-    // console.log(3333333333, newChild)
     newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
     if (app?.container) {

@@ -107,7 +107,7 @@ console.log('vite子应用的全局变量', window)
 // 依次放开每个注释来，尽可能覆盖所有场景
 setTimeout(() => {
   // window.microApp.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
-  window.microApp.location.href = '/micro-app/vite/page2'
+  // window.microApp.location.href = '/micro-app/vite/page2'
   // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2' // path改变，刷新浏览器
   // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
   // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2/' // hash从有到无，刷新浏览器
@@ -123,16 +123,19 @@ setTimeout(() => {
   // window.microApp.location.search = '?c=3' // search改变，刷新浏览器
   // window.microApp.location.search = '?c=3' // search不变，刷新浏览器
 
-  // window.microApp.location.hash = '#a' // hash改变，刷新浏览器
-  // window.microApp.location.hash = '#a' // hash不变，刷新浏览器
+  // window.microApp.location.hash = '#a' // hash改变，发送popstate、hashchange事件，不刷新浏览器
+  // window.microApp.location.hash = '#a' // hash不变，不发送popstate、hashchange事件
 
 
-  // window.microApp.location.assign('http://localhost:7001/micro-app/vite/page2') // path改变，刷新浏览器
+  // window.microApp.location.assign('/micro-app/vite/page2') // path改变，刷新浏览器
+  // window.microApp.location.assign('http://localhost:7001/micro-app/vite/page2') // path不改变，刷新浏览器
   // window.microApp.location.assign('http://localhost:7001/micro-app/vite/page2#abc') // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
 
+  // window.microApp.location.assign('/micro-app/vite/page2') // 同上
   // window.microApp.location.replace('http://localhost:7001/micro-app/vite/page2') // 同上
   // window.microApp.location.replace('http://localhost:7001/micro-app/vite/page2#abc') // 同上
-  console.log(111111, window.location, window.microApp.location)
+
+  // window.microApp.location.reload()
 
   // window.history.scrollRestoration = 'manual'
 }, 5000);

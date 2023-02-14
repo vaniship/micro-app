@@ -22,6 +22,7 @@ export function initMicroLocation (
   microAppWindow: microAppWindowType,
   childFullPath: string,
 ): void {
+  // TODO: 优化代码
   updateMicroLocation(
     appName,
     childFullPath,
