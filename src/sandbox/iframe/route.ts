@@ -11,18 +11,16 @@ import {
   assign,
 } from '../../libs/utils'
 
-export function patchIframeRoute (appName: string, microAppWindow: microAppWindowType): void {
-  const microHistory = microAppWindow.history
-  microAppWindow.rawReplaceState = microHistory.replaceState
-  assign(microHistory, createMicroHistory(appName, microAppWindow.location))
-}
-
-export function initMicroLocation (
+export function patchIframeRoute (
   appName: string,
   microAppWindow: microAppWindowType,
   childFullPath: string,
 ): void {
-  // TODO: 优化代码
+  const microHistory = microAppWindow.history
+  microAppWindow.rawReplaceState = microHistory.replaceState
+  assign(microHistory, createMicroHistory(appName, microAppWindow.location))
+
+  // exec updateMicroLocation after patch microHistory
   updateMicroLocation(
     appName,
     childFullPath,
