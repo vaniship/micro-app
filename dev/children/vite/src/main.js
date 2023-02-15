@@ -18,54 +18,54 @@ function handleMicroData () {
 }
 
 /* ----------------------分割线-默认模式--------------------- */
-// const router = createRouter({
-//   history: createWebHistory(),
-//   routes,
-// })
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+})
 
-// const app = createApp(App)
-// app.use(router)
-// app.mount('#vite-app')
-// console.log('微应用vite渲染了 -- 默认模式')
+const app = createApp(App)
+app.use(router)
+app.mount('#vite-app')
+console.log('微应用vite渲染了 -- 默认模式')
 
-// handleMicroData()
+handleMicroData()
 
 
 /* ----------------------分割线-umd模式--------------------- */
-let app = null
-let router = null
-let history = null
-// 将渲染操作放入 mount 函数
-window.mount = (data) => {
-  history = createWebHistory(import.meta.env.BASE_URL)
-  router = createRouter({
-    history,
-    routes,
-  })
+// let app = null
+// let router = null
+// let history = null
+// // 将渲染操作放入 mount 函数
+// window.mount = (data) => {
+//   history = createWebHistory(import.meta.env.BASE_URL)
+//   router = createRouter({
+//     history,
+//     routes,
+//   })
 
-  app = createApp(App)
-  app.use(router)
-  app.mount('#vite-app')
+//   app = createApp(App)
+//   app.use(router)
+//   app.mount('#vite-app')
 
-  console.log('微应用vite渲染了 -- UMD模式', data);
+//   console.log('微应用vite渲染了 -- UMD模式', data);
 
-  handleMicroData()
-}
+//   handleMicroData()
+// }
 
-// 将卸载操作放入 unmount 函数
-window.unmount = () => {
-  app && app.unmount()
-  history && history.destroy()
-  app = null
-  router = null
-  history = null
-  console.log('微应用vite卸载了 -- UMD模式');
-}
+// // 将卸载操作放入 unmount 函数
+// window.unmount = () => {
+//   app && app.unmount()
+//   history && history.destroy()
+//   app = null
+//   router = null
+//   history = null
+//   console.log('微应用vite卸载了 -- UMD模式');
+// }
 
-// 非微前端环境直接渲染
-if (!window.__MICRO_APP_ENVIRONMENT__) {
-  mount()
-}
+// // 非微前端环境直接渲染
+// if (!window.__MICRO_APP_ENVIRONMENT__) {
+//   mount()
+// }
 
 /* ---------------------- micro-app 自定义全局事件 --------------------- */
 

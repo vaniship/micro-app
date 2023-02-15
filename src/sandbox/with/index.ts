@@ -355,8 +355,8 @@ export default class WithSandBox implements WithSandBoxInterface {
 
             this.injectedKeys.add(key)
           } else {
+            !Reflect.has(target, key) && this.injectedKeys.add(key)
             Reflect.set(target, key, value)
-            this.injectedKeys.add(key)
           }
 
           if (
@@ -369,8 +369,8 @@ export default class WithSandBox implements WithSandBoxInterface {
             ) &&
             !this.scopeProperties.includes(key)
           ) {
+            !Reflect.has(rawWindow, key) && this.escapeKeys.add(key)
             Reflect.set(rawWindow, key, value)
-            this.escapeKeys.add(key)
           }
         }
 

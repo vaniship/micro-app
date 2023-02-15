@@ -4,6 +4,7 @@ import type {
   SandBoxStartParams,
   CommonIframeEffect,
   SandBoxStopParams,
+  plugins,
 } from '@micro-app/types'
 import {
   getEffectivePath,
@@ -11,6 +12,8 @@ import {
   pureCreateElement,
   assign,
   clearDOM,
+  isPlainObject,
+  isArray,
 } from '../../libs/utils'
 import {
   EventCenterForMicroApp,
@@ -64,6 +67,8 @@ export default class IframeSandbox {
   private windowEffect!: CommonIframeEffect
   private documentEffect!: CommonIframeEffect
   private removeHistoryListener!: CallableFunction
+  // Properties that can be escape to rawWindow
+  private escapeProperties: PropertyKey[] = []
 
   constructor (appName: string, url: string) {
     const rawLocation = globalEnv.rawWindow.location
@@ -102,10 +107,11 @@ export default class IframeSandbox {
     )
 
     this.initStaticGlobalKeys(appName, url)
+    // get escapeProperties from plugins
+    this.getSpecialProperties(appName)
 
     this.patchIframe(this.microAppWindow, (resolve: CallableFunction) => {
       this.createIframeTemplate(this.microAppWindow)
-      this.createIframeBase(this.microAppWindow)
       patchIframeRoute(appName, this.microAppWindow, childFullPath)
       this.windowEffect = patchIframeWindow(appName, this.microAppWindow)
       this.documentEffect = patchIframeDocument(appName, this.microAppWindow, this.proxyLocation)
@@ -124,7 +130,7 @@ export default class IframeSandbox {
     if (!this.active) {
       this.active = true
       /**
-       * TODO: 虚拟路由的升级版
+       * TODO: 虚拟路由升级
        * 灵感：iframe模式下关闭虚拟路由如何运行
        * 问题：search，尤其是编码后的search不够美观也不易阅读
        * 思路：
@@ -141,8 +147,12 @@ export default class IframeSandbox {
        *           解决思路：添加在基座的hash后 #/基座path/micro_app/子应用path
        *        4、基座和子应用都是hash，如何处理？
        *           解决思路：添加在基座的hash后 #/基座path/micro_app/#/子应用path，这样会不会有问题？
+       *           方案2：替换子应用的hash，比如：#/基座path/micro_app/hash/子应用path
+       *                问题：如果是这样的如何替换？#abc
        *        5、基座是history，子应用是hash，如何处理？
        *           解决思路：这个简单，直接放在基座后，/基座path/micro_app/#/子应用path
+       *        6、子应用带hash，但不是是hash路由，如何处理？
+       *        7、同时存在多个hash子应用，如何处理？
        *  3、基座路由带search、hash时如何处理
        *    解决思路：保留
        *  4、iframe如何关闭虚拟路由
@@ -160,11 +170,44 @@ export default class IframeSandbox {
        *      query模式 /main/?name=%2FchildBase%2Fpage，简化为 /main/?name=%2Fpage
        *    问题：
        *      1、如何与baseroute区分，会不会导致用户的混乱
+       *  6、多应用同时渲染如何处理？
+       *    用 micro-app-appName 作为分隔符，这样上面的问题也解决了，分隔符就用：micro-app-appName
+       *    比如：基座地址/micro-app-nameA/子应用A地址/micro-app-nameB/子应用B地址
+       *  7、子应用的search和hash如何处理？
+       *    search统一放在URL的最后面
+       *    比如：基座地址/micro-app-nameA/子应用A地址/micro-app-nameB/子应用B地址?nameA=xxx&nameB=xxx
+       *
+       *    hash如何处理？如何区分是hash路由还是锚点？
+       *    解决思路：将#替换为_hash_，前后加上下划线，因为单纯的hash很容易冲突，这样也好解决 #/xx 和 #xx 两种不同情况的处理
+       *    比如：基座地址/micro-app-nameA/子应用A基础路由/_hash_/page1/micro-app-nameB/子应用B基础路由/_hash_page1?nameA=xxx&nameB=xxx
+       *
+       *  8、micro-app-xxx 和 _hash_ 最好统一使用中划线或下划线
+       *
+       *  9、这样格式化后的子应用地址还是不方便开发者一眼就能看出来，但相对于search要好，至少没有编码，整体也更美观一些
+       *
+       *  10、基座是hash路由或者带有锚点
+       *    问题1：子应用的路由信息全部都拼接在hash后面吗？
+       *    解决思路：是的
+       *    问题2：基座带有锚点，子应用的参数添加在hash的后面还是基座的search上？
+       *    解决思路：添加在锚点后面，无论是hash路由还是锚点，子应用search统一放在hash后面，即便基座有search，虽然这样看起来有点奇怪，因为我们无法确定它是hash路由还是锚点
+       *    例如：基座pathname?a=xxx#abc/micro-app-nameA/子应用A地址?b=xxx
+       *
        *
        * 补充：
        *  1、虚拟路有强制开启，支持模式的切换，但还需要支持关闭吗
        *    问题：对于旧版本如何兼容？
        *    对于with和iframe沙箱还是支持关闭的。iframe的关闭相当于直接使用iframe内部的路由，这样肯定会有很多问题。
+       *
+       * 总结：
+       *  1、用-appName-做分隔符
+       *  2、#用-hash-替换
+       *  3、search统一放在最后面，用-appName-...-end-做分隔符
+       *  4、history模式、search模式
+       *
+       * 例1: 基座地址/-nameA-/子应用A基础路由/-hash-/page1/-nameB-/子应用B基础路由/page1-hash-maoDian?-nameA-a=1&b=2-end-&-nameB-c=3&d=4-end-
+       * 例2:
+       * http://localhost:3000/micro-app/demo/vite/-vite-/micro-app/vite/-hash-/page2?-vite-a=1&b=2-end-
+       * http://localhost:3000/micro-app/demo/vite/-vite-/micro-app/vite/-hash-/page2?vite=a%3D1%26b%3D2
        */
       if (useMemoryRouter) {
         this.initRouteState(defaultPage)
@@ -196,6 +239,18 @@ export default class IframeSandbox {
         this.clearRouteState(keepRouteState)
         // release listener of popstate
         this.removeHistoryListener()
+      }
+
+      if (!umdMode) {
+        // this.injectedKeys.forEach((key: PropertyKey) => {
+        //   Reflect.deleteProperty(this.microAppWindow, key)
+        // })
+        // this.injectedKeys.clear()
+
+        // this.escapeKeys.forEach((key: PropertyKey) => {
+        //   Reflect.deleteProperty(globalEnv.rawWindow, key)
+        // })
+        // this.escapeKeys.clear()
       }
 
       if (--IframeSandbox.activeCount === 0) {
@@ -292,6 +347,8 @@ export default class IframeSandbox {
     html.innerHTML = '<head></head><body></body>'
     microDocument.appendChild(html)
 
+    this.createIframeBase(microAppWindow)
+
     // 记录iframe原生body
     this.microBody = microDocument.body
     this.microHead = microDocument.head
@@ -354,6 +411,30 @@ export default class IframeSandbox {
       },
       has: (target: microAppWindowType, key: PropertyKey) => key in target,
     })
+  }
+
+  /**
+   * get escapeProperties from plugins & adapter
+   * @param appName app name
+   */
+  private getSpecialProperties (appName: string): void {
+    if (isPlainObject(microApp.options.plugins)) {
+      this.commonActionForSpecialProperties(microApp.options.plugins.global)
+      this.commonActionForSpecialProperties(microApp.options.plugins.modules?.[appName])
+    }
+  }
+
+  // common action for global plugins and module plugins
+  private commonActionForSpecialProperties (plugins: plugins['global']) {
+    if (isArray(plugins)) {
+      for (const plugin of plugins) {
+        if (isPlainObject(plugin)) {
+          if (isArray(plugin.escapeProperties)) {
+            this.escapeProperties = this.escapeProperties.concat(plugin.escapeProperties)
+          }
+        }
+      }
+    }
   }
 
   private initRouteState (defaultPage: string): void {

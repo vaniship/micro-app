@@ -36,9 +36,9 @@ function vite (props) {
   }
 
   useEffect(() => {
-    const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
-      console.log('全局 beforeEach: ', to, from, appName)
-    })
+    // const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
+    //   console.log('全局 beforeEach: ', to, from, appName)
+    // })
 
     // const releaseBeforeEach2 = microApp.router.beforeEach({
     //   vite (to, from) {
@@ -59,7 +59,7 @@ function vite (props) {
     microApp.router.setBaseAppRouter(props.history)
 
     return () => {
-      releaseBeforeEach1()
+      // releaseBeforeEach1()
       // releaseBeforeEach2()
       // releaseAfterEach1()
       // releaseAfterEach2()

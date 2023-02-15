@@ -184,8 +184,8 @@ export function createMicroLocation (
            * So we use browser origin to complete targetPath to avoid this problem
            * But, why child app can affect browser jump?
            * Guess(need check):
-           *  1. Vite records the origin when init
-           *  2. Listen for browser jump and automatically complete the address
+           *  1. vite records the origin when init
+           *  2. listen for browser jump and automatically complete the address
            */
           if (targetPath) {
             rawLocation.href = createURL(targetPath, rawLocation.origin).href
