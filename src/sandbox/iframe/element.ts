@@ -9,7 +9,7 @@ import {
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 import {
-  reWriteElementInfo,
+  updateElementInfo,
 } from './actions'
 import {
   appInstanceMap,
@@ -20,7 +20,7 @@ export function patchIframeElement (
   url: string,
   microAppWindow: microAppWindowType,
   iframeSandbox: IframeSandbox,
-) {
+): void {
   patchIframeNode(appName, microAppWindow, iframeSandbox)
   patchIframeAttribute(appName, url, microAppWindow)
 }
@@ -30,13 +30,14 @@ function patchIframeNode (
   microAppWindow: microAppWindowType,
   iframeSandbox: IframeSandbox,
 ): void {
-  const microDocument = microAppWindow.document
+  // const microDocument = microAppWindow.document
   const rawDocument = globalEnv.rawDocument
   const microRootNode = microAppWindow.Node
   const rawMicroGetRootNode = microRootNode.prototype.getRootNode
   const rawMicroAppendChild = microRootNode.prototype.appendChild
   const rawMicroInsertBefore = microRootNode.prototype.insertBefore
   const rawMicroReplaceChild = microRootNode.prototype.replaceChild
+  const rawMicroCloneNode = microRootNode.prototype.cloneNode
 
   const getRawTarget = (target: Node): Node => {
     if (target === iframeSandbox.microHead) {
@@ -56,7 +57,7 @@ function patchIframeNode (
   }
 
   microRootNode.prototype.appendChild = function appendChild <T extends Node> (node: T): T {
-    reWriteElementInfo(node, microAppWindow, appName)
+    updateElementInfo(node, microAppWindow, appName)
     // TODO：只有script才可以这样拦截，link、style不应该拦截
     if (isScriptElement(node) && node.__PURE_ELEMENT__) {
       return rawMicroAppendChild.call(this, node)
@@ -70,7 +71,7 @@ function patchIframeNode (
 
   // TODO: 更多场景适配
   microRootNode.prototype.insertBefore = function insertBefore <T extends Node> (node: T, child: Node | null): T {
-    reWriteElementInfo(node, microAppWindow, appName)
+    updateElementInfo(node, microAppWindow, appName)
     // console.log(6666666, node)
     if (isScriptElement(node) && node.__PURE_ELEMENT__) {
       return rawMicroInsertBefore.call(this, node, child)
@@ -87,7 +88,7 @@ function patchIframeNode (
 
   // TODO: 更多场景适配
   microRootNode.prototype.replaceChild = function replaceChild <T extends Node> (node: Node, child: T): T {
-    reWriteElementInfo(node, microAppWindow, appName)
+    updateElementInfo(node, microAppWindow, appName)
     if (isScriptElement(node) && node.__PURE_ELEMENT__) {
       return rawMicroReplaceChild.call(this, node, child)
     }
@@ -102,13 +103,34 @@ function patchIframeNode (
     return rawMicroReplaceChild.call(_this, node, child)
   }
 
+  // patch cloneNode
+  microRootNode.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
+    const clonedNode = rawMicroCloneNode.call(this, deep)
+    return updateElementInfo(clonedNode, microAppWindow, appName)
+  }
+
+  // Adapt to new image(...) scene
+  const ImageProxy = new Proxy(microAppWindow.Image, {
+    construct (Target, args): HTMLImageElement {
+      const elementImage = new Target(...args)
+      updateElementInfo(elementImage, microAppWindow, appName)
+      return elementImage
+    },
+  })
+
+  rawDefineProperty(microAppWindow, 'Image', {
+    configurable: true,
+    writable: true,
+    value: ImageProxy,
+  })
+
   /**
    * TODO:
    * 1、append prepend
-   * 2、cloneNode
+   * 2、cloneNode -- 完成
    * 3、innerHTML
    * 4、querySelector、querySelectorAll (head, body)
-   * 5、Image
+   * 5、Image -- 完成
    * 都是Element原型链上的方法
    */
 }

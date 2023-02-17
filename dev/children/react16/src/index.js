@@ -55,46 +55,46 @@ window.addEventListener('appstate-change', function (e) {
 })
 
 /* ----------------------分割线-默认模式--------------------- */
-ReactDOM.render(
-  <React.StrictMode>
-    <Router />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+// ReactDOM.render(
+//   <React.StrictMode>
+//     <Router />
+//   </React.StrictMode>,
+//   document.getElementById('root')
+// );
 
-// 注册unmount函数，卸载时会自动执行
-window.unmount = () => {
-  ReactDOM.unmountComponentAtNode(document.getElementById('root'));
-  console.log('微应用react16卸载了 -- 默认模式');
-}
+// // 注册unmount函数，卸载时会自动执行
+// window.unmount = () => {
+//   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
+//   console.log('微应用react16卸载了 -- 默认模式');
+// }
 
-console.timeEnd('react#16');
+// console.timeEnd('react#16');
 
 /* ----------------------分割线-umd模式--------------------- */
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
-// window.mount = (data) => {
-//   ReactDOM.render(
-//     <React.StrictMode>
-//       <Router />
-//     </React.StrictMode>,
-//     document.getElementById('root')
-//   );
-//   console.log('微应用react16渲染了 -- UMD模式', data);
-//   console.timeEnd('react#16');
-// }
+window.mount = (data) => {
+  ReactDOM.render(
+    <React.StrictMode>
+      <Router />
+    </React.StrictMode>,
+    document.getElementById('root')
+  );
+  console.log('微应用react16渲染了 -- UMD模式', data);
+  console.timeEnd('react#16');
+}
 
-// // 👇 将卸载操作放入 unmount 函数
-// window.unmount = (data) => {
-//   // 卸载时关闭弹窗
-//   notification.destroy()
-//   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
-//   console.log('微应用react16卸载了 -- UMD模式', data);
-// }
+// 👇 将卸载操作放入 unmount 函数
+window.unmount = (data) => {
+  // 卸载时关闭弹窗
+  notification.destroy()
+  ReactDOM.unmountComponentAtNode(document.getElementById('root'));
+  console.log('微应用react16卸载了 -- UMD模式', data);
+}
 
-// // 如果不在微前端环境，则直接执行mount渲染
-// if (!window.__MICRO_APP_ENVIRONMENT__) {
-//   window.mount()
-// }
+// 如果不在微前端环境，则直接执行mount渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
+  window.mount()
+}
 
 /* ---------------------- micro-app 自定义全局事件 --------------------- */
 

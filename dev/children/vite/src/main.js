@@ -100,7 +100,49 @@ window.onunmount = () => {
 //   location.hash = '#/page2'
 // }, 3000);
 
-console.log('vite子应用的全局变量1', window)
+
+/* ---------------------- DOMParser --------------------- */
+// BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
+// const parser = new DOMParser()
+// const htmlString = `
+// <div>
+//   <span id='parser-id'></span>
+//   <span class='parser-class'></span>
+//   <i name='parser-name'></i>
+// </div>
+// `
+
+// const doc = parser.parseFromString(htmlString, 'text/html')
+
+// console.log(
+//   'DOMParser querySelector',
+//   doc.querySelector('#parser-id'),
+//   doc.getElementById('parser-id'),
+//   doc.querySelectorAll('span'),
+//   doc.getElementsByClassName('parser-class'),
+//   doc.getElementsByTagName('span'),
+//   doc.getElementsByName('parser-name'),
+// )
+
+// setTimeout(() => {
+//   const d1 = doc.createElement('div')
+//   const d2 = doc.createElementNS('http://www.w3.org/1999/xhtml', 'svg')
+//   const d3 = doc.createDocumentFragment()
+
+//   console.log('DOMParser createElement', d1, d2, d3)
+// }, 3000)
+
+
+/* ---------------------- Image --------------------- */
+// const newImg = new Image()
+// newImg.src = '/micro-app/vite/src/assets/logo.png'
+// document.body.appendChild(newImg)
+// newImg.setAttribute('width', '50px')
+
+
+/* ---------------------- cloneNode --------------------- */
+// const img2 = newImg.cloneNode(true)
+// document.body.appendChild(img2)
 
 
 /* ---------------------- location 跳转 --------------------- */
@@ -139,3 +181,60 @@ setTimeout(() => {
 
   // window.history.scrollRestoration = 'manual'
 }, 5000);
+
+
+/* ---------------------- 接口相关 --------------------- */
+/**
+ * 基座和子应用都设置了/sugrec的代理，两者都可以正常拿到数据
+ * 但是当走子应用的代理时，headers信息只能拿到 content-length 和 content-type(with和iframe都一样)
+ * 走基座的代理时，可以拿到所有的headers头信息
+ * 子应用：/sugrec，默认补全为 http://localhost:7001/sugrec
+ * 主应用：http://localhost:3000/sugrec
+ * 注意：！！
+ * iframe环境下，会自动使用base补全fetch的地址
+ */
+if (process.env.NODE_ENV !== 'production') {
+  fetch('/sugrec').then((res) => {
+    res.headers.forEach(function(val, key) { console.log('response.headers: ', key + ': ' + val) })
+    return res.json()
+  }).then((data) => {
+    console.log('proxy代理 https://www.baidu.com/sugrec 返回数据', data)
+  })
+
+
+  // const req = new XMLHttpRequest()
+  // req.onreadystatechange = function () {
+  //   if (req.readyState === 4 && req.status === 200) {
+  //     console.log('ajax请求成功', req.response)
+  //   }
+  // }
+  // req.open('GET', '/sugrec')
+  // req.send()
+
+  // const evtSource = new EventSource('/sugrec');
+
+  // evtSource.onmessage = function(e) {
+  //   console.log('EventSource 返回数据:', e)
+  // }
+}
+
+
+
+/* ---------------------- 插件相关 --------------------- */
+// vite环境下无法设置window指向proxyWindow，其值依然是iframeWindow，所以插件无法使用
+window.escapeKey1 = 'escapeKey1' // 无效，只定义在iframeWindow上
+window.escapeKey2 = 'escapeKey2' // 无效，只定义在iframeWindow上
+window.__MICRO_APP_PROXY_WINDOW__.escapeKey3 = 'escapeKey3' // 逃逸到rawWindow上
+window.__MICRO_APP_PROXY_WINDOW__.escapeKey4 = 'escapeKey4' // 逃逸到rawWindow上
+
+
+// console.log('scopeProperties scopeKeySpe: ', scopeKeySpe)
+// console.log('scopeProperties window.scopeKeySpe: ', window.scopeKeySpe)
+
+// console.log('scopeProperties Vue: ', Vue)
+// console.log('scopeProperties window.Vue: ', window.Vue)
+
+// window.Vue = Vue ? Vue : 'child Vue'
+
+// console.log('scopeProperties Vue: ', Vue)
+// console.log('scopeProperties window.Vue: ', window.Vue)

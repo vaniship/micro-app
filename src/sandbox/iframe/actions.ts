@@ -3,10 +3,9 @@ import type {
 } from '@micro-app/types'
 import {
   rawDefineProperties,
-  isNode,
 } from '../../libs/utils'
 
-export function reWriteElementInfo <T extends Node> (
+export function updateElementInfo <T extends Node> (
   element: T,
   microAppWindow: microAppWindowType,
   appName: string,
@@ -24,10 +23,8 @@ export function reWriteElementInfo <T extends Node> (
       },
       __MICRO_APP_NAME__: {
         configurable: true,
-        get: () => appName,
-        set: (value: string) => {
-          // element.__MICRO_APP_NAME__ = value
-        },
+        writable: true,
+        value: appName,
       },
     })
   }

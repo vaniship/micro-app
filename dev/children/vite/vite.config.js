@@ -30,6 +30,13 @@ export default defineConfig({
   ],
   server: {
     port: 7001,
+    proxy: {
+      '/sugrec': {
+        target: 'https://www.baidu.com',
+        secure: false,
+        changeOrigin: true,
+      }
+    }
   },
   build: {
     outDir: 'vite',

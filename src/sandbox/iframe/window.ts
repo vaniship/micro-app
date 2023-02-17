@@ -42,13 +42,14 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
        *
        * 2、如果基座已经定义了 window.onpopstate，子应用定义会不会覆盖基座的？
        *    现在的逻辑看来，是会覆盖的，那么问题1就是 肯定的
+       * TODO: 一些特殊事件onpopstate、onhashchange不代理，放在scopeIframeWindowOnEvent中
        */
         rawDefineProperty(microAppWindow, eventName, {
           enumerable,
           configurable: true,
           get: () => rawWindow[eventName],
           set: writable ?? !!set
-            ? (value) => rawWindow[eventName] = isFunction(value) ? value.bind(microAppWindow) : value
+            ? (value) => { rawWindow[eventName] = isFunction(value) ? value.bind(microAppWindow) : value }
             : undefined,
         })
       } catch (e) {

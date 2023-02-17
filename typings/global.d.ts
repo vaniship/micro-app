@@ -55,7 +55,7 @@ declare module '@micro-app/types' {
   interface SandBoxStopParams {
     umdMode: boolean
     keepRouteState: boolean
-    clearEventSource: boolean
+    destroy: boolean
     clearData: boolean
   }
 

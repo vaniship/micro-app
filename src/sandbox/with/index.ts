@@ -38,8 +38,8 @@ import effect, {
   releaseEffectDocumentEvent,
 } from './effect'
 import {
-  patchElementPrototypeMethods,
-  releasePatches,
+  patchElementAndDocument,
+  releasePatchElementAndDocument,
 } from '../../source/patch'
 import {
   router,
@@ -156,9 +156,10 @@ export default class WithSandBox implements WithSandBoxInterface {
       }
 
       /**
-       * 1. Prevent the key deleted during sandBox.stop after rewrite
-       * 2. Umd mode will not delete any keys during sandBox.stop
-       * 3. It must not be umd mode when call sandbox.start at the first time
+       * Target: Ensure default mode action exactly same to first time when render again
+       * 1. The following globalKey maybe modified when render, reset them when render again in default mode
+       * 2. Umd mode will not delete any keys during sandBox.stop, ignore umd mode
+       * 3. When sandbox.start called for the first time, it must be the default mode
        */
       if (!umdMode) {
         this.initGlobalKeysWhenStart(
@@ -171,7 +172,7 @@ export default class WithSandBox implements WithSandBoxInterface {
 
       if (++WithSandBox.activeCount === 1) {
         effectDocumentEvent()
-        patchElementPrototypeMethods()
+        patchElementAndDocument()
         initEnvOfNestedApp()
         patchHistory()
       }
@@ -184,13 +185,13 @@ export default class WithSandBox implements WithSandBoxInterface {
    * close sandbox and perform some clean up actions
    * @param umdMode is umd mode
    * @param keepRouteState prevent reset route
-   * @param clearEventSource clear MicroEventSource when destroy
+   * @param destroy completely destroy, delete cache resources
    * @param clearData clear data from base app
    */
   public stop ({
     umdMode,
     keepRouteState,
-    clearEventSource,
+    destroy,
     clearData,
   }: SandBoxStopParams): void {
     if (this.active) {
@@ -203,17 +204,15 @@ export default class WithSandBox implements WithSandBoxInterface {
         this.removeHistoryListener()
       }
 
-      if (clearEventSource) {
-        clearMicroEventSource(this.microAppWindow.__MICRO_APP_NAME__)
-      }
-
       /**
        * NOTE:
        *  1. injectedKeys and escapeKeys must be placed at the back
        *  2. if key in initial microAppWindow, and then rewrite, this key will be delete from microAppWindow when stop, and lost when restart
        *  3. umd mode will not delete global keys
        */
-      if (!umdMode) {
+      if (!umdMode || destroy) {
+        clearMicroEventSource(this.microAppWindow.__MICRO_APP_NAME__)
+
         this.injectedKeys.forEach((key: PropertyKey) => {
           Reflect.deleteProperty(this.microAppWindow, key)
         })
@@ -227,7 +226,7 @@ export default class WithSandBox implements WithSandBoxInterface {
 
       if (--WithSandBox.activeCount === 0) {
         releaseEffectDocumentEvent()
-        releasePatches()
+        releasePatchElementAndDocument()
         releasePatchHistory()
       }
 

@@ -7,4 +7,3 @@ node_modules
 /plugins
 /src/__tests__/demos
 /src/__tests__
-/src/sandbox/iframe

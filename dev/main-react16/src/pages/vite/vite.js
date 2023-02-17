@@ -27,12 +27,16 @@ function vite (props) {
     console.log('来自 vite 子应用的数据', e.detail.data)
   }
 
+  function jumpToHome () {
+    microApp.router.push({name: 'vite', path: '/micro-app/vite/'})
+  }
+
   function jumpToPage2 () {
-    microApp.router.push({name: 'vite', path: '/micro-app/vite/#/page2'})
+    microApp.router.push({name: 'vite', path: '/micro-app/vite/page2'})
   }
 
   function jumpToPage3 () {
-    microApp.router.push({name: 'vite', path: '/micro-app/vite/#/page3'})
+    microApp.router.push({name: 'vite', path: '/micro-app/vite/page3'})
   }
 
   useEffect(() => {
@@ -77,6 +81,7 @@ function vite (props) {
           >
             发送数据
           </Button>
+          <Button type="primary" onClick={jumpToHome}>控制子应用跳转首页</Button>
           <Button type="primary" onClick={jumpToPage2}>控制子应用跳转page2</Button>
           <Button type="primary" onClick={jumpToPage3}>控制子应用跳转page3</Button>
         </Col>
@@ -97,6 +102,7 @@ function vite (props) {
         // disableSandbox
         iframe
         // keep-router-state
+        disable-patch-request
       >
       </micro-app>
 

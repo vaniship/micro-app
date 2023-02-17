@@ -24,7 +24,7 @@ import {
   proxy2RawDocumentMethods,
 } from './special_key'
 import {
-  reWriteElementInfo,
+  updateElementInfo,
 } from './actions'
 import { appInstanceMap } from '../../create_app'
 
@@ -54,12 +54,12 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     options?: ElementCreationOptions,
   ): HTMLElement {
     const element = globalEnv.rawCreateElement.call(this, tagName, options)
-    return reWriteElementInfo(element, microAppWindow, appName)
+    return updateElementInfo(element, microAppWindow, appName)
   }
 
   microRootDocument.prototype.createTextNode = function createTextNode (data: string): Text {
     const element = globalEnv.rawCreateTextNode.call(this, data)
-    return reWriteElementInfo<Text>(element, microAppWindow, appName)
+    return updateElementInfo<Text>(element, microAppWindow, appName)
   }
 
   function getDefaultRawTarget (target: Document): Document {
@@ -277,7 +277,6 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
   }
 
   // 重新定义microRootDocument.prototype 上的on开头方法
-
   function createSetterHandler (eventName: string): (value: unknown) => void {
     if (eventName === 'onclick') {
       return (value: unknown): void => {
@@ -292,7 +291,7 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
         }
       }
     }
-    return (value: unknown) => rawDocument[eventName] = isFunction(value) ? value.bind(microDocument) : value
+    return (value: unknown) => { rawDocument[eventName] = isFunction(value) ? value.bind(microDocument) : value }
   }
 
   /**

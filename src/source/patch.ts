@@ -300,7 +300,7 @@ function commonElementHandler (
 /**
  * Rewrite element prototype method
  */
-export function patchElementPrototypeMethods (): void {
+export function patchElementAndDocument (): void {
   patchDocument()
 
   // prototype methods of add element👇
@@ -599,7 +599,7 @@ function releasePatchDocument (): void {
 }
 
 // release patch
-export function releasePatches (): void {
+export function releasePatchElementAndDocument (): void {
   removeDomScope()
   releasePatchDocument()
 

@@ -128,16 +128,9 @@ microApp.start({
           return code
         }
       }],
-      // vite: [{
-      //   loader(code) {
-      //     if (process.env.NODE_ENV === 'development') {
-      //       code = code.replace(/(from|import)(\s*['"])(\/micro-app\/vite\/)/g, (all) => {
-      //         return all.replace('/micro-app/vite/', 'http://localhost:7001/micro-app/vite/')
-      //       })
-      //     }
-      //     return code
-      //   }
-      // }]
+      vite: [{
+        escapeProperties: ['escapeKey3', 'escapeKey4'],
+      }],
     }
   },
   /**
