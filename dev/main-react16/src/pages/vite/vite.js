@@ -102,7 +102,7 @@ function vite (props) {
         // disableSandbox
         iframe
         // keep-router-state
-        disable-patch-request
+        // disable-patch-request
       >
       </micro-app>
 
