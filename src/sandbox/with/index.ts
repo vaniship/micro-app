@@ -8,6 +8,7 @@ import type {
   SandBoxStartParams,
   SandBoxStopParams,
   EffectController,
+  releaseGlobalEffectParams,
 } from '@micro-app/types'
 import {
   EventCenterForMicroApp,
@@ -196,7 +197,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   }: SandBoxStopParams): void {
     if (this.active) {
       // clear global event, timeout, data listener
-      this.releaseGlobalEffect(clearData)
+      this.releaseGlobalEffect({ clearData })
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)
@@ -237,13 +238,23 @@ export default class WithSandBox implements WithSandBoxInterface {
   /**
    * clear global event, timeout, data listener
    * Scenes:
-   * 1. unmount of normal/umd app
+   * 1. unmount of default/umd app
    * 2. hidden keep-alive app
    * 3. after init prerender app
    * @param clearData clear data from base app
+   * @param isPrerender is prerender app
+   * @param keepAlive is keep-alive app
    */
-  public releaseGlobalEffect (clearData = false): void {
-    this.effectController.releaseEffect()
+  public releaseGlobalEffect ({
+    clearData = false,
+    isPrerender = false,
+    keepAlive = false,
+  }: releaseGlobalEffectParams): void {
+    this.effectController.releaseEffect({
+      umdMode: this.proxyWindow.__MICRO_APP_UMD_MODE__,
+      isPrerender,
+      keepAlive,
+    })
     this.microAppWindow.microApp.clearDataListener()
     this.microAppWindow.microApp.clearGlobalDataListener()
     if (clearData) {
@@ -258,10 +269,11 @@ export default class WithSandBox implements WithSandBoxInterface {
    * 1. exec umdMountHook in umd mode
    * 2. hidden keep-alive app
    * 3. after init prerender app
+   * @param isPrerender is prerender app
    */
-  public recordEffectSnapshot (): void {
+  public recordEffectSnapshot (isPrerender = false): void {
     // this.microAppWindow.__MICRO_APP_UMD_MODE__ = true
-    this.effectController.recordEffect()
+    this.effectController.recordEffect(isPrerender)
     recordDataCenterSnapshot(this.microAppWindow.microApp)
 
     // this.recordUmdInjectedValues = new Map<PropertyKey, unknown>()

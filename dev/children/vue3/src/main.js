@@ -68,3 +68,25 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 }
 
 // -------------------分割线------------------ //
+
+
+/* ---------------------- 全局事件 --------------------- */
+document.addEventListener('click', function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
+}, false)
+
+document.onclick = () => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+}
+
+window.addEventListener('scroll', () => {
+  console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
+}, false)
+
+setInterval(() => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+}, 5000)
+
+setTimeout(() => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+}, 5000);

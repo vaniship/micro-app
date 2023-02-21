@@ -32,10 +32,16 @@ declare module '@micro-app/types' {
     args: any[],
   }
 
+  interface releaseEffectParams {
+    umdMode: boolean,
+    isPrerender: boolean,
+    keepAlive: boolean,
+  }
+
   interface EffectController {
-    recordEffect(): void
+    recordEffect(isPrerender: boolean): void
     rebuildEffect(): void
-    releaseEffect(): void
+    releaseEffect(options: releaseEffectParams): void
   }
 
   interface CommonIframeEffect {
@@ -59,14 +65,20 @@ declare module '@micro-app/types' {
     clearData: boolean
   }
 
+  interface releaseGlobalEffectParams {
+    clearData?: boolean,
+    isPrerender?: boolean,
+    keepAlive?: boolean,
+  }
+
   interface WithSandBoxInterface {
     proxyWindow: WindowProxy
     microAppWindow: Window // Proxy target
     start (startParams: SandBoxStartParams): void
     stop (stopParams: SandBoxStopParams): void
-    releaseGlobalEffect (clearData?: boolean): void
+    releaseGlobalEffect (options: releaseGlobalEffectParams): void
     // record umd snapshot before the first execution of umdHookMount
-    recordEffectSnapshot (): void
+    recordEffectSnapshot (isPrerender: boolean): void
     // rebuild umd snapshot before remount umd app
     rebuildEffectSnapshot (): void
     setRouteInfoForKeepAliveApp (): void

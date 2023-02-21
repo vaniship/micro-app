@@ -2,6 +2,7 @@ import type {
   microAppWindowType,
   EffectController,
   MicroEventListener,
+  releaseEffectParams,
   timeInfo,
 } from '@micro-app/types'
 import {
@@ -249,13 +250,17 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   }
 
   /**
-   * record event and timer
-   * Scenes:
-   * 1. exec umdMountHook in umd mode
-   * 2. hidden keep-alive app
-   * 3. after init prerender app
+   * NOTE: about timer(events & vars should record & rebuild at all modes, exclude default mode)
+   * 4 modes: default-mode、umd-mode、prerender、keep-alive
+   * Solution:
+   *  1. default-mode(normal): clear events & timers, not record & rebuild anything
+   *  2. umd-mode(normal): not clear timers, record & rebuild events
+   *  3. keep-alive(default, umd): not clear timers, record & rebuild events
+   *  4. prerender(default, umd): record & rebuild events and timers
+   * So only prerender should record & rebuild timers
+   * Think: can prerender not record, rebuild, clear the timers ?
    */
-  const recordEffect = (): void => {
+  const recordEffect = (isPrerender: boolean): void => {
     // record window event
     eventListenerMap.forEach((listenerList, type) => {
       if (listenerList.size) {
@@ -263,13 +268,15 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
       }
     })
 
-    // record timers
-    if (intervalIdMap.size) {
-      sstIntervalIdMap = new Map(intervalIdMap)
-    }
+    // only preRender app will record & rebuild timer
+    if (isPrerender) {
+      if (intervalIdMap.size) {
+        sstIntervalIdMap = new Map(intervalIdMap)
+      }
 
-    if (timeoutIdMap.size) {
-      sstTimeoutIdMap = new Map(timeoutIdMap)
+      if (timeoutIdMap.size) {
+        sstTimeoutIdMap = new Map(timeoutIdMap)
+      }
     }
 
     // record onclick handler
@@ -323,7 +330,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   }
 
   // release all event listener & interval & timeout when unmount app
-  const releaseEffect = (): void => {
+  const releaseEffect = ({ umdMode, isPrerender, keepAlive }: releaseEffectParams): void => {
     // Clear window binding events
     if (eventListenerMap.size) {
       eventListenerMap.forEach((listenerList, type) => {
@@ -334,20 +341,19 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
       eventListenerMap.clear()
     }
 
-    // Clear timers
-    if (intervalIdMap.size) {
+    // default mode(not keep-alive) or isPrerender
+    if ((!umdMode && !keepAlive) || isPrerender) {
       intervalIdMap.forEach((_, intervalId: number) => {
         rawClearInterval.call(rawWindow, intervalId)
       })
-      intervalIdMap.clear()
-    }
 
-    if (timeoutIdMap.size) {
       timeoutIdMap.forEach((_, timeoutId: number) => {
         rawClearTimeout.call(rawWindow, timeoutId)
       })
-      timeoutIdMap.clear()
     }
+
+    intervalIdMap.clear()
+    timeoutIdMap.clear()
 
     // Clear the function bound by micro application through document.onclick
     documentClickListMap.delete(appName)

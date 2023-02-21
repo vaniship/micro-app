@@ -34,17 +34,17 @@ const prefetchConfig = [
     url: `${config.vue3}micro-app/vue3`,
     level: 3,
   },
-  {
-    name: 'angular11',
-    url: `${config.angular11}micro-app/angular11`,
-    // level: 1,
-  },
-  {
-    name: 'angular14',
-    url: `${config.angular14}micro-app/angular14`,
-    esmodule: true,
-    // level: 1,
-  },
+  // {
+  //   name: 'angular11',
+  //   url: `${config.angular11}micro-app/angular11`,
+  //   // level: 1,
+  // },
+  // {
+  //   name: 'angular14',
+  //   url: `${config.angular14}micro-app/angular14`,
+  //   esmodule: true,
+  //   // level: 1,
+  // },
 ]
 
 // microApp.preFetch(prefetchConfig)

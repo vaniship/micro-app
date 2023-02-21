@@ -43,7 +43,7 @@ function Vue3 () {
         onBeforeshow={() => hideLoading(false)}
         // baseRoute='/micro-app/demo/vue3'
         // disableScopecss
-        keep-alive
+        // keep-alive
         keep-router-state
         // inline
         // destroy

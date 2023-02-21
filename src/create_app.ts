@@ -339,7 +339,7 @@ export default class CreateApp implements AppInterface {
             const dispatchMounted = () => this.handleMounted(umdHookMountResult)
             if (this.isPrerender) {
               (this.preRenderEvent ??= []).push(dispatchMounted)
-              this.recordAndReleaseEffect()
+              this.recordAndReleaseEffect(true)
             } else {
               dispatchMounted()
             }
@@ -584,7 +584,7 @@ export default class CreateApp implements AppInterface {
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
 
-    this.recordAndReleaseEffect()
+    this.recordAndReleaseEffect(false, true)
 
     callback && callback()
   }
@@ -687,10 +687,12 @@ export default class CreateApp implements AppInterface {
    * Scenes:
    * 1. hidden keep-alive app
    * 2. after init prerender app
+   * @param isPrerender is prerender app
+   * @param keepAlive is keep-alive app
    */
-  private recordAndReleaseEffect (): void {
-    this.sandBox?.recordEffectSnapshot()
-    this.sandBox?.releaseGlobalEffect()
+  private recordAndReleaseEffect (isPrerender = false, keepAlive = false): void {
+    this.sandBox?.recordEffectSnapshot(isPrerender)
+    this.sandBox?.releaseGlobalEffect({ isPrerender, keepAlive })
   }
 
   public querySelector (selectors: string): Node | null {
