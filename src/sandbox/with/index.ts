@@ -171,11 +171,14 @@ export default class WithSandBox implements WithSandBoxInterface {
         )
       }
 
+      if (++globalEnv.activeSandbox === 1) {
+        patchElementAndDocument()
+        patchHistory()
+      }
+
       if (++WithSandBox.activeCount === 1) {
         effectDocumentEvent()
-        patchElementAndDocument()
         initEnvOfNestedApp()
-        patchHistory()
       }
 
       fixBabelPolyfill6()
@@ -225,10 +228,13 @@ export default class WithSandBox implements WithSandBoxInterface {
         this.escapeKeys.clear()
       }
 
-      if (--WithSandBox.activeCount === 0) {
-        releaseEffectDocumentEvent()
+      if (--globalEnv.activeSandbox === 0) {
         releasePatchElementAndDocument()
         releasePatchHistory()
+      }
+
+      if (--WithSandBox.activeCount === 0) {
+        releaseEffectDocumentEvent()
       }
 
       this.active = false

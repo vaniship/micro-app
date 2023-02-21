@@ -55,6 +55,7 @@ import {
   patchIframeElement,
 } from './element'
 import microApp from '../../micro_app'
+// import { throttleDeferForParentNode } from '../with/adapter'
 
 export default class IframeSandbox {
   static activeCount = 0 // number of active sandbox
@@ -146,17 +147,18 @@ export default class IframeSandbox {
 
       /**
        * delete baseElement, prevent address completion through baseElement
-       * Waring:
-       *  1. This will also affect a, image, link and script
+       * Waring: This will also affect a, image, link and script
        */
       if (disablePatchRequest) {
         this.baseElement?.parentNode?.removeChild(this.baseElement)
       }
 
-      // TODO: 两种沙箱同时存在 activeCount 计数有问题，改为统一记录，放在globalEnv里
-      if (++IframeSandbox.activeCount === 1) {
+      if (++globalEnv.activeSandbox === 1) {
         patchElementAndDocument()
         patchHistory()
+      }
+
+      if (++IframeSandbox.activeCount === 1) {
         // TODO: 多层嵌套兼容
       }
     }
@@ -188,9 +190,13 @@ export default class IframeSandbox {
         this.escapeKeys.clear()
       }
 
-      if (--IframeSandbox.activeCount === 0) {
+      if (--globalEnv.activeSandbox === 0) {
         releasePatchElementAndDocument()
         releasePatchHistory()
+      }
+
+      if (--IframeSandbox.activeCount === 0) {
+        // TODO: 有什么是可以放在这里的吗
       }
 
       this.active = false
@@ -337,6 +343,8 @@ export default class IframeSandbox {
         if (globalPropertyList.includes(key.toString())) {
           return this.proxyWindow
         }
+
+        // throttleDeferForParentNode(microAppWindow.document)
 
         return bindFunctionToRawTarget(Reflect.get(target, key), target)
       },

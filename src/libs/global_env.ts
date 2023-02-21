@@ -42,7 +42,9 @@ declare global {
   }
 }
 
-const globalEnv: Record<string, any> = {}
+const globalEnv: Record<string, any> = {
+  activeSandbox: 0,
+}
 
 /**
  * Note loop nesting
