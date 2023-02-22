@@ -33,4 +33,4 @@ microApp.start({
 ```
 
 > [!NOTE]
-> 1、如果跨域请求带cookie，那么`Access-Control-Allow-Origin`不能设置为`*`，这一点需要注意
+> 1、如果跨域请求带cookie，那么`Access-Control-Allow-Origin`不能设置为`*`，必须指定域名，同时设置`Access-Control-Allow-Credentials: true`

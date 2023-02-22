@@ -14,6 +14,7 @@ import {
 import {
   appInstanceMap,
 } from '../../create_app'
+import { throttleDeferForParentNode } from '../adapter'
 
 export function patchIframeElement (
   appName: string,
@@ -30,7 +31,7 @@ function patchIframeNode (
   microAppWindow: microAppWindowType,
   iframeSandbox: IframeSandbox,
 ): void {
-  // const microDocument = microAppWindow.document
+  const microDocument = microAppWindow.document
   const rawDocument = globalEnv.rawDocument
   const microRootNode = microAppWindow.Node
   const rawMicroGetRootNode = microRootNode.prototype.getRootNode
@@ -38,6 +39,7 @@ function patchIframeNode (
   const rawMicroInsertBefore = microRootNode.prototype.insertBefore
   const rawMicroReplaceChild = microRootNode.prototype.replaceChild
   const rawMicroCloneNode = microRootNode.prototype.cloneNode
+  const rawParentNodeLDesc = Object.getOwnPropertyDescriptor(microRootNode.prototype, 'parentNode') as PropertyDescriptor
 
   const getRawTarget = (target: Node): Node => {
     if (target === iframeSandbox.microHead) {
@@ -52,7 +54,7 @@ function patchIframeNode (
   microRootNode.prototype.getRootNode = function getRootNode (options?: GetRootNodeOptions): Node {
     const rootNode = rawMicroGetRootNode.call(this, options)
     // TODO: 只有shadowDOM才有效，非情shadowDOM直接指向document
-    if (rootNode === appInstanceMap.get(appName)?.container) return microAppWindow.document
+    if (rootNode === appInstanceMap.get(appName)?.container) return microDocument
     return rootNode
   }
 
@@ -108,6 +110,31 @@ function patchIframeNode (
     const clonedNode = rawMicroCloneNode.call(this, deep)
     return updateElementInfo(clonedNode, microAppWindow, appName)
   }
+
+  // patch parentNode
+  rawDefineProperty(microRootNode.prototype, 'parentNode', {
+    configurable: true,
+    enumerable: true,
+    get () {
+      // set html.parentNode to microDocument
+      throttleDeferForParentNode(microDocument)
+      const result = rawParentNodeLDesc.get!.call(this)
+      /**
+       * If parentNode is <micro-app-body>, return rawDocument.body
+       * Scenes:
+       *  1. element-ui@2/lib/utils/vue-popper.js
+       *    if (this.popperElm.parentNode === document.body) ...
+       * WARNING:
+       *  Will it cause other problems ?
+       *  e.g. target.parentNode.remove(target)
+       */
+      if (result?.tagName === 'MICRO-APP-BODY' && appInstanceMap.get(appName)?.container) {
+        return rawDocument.body
+      }
+      return result
+    },
+    set: undefined,
+  })
 
   // Adapt to new image(...) scene
   const ImageProxy = new Proxy(microAppWindow.Image, {

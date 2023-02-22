@@ -73,6 +73,7 @@ export function initGlobalEnv (): void {
     const rawElementQuerySelector = Element.prototype.querySelector
     const rawElementQuerySelectorAll = Element.prototype.querySelectorAll
     const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML')
+    const rawParentNodeDesc = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode')
 
     const rawCreateElement = rawRootDocument.prototype.createElement
     const rawCreateElementNS = rawRootDocument.prototype.createElementNS
@@ -131,6 +132,7 @@ export function initGlobalEnv (): void {
       rawElementQuerySelector,
       rawElementQuerySelectorAll,
       rawInnerHTMLDesc,
+      rawParentNodeDesc,
 
       rawCreateElement,
       rawCreateElementNS,

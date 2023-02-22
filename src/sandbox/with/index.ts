@@ -56,7 +56,7 @@ import {
 import Adapter, {
   fixBabelPolyfill6,
   throttleDeferForParentNode,
-} from './adapter'
+} from '../adapter'
 import {
   createMicroFetch,
   useMicroEventSource,

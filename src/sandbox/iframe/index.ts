@@ -55,7 +55,6 @@ import {
   patchIframeElement,
 } from './element'
 import microApp from '../../micro_app'
-// import { throttleDeferForParentNode } from '../with/adapter'
 
 export default class IframeSandbox {
   static activeCount = 0 // number of active sandbox
@@ -343,8 +342,6 @@ export default class IframeSandbox {
         if (globalPropertyList.includes(key.toString())) {
           return this.proxyWindow
         }
-
-        // throttleDeferForParentNode(microAppWindow.document)
 
         return bindFunctionToRawTarget(Reflect.get(target, key), target)
       },

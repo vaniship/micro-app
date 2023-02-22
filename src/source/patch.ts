@@ -31,7 +31,7 @@ import {
 } from './scripts'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
-import { fixReactHMRConflict } from '../sandbox/with/adapter'
+import { fixReactHMRConflict } from '../sandbox/adapter'
 
 // Record element and map element
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
@@ -134,32 +134,11 @@ function invokePrototypeMethod (
   passiveChild?: Node | null,
 ): any {
   const hijackParent = getHijackParent(parent, targetChild, app)
-  // console.log(8888888, hijackParent, targetChild, targetChild.__MICRO_APP_NAME__)
   /**
    * If passiveChild is not the child node, insertBefore replaceChild will have a problem, at this time, it will be degraded to appendChild
    * E.g: document.head.insertBefore(targetChild, document.head.childNodes[0])
    */
   if (hijackParent) {
-    /**
-     * WARNING:
-     * Verifying that the parentNode of the targetChild points to document.body will cause other problems ?
-     */
-    if (hijackParent.tagName === 'MICRO-APP-BODY' && rawMethod !== globalEnv.rawRemoveChild) {
-      const descriptor = Object.getOwnPropertyDescriptor(targetChild, 'parentNode')
-      if (!descriptor || descriptor.configurable) {
-        rawDefineProperty(targetChild, 'parentNode', {
-          configurable: true,
-          get () {
-            /**
-             * When operate child from parentNode async, may have been unmount
-             * e.g.
-             * target.parentNode.remove(target)
-             */
-            return !app.container ? hijackParent : document.body
-          },
-        })
-      }
-    }
     /**
      * 1. If passiveChild exists, it must be insertBefore or replaceChild
      * 2. When removeChild, targetChild may not be in microAppHead or head
@@ -402,6 +381,29 @@ export function patchElementAndDocument (): void {
         }
       })
     }
+  })
+
+  // patch parentNode
+  rawDefineProperty(Node.prototype, 'parentNode', {
+    configurable: true,
+    enumerable: true,
+    get () {
+      const result = globalEnv.rawParentNodeDesc.get.call(this)
+      /**
+       * If parentNode is <micro-app-body>, return rawDocument.body
+       * Scenes:
+       *  1. element-ui@2/lib/utils/vue-popper.js
+       *    if (this.popperElm.parentNode === document.body) ...
+       * WARNING:
+       *  Will it cause other problems ?
+       *  e.g. target.parentNode.remove(target)
+       */
+      if (result?.tagName === 'MICRO-APP-BODY' && appInstanceMap.get(this.__MICRO_APP_NAME__)?.container) {
+        return globalEnv.rawDocument.body
+      }
+      return result
+    },
+    set: undefined,
   })
 }
 

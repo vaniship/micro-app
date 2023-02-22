@@ -1,6 +1,6 @@
 import type { SandBoxAdapter, AppInterface } from '@micro-app/types'
-import globalEnv from '../../libs/global_env'
-import { defer, rawDefineProperty } from '../../libs/utils'
+import globalEnv from '../libs/global_env'
+import { defer, rawDefineProperty } from '../libs/utils'
 
 export default class Adapter implements SandBoxAdapter {
   constructor () {
@@ -66,13 +66,15 @@ export function fixReactHMRConflict (app: AppInterface): void {
 /**
  * reDefine parentNode of html
  * Scenes:
- *  1. element-ui popover.js
- *     if (html.parentNode === document) ...
+ *  1. element-ui@2/lib/utils/popper.js
+ *    var parent = element.parentNode;
+ *    // root is child app window
+ *    if (parent === root.document) ...
  */
-export function throttleDeferForParentNode (proxyDocument: Document): void {
+export function throttleDeferForParentNode (microDocument: Document): void {
   const html = globalEnv.rawDocument.firstElementChild
   if (html?.parentNode === globalEnv.rawDocument) {
-    setParentNode(html, proxyDocument)
+    setParentNode(html, microDocument)
     defer(() => {
       setParentNode(html, globalEnv.rawDocument)
     })
