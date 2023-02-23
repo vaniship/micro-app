@@ -6,18 +6,18 @@ import type {
 } from '@micro-app/types'
 import {
   appInstanceMap,
+  isIframeSandbox,
 } from '../../create_app'
 import {
   getActiveApps,
 } from '../../micro_app'
 import {
   formatEventName,
-} from '../with/effect'
+} from '../adapter'
 import {
   getMicroPathFromURL,
   getMicroState,
   isEffectiveApp,
-  isIframeSandbox,
 } from './core'
 import {
   updateMicroLocation,
@@ -106,7 +106,7 @@ export function dispatchPopStateEventToMicroApp (
   // })
   // create PopStateEvent named popstate-appName with sub app state
   const newPopStateEvent = new PopStateEvent(
-    isIframeSandbox(appName) ? 'popstate' : formatEventName('popstate', appName),
+    formatEventName('popstate', appName),
     { state: getMicroState(appName) }
   )
 
@@ -133,7 +133,7 @@ export function dispatchHashChangeEventToMicroApp (
   oldHref: string,
 ): void {
   const newHashChangeEvent = new HashChangeEvent(
-    isIframeSandbox(appName) ? 'hashchange' : formatEventName('hashchange', appName),
+    formatEventName('hashchange', appName),
     {
       newURL: proxyWindow.location.href,
       oldURL: oldHref,

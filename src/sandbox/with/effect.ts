@@ -13,29 +13,8 @@ import {
   isFunction,
   rawDefineProperty,
 } from '../../libs/utils'
-import { appInstanceMap } from '../../create_app'
 import globalEnv from '../../libs/global_env'
-
-// this events should be sent to the specified app
-const formatEventList = ['unmount', 'appstate-change']
-
-/**
- * Format event name
- * @param eventName event name
- * @param appName app name
- */
-export function formatEventName (eventName: string, appName: string): string {
-  if (
-    formatEventList.includes(eventName) ||
-    (
-      (eventName === 'popstate' || eventName === 'hashchange') &&
-      appInstanceMap.get(appName)?.useMemoryRouter
-    )
-  ) {
-    return `${eventName}-${appName}`
-  }
-  return eventName
-}
+import { formatEventName } from '../adapter'
 
 // document.onclick binding list, the binding function of each application is unique
 const documentClickListMap = new Map<string, unknown>()

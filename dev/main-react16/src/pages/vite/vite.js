@@ -103,6 +103,7 @@ function vite (props) {
         iframe
         // keep-router-state
         // disable-patch-request
+        // keep-alive
       >
       </micro-app>
 

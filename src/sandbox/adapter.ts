@@ -1,6 +1,7 @@
 import type { SandBoxAdapter, AppInterface } from '@micro-app/types'
 import globalEnv from '../libs/global_env'
 import { defer, rawDefineProperty } from '../libs/utils'
+import { appInstanceMap, isIframeSandbox } from '../create_app'
 
 export default class Adapter implements SandBoxAdapter {
   constructor () {
@@ -94,4 +95,28 @@ export function setParentNode (target: Node, value: Document | Element): void {
       configurable: true,
     })
   }
+}
+
+// this events should be sent to the specified app
+const formatEventList = ['unmount', 'appstate-change']
+
+/**
+ * Format event name
+ * @param eventName event name
+ * @param appName app name
+ */
+export function formatEventName (eventName: string, appName: string): string {
+  if (
+    !isIframeSandbox(appName) && (
+      formatEventList.includes(eventName) ||
+      (
+        (eventName === 'popstate' || eventName === 'hashchange') &&
+        appInstanceMap.get(appName)?.useMemoryRouter
+      )
+    )
+  ) {
+    return `${eventName}-${appName}`
+  }
+
+  return eventName
 }

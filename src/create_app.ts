@@ -438,7 +438,7 @@ export default class CreateApp implements AppInterface {
     )
 
     // dispatch unmount event to micro app
-    dispatchCustomEventToMicroApp('unmount', this.name)
+    dispatchCustomEventToMicroApp(this, 'unmount')
 
     this.handleUnmounted(
       destroy,
@@ -567,7 +567,7 @@ export default class CreateApp implements AppInterface {
 
     // event should dispatch before clone node
     // dispatch afterHidden event to micro-app
-    dispatchCustomEventToMicroApp('appstate-change', this.name, {
+    dispatchCustomEventToMicroApp(this, 'appstate-change', {
       appState: 'afterhidden',
     })
 
@@ -593,7 +593,7 @@ export default class CreateApp implements AppInterface {
     this.sandBox?.rebuildEffectSnapshot()
 
     // dispatch beforeShow event to micro-app
-    dispatchCustomEventToMicroApp('appstate-change', this.name, {
+    dispatchCustomEventToMicroApp(this, 'appstate-change', {
       appState: 'beforeshow',
     })
 
@@ -620,7 +620,7 @@ export default class CreateApp implements AppInterface {
     }
 
     // dispatch afterShow event to micro-app
-    dispatchCustomEventToMicroApp('appstate-change', this.name, {
+    dispatchCustomEventToMicroApp(this, 'appstate-change', {
       appState: 'aftershow',
     })
 
@@ -701,4 +701,9 @@ export default class CreateApp implements AppInterface {
   public querySelectorAll (selectors: string): NodeListOf<Node> {
     return this.container ? globalEnv.rawElementQuerySelectorAll.call(this.container, selectors) : []
   }
+}
+
+// iframe route mode
+export function isIframeSandbox (appName: string): boolean {
+  return appInstanceMap.get(appName)?.iframe ?? false
 }

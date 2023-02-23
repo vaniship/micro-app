@@ -33,6 +33,12 @@ export enum microGlobalEvent {
   ONUNMOUNT = 'onunmount',
 }
 
+// custom event of child app
+export const microAppCustomEvent = [
+  'unmount',
+  'appstate-change',
+]
+
 // keep-alive status
 export enum keepAliveStates {
   KEEP_ALIVE_SHOW = 'keep_alive_show',

@@ -79,6 +79,16 @@ window.onunmount = () => {
   console.log('子应用 window.onunmount 事件')
 }
 
+// 监听keep-alive模式下的app状态
+window.addEventListener('appstate-change', function (e) {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部事件 keep-alive 状态：`, e.detail.appState)
+})
+
+window.addEventListener('unmount', function (e) {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部unmount事件`)
+})
+
+
 /* ---------------------- 全局事件 --------------------- */
 document.addEventListener('click', function () {
   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)

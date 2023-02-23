@@ -21,13 +21,12 @@ import {
   getMicroState,
   getMicroPathFromURL,
   isEffectiveApp,
-  isIframeSandbox,
 } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
 import bindFunctionToRawTarget from '../bind_function'
 import { getActiveApps } from '../../micro_app'
-import { appInstanceMap } from '../../create_app'
+import { appInstanceMap, isIframeSandbox } from '../../create_app'
 
 /**
  * create proxyHistory for microApp

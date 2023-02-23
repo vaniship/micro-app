@@ -1,3 +1,4 @@
+import { microAppCustomEvent } from '../../constants'
 
 export const escape2RawWindowKeys = [
   'getComputedStyle',
@@ -38,9 +39,9 @@ export const scopeIframeWindowEvent = [
   'load',
   'beforeunload',
   'unload',
-  'unmount', // micro-app custom event
-  'appstate-change', // micro-app custom event
-]
+  // 'unmount', // move to microAppCustomEvent
+  // 'appstate-change', // move to microAppCustomEvent
+].concat(microAppCustomEvent)
 
 export const scopeIframeDocumentEvent = [
   'DOMContentLoaded',

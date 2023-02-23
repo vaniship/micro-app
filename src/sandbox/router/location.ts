@@ -2,11 +2,11 @@
 import type { MicroLocation, GuardLocation, microAppWindowType } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import { assign as oAssign, createURL, rawDefineProperty } from '../../libs/utils'
-import { setMicroPathToURL, isEffectiveApp, isIframeSandbox, getMicroState } from './core'
+import { setMicroPathToURL, isEffectiveApp, getMicroState } from './core'
 import { dispatchNativeEvent } from './event'
 import { executeNavigationGuard } from './api'
 import { nativeHistoryNavigate, navigateWithNativeEvent } from './history'
-import { appInstanceMap } from '../../create_app'
+import { appInstanceMap, isIframeSandbox } from '../../create_app'
 import { hijackMicroLocationKeys } from '../iframe/special_key'
 
 // origin is readonly, so we ignore when updateMicroLocation
