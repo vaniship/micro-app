@@ -79,8 +79,8 @@ document.onclick = () => {
   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
 }
 
-window.addEventListener('scroll', () => {
-  console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
+window.addEventListener('mousedown', () => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener(mousedown)绑定`)
 }, false)
 
 setInterval(() => {

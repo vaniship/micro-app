@@ -298,11 +298,14 @@ export function recordDataCenterSnapshot (microAppEventCenter: EventCenterForMic
  * @param microAppEventCenter instance of EventCenterForMicroApp
  */
 export function rebuildDataCenterSnapshot (microAppEventCenter: EventCenterForMicroApp): void {
-  for (const cb of microAppEventCenter.umdDataListeners!.global) {
-    microAppEventCenter.addGlobalDataListener(cb, cb.__AUTO_TRIGGER__)
-  }
+  // in withSandbox preRender mode with module script, umdDataListeners maybe undefined
+  if (microAppEventCenter.umdDataListeners) {
+    for (const cb of microAppEventCenter.umdDataListeners.global) {
+      microAppEventCenter.addGlobalDataListener(cb, cb.__AUTO_TRIGGER__)
+    }
 
-  for (const cb of microAppEventCenter.umdDataListeners!.normal) {
-    microAppEventCenter.addDataListener(cb, cb.__AUTO_TRIGGER__)
+    for (const cb of microAppEventCenter.umdDataListeners.normal) {
+      microAppEventCenter.addDataListener(cb, cb.__AUTO_TRIGGER__)
+    }
   }
 }

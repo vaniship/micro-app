@@ -4,6 +4,7 @@ import type {
   SandBoxStartParams,
   CommonIframeEffect,
   SandBoxStopParams,
+  releaseGlobalEffectParams,
   plugins,
 } from '@micro-app/types'
 import {
@@ -171,7 +172,7 @@ export default class IframeSandbox {
   }: SandBoxStopParams): void {
     if (this.active) {
       // clear global event, timeout, data listener
-      this.releaseGlobalEffect(clearData)
+      this.releaseGlobalEffect({ clearData })
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)
@@ -209,8 +210,10 @@ export default class IframeSandbox {
    * 2. hidden keep-alive app
    * 3. after init prerender app
    * @param clearData clear data from base app
+   * @param isPrerender is prerender app
+   * @param keepAlive is keep-alive app
    */
-  public releaseGlobalEffect (clearData = false): void {
+  public releaseGlobalEffect ({ clearData = false }: releaseGlobalEffectParams): void {
     this.windowEffect.release()
     this.documentEffect.release()
     this.microAppWindow.microApp.clearDataListener()

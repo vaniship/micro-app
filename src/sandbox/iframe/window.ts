@@ -65,18 +65,16 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
     rawWindow,
     rawAddEventListener,
     rawRemoveEventListener,
-    // rawSetInterval,
-    // rawSetTimeout,
-    // rawClearInterval,
-    // rawClearTimeout,
   } = globalEnv
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const sstWindowListenerMap = new Map<string, Set<MicroEventListener>>()
-  // const intervalIdSet = new Set<number>()
-  // const timeoutIdSet = new Set<number>()
 
   function getEventTarget (type: string): Window {
     return scopeIframeWindowEvent.includes(type) ? microAppWindow : rawWindow
+  }
+
+  const clearSnapshotData = () => {
+    sstWindowListenerMap.clear()
   }
 
   microAppWindow.addEventListener = function (
@@ -107,106 +105,15 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
     rawRemoveEventListener.call(getEventTarget(type), type, listener, options)
   }
 
-  // microAppWindow.setInterval = function (
-  //   handler: TimerHandler,
-  //   timeout?: number,
-  //   ...args: any[]
-  // ): number {
-  //   const intervalId = rawSetInterval.call(microAppWindow, handler, timeout, ...args)
-  //   intervalIdSet.add(intervalId)
-  //   return intervalId
-  // }
-
-  // microAppWindow.setTimeout = function (
-  //   handler: TimerHandler,
-  //   timeout?: number,
-  //   ...args: any[]
-  // ): number {
-  //   const timeoutId = rawSetTimeout.call(microAppWindow, handler, timeout, ...args)
-  //   timeoutIdSet.add(timeoutId)
-  //   return timeoutId
-  // }
-
-  // microAppWindow.clearInterval = function (intervalId: number) {
-  //   intervalIdSet.delete(intervalId)
-  //   rawClearInterval.call(microAppWindow, intervalId)
-  // }
-
-  // microAppWindow.clearTimeout = function (timeoutId: number) {
-  //   timeoutIdSet.delete(timeoutId)
-  //   rawClearTimeout.call(microAppWindow, timeoutId)
-  // }
-
-  const clearSnapshotData = () => {
-    sstWindowListenerMap.clear()
-    // sstIntervalIdMap.clear()
-    // sstTimeoutIdMap.clear()
-  }
-
   /**
-   * 定时器的问题：
-   * 1、umd模式下不再记录和清除定时器，避免出现的各种问题
-   * 2、默认模式下正常清除定时器
-   * 3、keep-alive模式下也不再清除。。。也对吧
-   * 4、那么，预渲染呢？？？
-   *    预渲染类似于keep-alive，只是渲染后隐藏应用，所以也不用清除
-   * 5、默认模式下的keep-alive和预渲染不应该清除，因为清除就无法恢复了
-   *    这是一个很麻烦的事情：
-   *    umd的keep-alive：清除 + 恢复
-   *    umd的预渲染呢：清除 + 恢复
-   *    umd的卸载：不进行任何操作
+   * NOTE: about timer(events & properties should record & rebuild at all modes, exclude default mode)
+   * 4 modes: default-mode、umd-mode、prerender、keep-alive
+   * Solution:
+   *  1. default-mode(normal): clear events & timers, not record & rebuild anything
+   *  2. umd-mode(normal): not clear timers, record & rebuild events
+   *  3. prerender/keep-alive(default, umd): not clear timers, record & rebuild events
    *
-   *    默认模式的卸载：清除
-   *    默认模式的keep-alive：清除 + 恢复
-   *    默认模式的预渲染呢：清除 + 恢复
-   *
-   *    梳理：
-   *      keep-alive、预渲染：清除 + 恢复
-   *      umd的卸载：不进行任何操作
-   *      默认模式的卸载：清除
-   *
-   *    TODO：
-   *      1、完善逻辑
-   *      2、现在的 清除、记录和恢复操作分散的太零散，sandbox、create_app中都有分散，将代码再优化一下，集中处理
-   *
-   *    现在统一：不做任何处理
-   */
-  const release = (): void => {
-    // Clear window binding events
-    if (eventListenerMap.size) {
-      eventListenerMap.forEach((listenerList, type) => {
-        for (const listener of listenerList) {
-          rawRemoveEventListener.call(getEventTarget(type), type, listener)
-        }
-      })
-      eventListenerMap.clear()
-    }
-
-    // if (!umdMode && !preRender) {
-    //   // Clear timers
-    //   if (intervalIdSet.size) {
-    //     intervalIdSet.forEach((intervalId: number) => {
-    //       rawClearInterval.call(rawWindow, intervalId)
-    //     })
-    //   }
-
-    //   if (timeoutIdSet.size) {
-    //     timeoutIdSet.forEach((_, timeoutId: number) => {
-    //       rawClearTimeout.call(rawWindow, timeoutId)
-    //     })
-    //   }
-    // }
-
-    // intervalIdSet.clear()
-    // timeoutIdSet.clear()
-  }
-
-  /**
-   * record event
-   * Scenes:
-   * 1. exec umdMountHook in umd mode
-   * 2. hidden keep-alive app
-   * 3. after init prerender app
+   * TODO: 现在的 清除、记录和恢复操作分散的太零散，sandbox、create_app中都有分散，将代码再优化一下，集中处理
    */
   const record = (): void => {
     // record window event
@@ -215,15 +122,6 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
         sstWindowListenerMap.set(type, new Set(listenerList))
       }
     })
-
-    // // record timers
-    // if (intervalIdMap.size) {
-    //   sstIntervalIdMap = new Map(intervalIdMap)
-    // }
-
-    // if (timeoutIdMap.size) {
-    //   sstTimeoutIdMap = new Map(timeoutIdMap)
-    // }
   }
 
   // rebuild event and timer before remount app
@@ -235,16 +133,19 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
       }
     })
 
-    // // rebuild timer
-    // sstIntervalIdMap.forEach((info: timeInfo) => {
-    //   microAppWindow.setInterval(info.handler, info.timeout, ...info.args)
-    // })
-
-    // sstTimeoutIdMap.forEach((info: timeInfo) => {
-    //   microAppWindow.setTimeout(info.handler, info.timeout, ...info.args)
-    // })
-
     clearSnapshotData()
+  }
+
+  const release = (): void => {
+    // Clear window binding events
+    if (eventListenerMap.size) {
+      eventListenerMap.forEach((listenerList, type) => {
+        for (const listener of listenerList) {
+          rawRemoveEventListener.call(getEventTarget(type), type, listener)
+        }
+      })
+      eventListenerMap.clear()
+    }
   }
 
   return {

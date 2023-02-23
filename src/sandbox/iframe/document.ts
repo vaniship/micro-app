@@ -174,7 +174,7 @@ function patchDocumentProperties (
 
   const createDescriptors = (): PropertyDescriptorMap => {
     const result: PropertyDescriptorMap = {}
-    const descList: Array<[PropertyKey, () => unknown]> = [
+    const descList: Array<[string, () => unknown]> = [
       ['documentURI', () => proxyLocation.href],
       ['URL', () => proxyLocation.href],
       ['documentElement', () => rawDocument.documentElement],
@@ -225,8 +225,8 @@ function patchDocumentProperties (
 function documentEffect (appName: string, microAppWindow: microAppWindowType): CommonIframeEffect {
   const documentEventListenerMap = new Map<string, Map<string, Set<MicroEventListener>>>()
   const sstDocumentListenerMap = new Map<string, Set<MicroEventListener>>()
-  let onClickHandler: unknown
-  let sstOnClickHandler: unknown
+  let onClickHandler: unknown = null
+  let sstOnClickHandler: unknown = null
   const microRootDocument = microAppWindow.Document
   const microDocument = microAppWindow.document
   const {
@@ -327,29 +327,6 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
     sstOnClickHandler = null
   }
 
-  const release = (): void => {
-    // Clear the function bound by micro application through document.onclick
-    if (isFunction(onClickHandler)) {
-      rawRemoveEventListener.call(rawDocument, 'click', onClickHandler)
-      onClickHandler = null
-    }
-
-    // Clear document binding event
-    const documentAppListenersMap = documentEventListenerMap.get(appName)
-    if (documentAppListenersMap) {
-      documentAppListenersMap.forEach((listenerList, type) => {
-        for (const listener of listenerList) {
-          rawRemoveEventListener.call(
-            getEventTarget(type, microDocument),
-            type,
-            listener?.__MICRO_APP_BOUND_FUNCTION__ || listener,
-          )
-        }
-      })
-      documentAppListenersMap.clear()
-    }
-  }
-
   /**
    * record event
    * Scenes:
@@ -379,11 +356,34 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
 
     sstDocumentListenerMap.forEach((listenerList, type) => {
       for (const listener of listenerList) {
-        document.addEventListener(type, listener, listener?.__MICRO_APP_MARK_OPTIONS__)
+        microDocument.addEventListener(type, listener, listener?.__MICRO_APP_MARK_OPTIONS__)
       }
     })
 
     clearSnapshotData()
+  }
+
+  const release = (): void => {
+    // Clear the function bound by micro application through document.onclick
+    if (isFunction(onClickHandler)) {
+      rawRemoveEventListener.call(rawDocument, 'click', onClickHandler)
+      onClickHandler = null
+    }
+
+    // Clear document binding event
+    const documentAppListenersMap = documentEventListenerMap.get(appName)
+    if (documentAppListenersMap) {
+      documentAppListenersMap.forEach((listenerList, type) => {
+        for (const listener of listenerList) {
+          rawRemoveEventListener.call(
+            getEventTarget(type, microDocument),
+            type,
+            listener?.__MICRO_APP_BOUND_FUNCTION__ || listener,
+          )
+        }
+      })
+      documentAppListenersMap.clear()
+    }
   }
 
   return {

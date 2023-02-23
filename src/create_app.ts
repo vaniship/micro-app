@@ -333,7 +333,6 @@ export default class CreateApp implements AppInterface {
               }
             }
           }
-
           if (!hasDispatchMountedEvent && (isFinished === true || this.umdMode)) {
             hasDispatchMountedEvent = true
             const dispatchMounted = () => this.handleMounted(umdHookMountResult)
@@ -691,7 +690,7 @@ export default class CreateApp implements AppInterface {
    * @param keepAlive is keep-alive app
    */
   private recordAndReleaseEffect (isPrerender = false, keepAlive = false): void {
-    this.sandBox?.recordEffectSnapshot(isPrerender)
+    this.sandBox?.recordEffectSnapshot()
     this.sandBox?.releaseGlobalEffect({ isPrerender, keepAlive })
   }
 

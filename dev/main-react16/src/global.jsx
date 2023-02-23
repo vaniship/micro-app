@@ -6,34 +6,36 @@ const prefetchConfig = [
   {
     name: 'vite',
     url: `${config.vite}micro-app/vite`,
-    esmodule: true,
-    // level: 1,
+    level: 3,
     // inline: true,
     // 'disable-sandbox': true,
+    iframe: true,
   },
-  {
-    name: 'vue2',
-    url: `${config.vue2}micro-app/vue2`,
-    // 'disable-scopecss': true,
-    level: 3,
-    'default-page': '/micro-app/vue2/#/page2',
-    // 'disable-patch-request': false,
-  },
+  // {
+  //   name: 'vue2',
+  //   url: `${config.vue2}micro-app/vue2`,
+  //   // 'disable-scopecss': true,
+  //   level: 3,
+  //   'default-page': '/micro-app/vue2/#/page2',
+  //   // 'disable-patch-request': false,
+  //   iframe: true,
+  // },
   // {
   //   name: 'react16',
   //   url: `${config.react16}micro-app/react16`,
   //   // level: 3,
   // },
-  {
-    name: 'react17',
-    url: `${config.react17}micro-app/react17`,
-    // level: 1,
-  },
-  {
-    name: 'vue3',
-    url: `${config.vue3}micro-app/vue3`,
-    level: 3,
-  },
+  // {
+  //   name: 'react17',
+  //   url: `${config.react17}micro-app/react17`,
+  //   // level: 1,
+  // },
+  // {
+  //   name: 'vue3',
+  //   url: `${config.vue3}micro-app/vue3`,
+  //   level: 3,
+  //   iframe: true,
+  // },
   // {
   //   name: 'angular11',
   //   url: `${config.angular11}micro-app/angular11`,
@@ -42,12 +44,11 @@ const prefetchConfig = [
   // {
   //   name: 'angular14',
   //   url: `${config.angular14}micro-app/angular14`,
-  //   esmodule: true,
   //   // level: 1,
   // },
 ]
 
-// microApp.preFetch(prefetchConfig)
+microApp.preFetch(prefetchConfig)
 
 window['scopeKeySpe'] = 'value from base app'
 window.Vue = 'Vue from base'

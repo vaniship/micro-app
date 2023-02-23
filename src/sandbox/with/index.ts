@@ -256,7 +256,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     isPrerender = false,
     keepAlive = false,
   }: releaseGlobalEffectParams): void {
-    this.effectController.releaseEffect({
+    this.effectController.release({
       umdMode: this.proxyWindow.__MICRO_APP_UMD_MODE__,
       isPrerender,
       keepAlive,
@@ -275,11 +275,10 @@ export default class WithSandBox implements WithSandBoxInterface {
    * 1. exec umdMountHook in umd mode
    * 2. hidden keep-alive app
    * 3. after init prerender app
-   * @param isPrerender is prerender app
    */
-  public recordEffectSnapshot (isPrerender = false): void {
+  public recordEffectSnapshot (): void {
     // this.microAppWindow.__MICRO_APP_UMD_MODE__ = true
-    this.effectController.recordEffect(isPrerender)
+    this.effectController.record()
     recordDataCenterSnapshot(this.microAppWindow.microApp)
 
     // this.recordUmdInjectedValues = new Map<PropertyKey, unknown>()
@@ -293,7 +292,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     // this.recordUmdInjectedValues!.forEach((value: unknown, key: PropertyKey) => {
     //   Reflect.set(this.proxyWindow, key, value)
     // })
-    this.effectController.rebuildEffect()
+    this.effectController.rebuild()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
   }
 

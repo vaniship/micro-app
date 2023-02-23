@@ -18,54 +18,54 @@ function handleMicroData () {
 }
 
 /* ----------------------分割线-默认模式--------------------- */
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
-})
+// const router = createRouter({
+//   history: createWebHistory(import.meta.env.BASE_URL),
+//   routes,
+// })
 
-const app = createApp(App)
-app.use(router)
-app.mount('#vite-app')
-console.log('微应用vite渲染了 -- 默认模式')
+// const app = createApp(App)
+// app.use(router)
+// app.mount('#vite-app')
+// console.log('微应用vite渲染了 -- 默认模式')
 
-handleMicroData()
+// handleMicroData()
 
 
 /* ----------------------分割线-umd模式--------------------- */
-// let app = null
-// let router = null
-// let history = null
-// // 将渲染操作放入 mount 函数
-// window.mount = (data) => {
-//   history = createWebHistory(import.meta.env.BASE_URL)
-//   router = createRouter({
-//     history,
-//     routes,
-//   })
+let app = null
+let router = null
+let history = null
+// 将渲染操作放入 mount 函数
+window.mount = (data) => {
+  history = createWebHistory(import.meta.env.BASE_URL)
+  router = createRouter({
+    history,
+    routes,
+  })
 
-//   app = createApp(App)
-//   app.use(router)
-//   app.mount('#vite-app')
+  app = createApp(App)
+  app.use(router)
+  app.mount('#vite-app')
 
-//   console.log('微应用vite渲染了 -- UMD模式', data);
+  console.log('微应用vite渲染了 -- UMD模式', data);
 
-//   handleMicroData()
-// }
+  handleMicroData()
+}
 
-// // 将卸载操作放入 unmount 函数
-// window.unmount = () => {
-//   app && app.unmount()
-//   history && history.destroy()
-//   app = null
-//   router = null
-//   history = null
-//   console.log('微应用vite卸载了 -- UMD模式');
-// }
+// 将卸载操作放入 unmount 函数
+window.unmount = () => {
+  app && app.unmount()
+  history && history.destroy()
+  app = null
+  router = null
+  history = null
+  console.log('微应用vite卸载了 -- UMD模式');
+}
 
-// // 非微前端环境直接渲染
-// if (!window.__MICRO_APP_ENVIRONMENT__) {
-//   mount()
-// }
+// 非微前端环境直接渲染
+if (!window.__MICRO_APP_ENVIRONMENT__) {
+  mount()
+}
 
 /* ---------------------- micro-app 自定义全局事件 --------------------- */
 
@@ -80,17 +80,17 @@ window.onunmount = () => {
 }
 
 /* ---------------------- 全局事件 --------------------- */
-// document.addEventListener('click', function () {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
-// }, false)
+document.addEventListener('click', function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
+}, false)
 
-// document.onclick = () => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-// }
+document.onclick = () => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+}
 
-// window.addEventListener('scroll', () => {
-//   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
-// }, false)
+window.addEventListener('scroll', () => {
+  console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
+}, false)
 
 setInterval(() => {
   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
@@ -224,8 +224,10 @@ if (process.env.NODE_ENV !== 'production') {
 // vite环境下无法设置window指向proxyWindow，其值依然是iframeWindow，所以插件无法使用
 window.escapeKey1 = 'escapeKey1' // 无效，只定义在iframeWindow上
 window.escapeKey2 = 'escapeKey2' // 无效，只定义在iframeWindow上
-window.__MICRO_APP_PROXY_WINDOW__.escapeKey3 = 'escapeKey3' // 逃逸到rawWindow上
-window.__MICRO_APP_PROXY_WINDOW__.escapeKey4 = 'escapeKey4' // 逃逸到rawWindow上
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  window.__MICRO_APP_PROXY_WINDOW__.escapeKey3 = 'escapeKey3' // 逃逸到rawWindow上
+  window.__MICRO_APP_PROXY_WINDOW__.escapeKey4 = 'escapeKey4' // 逃逸到rawWindow上
+}
 
 
 // console.log('scopeProperties scopeKeySpe: ', scopeKeySpe)

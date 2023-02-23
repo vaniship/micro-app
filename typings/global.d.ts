@@ -39,9 +39,9 @@ declare module '@micro-app/types' {
   }
 
   interface EffectController {
-    recordEffect(isPrerender: boolean): void
-    rebuildEffect(): void
-    releaseEffect(options: releaseEffectParams): void
+    record(): void
+    rebuild(): void
+    release(options: releaseEffectParams): void
   }
 
   interface CommonIframeEffect {
@@ -78,7 +78,7 @@ declare module '@micro-app/types' {
     stop (stopParams: SandBoxStopParams): void
     releaseGlobalEffect (options: releaseGlobalEffectParams): void
     // record umd snapshot before the first execution of umdHookMount
-    recordEffectSnapshot (isPrerender: boolean): void
+    recordEffectSnapshot (): void
     // rebuild umd snapshot before remount umd app
     rebuildEffectSnapshot (): void
     setRouteInfoForKeepAliveApp (): void
