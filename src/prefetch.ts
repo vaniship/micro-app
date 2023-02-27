@@ -25,7 +25,7 @@ import { PREFETCH_LEVEL } from './constants'
  *  {
  *    name: string,
  *    url: string,
- *    esmodule: boolean,
+ *    iframe: boolean,
  *    inline: boolean,
  *    'disable-scopecss': boolean,
  *    'disable-sandbox': boolean,
@@ -96,7 +96,6 @@ function preFetchAction (options: prefetchParam): Promise<void> {
           scopecss: !(options['disable-scopecss'] ?? options.disableScopecss ?? microApp.options['disable-scopecss']),
           useSandbox: !(options['disable-sandbox'] ?? options.disableSandbox ?? microApp.options['disable-sandbox']),
           inline: options.inline ?? microApp.options.inline,
-          esmodule: options.esmodule ?? microApp.options.esmodule,
           iframe: options.iframe ?? microApp.options.iframe,
           prefetchLevel: options.level && PREFETCH_LEVEL.includes(options.level) ? options.level : microApp.options.prefetchLevel && PREFETCH_LEVEL.includes(microApp.options.prefetchLevel) ? microApp.options.prefetchLevel : 2,
         })

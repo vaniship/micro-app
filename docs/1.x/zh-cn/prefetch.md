@@ -14,7 +14,7 @@ microApp.preFetch(apps: app[] | () => app[], delay?: number)
 app: {
   name: string, // 应用名称，必传
   url: string, // 应用地址，必传
-  esmodule: boolean, // 是否支持esmodule，vite应用必传，其它应用可选
+  iframe: boolean, // 是否使用iframe沙箱，vite应用必传，其它应用可选
   inline: boolean, // 是否使用内联模式运行js，可选
   'disable-scopecss': boolean, // 是否关闭样式隔离，可选
   'disable-sandbox': boolean, // 是否关闭沙盒，可选
@@ -113,20 +113,20 @@ microApp.preFetch([
 ```
 
 ### vite应用
-当子应用是vite时，除了name和url外，还要设置第三个参数`esmodule`为true。
+当子应用是vite时，除了name和url外，还要设置第三个参数`iframe`为true，开启iframe沙箱。
 
 例如：
 ```js
 // 预加载vite子应用
 microApp.preFetch([
-  { name: 'my-vite-app', url: 'xxx', esmodule: true },
+  { name: 'my-vite-app', url: 'xxx', iframe: true },
 ])
 ```
 
 ### 补充
 正常情况下，预加载只需要设置name和url，其它参数不需要设置。
 
-但我们还是建议预加载的配置和`<micro-app>`元素上的配置保持一致，虽然这不是必须的。
+但我们还是建议预加载的配置和`<micro-app>`元素上的配置保持一致。
 
 例如：`<micro-app>`元素设置了`disable-scopecss`关闭样式隔离，那么预加载也最好保持一致
 

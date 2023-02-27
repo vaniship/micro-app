@@ -161,6 +161,9 @@ export default {
       alert('umdGlobalKey missing')
     }
   },
+  beforeDestroy () {
+    console.log('--beforeDestroy--')
+  },
   methods: {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {

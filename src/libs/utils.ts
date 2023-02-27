@@ -144,6 +144,10 @@ export function isImageElement (target: unknown): target is HTMLImageElement {
   return (target as HTMLImageElement)?.tagName?.toUpperCase() === 'IMG'
 }
 
+export function isBaseElement (target: unknown): target is HTMLBaseElement {
+  return (target as HTMLBaseElement)?.tagName?.toUpperCase() === 'BASE'
+}
+
 // is ProxyDocument
 export function isProxyDocument (target: unknown): target is Document {
   return toString.call(target) === '[object ProxyDocument]'

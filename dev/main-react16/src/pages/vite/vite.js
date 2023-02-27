@@ -101,7 +101,7 @@ function vite (props) {
         inline
         // disableSandbox
         iframe
-        // keep-router-state
+        keep-router-state
         // disable-patch-request
         // keep-alive
       >

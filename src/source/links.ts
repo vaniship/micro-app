@@ -37,7 +37,7 @@ function getExistParseCode (
     if (item !== appName) {
       const appSpaceData = appSpace[item]
       if (appSpaceData.parsedCode) {
-        return appSpaceData.parsedCode.replaceAll(new RegExp(createPrefix(item, true), 'g'), prefix)
+        return appSpaceData.parsedCode.replace(new RegExp(createPrefix(item, true), 'g'), prefix)
       }
     }
   }

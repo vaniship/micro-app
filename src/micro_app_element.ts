@@ -355,7 +355,6 @@ export function defineElement (tagName: string): void {
         scopecss: this.isScopecss(),
         useSandbox: this.isSandbox(),
         inline: this.getDisposeResult('inline'),
-        esmodule: this.getDisposeResult('esmodule'),
         iframe: this.getDisposeResult('iframe'),
         container: this.shadowRoot ?? this,
         ssrUrl: this.ssrUrl,
@@ -386,7 +385,6 @@ export function defineElement (tagName: string): void {
         baseroute: this.getBaseRouteCompatible(),
         disablePatchRequest: this.getDisposeResult('disable-patch-request'),
         fiber: this.getDisposeResult('fiber'),
-        esmodule: this.getDisposeResult('esmodule'),
         // hiddenRouter: this.getDisposeResult('hidden-router'),
       })
     }

@@ -140,7 +140,6 @@ declare module '@micro-app/types' {
     baseroute: string // route prefix, default is ''
     disablePatchRequest: boolean // prevent rewrite request method of child app
     fiber: boolean // run js in fiber mode
-    esmodule: boolean // support type='module' script
     // hiddenRouter: boolean
   }
 
@@ -161,7 +160,6 @@ declare module '@micro-app/types' {
     scopecss: boolean // whether use css scoped, default is true
     useSandbox: boolean // whether use js sandbox, default is true
     inline: boolean //  whether js runs in inline script mode, default is false
-    esmodule: boolean // support esmodule in script
     iframe: boolean // use iframe sandbox
     ssrUrl: string // html path in ssr mode
     container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, div(keep-alive)
@@ -232,7 +230,6 @@ declare module '@micro-app/types' {
     'disable-scopecss'?: boolean
     'disable-sandbox'?: boolean
     inline?: boolean
-    esmodule?: boolean
     iframe?: boolean
     level?: number
     'default-page'?: string
@@ -325,7 +322,6 @@ declare module '@micro-app/types' {
     'hidden-router'?: boolean
     'keep-alive'?: boolean
     'clear-data'?: boolean
-    esmodule?: boolean
     iframe?: boolean
     ssr?: boolean
     fiber?: boolean

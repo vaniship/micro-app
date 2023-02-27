@@ -90,7 +90,6 @@
 
   - 🆕 重构了资源管理系统，提升资源复用率。
   - 🆕 新增了`excludeAssetFilter`配置，用于指定部分特殊的动态加载的微应用资源（css/js) 不被 micro-app 劫持处理。
-  - 🆕 新增了`esmodule`配置，用于对vite等esmodule应用提供更好的支持。
   - 🆕 新增了`fiber`配置，支持子应用以fiber模式运行，增加主应用的响应速度。
 
 

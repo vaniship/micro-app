@@ -6,6 +6,7 @@ import {
   rawDefineProperty,
   CompletionPath,
   isScriptElement,
+  isBaseElement,
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 import {
@@ -41,6 +42,10 @@ function patchIframeNode (
   const rawMicroCloneNode = microRootNode.prototype.cloneNode
   const rawParentNodeLDesc = Object.getOwnPropertyDescriptor(microRootNode.prototype, 'parentNode') as PropertyDescriptor
 
+  const isPureNode = (target: Node): boolean | void => {
+    return (isScriptElement(target) || isBaseElement(target)) && target.__PURE_ELEMENT__
+  }
+
   const getRawTarget = (target: Node): Node => {
     if (target === iframeSandbox.microHead) {
       return rawDocument.head
@@ -61,7 +66,7 @@ function patchIframeNode (
   microRootNode.prototype.appendChild = function appendChild <T extends Node> (node: T): T {
     updateElementInfo(node, microAppWindow, appName)
     // TODO：只有script才可以这样拦截，link、style不应该拦截
-    if (isScriptElement(node) && node.__PURE_ELEMENT__) {
+    if (isPureNode(node)) {
       return rawMicroAppendChild.call(this, node)
     }
     const _this = getRawTarget(this)
@@ -75,7 +80,7 @@ function patchIframeNode (
   microRootNode.prototype.insertBefore = function insertBefore <T extends Node> (node: T, child: Node | null): T {
     updateElementInfo(node, microAppWindow, appName)
     // console.log(6666666, node)
-    if (isScriptElement(node) && node.__PURE_ELEMENT__) {
+    if (isPureNode(node)) {
       return rawMicroInsertBefore.call(this, node, child)
     }
     const _this = getRawTarget(this)
@@ -91,7 +96,7 @@ function patchIframeNode (
   // TODO: 更多场景适配
   microRootNode.prototype.replaceChild = function replaceChild <T extends Node> (node: Node, child: T): T {
     updateElementInfo(node, microAppWindow, appName)
-    if (isScriptElement(node) && node.__PURE_ELEMENT__) {
+    if (isPureNode(node)) {
       return rawMicroReplaceChild.call(this, node, child)
     }
     const _this = getRawTarget(this)

@@ -45,7 +45,6 @@ export interface CreateAppParam {
   scopecss: boolean
   useSandbox: boolean
   inline?: boolean
-  esmodule?: boolean
   iframe?: boolean
   container?: HTMLElement | ShadowRoot
   ssrUrl?: string
@@ -72,7 +71,6 @@ export default class CreateApp implements AppInterface {
   public scopecss: boolean
   public useSandbox: boolean
   public inline: boolean
-  public esmodule: boolean
   public iframe: boolean
   public ssrUrl: string
   public isPrefetch: boolean
@@ -88,7 +86,6 @@ export default class CreateApp implements AppInterface {
     scopecss,
     useSandbox,
     inline,
-    esmodule,
     iframe,
     ssrUrl,
     isPrefetch,
@@ -99,7 +96,6 @@ export default class CreateApp implements AppInterface {
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
     this.inline = inline ?? false
-    this.esmodule = esmodule ?? false
     this.iframe = iframe ?? false
 
     // not exist when prefetch 👇
@@ -167,7 +163,6 @@ export default class CreateApp implements AppInterface {
           useMemoryRouter: true,
           baseroute: '',
           fiber: true,
-          esmodule: this.esmodule,
           defaultPage: defaultPage ?? '',
           disablePatchRequest: disablePatchRequest ?? false,
         })
@@ -197,7 +192,6 @@ export default class CreateApp implements AppInterface {
    * @param baseroute route prefix, default is ''
    * @param disablePatchRequest prevent rewrite request method of child app
    * @param fiber run js in fiber mode
-   * @param esmodule support type='module' script
    */
   public mount ({
     container,
@@ -207,14 +201,14 @@ export default class CreateApp implements AppInterface {
     baseroute,
     disablePatchRequest,
     fiber,
-    esmodule,
     // hiddenRouter,
   }: MountParam): void {
     if (this.loadSourceLevel !== 2) {
       /**
-       * unmount prefetch app when loading source, when mount again before loading end,
-       * isPrefetch & isPrerender will be reset, and this.container sill be null
-       * so we should set this.container
+       * container cannot be null when load end
+       * NOTE:
+       *  1. render prefetch app before load end
+       *  2. unmount prefetch app and mount again before load end
        */
       this.container = container
       // mount before prerender exec mount (loading source), set isPrerender to false
@@ -225,7 +219,7 @@ export default class CreateApp implements AppInterface {
     }
 
     /**
-     * In iframe sandbox & default mode, unmount app will delete iframeElement & sandBox, and create sandBox again when mount, used to solve the problem that module script cannot be execute when append it again
+     * In iframe sandbox & default mode, unmount app will delete iframeElement & sandBox, and create sandBox when mount again, used to solve the problem that module script cannot be execute when append it again
      */
     if (this.iframe && this.useSandbox && !this.sandBox) {
       this.sandBox = new IframeSandbox(this.name, this.url)
@@ -273,9 +267,9 @@ export default class CreateApp implements AppInterface {
         router.attachToURL(this.name)
         return this.sandBox?.setPreRenderState(false)
       }
+
       this.container = container
       this.inline = inline
-      this.esmodule = esmodule
       this.fiber = fiber
       // use in sandbox/effect
       this.useMemoryRouter = useMemoryRouter

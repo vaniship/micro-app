@@ -41,8 +41,7 @@ const scriptTypes = ['text/javascript', 'text/ecmascript', 'application/javascri
 
 // whether use type='module' script
 function isTypeModule (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
-  // console.log(3333333, scriptInfo.appSpace, app.iframe)
-  return scriptInfo.appSpace[app.name].module && (!app.useSandbox || app.esmodule || app.iframe)
+  return scriptInfo.appSpace[app.name].module && (!app.useSandbox || app.iframe)
 }
 
 // special script element

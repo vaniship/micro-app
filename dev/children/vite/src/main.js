@@ -110,6 +110,52 @@ setTimeout(() => {
   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
 }, 5000);
 
+/* ---------------------- 创建元素 --------------------- */
+// const dynamicScript1 = document.createElement('script')
+// dynamicScript1.setAttribute('type', 'module')
+// // dynamicScript1.textContent = 'console.warn('inline module')'
+// dynamicScript1.setAttribute('src', '//127.0.0.1:8080/js/test.js')
+// dynamicScript1.onload = () => {
+//   console.log('动态module加载完成了')
+// }
+// document.head.appendChild(dynamicScript1)
+
+// // test excludeAssetFilter http://127.0.0.1:8080/js/defer.js
+// const dynamicScript2 = document.createElement('script')
+// dynamicScript2.setAttribute('src', 'http://127.0.0.1:8080/js/defer.js')
+// dynamicScript2.setAttribute('defer', 'true')
+// document.body.appendChild(dynamicScript2)
+
+// // common style
+// const dynamicStyle = document.createElement('style')
+// document.head.appendChild(dynamicStyle)
+// dynamicStyle.textContent = '.test-class { color: red }'
+
+// common link
+// const link1 = document.createElement('link')
+// link1.setAttribute('rel', 'stylesheet')
+// link1.setAttribute('href', 'http://127.0.0.1:8080/test.css')
+// link1.onload = () => {
+//   console.log('动态link加载完成了')
+// }
+// document.head.appendChild(link1)
+
+// // test excludeAssetFilter http://127.0.0.1:8080/facefont.css
+// const link2 = document.createElement('link')
+// link2.setAttribute('rel', 'stylesheet')
+// link2.setAttribute('href', 'http://127.0.0.1:8080/facefont.css')
+// document.head.appendChild(link2)
+
+// // 测试 micro-app-body 顶层元素parentNode指向 document.body
+// const dynamicDiv1 = document.createElement('div')
+// dynamicDiv1.innerHTML = '测试parentNode'
+// document.body.appendChild(dynamicDiv1)
+
+// setTimeout(() => {
+//   console.assert(dynamicDiv1.parentNode === document.body)
+//   dynamicDiv1.parentNode.removeChild(dynamicDiv1)
+// }, 5000);
+
 
 /* ---------------------- DOMParser --------------------- */
 // BUG TEST: https://github.com/micro-zoe/micro-app/issues/56

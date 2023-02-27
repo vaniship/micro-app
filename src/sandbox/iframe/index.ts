@@ -146,11 +146,11 @@ export default class IframeSandbox {
       }
 
       /**
-       * delete baseElement, prevent address completion through baseElement
+       * create base element to iframe
        * Waring: This will also affect a, image, link and script
        */
-      if (disablePatchRequest) {
-        this.baseElement?.parentNode?.removeChild(this.baseElement)
+      if (!disablePatchRequest) {
+        this.createIframeBase()
       }
 
       if (++globalEnv.activeSandbox === 1) {
@@ -295,20 +295,16 @@ export default class IframeSandbox {
     // 记录iframe原生body
     this.microBody = microDocument.body
     this.microHead = microDocument.head
-
-    // 创建base
-    this.createIframeBase(microAppWindow)
   }
 
   /**
    * baseElement will complete the relative address of element according to the URL
    * e.g: a image link script fetch ajax EventSource
    */
-  private createIframeBase (microAppWindow: microAppWindowType): void {
-    const microDocument = microAppWindow.document
-    this.baseElement = microDocument.createElement('base')
+  private createIframeBase (): void {
+    this.baseElement = pureCreateElement('base')
     this.updateIframeBase()
-    microDocument.head.appendChild(this.baseElement)
+    this.microHead.appendChild(this.baseElement)
   }
 
   // TODO: 初始化和每次跳转时都要更新base的href

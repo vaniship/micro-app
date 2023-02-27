@@ -9,6 +9,7 @@ const prefetchConfig = [
     level: 3,
     // inline: true,
     // 'disable-sandbox': true,
+    'default-page': '/micro-app/vite/page2',
     iframe: true,
   },
   // {

@@ -60,7 +60,6 @@ export enum MicroAppConfig {
   HIDDEN_ROUTER = 'hidden-router',
   KEEP_ALIVE = 'keep-alive',
   CLEAR_DATA ='clear-data',
-  ESMODULE = 'esmodule',
   SSR = 'ssr',
   FIBER = 'fiber',
 }
