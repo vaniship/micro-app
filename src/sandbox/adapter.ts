@@ -1,6 +1,6 @@
 import type { SandBoxAdapter, AppInterface } from '@micro-app/types'
 import globalEnv from '../libs/global_env'
-import { defer, rawDefineProperty } from '../libs/utils'
+import { defer, rawDefineProperty, rawDefineProperties, isNode } from '../libs/utils'
 import { appInstanceMap, isIframeSandbox } from '../create_app'
 
 export default class Adapter implements SandBoxAdapter {
@@ -119,4 +119,28 @@ export function formatEventName (eventName: string, appName: string): string {
   }
 
   return eventName
+}
+
+export function updateElementInfo <T extends Node> (node: T, appName: string): T {
+  const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
+  if (proxyWindow && isNode(node) && !node.__MICRO_APP_NAME__) {
+    // TODO: 测试baseURI和ownerDocument在with沙箱中是否正确
+    rawDefineProperties(node, {
+      baseURI: {
+        configurable: true,
+        get: () => proxyWindow.location.href,
+      },
+      ownerDocument: {
+        configurable: true,
+        get: () => proxyWindow.document,
+      },
+      __MICRO_APP_NAME__: {
+        configurable: true,
+        writable: true,
+        value: appName,
+      },
+    })
+  }
+
+  return node
 }

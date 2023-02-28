@@ -84,6 +84,7 @@ declare module '@micro-app/types' {
     setRouteInfoForKeepAliveApp (): void
     removeRouteInfoForKeepAliveApp (): void
     setPreRenderState (state: boolean): void
+    patchStaticElement (container: Element): void
   }
 
   interface SandBoxAdapter {

@@ -1,5 +1,5 @@
 import type { Func, AppInterface, NormalKey } from '@micro-app/types'
-import { appInstanceMap } from '../create_app'
+import { appInstanceMap, isIframeSandbox } from '../create_app'
 import {
   CompletionPath,
   getCurrentAppName,
@@ -139,6 +139,32 @@ function invokePrototypeMethod (
    * E.g: document.head.insertBefore(targetChild, document.head.childNodes[0])
    */
   if (hijackParent) {
+    /**
+     * Adapter for
+     * WARNING:
+     * Verifying that the parentNode of the targetChild points to document.body will cause other problems ?
+     */
+    if (
+      !isIframeSandbox(app.name) &&
+      hijackParent.tagName === 'MICRO-APP-BODY' &&
+      rawMethod !== globalEnv.rawRemoveChild
+    ) {
+      const descriptor = Object.getOwnPropertyDescriptor(targetChild, 'parentNode')
+      if (!descriptor || descriptor.configurable) {
+        rawDefineProperty(targetChild, 'parentNode', {
+          configurable: true,
+          get () {
+            /**
+             * When operate child from parentNode async, may have been unmount
+             * e.g.
+             * target.parentNode.remove(target)
+             */
+            return !app.container ? hijackParent : document.body
+          },
+        })
+      }
+    }
+
     /**
      * 1. If passiveChild exists, it must be insertBefore or replaceChild
      * 2. When removeChild, targetChild may not be in microAppHead or head
@@ -383,28 +409,30 @@ export function patchElementAndDocument (): void {
     }
   })
 
-  // patch parentNode
-  rawDefineProperty(Node.prototype, 'parentNode', {
-    configurable: true,
-    enumerable: true,
-    get () {
-      const result = globalEnv.rawParentNodeDesc.get.call(this)
-      /**
-       * If parentNode is <micro-app-body>, return rawDocument.body
-       * Scenes:
-       *  1. element-ui@2/lib/utils/vue-popper.js
-       *    if (this.popperElm.parentNode === document.body) ...
-       * WARNING:
-       *  Will it cause other problems ?
-       *  e.g. target.parentNode.remove(target)
-       */
-      if (result?.tagName === 'MICRO-APP-BODY' && appInstanceMap.get(this.__MICRO_APP_NAME__)?.container) {
-        return globalEnv.rawDocument.body
-      }
-      return result
-    },
-    set: undefined,
-  })
+  // Abandon this way at 2023.2.28 before v1.0.0-beta.0, it will cause vue2 throw error when render again
+  // rawDefineProperty(Node.prototype, 'parentNode', {
+  //   configurable: true,
+  //   enumerable: true,
+  //   get () {
+  //     const result = globalEnv.rawParentNodeDesc.get.call(this)
+  //     /**
+  //      * If parentNode is <micro-app-body>, return rawDocument.body
+  //      * Scenes:
+  //      *  1. element-ui@2/lib/utils/vue-popper.js
+  //      *    if (this.popperElm.parentNode === document.body) ...
+  //      * WARNING:
+  //      *  Will it cause other problems ?
+  //      *  e.g. target.parentNode.remove(target)
+  //      * BUG:
+  //      *  1. vue2 umdMode, throw error when render again (<div id='app'></div> will be deleted when render again )
+  //      */
+  //     if (result?.tagName === 'MICRO-APP-BODY' && appInstanceMap.get(this.__MICRO_APP_NAME__)?.container) {
+  //       return globalEnv.rawDocument.body
+  //     }
+  //     return result
+  //   },
+  //   set: undefined,
+  // })
 }
 
 /**

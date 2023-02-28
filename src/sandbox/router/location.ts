@@ -8,6 +8,7 @@ import { executeNavigationGuard } from './api'
 import { nativeHistoryNavigate, navigateWithNativeEvent } from './history'
 import { appInstanceMap, isIframeSandbox } from '../../create_app'
 import { hijackMicroLocationKeys } from '../iframe/special_key'
+import bindFunctionToRawTarget from '../bind_function'
 
 // origin is readonly, so we ignore when updateMicroLocation
 const locationKeys: ReadonlyArray<keyof MicroLocation> = ['href', 'pathname', 'search', 'hash', 'host', 'hostname', 'port', 'protocol', 'search']
@@ -172,7 +173,7 @@ export function createMicroLocation (
       if (key === 'reload') return reload
       if (key === 'self') return target
 
-      return Reflect.get(target, key)
+      return bindFunctionToRawTarget<Location>(Reflect.get(target, key), target, 'LOCATION')
     },
     set: (_: Location, key: string, value: string): boolean => {
       if (isEffectiveApp(appName)) {
@@ -213,7 +214,7 @@ export function createMicroLocation (
         }
       }
       return true
-    }
+    },
   })
 
   return proxyLocation as MicroLocation

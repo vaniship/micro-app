@@ -87,6 +87,7 @@ function Vue2 () {
         // disable-scopecss
         // disableSandbox
         // clear-data
+        iframe
       >
       </micro-app>
     </div>

@@ -1,8 +1,19 @@
 <template>
   <div>
     <router-view></router-view>
+    <div id="test-innerHTML"></div>
   </div>
 </template>
+
+<script>
+
+export default {
+  name: 'App',
+  mounted () {
+    document.getElementById('test-innerHTML').innerHTML = '<span>3333333333</span>'
+  },
+}
+</script>
 
 <style>
 #vite-app {

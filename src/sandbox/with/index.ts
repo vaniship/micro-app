@@ -56,6 +56,7 @@ import {
 import Adapter, {
   fixBabelPolyfill6,
   throttleDeferForParentNode,
+  updateElementInfo,
 } from '../adapter'
 import {
   createMicroFetch,
@@ -684,6 +685,18 @@ export default class WithSandBox implements WithSandBoxInterface {
 
   public removeRouteInfoForKeepAliveApp (): void {
     removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
+  }
+
+  public patchStaticElement (container: Element): void {
+    const children = Array.from(container.children)
+
+    children.length && children.forEach((child) => {
+      this.patchStaticElement(child)
+    })
+
+    for (const child of children) {
+      updateElementInfo(child, this.microAppWindow.__MICRO_APP_NAME__)
+    }
   }
 
   /**

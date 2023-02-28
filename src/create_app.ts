@@ -301,10 +301,13 @@ export default class CreateApp implements AppInterface {
         disablePatchRequest,
       })
 
-      let umdHookMountResult: any // result of mount function
+      // result of mount function
+      let umdHookMountResult: any
 
       if (!this.umdMode) {
         let hasDispatchMountedEvent = false
+        // update element info of html
+        this.sandBox?.patchStaticElement(this.container)
         // if all js are executed, param isFinished will be true
         execScripts(this, (isFinished: boolean) => {
           if (!this.umdMode) {
@@ -559,8 +562,10 @@ export default class CreateApp implements AppInterface {
 
     this.keepAliveState = keepAliveStates.KEEP_ALIVE_HIDDEN
 
-    // event should dispatch before clone node
-    // dispatch afterHidden event to micro-app
+    /**
+     * event should dispatch before clone node
+     * dispatch afterHidden event to micro-app
+     */
     dispatchCustomEventToMicroApp(this, 'appstate-change', {
       appState: 'afterhidden',
     })

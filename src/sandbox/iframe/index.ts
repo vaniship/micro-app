@@ -55,6 +55,9 @@ import {
 import {
   patchIframeElement,
 } from './element'
+import {
+  updateElementInfo
+} from '../adapter'
 import microApp from '../../micro_app'
 
 export default class IframeSandbox {
@@ -276,6 +279,9 @@ export default class IframeSandbox {
           if (microAppWindow.location.href === 'about:blank') {
             iframeLocationReady()
           } else {
+            /**
+             * microAppWindow.document rebuild
+             */
             microAppWindow.stop()
             cb(resolve)
           }
@@ -424,5 +430,17 @@ export default class IframeSandbox {
 
   public removeRouteInfoForKeepAliveApp (): void {
     removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
+  }
+
+  public patchStaticElement (container: Element): void {
+    const children = Array.from(container.children)
+
+    children.length && children.forEach((child) => {
+      this.patchStaticElement(child)
+    })
+
+    for (const child of children) {
+      updateElementInfo(child, this.microAppWindow.__MICRO_APP_NAME__)
+    }
   }
 }

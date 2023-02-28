@@ -171,34 +171,34 @@ document.onclick = () => {
 
 /* ---------------------- DOMParser --------------------- */
 // BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
-// const parser = new DOMParser()
-// const htmlString = `
-// <div>
-//   <span id='parser-id'></span>
-//   <span class='parser-class'></span>
-//   <i name='parser-name'></i>
-// </div>
-// `
+const parser = new DOMParser()
+const htmlString = `
+<div>
+  <span id='parser-id'></span>
+  <span class='parser-class'></span>
+  <i name='parser-name'></i>
+</div>
+`
 
-// const doc = parser.parseFromString(htmlString, 'text/html')
+const doc = parser.parseFromString(htmlString, 'text/html')
 
-// console.log(
-//   'DOMParser querySelector',
-//   doc.querySelector('#parser-id'),
-//   doc.getElementById('parser-id'),
-//   doc.querySelectorAll('span'),
-//   doc.getElementsByClassName('parser-class'),
-//   doc.getElementsByTagName('span'),
-//   doc.getElementsByName('parser-name'),
-// )
+console.log(
+  'DOMParser querySelector',
+  doc.querySelector('#parser-id'),
+  doc.getElementById('parser-id'),
+  doc.querySelectorAll('span'),
+  doc.getElementsByClassName('parser-class'),
+  doc.getElementsByTagName('span'),
+  doc.getElementsByName('parser-name'),
+)
 
-// setTimeout(() => {
-//   const d1 = doc.createElement('div')
-//   const d2 = doc.createElementNS('http://www.w3.org/1999/xhtml', 'svg')
-//   const d3 = doc.createDocumentFragment()
+setTimeout(() => {
+  const d1 = doc.createElement('div')
+  const d2 = doc.createElementNS('http://www.w3.org/1999/xhtml', 'svg')
+  const d3 = doc.createDocumentFragment()
 
-//   console.log('DOMParser createElement', d1, d2, d3)
-// }, 3000)
+  console.log('DOMParser createElement', d1, d2, d3)
+}, 3000)
 
 
 /* ---------------------- Image --------------------- */

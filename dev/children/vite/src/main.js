@@ -90,25 +90,27 @@ window.addEventListener('unmount', function (e) {
 
 
 /* ---------------------- 全局事件 --------------------- */
-document.addEventListener('click', function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
-}, false)
+// document.addEventListener('click', function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
+// }, false)
 
-document.onclick = () => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-}
+// document.onclick = () => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+// }
 
-window.addEventListener('scroll', () => {
-  console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
-}, false)
+// window.addEventListener('scroll', () => {
+//   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
+// }, false)
 
-setInterval(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
-}, 5000)
+/* ---------------------- 定时器 --------------------- */
+// setInterval(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+// }, 5000)
 
-setTimeout(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
-}, 5000);
+// setTimeout(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+// }, 5000);
+
 
 /* ---------------------- 创建元素 --------------------- */
 // const dynamicScript1 = document.createElement('script')

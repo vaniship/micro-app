@@ -25,7 +25,7 @@ import {
 } from './special_key'
 import {
   updateElementInfo,
-} from './actions'
+} from '../adapter'
 import { appInstanceMap } from '../../create_app'
 
 /**
@@ -54,12 +54,13 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     options?: ElementCreationOptions,
   ): HTMLElement {
     const element = globalEnv.rawCreateElement.call(this, tagName, options)
-    return updateElementInfo(element, microAppWindow, appName)
+    // console.log(111111, element)
+    return updateElementInfo(element, appName)
   }
 
   microRootDocument.prototype.createTextNode = function createTextNode (data: string): Text {
     const element = globalEnv.rawCreateTextNode.call(this, data)
-    return updateElementInfo<Text>(element, microAppWindow, appName)
+    return updateElementInfo<Text>(element, appName)
   }
 
   function getDefaultRawTarget (target: Document): Document {

@@ -36,6 +36,7 @@ function Vue2 () {
         // inline
         // disableScopecss
         // disableSandbox
+        // iframe
       />
     </div>
   )

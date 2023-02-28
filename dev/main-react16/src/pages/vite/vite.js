@@ -97,6 +97,10 @@ function vite (props) {
         // onBeforemount={() => hideLoading(false)}
         onMounted={handleMounted}
         onDataChange={handleDataChange}
+        onAfterhidden={() => console.log('keep-alive 已推入后台')}
+        onBeforeshow={() => console.log('keep-alive 即将推入前台，初始化时不执行')}
+        onAftershow={() => {console.log('keep-alive 已经推入前台，初始化时不执行'); hideLoading(false)}}
+        onError={() => console.log('渲染出错')}
         // destroy
         inline
         // disableSandbox
