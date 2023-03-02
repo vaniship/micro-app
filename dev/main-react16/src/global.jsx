@@ -12,20 +12,21 @@ const prefetchConfig = [
     'default-page': '/micro-app/vite/page2',
     iframe: true,
   },
-  // {
-  //   name: 'vue2',
-  //   url: `${config.vue2}micro-app/vue2`,
-  //   // 'disable-scopecss': true,
-  //   level: 3,
-  //   'default-page': '/micro-app/vue2/#/page2',
-  //   // 'disable-patch-request': false,
-  //   iframe: true,
-  // },
-  // {
-  //   name: 'react16',
-  //   url: `${config.react16}micro-app/react16`,
-  //   // level: 3,
-  // },
+  {
+    name: 'vue2',
+    url: `${config.vue2}micro-app/vue2`,
+    // 'disable-scopecss': true,
+    level: 3,
+    'default-page': '/micro-app/vue2/#/page2',
+    // 'disable-patch-request': false,
+    iframe: true,
+  },
+  {
+    name: 'react16',
+    url: `${config.react16}micro-app/react16`,
+    level: 2,
+    iframe: true,
+  },
   // {
   //   name: 'react17',
   //   url: `${config.react17}micro-app/react17`,
@@ -49,7 +50,7 @@ const prefetchConfig = [
   // },
 ]
 
-// microApp.preFetch(prefetchConfig)
+microApp.preFetch(prefetchConfig)
 
 window['scopeKeySpe'] = 'value from base app'
 window.Vue = 'Vue from base'

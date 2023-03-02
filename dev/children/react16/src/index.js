@@ -109,13 +109,13 @@ window.onunmount = () => {
 }
 
 /* ---------------------- 全局事件 --------------------- */
-document.addEventListener('click', function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
-}, false)
+// document.addEventListener('click', function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
+// }, false)
 
-document.onclick = () => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-}
+// document.onclick = () => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+// }
 
 // window.addEventListener('scroll', () => {
 //   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
@@ -170,35 +170,36 @@ document.onclick = () => {
 
 
 /* ---------------------- DOMParser --------------------- */
-// BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
-const parser = new DOMParser()
-const htmlString = `
-<div>
-  <span id='parser-id'></span>
-  <span class='parser-class'></span>
-  <i name='parser-name'></i>
-</div>
-`
+// // BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
+// const parser = new DOMParser()
+// const htmlString = `
+// <div>
+//   <span id='parser-id'></span>
+//   <span class='parser-class'></span>
+//   <i name='parser-name'></i>
+// </div>
+// `
 
-const doc = parser.parseFromString(htmlString, 'text/html')
+// const doc = parser.parseFromString(htmlString, 'text/html')
 
-console.log(
-  'DOMParser querySelector',
-  doc.querySelector('#parser-id'),
-  doc.getElementById('parser-id'),
-  doc.querySelectorAll('span'),
-  doc.getElementsByClassName('parser-class'),
-  doc.getElementsByTagName('span'),
-  doc.getElementsByName('parser-name'),
-)
+// console.log(
+//   'DOMParser querySelector',
+//   doc.querySelector('#parser-id') instanceof Node,
+//   doc.querySelector('#parser-id'),
+//   doc.getElementById('parser-id'),
+//   doc.querySelectorAll('span'),
+//   doc.getElementsByClassName('parser-class'),
+//   doc.getElementsByTagName('span'),
+//   doc.getElementsByName('parser-name'),
+// )
 
-setTimeout(() => {
-  const d1 = doc.createElement('div')
-  const d2 = doc.createElementNS('http://www.w3.org/1999/xhtml', 'svg')
-  const d3 = doc.createDocumentFragment()
+// setTimeout(() => {
+//   const d1 = doc.createElement('div')
+//   const d2 = doc.createElementNS('http://www.w3.org/1999/xhtml', 'svg')
+//   const d3 = doc.createDocumentFragment()
 
-  console.log('DOMParser createElement', d1, d2, d3)
-}, 3000)
+//   console.log('DOMParser createElement', d1, d2, d3)
+// }, 3000)
 
 
 /* ---------------------- Image --------------------- */

@@ -56,7 +56,7 @@ import {
   patchIframeElement,
 } from './element'
 import {
-  updateElementInfo
+  patchElementTree
 } from '../adapter'
 import microApp from '../../micro_app'
 
@@ -91,7 +91,7 @@ export default class IframeSandbox {
     const iframeAttrs: Record<string, string> = {
       src: browserHost,
       style: 'display: none',
-      name: appName,
+      id: appName,
     }
     Object.keys(iframeAttrs).forEach((key) => this.iframe.setAttribute(key, iframeAttrs[key]))
 
@@ -252,6 +252,10 @@ export default class IframeSandbox {
     this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
   }
 
+  public markUmdMode (state: boolean): void {
+    this.microAppWindow.__MICRO_APP_UMD_MODE__ = state
+  }
+
   private initStaticGlobalKeys (appName: string, url: string): void {
     this.microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
     this.microAppWindow.__MICRO_APP_NAME__ = appName
@@ -259,6 +263,7 @@ export default class IframeSandbox {
     this.microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
     this.microAppWindow.__MICRO_APP_WINDOW__ = this.microAppWindow
     this.microAppWindow.__MICRO_APP_PRE_RENDER__ = false
+    this.microAppWindow.__MICRO_APP_UMD_MODE__ = false
     this.microAppWindow.__MICRO_APP_SANDBOX__ = this
     this.microAppWindow.__MICRO_APP_PROXY_WINDOW__ = this.proxyWindow
     this.microAppWindow.rawWindow = globalEnv.rawWindow
@@ -351,20 +356,22 @@ export default class IframeSandbox {
         return bindFunctionToRawTarget(Reflect.get(target, key), target)
       },
       set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
-        /**
-         * TODO:
-         * 1、location域名相同，子应用内部跳转时的处理
-         * 2、和with沙箱的变量相同，提取成公共数组
-         */
-        if (key === 'location') {
-          return Reflect.set(rawWindow, key, value)
-        }
+        if (this.active) {
+          /**
+           * TODO:
+           * 1、location域名相同，子应用内部跳转时的处理
+           * 2、和with沙箱的变量相同，提取成公共数组
+           */
+          if (key === 'location') {
+            return Reflect.set(rawWindow, key, value)
+          }
 
-        Reflect.set(target, key, value)
+          Reflect.set(target, key, value)
 
-        if (this.escapeProperties.includes(key)) {
-          !Reflect.has(rawWindow, key) && this.escapeKeys.add(key)
-          Reflect.set(rawWindow, key, value)
+          if (this.escapeProperties.includes(key)) {
+            !Reflect.has(rawWindow, key) && this.escapeKeys.add(key)
+            Reflect.set(rawWindow, key, value)
+          }
         }
 
         return true
@@ -433,14 +440,6 @@ export default class IframeSandbox {
   }
 
   public patchStaticElement (container: Element): void {
-    const children = Array.from(container.children)
-
-    children.length && children.forEach((child) => {
-      this.patchStaticElement(child)
-    })
-
-    for (const child of children) {
-      updateElementInfo(child, this.microAppWindow.__MICRO_APP_NAME__)
-    }
+    patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
   }
 }

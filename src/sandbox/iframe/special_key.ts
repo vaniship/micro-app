@@ -4,7 +4,7 @@ export const escape2RawWindowKeys = [
   'getComputedStyle',
   'visualViewport',
   'matchMedia',
-  'DOMParser',
+  // 'DOMParser',
   'requestAnimationFrame',
   'cancelAnimationFrame',
   'ResizeObserver',

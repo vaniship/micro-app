@@ -60,7 +60,7 @@ export default class CreateApp implements AppInterface {
   private umdHookMount: Func | null = null
   private umdHookUnmount: Func | null = null
   private libraryName: string | null = null
-  private preRenderEvent?: CallableFunction[]
+  private preRenderEvent?: CallableFunction[] | null
   public umdMode = false
   public source: sourceType
   // TODO: 类型优化，去掉any
@@ -111,9 +111,7 @@ export default class CreateApp implements AppInterface {
     appInstanceMap.set(this.name, this)
     this.source = { html: null, links: new Set(), scripts: new Set() }
     this.loadSourceCode()
-    if (this.useSandbox) {
-      this.sandBox = this.iframe ? new IframeSandbox(name, url) : new WithSandBox(name, url)
-    }
+    this.createSandbox()
   }
 
   // Load resources
@@ -143,7 +141,7 @@ export default class CreateApp implements AppInterface {
          * 1. fiber forced on
          * 2. only virtual router support
          *
-         * NOTE: (4P: not - update browser url, dispatch popstateEvent, reload window, dispatch lifecycle event)
+         * NOTE: (Don't update browser url, dispatch popstateEvent, reload window, dispatch lifecycle event)
          * 1. pushState/replaceState in child can update microLocation, but will not attach router info to browser url
          * 2. prevent dispatch popstate/hashchange event to browser
          * 3. all navigation actions of location are invalid (In the future, we can consider update microLocation without trigger browser reload)
@@ -218,19 +216,10 @@ export default class CreateApp implements AppInterface {
       return
     }
 
-    /**
-     * In iframe sandbox & default mode, unmount app will delete iframeElement & sandBox, and create sandBox when mount again, used to solve the problem that module script cannot be execute when append it again
-     */
-    if (this.iframe && this.useSandbox && !this.sandBox) {
-      this.sandBox = new IframeSandbox(this.name, this.url)
-    }
+    this.createSandbox()
 
     const nextAction = () => {
       /**
-       * Mount app with prerender, this.container is empty
-       * When rendering again, identify prerender by this.container
-       * Transfer the contents of div to the <micro-app> tag
-       *
        * Special scenes:
        * 1. mount before prerender exec mount (loading source)
        * 2. mount when prerender js executing
@@ -240,6 +229,7 @@ export default class CreateApp implements AppInterface {
        * TODO: test shadowDOM
        */
       if (
+        this.isPrerender &&
         isDivElement(this.container) &&
         this.container.hasAttribute('prerender')
       ) {
@@ -262,95 +252,93 @@ export default class CreateApp implements AppInterface {
         this.preRenderEvent?.forEach((cb) => cb())
         // reset isPrerender config
         this.isPrerender = false
-        this.preRenderEvent = undefined
+        this.preRenderEvent = null
         // attach router info to browser url
         router.attachToURL(this.name)
-        return this.sandBox?.setPreRenderState(false)
-      }
+        this.sandBox?.setPreRenderState(false)
+      } else {
+        this.container = container
+        this.inline = inline
+        this.fiber = fiber
+        // use in sandbox/effect
+        this.useMemoryRouter = useMemoryRouter
+        // this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
 
-      this.container = container
-      this.inline = inline
-      this.fiber = fiber
-      // use in sandbox/effect
-      this.useMemoryRouter = useMemoryRouter
-      // this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
-
-      const dispatchBeforeMount = () => {
-        dispatchLifecyclesEvent(
+        const dispatchBeforeMount = () => dispatchLifecyclesEvent(
           this.container!,
           this.name,
           lifeCycles.BEFOREMOUNT,
         )
-      }
 
-      if (this.isPrerender) {
-        (this.preRenderEvent ??= []).push(dispatchBeforeMount)
-      } else {
-        dispatchBeforeMount()
-      }
+        if (this.isPrerender) {
+          (this.preRenderEvent ??= []).push(dispatchBeforeMount)
+        } else {
+          dispatchBeforeMount()
+        }
 
-      this.state = appStates.MOUNTING
+        this.state = appStates.MOUNTING
 
-      cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
+        cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
 
-      this.sandBox?.start({
-        umdMode: this.umdMode,
-        baseroute,
-        useMemoryRouter,
-        defaultPage,
-        disablePatchRequest,
-      })
+        this.sandBox?.start({
+          umdMode: this.umdMode,
+          baseroute,
+          useMemoryRouter,
+          defaultPage,
+          disablePatchRequest,
+        })
 
-      // result of mount function
-      let umdHookMountResult: any
-
-      if (!this.umdMode) {
-        let hasDispatchMountedEvent = false
-        // update element info of html
-        this.sandBox?.patchStaticElement(this.container)
-        // if all js are executed, param isFinished will be true
-        execScripts(this, (isFinished: boolean) => {
-          if (!this.umdMode) {
-            const { mount, unmount } = this.getUmdLibraryHooks()
-            /**
-             * umdHookUnmount can works in non UMD mode
-             * register with window.unmount
-             */
-            this.umdHookUnmount = unmount as Func
-            // if mount & unmount is function, the sub app is umd mode
-            if (isFunction(mount) && isFunction(unmount)) {
-              this.umdHookMount = mount as Func
-              this.umdMode = true
-              if (this.sandBox) this.sandBox.proxyWindow.__MICRO_APP_UMD_MODE__ = true
-              // this.sandBox?.recordEffectSnapshot()
-              try {
-                umdHookMountResult = this.umdHookMount(microApp.getData(this.name, true))
-              } catch (e) {
-                logError('an error occurred in the mount function \n', this.name, e)
+        if (!this.umdMode) {
+          // result of umdHookMount method
+          let umdHookMountResult: unknown
+          let hasDispatchMountedEvent = false
+          // update element info of html
+          this.sandBox?.patchStaticElement(this.container)
+          // if all js are executed, param isFinished will be true
+          execScripts(this, (isFinished: boolean) => {
+            if (!this.umdMode) {
+              const { mount, unmount } = this.getUmdLibraryHooks()
+              /**
+               * umdHookUnmount can works in default mode
+               * register through window.unmount
+               */
+              this.umdHookUnmount = unmount as Func
+              // if mount & unmount is function, the sub app is umd mode
+              if (isFunction(mount) && isFunction(unmount)) {
+                this.umdHookMount = mount as Func
+                this.umdMode = true
+                this.sandBox?.markUmdMode(true)
+                // this.sandBox?.recordEffectSnapshot()
+                try {
+                  umdHookMountResult = this.umdHookMount(microApp.getData(this.name, true))
+                } catch (e) {
+                  logError('an error occurred in the mount function \n', this.name, e)
+                }
               }
             }
-          }
-          if (!hasDispatchMountedEvent && (isFinished === true || this.umdMode)) {
-            hasDispatchMountedEvent = true
-            const dispatchMounted = () => this.handleMounted(umdHookMountResult)
-            if (this.isPrerender) {
-              (this.preRenderEvent ??= []).push(dispatchMounted)
-              this.recordAndReleaseEffect(true)
-            } else {
-              dispatchMounted()
+            // TODO: 去掉hasDispatchMountedEvent umdHookMountResult 两个参数
+            if (!hasDispatchMountedEvent && (isFinished === true || this.umdMode)) {
+              hasDispatchMountedEvent = true
+              const dispatchMounted = () => this.handleMounted(umdHookMountResult)
+              if (this.isPrerender) {
+                this.preRenderEvent?.push(dispatchMounted)
+                this.recordAndReleaseEffect(true)
+              } else {
+                dispatchMounted()
+              }
             }
+          })
+        } else {
+          this.sandBox?.rebuildEffectSnapshot()
+          try {
+            this.handleMounted(this.umdHookMount!(microApp.getData(this.name, true)))
+          } catch (e) {
+            logError('an error occurred in the mount function \n', this.name, e)
           }
-        })
-      } else {
-        this.sandBox?.rebuildEffectSnapshot()
-        try {
-          umdHookMountResult = this.umdHookMount!(microApp.getData(this.name, true))
-        } catch (e) {
-          logError('an error occurred in the mount function \n', this.name, e)
         }
-        this.handleMounted(umdHookMountResult)
       }
     }
+
     this.iframe ? this.sandBox.sandboxReady.then(nextAction) : nextAction()
   }
 
@@ -532,7 +520,7 @@ export default class CreateApp implements AppInterface {
     this.container!.innerHTML = ''
     this.container = null
     this.isPrerender = false
-    this.preRenderEvent = undefined
+    this.preRenderEvent = null
     // in iframe sandbox & default mode, delete the sandbox & iframeElement
     if (this.iframe && !this.umdMode) {
       this.sandBox = null
@@ -642,6 +630,22 @@ export default class CreateApp implements AppInterface {
       lifeCycles.ERROR,
       e,
     )
+  }
+
+  /**
+   * Scene:
+   *  1. create app
+   *  2. remount of default mode with iframe sandbox
+   *    In default mode with iframe sandbox, unmount app will delete iframeElement & sandBox, and create sandBox when mount again, used to solve the problem that module script cannot be execute when append it again
+   */
+  private createSandbox (): void {
+    if (this.useSandbox && !this.sandBox) {
+      if (this.iframe) {
+        this.sandBox = new IframeSandbox(this.name, this.url)
+      } else {
+        this.sandBox = new WithSandBox(this.name, this.url)
+      }
+    }
   }
 
   // get app state

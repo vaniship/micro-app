@@ -37,7 +37,7 @@ function patchIframeNode (
   const rawDocument = globalEnv.rawDocument
   const microRootNode = microAppWindow.Node
   const microRootElement = microAppWindow.Element
-  const rawMicroGetRootNode = microRootNode.prototype.getRootNode
+  // const rawMicroGetRootNode = microRootNode.prototype.getRootNode
   const rawMicroAppendChild = microRootNode.prototype.appendChild
   const rawMicroInsertBefore = microRootNode.prototype.insertBefore
   const rawMicroReplaceChild = microRootNode.prototype.replaceChild
@@ -59,11 +59,12 @@ function patchIframeNode (
     return target
   }
 
-  microRootNode.prototype.getRootNode = function getRootNode (options?: GetRootNodeOptions): Node {
-    const rootNode = rawMicroGetRootNode.call(this, options)
-    // TODO: 只有shadowDOM才有效，非情shadowDOM直接指向document
-    if (rootNode === appInstanceMap.get(appName)?.container) return microDocument
-    return rootNode
+  microRootNode.prototype.getRootNode = function getRootNode (): Node {
+    return microDocument
+    // TODO: 什么情况下返回原生document?
+    // const rootNode = rawMicroGetRootNode.call(this, options)
+    // if (rootNode === appInstanceMap.get(appName)?.container) return microDocument
+    // return rootNode
   }
 
   microRootNode.prototype.appendChild = function appendChild <T extends Node> (node: T): T {

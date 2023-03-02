@@ -15,7 +15,6 @@ import {
   pureCreateElement,
   defer,
   logError,
-  logWarn,
   isUndefined,
   isPlainObject,
   isArray,
@@ -368,7 +367,7 @@ export function fetchScriptSuccess (
         try {
           appSpaceData.parsedFunction = getParsedFunction(app, scriptInfo, appSpaceData.parsedCode)
         } catch (err) {
-          logWarn('Something went wrong while handling preloaded resources', app.name, '\n', err)
+          logError('Something went wrong while handling preloaded resources', app.name, '\n', err)
         }
       }
     }
@@ -605,6 +604,9 @@ function runCode2InlineScript (
     scriptElement.setAttribute('type', 'module')
     if (callback) {
       callback.moduleCount && callback.moduleCount--
+      /**
+       * module script will execute onload method only after it insert to document/iframe
+       */
       scriptElement.onload = callback.bind(scriptElement, callback.moduleCount === 0)
     }
   } else {

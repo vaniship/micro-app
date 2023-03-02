@@ -121,6 +121,29 @@ export function formatEventName (eventName: string, appName: string): string {
   return eventName
 }
 
+/**
+ * update dom tree of target dom
+ * @param container target dom
+ * @param appName app name
+ */
+export function patchElementTree (container: Element, appName: string): void {
+  const children = Array.from(container.children)
+
+  children.length && children.forEach((child) => {
+    patchElementTree(child, appName)
+  })
+
+  for (const child of children) {
+    updateElementInfo(child, appName)
+  }
+}
+
+/**
+ * rewrite baseURI, ownerDocument, __MICRO_APP_NAME__ of target node
+ * @param node target node
+ * @param appName app name
+ * @returns target node
+ */
 export function updateElementInfo <T extends Node> (node: T, appName: string): T {
   const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
   if (proxyWindow && isNode(node) && !node.__MICRO_APP_NAME__) {

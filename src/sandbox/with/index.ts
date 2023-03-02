@@ -56,7 +56,7 @@ import {
 import Adapter, {
   fixBabelPolyfill6,
   throttleDeferForParentNode,
-  updateElementInfo,
+  patchElementTree,
 } from '../adapter'
 import {
   createMicroFetch,
@@ -297,11 +297,6 @@ export default class WithSandBox implements WithSandBoxInterface {
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
-  // set __MICRO_APP_PRE_RENDER__ state
-  public setPreRenderState (state: boolean): void {
-    this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
-  }
-
   /**
    * get scopeProperties and escapeProperties from plugins & adapter
    * @param appName app name
@@ -438,6 +433,15 @@ export default class WithSandBox implements WithSandBoxInterface {
     })
   }
 
+  // set __MICRO_APP_PRE_RENDER__ state
+  public setPreRenderState (state: boolean): void {
+    this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
+  }
+
+  public markUmdMode (state: boolean): void {
+    this.microAppWindow.__MICRO_APP_UMD_MODE__ = state
+  }
+
   /**
    * inject global properties to microAppWindow
    * @param microAppWindow micro window
@@ -456,6 +460,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
     microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
     microAppWindow.__MICRO_APP_PRE_RENDER__ = false
+    microAppWindow.__MICRO_APP_UMD_MODE__ = false
     microAppWindow.rawWindow = globalEnv.rawWindow
     microAppWindow.rawDocument = globalEnv.rawDocument
     microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
@@ -688,15 +693,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   public patchStaticElement (container: Element): void {
-    const children = Array.from(container.children)
-
-    children.length && children.forEach((child) => {
-      this.patchStaticElement(child)
-    })
-
-    for (const child of children) {
-      updateElementInfo(child, this.microAppWindow.__MICRO_APP_NAME__)
-    }
+    patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
   }
 
   /**

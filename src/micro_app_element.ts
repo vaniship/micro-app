@@ -208,8 +208,8 @@ export function defineElement (tagName: string): void {
             app.getAppState() === appStates.UNMOUNT ||
             (
               app.isPrefetch && (
-                app.scopecss === this.isScopecss() &&
-                app.useSandbox === this.isSandbox()
+                app.scopecss === this.useScopecss() &&
+                app.useSandbox === this.useSandbox()
               )
             )
           )
@@ -218,8 +218,8 @@ export function defineElement (tagName: string): void {
         } else if (app.isPrefetch || app.getAppState() === appStates.UNMOUNT) {
           if (
             __DEV__ &&
-            app.scopecss === this.isScopecss() &&
-            app.useSandbox === this.isSandbox()
+            app.scopecss === this.useScopecss() &&
+            app.useSandbox === this.useSandbox()
           ) {
             /**
              * url is different & old app is unmounted or prefetch, create new app to replace old one
@@ -345,15 +345,13 @@ export function defineElement (tagName: string): void {
        * actions for destroy old app
        * fix of unmounted umd app with disableSandbox
        */
-      if (appInstanceMap.has(this.appName)) {
-        appInstanceMap.get(this.appName)!.actionsForCompletelyDestroy()
-      }
+      appInstanceMap.get(this.appName)?.actionsForCompletelyDestroy()
 
       new CreateApp({
         name: this.appName,
         url: this.appUrl,
-        scopecss: this.isScopecss(),
-        useSandbox: this.isSandbox(),
+        scopecss: this.useScopecss(),
+        useSandbox: this.useSandbox(),
         inline: this.getDisposeResult('inline'),
         iframe: this.getDisposeResult('iframe'),
         container: this.shadowRoot ?? this,
@@ -455,11 +453,11 @@ export function defineElement (tagName: string): void {
       return this.getAttribute(name) !== 'false'
     }
 
-    private isScopecss (): boolean {
+    private useScopecss (): boolean {
       return !(this.getDisposeResult('disable-scopecss') || this.getDisposeResult('shadowDOM'))
     }
 
-    private isSandbox (): boolean {
+    private useSandbox (): boolean {
       return !this.getDisposeResult('disable-sandbox')
     }
 

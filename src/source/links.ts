@@ -132,7 +132,7 @@ export function fetchLinksFromHtml (
     return linkInfo.code ? linkInfo.code : fetchSource(address, app.name)
   })
 
-  const fiberLinkTasks: fiberTasks = app.isPrefetch || app.fiber ? [] : null
+  const fiberLinkTasks: fiberTasks = fiberStyleResult ? [] : null
 
   promiseStream<string>(fetchLinkPromise, (res: { data: string, index: number }) => {
     injectFiberTask(fiberLinkTasks, () => fetchLinkSuccess(
@@ -144,14 +144,14 @@ export function fetchLinksFromHtml (
   }, (err: {error: Error, index: number}) => {
     logError(err, app.name)
   }, () => {
-    if (fiberLinkTasks) {
-      /**
-       * 1. If fiberLinkTasks is not null, fiberStyleResult is not null
-       * 2. Download link source while processing style
-       * 3. Process style first, and then process link
-       */
-      fiberStyleResult!.then(() => {
-        fiberLinkTasks.push(() => Promise.resolve(app.onLoad(wrapElement)))
+    /**
+     * 1. If fiberStyleResult exist, fiberLinkTasks must exist
+     * 2. Download link source while processing style
+     * 3. Process style first, and then process link
+     */
+    if (fiberStyleResult) {
+      fiberStyleResult.then(() => {
+        fiberLinkTasks!.push(() => Promise.resolve(app.onLoad(wrapElement)))
         serialExecFiberTasks(fiberLinkTasks)
       })
     } else {
