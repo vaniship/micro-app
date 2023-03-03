@@ -62,7 +62,7 @@ import microApp from '../../micro_app'
 
 export default class IframeSandbox {
   static activeCount = 0 // number of active sandbox
-  public iframe: HTMLIFrameElement
+  public iframe!: HTMLIFrameElement | null
   public sandboxReady!: Promise<void>
   public microAppWindow: microAppWindowType
   public proxyLocation!: MicroLocation
@@ -70,6 +70,7 @@ export default class IframeSandbox {
   public baseElement!: HTMLBaseElement
   public microHead!: HTMLHeadElement
   public microBody!: HTMLBodyElement
+  public deleteIframeElement: () => void
   private active = false
   private windowEffect!: CommonIframeEffect
   private documentEffect!: CommonIframeEffect
@@ -87,17 +88,9 @@ export default class IframeSandbox {
     const childHost = childStaticLocation.protocol + '//' + childStaticLocation.host
     const childFullPath = childStaticLocation.pathname + childStaticLocation.search + childStaticLocation.hash
 
-    this.iframe = pureCreateElement('iframe')
-    const iframeAttrs: Record<string, string> = {
-      src: browserHost,
-      style: 'display: none',
-      id: appName,
-    }
-    Object.keys(iframeAttrs).forEach((key) => this.iframe.setAttribute(key, iframeAttrs[key]))
+    this.deleteIframeElement = this.createIframeElement(appName, browserHost)
 
-    globalEnv.rawDocument.body.appendChild(this.iframe)
-
-    this.microAppWindow = this.iframe.contentWindow
+    this.microAppWindow = this.iframe!.contentWindow
 
     // TODO: 优化代码
     // exec before initStaticGlobalKeys
@@ -127,6 +120,36 @@ export default class IframeSandbox {
       patchIframeElement(appName, url, this.microAppWindow, this)
       resolve()
     })
+  }
+
+  /**
+   * create iframe for sandbox
+   * @param appName app name
+   * @param browserHost browser origin
+   * @returns release callback
+   */
+  createIframeElement (
+    appName: string,
+    browserHost: string,
+  ): () => void {
+    this.iframe = pureCreateElement('iframe')
+
+    const iframeAttrs: Record<string, string> = {
+      src: browserHost,
+      style: 'display: none',
+      id: appName,
+    }
+
+    Object.keys(iframeAttrs).forEach((key) => this.iframe!.setAttribute(key, iframeAttrs[key]))
+
+    // effect action during construct
+    globalEnv.rawDocument.body.appendChild(this.iframe)
+
+    return () => {
+      // default mode or destroy, iframe will be deleted when unmount
+      this.iframe?.parentNode?.removeChild(this.iframe)
+      this.iframe = null
+    }
   }
 
   public start ({
@@ -174,8 +197,7 @@ export default class IframeSandbox {
     clearData,
   }: SandBoxStopParams): void {
     if (this.active) {
-      // clear global event, timeout, data listener
-      this.releaseGlobalEffect({ clearData })
+      this.recordAndReleaseEffect({ clearData }, !umdMode || destroy)
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)
@@ -184,8 +206,7 @@ export default class IframeSandbox {
       }
 
       if (!umdMode || destroy) {
-        // in default mode, iframe will be deleted when unmount
-        this.iframe.parentNode?.removeChild(this.iframe)
+        this.deleteIframeElement()
 
         this.escapeKeys.forEach((key: PropertyKey) => {
           Reflect.deleteProperty(globalEnv.rawWindow, key)
@@ -245,6 +266,27 @@ export default class IframeSandbox {
     this.windowEffect.rebuild()
     this.documentEffect.rebuild()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
+  }
+
+  /**
+   * Record global effect and then release (effect: global event, timeout, data listener)
+   * Scenes:
+   * 1. unmount of default/umd app
+   * 2. hidden keep-alive app
+   * 3. after init prerender app
+   * @param options {
+   *  @param clearData clear data from base app
+   *  @param isPrerender is prerender app
+   *  @param keepAlive is keep-alive app
+   * }
+   * @param preventRecord prevent record effect events (default or destroy)
+   */
+  public recordAndReleaseEffect (
+    options: releaseGlobalEffectParams,
+    preventRecord = false,
+  ): void {
+    if (!preventRecord) this.recordEffectSnapshot()
+    this.releaseGlobalEffect(options)
   }
 
   // set __MICRO_APP_PRE_RENDER__ state
@@ -439,7 +481,7 @@ export default class IframeSandbox {
     removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 
-  public patchStaticElement (container: Element): void {
+  public patchStaticElement (container: Element | ShadowRoot): void {
     patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
   }
 }

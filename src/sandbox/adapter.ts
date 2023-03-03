@@ -126,7 +126,7 @@ export function formatEventName (eventName: string, appName: string): string {
  * @param container target dom
  * @param appName app name
  */
-export function patchElementTree (container: Element, appName: string): void {
+export function patchElementTree (container: Element | ShadowRoot, appName: string): void {
   const children = Array.from(container.children)
 
   children.length && children.forEach((child) => {

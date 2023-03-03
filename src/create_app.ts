@@ -25,7 +25,7 @@ import {
   logError,
   getRootContainer,
   isObject,
-  callFnWithTryCatch,
+  execMicroAppGlobalHook,
   pureCreateElement,
   isDivElement,
 } from './libs/utils'
@@ -59,12 +59,11 @@ export default class CreateApp implements AppInterface {
   private loadSourceLevel: -1|0|1|2 = 0
   private umdHookMount: Func | null = null
   private umdHookUnmount: Func | null = null
-  private libraryName: string | null = null
   private preRenderEvent?: CallableFunction[] | null
   public umdMode = false
   public source: sourceType
-  // TODO: 类型优化，去掉any
-  public sandBox: WithSandBoxInterface | null | any = null
+  // TODO: 类型优化，加上iframe沙箱
+  public sandBox: WithSandBoxInterface | null = null
   public name: string
   public url: string
   public container: HTMLElement | ShadowRoot | null
@@ -289,9 +288,6 @@ export default class CreateApp implements AppInterface {
         })
 
         if (!this.umdMode) {
-          // result of umdHookMount method
-          let umdHookMountResult: unknown
-          let hasDispatchMountedEvent = false
           // update element info of html
           this.sandBox?.patchStaticElement(this.container)
           // if all js are executed, param isFinished will be true
@@ -306,25 +302,15 @@ export default class CreateApp implements AppInterface {
               // if mount & unmount is function, the sub app is umd mode
               if (isFunction(mount) && isFunction(unmount)) {
                 this.umdHookMount = mount as Func
-                this.umdMode = true
-                this.sandBox?.markUmdMode(true)
-                // this.sandBox?.recordEffectSnapshot()
+                // sandbox must exist
+                this.sandBox!.markUmdMode(this.umdMode = true)
                 try {
-                  umdHookMountResult = this.umdHookMount(microApp.getData(this.name, true))
+                  this.handleMounted(this.umdHookMount(microApp.getData(this.name, true)))
                 } catch (e) {
-                  logError('an error occurred in the mount function \n', this.name, e)
+                  logError('An error occurred in function mount \n', this.name, e)
                 }
-              }
-            }
-            // TODO: 去掉hasDispatchMountedEvent umdHookMountResult 两个参数
-            if (!hasDispatchMountedEvent && (isFinished === true || this.umdMode)) {
-              hasDispatchMountedEvent = true
-              const dispatchMounted = () => this.handleMounted(umdHookMountResult)
-              if (this.isPrerender) {
-                this.preRenderEvent?.push(dispatchMounted)
-                this.recordAndReleaseEffect(true)
-              } else {
-                dispatchMounted()
+              } else if (isFinished === true) {
+                this.handleMounted()
               }
             }
           })
@@ -333,26 +319,36 @@ export default class CreateApp implements AppInterface {
           try {
             this.handleMounted(this.umdHookMount!(microApp.getData(this.name, true)))
           } catch (e) {
-            logError('an error occurred in the mount function \n', this.name, e)
+            logError('An error occurred in function mount \n', this.name, e)
           }
         }
       }
     }
 
-    this.iframe ? this.sandBox.sandboxReady.then(nextAction) : nextAction()
+    // TODO: any替换为iframe沙箱类型
+    this.iframe ? (this.sandBox as any).sandboxReady.then(nextAction) : nextAction()
   }
 
   /**
    * handle for promise umdHookMount
    * @param umdHookMountResult result of umdHookMount
    */
-  private handleMounted (umdHookMountResult: any): void {
-    if (isPromise(umdHookMountResult)) {
-      umdHookMountResult
-        .then(() => this.dispatchMountedEvent())
-        .catch((e: Error) => this.onerror(e))
+  private handleMounted (umdHookMountResult?: unknown): void {
+    const dispatchAction = () => {
+      if (isPromise(umdHookMountResult)) {
+        umdHookMountResult
+          .then(() => this.dispatchMountedEvent())
+          .catch((e: Error) => this.onerror(e))
+      } else {
+        this.dispatchMountedEvent()
+      }
+    }
+
+    if (this.isPrerender) {
+      this.preRenderEvent?.push(dispatchAction)
+      this.sandBox?.recordAndReleaseEffect({ isPrerender: true })
     } else {
-      this.dispatchMountedEvent()
+      dispatchAction()
     }
   }
 
@@ -363,10 +359,10 @@ export default class CreateApp implements AppInterface {
     if (appStates.UNMOUNT !== this.state) {
       this.state = appStates.MOUNTED
       // call window.onmount of child app
-      callFnWithTryCatch(
-        this.getGlobalEventListener(microGlobalEvent.ONMOUNT),
+      execMicroAppGlobalHook(
+        this.getMicroAppGlobalHook(microGlobalEvent.ONMOUNT),
         this.name,
-        `window.${microGlobalEvent.ONMOUNT}`,
+        microGlobalEvent.ONMOUNT,
         microApp.getData(this.name, true)
       )
 
@@ -393,16 +389,13 @@ export default class CreateApp implements AppInterface {
     keepRouteState,
     unmountcb,
   }: UnmountParam): void {
-    if (this.state === appStates.LOAD_FAILED) {
-      destroy = true
-    }
-
+    if (this.state === appStates.LOAD_FAILED) destroy = true
     this.state = appStates.UNMOUNT
     this.keepAliveState = null
     this.keepAliveContainer = null
 
     // result of unmount function
-    let umdHookUnmountResult: any
+    let umdHookUnmountResult: unknown = null
     /**
      * send an unmount event to the micro app or call umd unmount hook
      * before the sandbox is cleared
@@ -411,19 +404,19 @@ export default class CreateApp implements AppInterface {
       try {
         umdHookUnmountResult = this.umdHookUnmount(microApp.getData(this.name, true))
       } catch (e) {
-        logError('an error occurred in the unmount function \n', this.name, e)
+        logError('An error occurred in function unmount \n', this.name, e)
       }
     }
 
-    // call window.onunmount of child app
-    callFnWithTryCatch(
-      this.getGlobalEventListener(microGlobalEvent.ONUNMOUNT),
-      this.name,
-      `window.${microGlobalEvent.ONUNMOUNT}`,
-    )
-
     // dispatch unmount event to micro app
     dispatchCustomEventToMicroApp(this, 'unmount')
+
+    // call window.onunmount of child app
+    execMicroAppGlobalHook(
+      this.getMicroAppGlobalHook(microGlobalEvent.ONUNMOUNT),
+      this.name,
+      microGlobalEvent.ONUNMOUNT,
+    )
 
     this.handleUnmounted(
       destroy,
@@ -449,18 +442,17 @@ export default class CreateApp implements AppInterface {
     umdHookUnmountResult: any,
     unmountcb?: CallableFunction,
   ): void {
-    const unmountParam: UnmountParam = {
+    const nextAction = () => this.actionsForUnmount({
       destroy,
       clearData,
       keepRouteState,
       unmountcb,
-    }
+    })
+
     if (isPromise(umdHookUnmountResult)) {
-      umdHookUnmountResult
-        .then(() => this.actionsForUnmount(unmountParam))
-        .catch(() => this.actionsForUnmount(unmountParam))
+      umdHookUnmountResult.then(nextAction).catch(nextAction)
     } else {
-      this.actionsForUnmount(unmountParam)
+      nextAction()
     }
   }
 
@@ -477,14 +469,8 @@ export default class CreateApp implements AppInterface {
     keepRouteState,
     unmountcb
   }: UnmountParam): void {
-    if (destroy) {
-      this.actionsForCompletelyDestroy()
-    } else if (this.umdMode && (this.container as Element).childElementCount) {
-      cloneContainer(this.container as Element, this.source.html as Element, false)
-    }
-
-    if (this.umdMode) {
-      this.sandBox?.recordEffectSnapshot()
+    if (this.umdMode && this.container && !destroy) {
+      cloneContainer(this.container, this.source.html as Element, false)
     }
 
     /**
@@ -511,12 +497,16 @@ export default class CreateApp implements AppInterface {
       lifeCycles.UNMOUNT,
     )
 
-    this.resetConfig()
+    this.clearOptions()
 
-    unmountcb && unmountcb()
+    if (destroy) {
+      this.actionsForCompletelyDestroy()
+    }
+
+    unmountcb?.()
   }
 
-  private resetConfig (): void {
+  private clearOptions (): void {
     this.container!.innerHTML = ''
     this.container = null
     this.isPrerender = false
@@ -529,16 +519,14 @@ export default class CreateApp implements AppInterface {
 
   // actions for completely destroy
   public actionsForCompletelyDestroy (): void {
-    if (!this.useSandbox && this.umdMode) {
-      delete window[this.libraryName as any]
-    }
+    this.sandBox?.deleteIframeElement?.()
     sourceCenter.script.deleteInlineInfo(this.source.scripts)
     appInstanceMap.delete(this.name)
   }
 
   // hidden app when disconnectedCallback called with keep-alive
   public hiddenKeepAliveApp (callback?: CallableFunction): void {
-    const oldContainer = this.container
+    const oldContainer = this.container!
 
     cloneContainer(
       this.container as Element,
@@ -560,7 +548,7 @@ export default class CreateApp implements AppInterface {
 
     // dispatch afterHidden event to base app
     dispatchLifecyclesEvent(
-      oldContainer!,
+      oldContainer,
       this.name,
       lifeCycles.AFTERHIDDEN,
     )
@@ -570,7 +558,7 @@ export default class CreateApp implements AppInterface {
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
 
-    this.recordAndReleaseEffect(false, true)
+    this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
 
     callback && callback()
   }
@@ -661,40 +649,28 @@ export default class CreateApp implements AppInterface {
   // get umd library, if it not exist, return empty object
   private getUmdLibraryHooks (): Record<string, unknown> {
     // after execScripts, the app maybe unmounted
-    if (appStates.UNMOUNT !== this.state) {
-      const global = (this.sandBox?.proxyWindow ?? globalEnv.rawWindow) as any
-      this.libraryName = getRootContainer(this.container!).getAttribute('library') || `micro-app-${this.name}`
+    if (appStates.UNMOUNT !== this.state && this.sandBox) {
+      const libraryName = getRootContainer(this.container!).getAttribute('library') || `micro-app-${this.name}`
 
-      if (isObject(global[this.libraryName])) {
-        return global[this.libraryName]
+      const proxyWindow = this.sandBox.proxyWindow as Record<string, any>
+
+      // compatible with pre versions
+      if (isObject(proxyWindow[libraryName])) {
+        return proxyWindow[libraryName]
       }
 
       return {
-        mount: this.sandBox?.proxyWindow.mount,
-        unmount: this.sandBox?.proxyWindow.unmount,
+        mount: proxyWindow.mount,
+        unmount: proxyWindow.unmount,
       }
     }
 
     return {}
   }
 
-  private getGlobalEventListener (eventName: string): Func | null {
-    // @ts-ignore
-    const listener = this.sandBox?.proxyWindow[eventName]
+  private getMicroAppGlobalHook (eventName: string): Func | null {
+    const listener = (this.sandBox?.proxyWindow as Record<string, any>)[eventName]
     return isFunction(listener) ? listener : null
-  }
-
-  /**
-   * Record global effect and then release (effect: global event, timeout, data listener)
-   * Scenes:
-   * 1. hidden keep-alive app
-   * 2. after init prerender app
-   * @param isPrerender is prerender app
-   * @param keepAlive is keep-alive app
-   */
-  private recordAndReleaseEffect (isPrerender = false, keepAlive = false): void {
-    this.sandBox?.recordEffectSnapshot()
-    this.sandBox?.releaseGlobalEffect({ isPrerender, keepAlive })
   }
 
   public querySelector (selectors: string): Node | null {

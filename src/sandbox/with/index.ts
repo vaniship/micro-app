@@ -200,8 +200,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     clearData,
   }: SandBoxStopParams): void {
     if (this.active) {
-      // clear global event, timeout, data listener
-      this.releaseGlobalEffect({ clearData })
+      this.recordAndReleaseEffect({ clearData }, !umdMode || destroy)
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)
@@ -295,6 +294,27 @@ export default class WithSandBox implements WithSandBoxInterface {
     // })
     this.effectController.rebuild()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
+  }
+
+  /**
+   * Record global effect and then release (effect: global event, timeout, data listener)
+   * Scenes:
+   * 1. unmount of default/umd app
+   * 2. hidden keep-alive app
+   * 3. after init prerender app
+   * @param options {
+   *  @param clearData clear data from base app
+   *  @param isPrerender is prerender app
+   *  @param keepAlive is keep-alive app
+   * }
+   * @param preventRecord prevent record effect events
+   */
+  public recordAndReleaseEffect (
+    options: releaseGlobalEffectParams,
+    preventRecord = false,
+  ): void {
+    if (!preventRecord) this.recordEffectSnapshot()
+    this.releaseGlobalEffect(options)
   }
 
   /**
@@ -692,7 +712,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 
-  public patchStaticElement (container: Element): void {
+  public patchStaticElement (container: Element | ShadowRoot): void {
     patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
   }
 

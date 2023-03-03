@@ -341,13 +341,7 @@ export function defineElement (tagName: string): void {
 
     // create app instance
     private handleCreateApp (): void {
-      /**
-       * actions for destroy old app
-       * fix of unmounted umd app with disableSandbox
-       */
-      appInstanceMap.get(this.appName)?.actionsForCompletelyDestroy()
-
-      new CreateApp({
+      const createAppInstance = () => new CreateApp({
         name: this.appName,
         url: this.appUrl,
         scopecss: this.useScopecss(),
@@ -357,6 +351,25 @@ export function defineElement (tagName: string): void {
         container: this.shadowRoot ?? this,
         ssrUrl: this.ssrUrl,
       })
+
+      /**
+       * Actions for destroy old app
+       * If oldApp exist, it must be 3 scenes:
+       *  1. oldApp is unmounted app (url is is different)
+       *  2. oldApp is prefetch, not prerender (url, scopecss, useSandbox, iframe is different)
+       *  3. oldApp is prerender (url, scopecss, useSandbox, iframe is different)
+       */
+      const oldApp = appInstanceMap.get(this.appName)
+      if (oldApp) {
+        if (oldApp.isPrerender) {
+          this.handleUnmount(true, createAppInstance)
+        } else {
+          oldApp.actionsForCompletelyDestroy()
+          createAppInstance()
+        }
+      } else {
+        createAppInstance()
+      }
     }
 
     /**

@@ -24,7 +24,7 @@ const prefetchConfig = [
   {
     name: 'react16',
     url: `${config.react16}micro-app/react16`,
-    level: 2,
+    level: 3,
     iframe: true,
   },
   // {

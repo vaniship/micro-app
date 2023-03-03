@@ -423,13 +423,14 @@ export function pureCreateElement<K extends keyof HTMLElementTagNameMap> (tagNam
  * @param target Accept cloned elements
  * @param deep deep clone or transfer dom
  */
-export function cloneContainer <T extends Element, Q extends Element> (
+export function cloneContainer <T extends Element | ShadowRoot, Q extends Element | ShadowRoot> (
   origin: T,
   target: Q,
   deep: boolean,
 ): void {
   target.innerHTML = ''
   if (deep) {
+    // TODO: ShadowRoot兼容，ShadowRoot不能直接使用cloneNode
     const clonedNode = origin.cloneNode(true)
     const fragment = document.createDocumentFragment()
     Array.from(clonedNode.childNodes).forEach((node: Node | Element) => {
@@ -626,16 +627,16 @@ export function isInlineScript (address: string): boolean {
  * @param appName app.name
  * @param args arguments
  */
-export function callFnWithTryCatch (
+export function execMicroAppGlobalHook (
   fn: Func | null,
   appName: string,
-  msgSuffix: string,
+  hookName: string,
   ...args: unknown[]
 ): void {
   try {
     isFunction(fn) && fn(...args)
   } catch (e) {
-    logError(`an error occurred in app ${appName} ${msgSuffix} \n`, null, e)
+    logError(`An error occurred in app ${appName} window.${hookName} \n`, null, e)
   }
 }
 

@@ -81,11 +81,13 @@ declare module '@micro-app/types' {
     recordEffectSnapshot (): void
     // rebuild umd snapshot before remount umd app
     rebuildEffectSnapshot (): void
+    recordAndReleaseEffect (options: releaseGlobalEffectParams, preventRecord?: boolean): void
     setRouteInfoForKeepAliveApp (): void
     removeRouteInfoForKeepAliveApp (): void
     setPreRenderState (state: boolean): void
     markUmdMode(state: boolean): void
-    patchStaticElement (container: Element): void
+    patchStaticElement (container: Element | ShadowRoot): void
+    deleteIframeElement? (): void
   }
 
   interface SandBoxAdapter {

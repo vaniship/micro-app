@@ -20,7 +20,7 @@ function vite (props) {
 
   function handleMounted () {
     hideLoading(false)
-    console.log('生命周期：mounted -- vite')
+    console.log('主应用-生命周期：mounted -- vite')
   }
 
   function handleDataChange (e) {
@@ -101,7 +101,7 @@ function vite (props) {
         onBeforeshow={() => console.log('keep-alive 即将推入前台，初始化时不执行')}
         onAftershow={() => {console.log('keep-alive 已经推入前台，初始化时不执行'); hideLoading(false)}}
         onError={() => console.log('渲染出错')}
-        // destroy
+        destroy
         inline
         // disableSandbox
         iframe

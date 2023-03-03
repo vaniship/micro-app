@@ -35,7 +35,7 @@ export default class App extends React.Component {
 
   mounted = () => {
     console.timeEnd(`mounted-${this.state.name}`)
-    console.log(`生命周期：mounted -- ${this.state.name}`, document.querySelector('micro-app'))
+    console.log(`主应用-生命周期：mounted -- ${this.state.name}`, document.querySelector('micro-app'))
     this.setState({
       showLoading: false
     })
