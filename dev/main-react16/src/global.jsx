@@ -3,27 +3,27 @@ import microApp, { unmountApp, unmountAllApps } from '@micro-zoe/micro-app'
 import config from './config'
 
 const prefetchConfig = [
-  {
-    name: 'vite',
-    url: `${config.vite}micro-app/vite`,
-    level: 3,
-    // inline: true,
-    // 'disable-sandbox': true,
-    'default-page': '/micro-app/vite/page2',
-    iframe: true,
-  },
-  {
-    name: 'vue2',
-    url: `${config.vue2}micro-app/vue2`,
-    // 'disable-scopecss': true,
-    level: 3,
-    'default-page': '/micro-app/vue2/#/page2',
-    // 'disable-patch-request': false,
-    iframe: true,
-  },
+  // {
+  //   name: 'vite',
+  //   url: `${config.vite}micro-app/vite`,
+  //   level: 3,
+  //   // inline: true,
+  //   // 'disable-sandbox': true,
+  //   'default-page': '/micro-app/vite/page2',
+  //   iframe: true,
+  // },
+  // {
+  //   name: 'vue2',
+  //   url: `${config.vue2}micro-app/vue2`,
+  //   // 'disable-scopecss': true,
+  //   level: 3,
+  //   'default-page': '/micro-app/vue2/#/page2',
+  //   // 'disable-patch-request': false,
+  //   iframe: true,
+  // },
   {
     name: 'react16',
-    url: `${config.react16}micro-app/react16`,
+    url: `${config.react16}micro-app/react16?a=1`,
     level: 3,
     iframe: true,
   },

@@ -55,11 +55,10 @@ export interface CreateAppParam {
 export default class CreateApp implements AppInterface {
   private state: string = appStates.CREATED
   private keepAliveState: string | null = null
-  private keepAliveContainer: HTMLElement | null = null
   private loadSourceLevel: -1|0|1|2 = 0
   private umdHookMount: Func | null = null
   private umdHookUnmount: Func | null = null
-  private preRenderEvent?: CallableFunction[] | null
+  private preRenderEvents?: CallableFunction[] | null
   public umdMode = false
   public source: sourceType
   // TODO: 类型优化，加上iframe沙箱
@@ -90,6 +89,8 @@ export default class CreateApp implements AppInterface {
     isPrefetch,
     prefetchLevel,
   }: CreateAppParam) {
+    appInstanceMap.set(name, this)
+    // init actions
     this.name = name
     this.url = url
     this.useSandbox = useSandbox
@@ -106,8 +107,6 @@ export default class CreateApp implements AppInterface {
     this.isPrerender = prefetchLevel === 3
     this.prefetchLevel = prefetchLevel
 
-    // init actions
-    appInstanceMap.set(this.name, this)
     this.source = { html: null, links: new Set(), scripts: new Set() }
     this.loadSourceCode()
     this.createSandbox()
@@ -115,7 +114,7 @@ export default class CreateApp implements AppInterface {
 
   // Load resources
   public loadSourceCode (): void {
-    this.state = appStates.LOADING
+    this.setAppState(appStates.LOADING)
     HTMLLoader.getInstance().run(this, extractSourceDom)
   }
 
@@ -129,7 +128,7 @@ export default class CreateApp implements AppInterface {
   ): void {
     if (++this.loadSourceLevel === 2) {
       this.source.html = html
-      this.state = appStates.LOADED
+      this.setAppState(appStates.LOADED)
 
       if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
         getRootContainer(this.container!).mount(this)
@@ -176,7 +175,7 @@ export default class CreateApp implements AppInterface {
 
     if (appStates.UNMOUNT !== this.state) {
       this.onerror(e)
-      this.state = appStates.LOAD_FAILED
+      this.setAppState(appStates.LOAD_FAILED)
     }
   }
 
@@ -211,7 +210,7 @@ export default class CreateApp implements AppInterface {
       // mount before prerender exec mount (loading source), set isPrerender to false
       this.isPrerender = false
       // reset app state to LOADING
-      this.state = appStates.LOADING
+      this.setAppState(appStates.LOADING)
       return
     }
 
@@ -245,13 +244,13 @@ export default class CreateApp implements AppInterface {
         /**
          * set this.container to <micro-app></micro-app>
          * NOTE:
-         * must exec before this.preRenderEvent?.forEach((cb) => cb())
+         * must exec before this.preRenderEvents?.forEach((cb) => cb())
          */
         this.container = container
-        this.preRenderEvent?.forEach((cb) => cb())
+        this.preRenderEvents?.forEach((cb) => cb())
         // reset isPrerender config
         this.isPrerender = false
-        this.preRenderEvent = null
+        this.preRenderEvents = null
         // attach router info to browser url
         router.attachToURL(this.name)
         this.sandBox?.setPreRenderState(false)
@@ -270,13 +269,13 @@ export default class CreateApp implements AppInterface {
         )
 
         if (this.isPrerender) {
-          (this.preRenderEvent ??= []).push(dispatchBeforeMount)
+          (this.preRenderEvents ??= []).push(dispatchBeforeMount)
         } else {
           dispatchBeforeMount()
         }
 
-        this.state = appStates.MOUNTING
-
+        this.setAppState(appStates.MOUNTING)
+        // TODO: 将所有cloneContainer中的'as Element'去掉，兼容shadowRoot的场景
         cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
 
         this.sandBox?.start({
@@ -345,7 +344,7 @@ export default class CreateApp implements AppInterface {
     }
 
     if (this.isPrerender) {
-      this.preRenderEvent?.push(dispatchAction)
+      this.preRenderEvents?.push(dispatchAction)
       this.sandBox?.recordAndReleaseEffect({ isPrerender: true })
     } else {
       dispatchAction()
@@ -357,7 +356,7 @@ export default class CreateApp implements AppInterface {
    */
   private dispatchMountedEvent (): void {
     if (appStates.UNMOUNT !== this.state) {
-      this.state = appStates.MOUNTED
+      this.setAppState(appStates.MOUNTED)
       // call window.onmount of child app
       execMicroAppGlobalHook(
         this.getMicroAppGlobalHook(microGlobalEvent.ONMOUNT),
@@ -389,10 +388,8 @@ export default class CreateApp implements AppInterface {
     keepRouteState,
     unmountcb,
   }: UnmountParam): void {
-    if (this.state === appStates.LOAD_FAILED) destroy = true
-    this.state = appStates.UNMOUNT
-    this.keepAliveState = null
-    this.keepAliveContainer = null
+    destroy = destroy || this.state === appStates.LOAD_FAILED
+    this.setAppState(appStates.UNMOUNT)
 
     // result of unmount function
     let umdHookUnmountResult: unknown = null
@@ -400,12 +397,10 @@ export default class CreateApp implements AppInterface {
      * send an unmount event to the micro app or call umd unmount hook
      * before the sandbox is cleared
      */
-    if (isFunction(this.umdHookUnmount)) {
-      try {
-        umdHookUnmountResult = this.umdHookUnmount(microApp.getData(this.name, true))
-      } catch (e) {
-        logError('An error occurred in function unmount \n', this.name, e)
-      }
+    try {
+      umdHookUnmountResult = this.umdHookUnmount?.(microApp.getData(this.name, true))
+    } catch (e) {
+      logError('An error occurred in function unmount \n', this.name, e)
     }
 
     // dispatch unmount event to micro app
@@ -497,23 +492,23 @@ export default class CreateApp implements AppInterface {
       lifeCycles.UNMOUNT,
     )
 
-    this.clearOptions()
-
-    if (destroy) {
-      this.actionsForCompletelyDestroy()
-    }
+    this.clearOptions(destroy)
 
     unmountcb?.()
   }
 
-  private clearOptions (): void {
+  private clearOptions (destroy: boolean): void {
     this.container!.innerHTML = ''
     this.container = null
     this.isPrerender = false
-    this.preRenderEvent = null
+    this.preRenderEvents = null
+    this.setKeepAliveState(null)
     // in iframe sandbox & default mode, delete the sandbox & iframeElement
     if (this.iframe && !this.umdMode) {
       this.sandBox = null
+    }
+    if (destroy) {
+      this.actionsForCompletelyDestroy()
     }
   }
 
@@ -526,17 +521,7 @@ export default class CreateApp implements AppInterface {
 
   // hidden app when disconnectedCallback called with keep-alive
   public hiddenKeepAliveApp (callback?: CallableFunction): void {
-    const oldContainer = this.container!
-
-    cloneContainer(
-      this.container as Element,
-      this.keepAliveContainer ? this.keepAliveContainer : (this.keepAliveContainer = document.createElement('div')),
-      false,
-    )
-
-    this.container = this.keepAliveContainer
-
-    this.keepAliveState = keepAliveStates.KEEP_ALIVE_HIDDEN
+    this.setKeepAliveState(keepAliveStates.KEEP_ALIVE_HIDDEN)
 
     /**
      * event should dispatch before clone node
@@ -548,7 +533,7 @@ export default class CreateApp implements AppInterface {
 
     // dispatch afterHidden event to base app
     dispatchLifecyclesEvent(
-      oldContainer,
+      this.container!,
       this.name,
       lifeCycles.AFTERHIDDEN,
     )
@@ -558,9 +543,15 @@ export default class CreateApp implements AppInterface {
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
 
+    this.container = cloneContainer(
+      this.container as Element,
+      pureCreateElement('div'),
+      false,
+    )
+
     this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
 
-    callback && callback()
+    callback?.()
   }
 
   // show app when connectedCallback called with keep-alive
@@ -579,15 +570,13 @@ export default class CreateApp implements AppInterface {
       lifeCycles.BEFORESHOW,
     )
 
-    cloneContainer(
+    this.setKeepAliveState(keepAliveStates.KEEP_ALIVE_SHOW)
+
+    this.container = cloneContainer(
       this.container as Element,
-      container as Element,
+      container,
       false,
     )
-
-    this.container = container
-
-    this.keepAliveState = keepAliveStates.KEEP_ALIVE_SHOW
 
     if (this.useMemoryRouter) {
       // called before lifeCyclesEvent
@@ -636,9 +625,19 @@ export default class CreateApp implements AppInterface {
     }
   }
 
+  // set app state
+  private setAppState (state: string): void {
+    this.state = state
+  }
+
   // get app state
   public getAppState (): string {
     return this.state
+  }
+
+  // set keep-alive state
+  private setKeepAliveState (state: string | null): void {
+    this.keepAliveState = state
   }
 
   // get keep-alive state

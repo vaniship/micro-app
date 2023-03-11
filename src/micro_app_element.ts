@@ -189,9 +189,9 @@ export function defineElement (tagName: string): void {
       this.updateSsrUrl(this.appUrl)
 
       if (appInstanceMap.has(this.appName)) {
-        const app = appInstanceMap.get(this.appName)!
-        const existAppUrl = app.ssrUrl || app.url
-        const targetAppUrl = this.ssrUrl || this.appUrl
+        const oldApp = appInstanceMap.get(this.appName)!
+        const oldAppUrl = oldApp.ssrUrl || oldApp.url
+        const targetUrl = this.ssrUrl || this.appUrl
         /**
          * NOTE:
          * 1. keep-alive don't care about ssrUrl
@@ -199,36 +199,30 @@ export function defineElement (tagName: string): void {
          * 3. When scopecss, useSandbox of prefetch app different from target app, delete prefetch app and create new one
          */
         if (
-          app.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN &&
-          app.url === this.appUrl
+          oldApp.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN &&
+          oldApp.url === this.appUrl
         ) {
-          this.handleShowKeepAliveApp(app)
+          this.handleShowKeepAliveApp(oldApp)
         } else if (
-          existAppUrl === targetAppUrl && (
-            app.getAppState() === appStates.UNMOUNT ||
+          oldAppUrl === targetUrl && (
+            oldApp.getAppState() === appStates.UNMOUNT ||
             (
-              app.isPrefetch && (
-                app.scopecss === this.useScopecss() &&
-                app.useSandbox === this.useSandbox()
-              )
+              oldApp.isPrefetch &&
+              this.sameCoreOptions(oldApp)
             )
           )
         ) {
-          this.handleAppMount(app)
-        } else if (app.isPrefetch || app.getAppState() === appStates.UNMOUNT) {
-          if (
-            __DEV__ &&
-            app.scopecss === this.useScopecss() &&
-            app.useSandbox === this.useSandbox()
-          ) {
+          this.handleAppMount(oldApp)
+        } else if (oldApp.isPrefetch || oldApp.getAppState() === appStates.UNMOUNT) {
+          if (__DEV__ && this.sameCoreOptions(oldApp)) {
             /**
              * url is different & old app is unmounted or prefetch, create new app to replace old one
              */
-            logWarn(`the ${app.isPrefetch ? 'prefetch' : 'unmounted'} app with url: ${existAppUrl} replaced by a new app with url: ${targetAppUrl}`, this.appName)
+            logWarn(`the ${oldApp.isPrefetch ? 'prefetch' : 'unmounted'} app with url: ${oldAppUrl} replaced by a new app with url: ${targetUrl}`, this.appName)
           }
           this.handleCreateApp()
         } else {
-          logError(`app name conflict, an app named: ${this.appName} with url: ${existAppUrl} is running`)
+          logError(`app name conflict, an app named: ${this.appName} with url: ${oldAppUrl} is running`)
         }
       } else {
         this.handleCreateApp()
@@ -244,13 +238,15 @@ export function defineElement (tagName: string): void {
       const formatAttrName = formatAppName(this.getAttribute('name'))
       const formatAttrUrl = formatAppURL(this.getAttribute('url'), this.appName)
       if (this.legalAttribute('name', formatAttrName) && this.legalAttribute('url', formatAttrUrl)) {
-        const existApp = appInstanceMap.get(formatAttrName)
-        if (formatAttrName !== this.appName && existApp) {
-          // handling of cached and non-prefetch apps
+        const oldApp = appInstanceMap.get(formatAttrName)
+        /**
+         * If oldApp exist & appName is different, determine whether oldApp is running
+         */
+        if (formatAttrName !== this.appName && oldApp) {
           if (
-            appStates.UNMOUNT !== existApp.getAppState() &&
-            keepAliveStates.KEEP_ALIVE_HIDDEN !== existApp.getKeepAliveState() &&
-            !existApp.isPrefetch
+            oldApp.getAppState() !== appStates.UNMOUNT &&
+            oldApp.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN &&
+            !oldApp.isPrefetch
           ) {
             this.setAttribute('name', this.appName)
             return logError(`app name conflict, an app named ${formatAttrName} is running`)
@@ -260,16 +256,16 @@ export function defineElement (tagName: string): void {
         if (formatAttrName !== this.appName || formatAttrUrl !== this.appUrl) {
           if (formatAttrName === this.appName) {
             this.handleUnmount(true, () => {
-              this.actionsForAttributeChange(formatAttrName, formatAttrUrl, existApp)
+              this.actionsForAttributeChange(formatAttrName, formatAttrUrl, oldApp)
             })
           } else if (this.getKeepAliveModeResult()) {
             this.handleHiddenKeepAliveApp()
-            this.actionsForAttributeChange(formatAttrName, formatAttrUrl, existApp)
+            this.actionsForAttributeChange(formatAttrName, formatAttrUrl, oldApp)
           } else {
             this.handleUnmount(
               this.getDestroyCompatibleResult(),
               () => {
-                this.actionsForAttributeChange(formatAttrName, formatAttrUrl, existApp)
+                this.actionsForAttributeChange(formatAttrName, formatAttrUrl, oldApp)
               }
             )
           }
@@ -283,7 +279,7 @@ export function defineElement (tagName: string): void {
     private actionsForAttributeChange (
       formatAttrName: string,
       formatAttrUrl: string,
-      existApp: AppInterface | void,
+      oldApp: AppInterface | void,
     ): void {
       /**
        * do not add judgment of formatAttrUrl === this.appUrl
@@ -298,24 +294,36 @@ export function defineElement (tagName: string): void {
       }
 
       /**
-       * when existApp not null: this.appName === existApp.name
-       * scene1: if formatAttrName and this.appName are equal: exitApp is the current app, the url must be different, existApp has been unmounted
-       * scene2: if formatAttrName and this.appName are different: existApp must be prefetch or unmounted, if url is equal, then just mount, if url is different, then create new app to replace existApp
+       * when oldApp not null: this.appName === oldApp.name
+       * scene1: if formatAttrName and this.appName are equal: exitApp is the current app, the url must be different, oldApp has been unmounted
+       * scene2: if formatAttrName and this.appName are different: oldApp must be prefetch or unmounted, if url is equal, then just mount, if url is different, then create new app to replace oldApp
        * scene3: url is different but ssrUrl is equal
        * scene4: url is equal but ssrUrl is different, if url is equal, name must different
-       * scene5: if existApp is KEEP_ALIVE_HIDDEN, name must different
+       * scene5: if oldApp is KEEP_ALIVE_HIDDEN, name must different
        */
-      if (existApp) {
-        if (existApp.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN) {
-          if (existApp.url === this.appUrl) {
-            this.handleShowKeepAliveApp(existApp)
+      if (oldApp) {
+        if (oldApp.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN) {
+          if (oldApp.url === this.appUrl) {
+            this.handleShowKeepAliveApp(oldApp)
           } else {
             // the hidden keep-alive app is still active
             logError(`app name conflict, an app named ${this.appName} is running`)
           }
-        } else if (existApp.url === this.appUrl && existApp.ssrUrl === this.ssrUrl) {
+        /**
+         * TODO:
+         *  1. oldApp必是unmountApp或preFetchApp，这里还应该考虑沙箱、iframe、样式隔离不一致的情况
+         *  2. unmountApp要不要判断样式隔离、沙箱、iframe，然后彻底删除并再次渲染？(包括handleConnected里的处理，先不改？)
+         * 推荐：if (
+         *  oldApp.url === this.appUrl &&
+         *  oldApp.ssrUrl === this.ssrUrl && (
+         *    oldApp.getAppState() === appStates.UNMOUNT ||
+         *    (oldApp.isPrefetch && this.sameCoreOptions(oldApp))
+         *  )
+         * )
+         */
+        } else if (oldApp.url === this.appUrl && oldApp.ssrUrl === this.ssrUrl) {
           // mount app
-          this.handleAppMount(existApp)
+          this.handleAppMount(oldApp)
         } else {
           this.handleCreateApp()
         }
@@ -472,6 +480,17 @@ export function defineElement (tagName: string): void {
 
     private useSandbox (): boolean {
       return !this.getDisposeResult('disable-sandbox')
+    }
+
+    /**
+     * Determine whether the core options of the existApp is consistent with the new one
+     */
+    private sameCoreOptions (app: AppInterface): boolean {
+      return (
+        app.scopecss === this.useScopecss() &&
+        app.useSandbox === this.useSandbox() &&
+        app.iframe === this.getDisposeResult('iframe')
+      )
     }
 
     /**

@@ -126,7 +126,7 @@ declare module '@micro-app/types' {
       attrs: Map<string, string>, // element attributes
       parsedCode?: string, // bind code
       parsedFunction?: Function | null, // code to function
-      wrapInSandBox?: boolean // use sandbox
+      sandboxType?: 'with' | 'iframe' | 'disable' // sandbox type (with, iframe, disable)
     }>
   }
 

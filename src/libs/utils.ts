@@ -427,7 +427,7 @@ export function cloneContainer <T extends Element | ShadowRoot, Q extends Elemen
   origin: T,
   target: Q,
   deep: boolean,
-): void {
+): Q {
   target.innerHTML = ''
   if (deep) {
     // TODO: ShadowRoot兼容，ShadowRoot不能直接使用cloneNode
@@ -442,6 +442,7 @@ export function cloneContainer <T extends Element | ShadowRoot, Q extends Elemen
       target.appendChild(node)
     })
   }
+  return target
 }
 
 // is invalid key of querySelector

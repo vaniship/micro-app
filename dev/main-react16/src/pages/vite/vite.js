@@ -97,9 +97,9 @@ function vite (props) {
         // onBeforemount={() => hideLoading(false)}
         onMounted={handleMounted}
         onDataChange={handleDataChange}
-        onAfterhidden={() => console.log('keep-alive 已推入后台')}
-        onBeforeshow={() => console.log('keep-alive 即将推入前台，初始化时不执行')}
-        onAftershow={() => {console.log('keep-alive 已经推入前台，初始化时不执行'); hideLoading(false)}}
+        onAfterhidden={() => console.log('基座：keep-alive：Afterhidden 已推入后台')}
+        onBeforeshow={() => console.log('基座：keep-alive：Beforeshow 即将推入前台')}
+        onAftershow={() => {console.log('基座：keep-alive：Aftershow 已经推入前台'); hideLoading(false)}}
         onError={() => console.log('渲染出错')}
         destroy
         inline
@@ -107,7 +107,8 @@ function vite (props) {
         iframe
         keep-router-state
         // disable-patch-request
-        // keep-alive
+        keep-alive
+        // default-page='/micro-app/vite/page2'
       >
       </micro-app>
 

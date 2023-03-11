@@ -129,6 +129,10 @@ function isWrapInSandBox (app: AppInterface, scriptInfo: ScriptSourceInfo): bool
   return app.useSandbox && !isTypeModule(app, scriptInfo)
 }
 
+function getSandboxType (app: AppInterface, scriptInfo: ScriptSourceInfo): 'with' | 'iframe' | 'disable' {
+  return isWrapInSandBox(app, scriptInfo) ? app.iframe ? 'iframe' : 'with' : 'disable'
+}
+
 /**
  * Extract script elements
  * @param script script element
@@ -362,7 +366,7 @@ export function fetchScriptSuccess (
      */
     if (!appSpaceData.parsedCode) {
       appSpaceData.parsedCode = bindScope(address, app, code, scriptInfo)
-      appSpaceData.wrapInSandBox = isWrapInSandBox(app, scriptInfo)
+      appSpaceData.sandboxType = getSandboxType(app, scriptInfo)
       if (!isInlineMode(app, scriptInfo)) {
         try {
           appSpaceData.parsedFunction = getParsedFunction(app, scriptInfo, appSpaceData.parsedCode)
@@ -474,16 +478,16 @@ export function runScript (
   try {
     actionsBeforeRunScript(app)
     const appSpaceData = scriptInfo.appSpace[app.name]
-    const wrapInSandBox = isWrapInSandBox(app, scriptInfo)
+    const sandboxType = getSandboxType(app, scriptInfo)
     /**
      * NOTE:
      * 1. plugins and wrapCode will only be executed once
      * 2. if parsedCode not exist, parsedFunction is not exist
      * 3. if parsedCode exist, parsedFunction does not necessarily exist
      */
-    if (!appSpaceData.parsedCode || appSpaceData.wrapInSandBox !== wrapInSandBox) {
+    if (!appSpaceData.parsedCode || appSpaceData.sandboxType !== sandboxType) {
       appSpaceData.parsedCode = bindScope(address, app, scriptInfo.code, scriptInfo)
-      appSpaceData.wrapInSandBox = wrapInSandBox
+      appSpaceData.sandboxType = sandboxType
       appSpaceData.parsedFunction = null
     }
 
@@ -501,7 +505,6 @@ export function runScript (
       if (!replaceElement) {
         // TEST IGNORE
         const parent = app.iframe ? app.sandBox!.microBody : app.querySelector('micro-app-body')
-
         parent?.appendChild(scriptElement)
       }
     } else {
@@ -643,7 +646,7 @@ function bindScope (
   }
 
   if (isWrapInSandBox(app, scriptInfo)) {
-    return app.iframe ? `(function(window,self,global,location){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).bind(window.__MICRO_APP_SANDBOX__.proxyWindow)(window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyLocation);` : `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${globalKeyToBeCached}){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${globalKeyToBeCached})}})(window.__MICRO_APP_PROXY_WINDOW__);`
+    return app.iframe ? `(function(window,self,global,location){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyLocation);` : `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${globalKeyToBeCached}){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${globalKeyToBeCached})}})(window.__MICRO_APP_PROXY_WINDOW__);`
   }
 
   return code
