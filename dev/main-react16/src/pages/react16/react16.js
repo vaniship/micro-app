@@ -408,7 +408,7 @@ export default class App extends React.Component {
                   onDataChange={this.handleDataChange}
                   baseroute='/micro-app/demo/react16'
                   // keep-alive
-                  // destroy
+                  destroy
                   // inline
                   // disableSandbox
                   // disable-sandbox
@@ -416,7 +416,7 @@ export default class App extends React.Component {
                   // disable-scopecss
                   // shadowDOM
                   // disable-memory-router
-                  keep-router-state
+                  // keep-router-state
                   // default-page='/micro-app/react16/page2'
                   // hidden-router
                   // disable-patch-request

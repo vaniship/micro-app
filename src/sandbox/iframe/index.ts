@@ -15,6 +15,7 @@ import {
   clearDOM,
   isPlainObject,
   isArray,
+  defer,
 } from '../../libs/utils'
 import {
   EventCenterForMicroApp,
@@ -145,11 +146,19 @@ export default class IframeSandbox {
     // effect action during construct
     globalEnv.rawDocument.body.appendChild(this.iframe)
 
-    return () => {
+    /**
+     * If dom operated async when unmount, premature deletion of iframe will cause unexpected problems
+     * e.g.
+     *  1. antd: notification.destroy()
+     * WARNING:
+     *  If async operation time is too long, defer cannot avoid the problem
+     * TODO: more test
+     */
+    return () => defer(() => {
       // default mode or destroy, iframe will be deleted when unmount
       this.iframe?.parentNode?.removeChild(this.iframe)
       this.iframe = null
-    }
+    })
   }
 
   public start ({
@@ -173,7 +182,7 @@ export default class IframeSandbox {
 
       /**
        * create base element to iframe
-       * Waring: This will also affect a, image, link and script
+       * WARNING: This will also affect a, image, link and script
        */
       if (!disablePatchRequest) {
         this.createIframeBase()

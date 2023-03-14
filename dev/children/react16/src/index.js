@@ -414,3 +414,5 @@ window.addEventListener('hashchange', (e) => {
 // console.log(`document.getElementsByTagName('meta')[0]: `, document.getElementsByTagName('meta')[0])
 
 // console.log('document.firstElementChild: ', document.firstElementChild)
+
+console.log('console === parent.console: ', console === parent.console)

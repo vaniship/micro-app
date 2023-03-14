@@ -43,6 +43,9 @@ declare global {
 }
 
 const globalEnv: Record<string, any> = {
+  // mark current application as base application
+  __MICRO_APP_BASE_APPLICATION__: true,
+  // active sandbox count
   activeSandbox: 0,
 }
 
@@ -52,8 +55,6 @@ const globalEnv: Record<string, any> = {
  */
 export function initGlobalEnv (): void {
   if (isBrowser) {
-    // mark current application as base application
-    window.__MICRO_APP_BASE_APPLICATION__ = true
     const rawWindow = window.rawWindow || Function('return window')()
     const rawDocument = window.rawDocument || Function('return document')()
     const rawRootDocument = rawWindow.Document || Function('return Document')()

@@ -504,12 +504,8 @@ export default class CreateApp implements AppInterface {
     this.preRenderEvents = null
     this.setKeepAliveState(null)
     // in iframe sandbox & default mode, delete the sandbox & iframeElement
-    if (this.iframe && !this.umdMode) {
-      this.sandBox = null
-    }
-    if (destroy) {
-      this.actionsForCompletelyDestroy()
-    }
+    if (this.iframe && !this.umdMode) this.sandBox = null
+    if (destroy) this.actionsForCompletelyDestroy()
   }
 
   // actions for completely destroy

@@ -20,12 +20,14 @@ const testHref = () => {
   // location.href = 'http://localhost:7001/micro-app/vite/#/page2' // 报错
   // location.href = '/micro-app/vite/#/page2' // 报错
   // location.href = 'https://www.baidu.com/' // 报错
-  // location.href = 'http://localhost:3000/micro-app/vite/#/page2' // -- 不报错 --
+  // location.href = 'http://localhost:3000/micro-app/vite/#/page2' // -- 不报错
 
   // vite环境下，通过window.microApp.location进行跳转
   // window.microApp.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
   window.microApp.location.href = '/micro-app/vite/page2'
 }
+
+// parent.console.timeEnd('vite')
 
 // This starter template is using Vue 3 experimental <script setup> SFCs
 // Check out https://github.com/vuejs/rfcs/blob/script-setup-2/active-rfcs/0000-script-setup.md

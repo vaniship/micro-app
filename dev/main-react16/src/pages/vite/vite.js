@@ -19,6 +19,7 @@ function vite (props) {
   const [showLoading, hideLoading] = useState(true)
 
   function handleMounted () {
+    console.timeEnd('vite')
     hideLoading(false)
     console.log('主应用-生命周期：mounted -- vite')
   }
@@ -40,6 +41,7 @@ function vite (props) {
   }
 
   useEffect(() => {
+    console.time('vite')
     // const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
     //   console.log('全局 beforeEach: ', to, from, appName)
     // })
