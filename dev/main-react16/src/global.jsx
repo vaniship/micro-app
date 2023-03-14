@@ -25,7 +25,7 @@ const prefetchConfig = [
     name: 'react16',
     url: `${config.react16}micro-app/react16?a=1`,
     level: 3,
-    iframe: true,
+    // iframe: true,
   },
   // {
   //   name: 'react17',
@@ -50,7 +50,7 @@ const prefetchConfig = [
   // },
 ]
 
-// microApp.preFetch(prefetchConfig)
+microApp.preFetch(prefetchConfig)
 
 window['scopeKeySpe'] = 'value from base app'
 window.Vue = 'Vue from base'
@@ -185,7 +185,7 @@ microApp.start({
 // ----------------------分割线--测试全局方法--------------------- //
 // setTimeout(() => {
 //   unmountAllApps({
-//     destroy: true,
+//     destroy: false,
 //     clearAliveState: true,
 //   }).then(() => {
 //     console.log('unmountAllApps方法 -- 主动卸载所有应用成功')

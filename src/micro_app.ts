@@ -82,10 +82,17 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
   return new Promise((resolve) => { // eslint-disable-line
     if (app) {
       if (app.getAppState() === appStates.UNMOUNT || app.isPrefetch) {
-        if (options?.destroy) {
-          app.actionsForCompletelyDestroy()
+        if (app.isPrerender) {
+          app.unmount({
+            destroy: options?.destroy || false,
+            clearData: true,
+            keepRouteState: false,
+            unmountcb: resolve.bind(null, true)
+          })
+        } else {
+          if (options?.destroy) app.actionsForCompletelyDestroy()
+          resolve(true)
         }
-        resolve(true)
       } else if (app.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN) {
         if (options?.destroy) {
           app.unmount({
@@ -137,7 +144,7 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
           const keepAliveAttrValue = container.getAttribute('keep-alive')!
           container.removeAttribute('keep-alive')
 
-          let clearDataAttrValue
+          let clearDataAttrValue = null
           if (options.clearData) {
             clearDataAttrValue = container.getAttribute('clear-data')
             container.setAttribute('clear-data', 'true')
@@ -148,7 +155,7 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
           container.setAttribute('keep-alive', keepAliveAttrValue)
           isString(clearDataAttrValue) && container.setAttribute('clear-data', clearDataAttrValue)
         } else {
-          let clearDataAttrValue
+          let clearDataAttrValue = null
           if (options?.clearData) {
             clearDataAttrValue = container.getAttribute('clear-data')
             container.setAttribute('clear-data', 'true')

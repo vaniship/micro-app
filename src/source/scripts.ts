@@ -6,6 +6,7 @@ import type {
   Func,
   fiberTasks,
   AttrsType,
+  microAppWindowType,
 } from '@micro-app/types'
 import { fetchSource } from './fetch'
 import {
@@ -62,14 +63,18 @@ function isInlineMode (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean
     app.inline ||
     scriptInfo.appSpace[app.name].inline ||
     isTypeModule(app, scriptInfo) ||
-    isSpecialScript(app, scriptInfo) ||
-    app.iframe // TODO: remove
+    isSpecialScript(app, scriptInfo)
   )
 }
 
+function getEffectWindow (app: AppInterface): microAppWindowType {
+  return app.iframe ? app.sandBox.microAppWindow : globalEnv.rawWindow
+}
+
 // Convert string code to function
-function code2Function (code: string): Function {
-  return new Function(code)
+function code2Function (app: AppInterface, code: string): Function {
+  const targetWindow = getEffectWindow(app)
+  return new targetWindow.Function(code)
 }
 
 /**
@@ -79,13 +84,13 @@ function code2Function (code: string): Function {
  * @param currentCode pure code of current address
  */
 function getExistParseResult (
-  appName: string,
+  app: AppInterface,
   scriptInfo: ScriptSourceInfo,
   currentCode: string,
 ): Function | void {
   const appSpace = scriptInfo.appSpace
   for (const item in appSpace) {
-    if (item !== appName) {
+    if (item !== app.name) {
       const appSpaceData = appSpace[item]
       if (appSpaceData.parsedCode === currentCode && appSpaceData.parsedFunction) {
         return appSpaceData.parsedFunction
@@ -103,7 +108,7 @@ function getParsedFunction (
   scriptInfo: ScriptSourceInfo,
   parsedCode: string,
 ): Function {
-  return getExistParseResult(app.name, scriptInfo, parsedCode) || code2Function(parsedCode)
+  return getExistParseResult(app, scriptInfo, parsedCode) || code2Function(app, parsedCode)
 }
 
 // Prevent randomly created strings from repeating
@@ -625,7 +630,7 @@ function runParsedFunction (app: AppInterface, scriptInfo: ScriptSourceInfo) {
   if (!appSpaceData.parsedFunction) {
     appSpaceData.parsedFunction = getParsedFunction(app, scriptInfo, appSpaceData.parsedCode!)
   }
-  appSpaceData.parsedFunction.call(window)
+  appSpaceData.parsedFunction.call(getEffectWindow(app))
 }
 
 /**

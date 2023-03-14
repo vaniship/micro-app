@@ -36,6 +36,7 @@ declare module '@micro-app/types' {
     umdMode: boolean,
     isPrerender: boolean,
     keepAlive: boolean,
+    destroy: boolean,
   }
 
   interface EffectController {
@@ -69,6 +70,7 @@ declare module '@micro-app/types' {
     clearData?: boolean,
     isPrerender?: boolean,
     keepAlive?: boolean,
+    destroy?: boolean,
   }
 
   interface WithSandBoxInterface {

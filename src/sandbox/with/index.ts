@@ -200,7 +200,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     clearData,
   }: SandBoxStopParams): void {
     if (this.active) {
-      this.recordAndReleaseEffect({ clearData }, !umdMode || destroy)
+      this.recordAndReleaseEffect({ clearData, destroy }, !umdMode || destroy)
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)
@@ -250,16 +250,19 @@ export default class WithSandBox implements WithSandBoxInterface {
    * @param clearData clear data from base app
    * @param isPrerender is prerender app
    * @param keepAlive is keep-alive app
+   * @param destroy completely destroy
    */
   public releaseGlobalEffect ({
     clearData = false,
     isPrerender = false,
     keepAlive = false,
+    destroy = false,
   }: releaseGlobalEffectParams): void {
     this.effectController.release({
       umdMode: this.proxyWindow.__MICRO_APP_UMD_MODE__,
       isPrerender,
       keepAlive,
+      destroy,
     })
     this.microAppWindow.microApp.clearDataListener()
     this.microAppWindow.microApp.clearGlobalDataListener()

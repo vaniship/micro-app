@@ -225,7 +225,9 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   }
 
   /**
-   * NOTE: about timer(events & properties should record & rebuild at all modes, exclude default mode)
+   * NOTE:
+   *  1. about timer(events & properties should record & rebuild at all modes, exclude default mode)
+   *  2. record maybe call twice when unmount prerender, keep-alive app manually
    * 4 modes: default-mode、umd-mode、prerender、keep-alive
    * Solution:
    *  1. default-mode(normal): clear events & timers, not record & rebuild anything
@@ -241,7 +243,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
     })
 
     // record onclick handler
-    sstOnClickHandler = documentClickListMap.get(appName)
+    sstOnClickHandler = sstOnClickHandler || documentClickListMap.get(appName)
 
     // record document event
     const documentAppListenersMap = documentEventListenerMap.get(appName)
@@ -282,7 +284,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   }
 
   // release all event listener & interval & timeout when unmount app
-  const release = ({ umdMode, isPrerender, keepAlive }: releaseEffectParams): void => {
+  const release = ({ umdMode, isPrerender, keepAlive, destroy }: releaseEffectParams): void => {
     // Clear window binding events
     if (eventListenerMap.size) {
       eventListenerMap.forEach((listenerList, type) => {
@@ -294,7 +296,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
     }
 
     // default mode(not keep-alive or isPrerender)
-    if (!umdMode && !keepAlive && !isPrerender) {
+    if ((!umdMode && !keepAlive && !isPrerender) || destroy) {
       intervalIdMap.forEach((_, intervalId: number) => {
         rawClearInterval.call(rawWindow, intervalId)
       })
@@ -302,10 +304,12 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
       timeoutIdMap.forEach((_, timeoutId: number) => {
         rawClearTimeout.call(rawWindow, timeoutId)
       })
-    }
 
-    intervalIdMap.clear()
-    timeoutIdMap.clear()
+      intervalIdMap.clear()
+      timeoutIdMap.clear()
+
+      clearSnapshotData()
+    }
 
     // Clear the function bound by micro application through document.onclick
     documentClickListMap.delete(appName)

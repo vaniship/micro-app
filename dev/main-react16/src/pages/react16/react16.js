@@ -407,9 +407,9 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseroute='/micro-app/demo/react16'
-                  // keep-alive
-                  destroy
-                  // inline
+                  keep-alive
+                  // destroy
+                  inline
                   // disableSandbox
                   // disable-sandbox
                   // disableScopecss
@@ -424,7 +424,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  iframe
+                  // iframe
                 >
                 </micro-app>
               )
