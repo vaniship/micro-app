@@ -5,7 +5,7 @@ import { appInstanceMap, isIframeSandbox } from '../create_app'
 
 export default class Adapter implements SandBoxAdapter {
   constructor () {
-    this.injectReactHRMProperty()
+    this.injectReactHMRProperty()
   }
 
   // keys that can only assigned to rawWindow
@@ -27,7 +27,7 @@ export default class Adapter implements SandBoxAdapter {
   ]
 
   // adapter for react
-  private injectReactHRMProperty (): void {
+  private injectReactHMRProperty (): void {
     if (__DEV__) {
       // react child in non-react env
       this.staticEscapeProperties.push('__REACT_ERROR_OVERLAY_GLOBAL_HOOK__')
