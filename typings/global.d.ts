@@ -101,7 +101,7 @@ declare module '@micro-app/types' {
     staticScopeProperties: PropertyKey[]
 
     // adapter for react
-    // injectReactHRMProperty (): void
+    // injectReactHMRProperty (): void
   }
 
   type LinkSourceInfo = {
