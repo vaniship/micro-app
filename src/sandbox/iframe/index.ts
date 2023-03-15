@@ -21,6 +21,7 @@ import {
   EventCenterForMicroApp,
   rebuildDataCenterSnapshot,
   recordDataCenterSnapshot,
+  resetDataCenterSnapshot,
 } from '../../interact'
 import globalEnv from '../../libs/global_env'
 import {
@@ -266,13 +267,11 @@ export default class IframeSandbox {
    * Scenes:
    *  1. unmount hidden keep-alive app manually
    *  2. unmount prerender app manually
-   * TODO:
-   *  此操作目前可有可无，因为default和destroy会直接删除沙箱重新创建，清空的操作意义不大。
-   *  但是以后如果进行iframe沙箱的保存和复用，则是必须操作，到时需要再测一下
    */
   public resetEffectSnapshot (): void {
     this.windowEffect.reset()
     this.documentEffect.reset()
+    resetDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
   /**

@@ -14,6 +14,7 @@ import {
   EventCenterForMicroApp,
   rebuildDataCenterSnapshot,
   recordDataCenterSnapshot,
+  resetDataCenterSnapshot,
 } from '../../interact'
 import globalEnv from '../../libs/global_env'
 import { initEnvOfNestedApp } from '../../libs/nest_app'
@@ -274,6 +275,7 @@ export default class WithSandBox implements WithSandBoxInterface {
    */
   public resetEffectSnapshot (): void {
     this.effectController.reset()
+    resetDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
   /**

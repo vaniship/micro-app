@@ -84,8 +84,8 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
       if (app.getAppState() === appStates.UNMOUNT || app.isPrefetch) {
         if (app.isPrerender) {
           app.unmount({
-            destroy: options?.destroy || false,
-            clearData: true,
+            destroy: !!options?.destroy,
+            clearData: !!options?.clearData,
             keepRouteState: false,
             unmountcb: resolve.bind(null, true)
           })

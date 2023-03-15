@@ -330,7 +330,7 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
   /**
    * record event
    * NOTE:
-   *  1.record maybe call twice when unmount prerender, keep-alive app manually
+   *  1.record maybe call twice when unmount prerender, keep-alive app manually with umd mode
    * Scenes:
    *  1. exec umdMountHook in umd mode
    *  2. hidden keep-alive app

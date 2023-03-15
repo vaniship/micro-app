@@ -108,7 +108,7 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
   /**
    * NOTE:
    *  1. about timer(events & properties should record & rebuild at all modes, exclude default mode)
-   *  2. record maybe call twice when unmount prerender, keep-alive app manually
+   *  2. record maybe call twice when unmount prerender, keep-alive app manually with umd mode
    * 4 modes: default-mode、umd-mode、prerender、keep-alive
    * Solution:
    *  1. default-mode(normal): clear events & timers, not record & rebuild anything

@@ -272,24 +272,26 @@ export class EventCenterForMicroApp extends EventCenterForGlobal {
 
 /**
  * Record UMD function before exec umdHookMount
- * @param microAppEventCenter
+ * NOTE: record maybe call twice when unmount prerender, keep-alive app manually with umd mode
+ * @param microAppEventCenter instance of EventCenterForMicroApp
  */
 export function recordDataCenterSnapshot (microAppEventCenter: EventCenterForMicroApp): void {
-  const appName = microAppEventCenter.appName
-  microAppEventCenter.umdDataListeners = { global: new Set(), normal: new Set() }
+  if (!microAppEventCenter.umdDataListeners) {
+    microAppEventCenter.umdDataListeners = { global: new Set(), normal: new Set() }
 
-  const globalEventInfo = eventCenter.eventList.get('global')
-  if (globalEventInfo) {
-    for (const cb of globalEventInfo.callbacks) {
-      if (appName === cb.__APP_NAME__) {
-        microAppEventCenter.umdDataListeners.global.add(cb)
+    const globalEventInfo = eventCenter.eventList.get('global')
+    if (globalEventInfo) {
+      for (const cb of globalEventInfo.callbacks) {
+        if (microAppEventCenter.appName === cb.__APP_NAME__) {
+          microAppEventCenter.umdDataListeners.global.add(cb)
+        }
       }
     }
-  }
 
-  const subAppEventInfo = eventCenter.eventList.get(createEventName(appName, true))
-  if (subAppEventInfo) {
-    microAppEventCenter.umdDataListeners.normal = new Set(subAppEventInfo.callbacks)
+    const subAppEventInfo = eventCenter.eventList.get(createEventName(microAppEventCenter.appName, true))
+    if (subAppEventInfo) {
+      microAppEventCenter.umdDataListeners.normal = new Set(subAppEventInfo.callbacks)
+    }
   }
 }
 
@@ -307,5 +309,15 @@ export function rebuildDataCenterSnapshot (microAppEventCenter: EventCenterForMi
     for (const cb of microAppEventCenter.umdDataListeners.normal) {
       microAppEventCenter.addDataListener(cb, cb.__AUTO_TRIGGER__)
     }
+
+    resetDataCenterSnapshot(microAppEventCenter)
   }
+}
+
+/**
+ * delete umdDataListeners from microAppEventCenter
+ * @param microAppEventCenter instance of EventCenterForMicroApp
+ */
+export function resetDataCenterSnapshot (microAppEventCenter: EventCenterForMicroApp): void {
+  delete microAppEventCenter.umdDataListeners
 }

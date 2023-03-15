@@ -30,9 +30,9 @@ window.microApp?.addDataListener((data) => {
 }, true)
 
 function handleGlobalData(data) {
-  console.log('react16: 来自全局数据')
+  console.log('子应用react16: 来自全局数据')
   Modal.info({
-    title: 'react16: 来自全局数据',
+    title: '子应用react16: 来自全局数据',
     content: (
       <div>
         <p>{JSON.stringify(data)}</p>
