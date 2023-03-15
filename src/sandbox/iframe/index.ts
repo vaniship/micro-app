@@ -237,24 +237,42 @@ export default class IframeSandbox {
   }
 
   /**
-   * clear global event, timeout, data listener
+   * Record global effect and then release (effect: global event, timeout, data listener)
    * Scenes:
-   * 1. unmount of normal/umd app
+   * 1. unmount of default/umd app
    * 2. hidden keep-alive app
    * 3. after init prerender app
-   * @param clearData clear data from base app
-   * @param isPrerender is prerender app
-   * @param keepAlive is keep-alive app
+   * @param options {
+   *  @param clearData clear data from base app
+   *  @param isPrerender is prerender app
+   *  @param keepAlive is keep-alive app
+   * }
+   * @param preventRecord prevent record effect events (default or destroy)
    */
-  public releaseGlobalEffect ({ clearData = false }: releaseGlobalEffectParams): void {
-    this.windowEffect.release()
-    this.documentEffect.release()
-    this.microAppWindow.microApp.clearDataListener()
-    this.microAppWindow.microApp.clearGlobalDataListener()
-    if (clearData) {
-      microApp.clearData(this.microAppWindow.__MICRO_APP_NAME__)
-      this.microAppWindow.microApp.clearData()
+  public recordAndReleaseEffect (
+    options: releaseGlobalEffectParams,
+    preventRecord = false,
+  ): void {
+    if (preventRecord) {
+      this.resetEffectSnapshot()
+    } else {
+      this.recordEffectSnapshot()
     }
+    this.releaseGlobalEffect(options)
+  }
+
+  /**
+   * reset effect snapshot data in default mode or destroy
+   * Scenes:
+   *  1. unmount hidden keep-alive app manually
+   *  2. unmount prerender app manually
+   * TODO:
+   *  此操作目前可有可无，因为default和destroy会直接删除沙箱重新创建，清空的操作意义不大。
+   *  但是以后如果进行iframe沙箱的保存和复用，则是必须操作，到时需要再测一下
+   */
+  public resetEffectSnapshot (): void {
+    this.windowEffect.reset()
+    this.documentEffect.reset()
   }
 
   /**
@@ -278,24 +296,24 @@ export default class IframeSandbox {
   }
 
   /**
-   * Record global effect and then release (effect: global event, timeout, data listener)
+   * clear global event, timeout, data listener
    * Scenes:
-   * 1. unmount of default/umd app
+   * 1. unmount of normal/umd app
    * 2. hidden keep-alive app
    * 3. after init prerender app
-   * @param options {
-   *  @param clearData clear data from base app
-   *  @param isPrerender is prerender app
-   *  @param keepAlive is keep-alive app
-   * }
-   * @param preventRecord prevent record effect events (default or destroy)
+   * @param clearData clear data from base app
+   * @param isPrerender is prerender app
+   * @param keepAlive is keep-alive app
    */
-  public recordAndReleaseEffect (
-    options: releaseGlobalEffectParams,
-    preventRecord = false,
-  ): void {
-    if (!preventRecord) this.recordEffectSnapshot()
-    this.releaseGlobalEffect(options)
+  public releaseGlobalEffect ({ clearData = false }: releaseGlobalEffectParams): void {
+    this.windowEffect.release()
+    this.documentEffect.release()
+    this.microAppWindow.microApp.clearDataListener()
+    this.microAppWindow.microApp.clearGlobalDataListener()
+    if (clearData) {
+      microApp.clearData(this.microAppWindow.__MICRO_APP_NAME__)
+      this.microAppWindow.microApp.clearData()
+    }
   }
 
   // set __MICRO_APP_PRE_RENDER__ state
@@ -490,7 +508,20 @@ export default class IframeSandbox {
     removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 
+  /**
+   * Format all html elements when init
+   * @param container micro app container
+   */
   public patchStaticElement (container: Element | ShadowRoot): void {
     patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
+  }
+
+  /**
+   * Actions:
+   * 1. patch static elements from html
+   * @param container micro app container
+   */
+  public actionBeforeExecScripts (container: Element | ShadowRoot): void {
+    this.patchStaticElement(container)
   }
 }

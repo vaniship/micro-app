@@ -288,7 +288,7 @@ export default class CreateApp implements AppInterface {
 
         if (!this.umdMode) {
           // update element info of html
-          this.sandBox?.patchStaticElement(this.container)
+          this.sandBox?.actionBeforeExecScripts(this.container)
           // if all js are executed, param isFinished will be true
           execScripts(this, (isFinished: boolean) => {
             if (!this.umdMode) {

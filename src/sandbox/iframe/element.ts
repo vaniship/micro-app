@@ -83,7 +83,6 @@ function patchIframeNode (
   // TODO: 更多场景适配
   microRootNode.prototype.insertBefore = function insertBefore <T extends Node> (node: T, child: Node | null): T {
     updateElementInfo(node, appName)
-    // console.log(6666666, node)
     if (isPureNode(node)) {
       return rawMicroInsertBefore.call(this, node, child)
     }

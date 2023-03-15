@@ -73,10 +73,6 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
     return scopeIframeWindowEvent.includes(type) ? microAppWindow : rawWindow
   }
 
-  const clearSnapshotData = () => {
-    sstWindowListenerMap.clear()
-  }
-
   microAppWindow.addEventListener = function (
     type: string,
     listener: MicroEventListener,
@@ -105,8 +101,14 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
     rawRemoveEventListener.call(getEventTarget(type), type, listener, options)
   }
 
+  const reset = (): void => {
+    sstWindowListenerMap.clear()
+  }
+
   /**
-   * NOTE: about timer(events & properties should record & rebuild at all modes, exclude default mode)
+   * NOTE:
+   *  1. about timer(events & properties should record & rebuild at all modes, exclude default mode)
+   *  2. record maybe call twice when unmount prerender, keep-alive app manually
    * 4 modes: default-mode、umd-mode、prerender、keep-alive
    * Solution:
    *  1. default-mode(normal): clear events & timers, not record & rebuild anything
@@ -133,7 +135,7 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
       }
     })
 
-    clearSnapshotData()
+    reset()
   }
 
   const release = (): void => {
@@ -149,6 +151,7 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
   }
 
   return {
+    reset,
     record,
     rebuild,
     release,

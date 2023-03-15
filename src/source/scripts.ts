@@ -63,10 +63,12 @@ function isInlineMode (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean
     app.inline ||
     scriptInfo.appSpace[app.name].inline ||
     isTypeModule(app, scriptInfo) ||
-    isSpecialScript(app, scriptInfo)
+    isSpecialScript(app, scriptInfo) ||
+    app.iframe
   )
 }
 
+// TODO: iframe重新插入window前后不一致，通过iframe Function创建的函数无法复用
 function getEffectWindow (app: AppInterface): microAppWindowType {
   return app.iframe ? app.sandBox.microAppWindow : globalEnv.rawWindow
 }

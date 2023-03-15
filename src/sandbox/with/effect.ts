@@ -218,7 +218,8 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   const sstDocumentListenerMap = new Map<string, Set<MicroEventListener>>()
   let sstOnClickHandler: unknown
 
-  const clearSnapshotData = () => {
+  // reset snapshot data
+  const reset = (): void => {
     sstWindowListenerMap.clear()
     sstDocumentListenerMap.clear()
     sstOnClickHandler = null
@@ -280,7 +281,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
     })
     removeDomScope()
 
-    clearSnapshotData()
+    reset()
   }
 
   // release all event listener & interval & timeout when unmount app
@@ -307,8 +308,6 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
 
       intervalIdMap.clear()
       timeoutIdMap.clear()
-
-      clearSnapshotData()
     }
 
     // Clear the function bound by micro application through document.onclick
@@ -327,6 +326,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   }
 
   return {
+    reset,
     record,
     rebuild,
     release,

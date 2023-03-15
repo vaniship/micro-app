@@ -102,6 +102,10 @@ window.addEventListener('scroll', () => {
   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
 }, false)
 
+window.addEventListener('click', () => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
+}, false)
+
 /* ---------------------- 定时器 --------------------- */
 setInterval(() => {
   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)

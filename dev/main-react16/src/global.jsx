@@ -50,7 +50,7 @@ const prefetchConfig = [
   // },
 ]
 
-microApp.preFetch(prefetchConfig)
+// microApp.preFetch(prefetchConfig)
 
 window['scopeKeySpe'] = 'value from base app'
 window.Vue = 'Vue from base'

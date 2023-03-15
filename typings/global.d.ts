@@ -40,12 +40,14 @@ declare module '@micro-app/types' {
   }
 
   interface EffectController {
+    reset(): void
     record(): void
     rebuild(): void
     release(options: releaseEffectParams): void
   }
 
   interface CommonIframeEffect {
+    reset(): void
     record(): void
     rebuild(): void
     release(umdMode?: boolean, preRender?: boolean): void
@@ -78,17 +80,20 @@ declare module '@micro-app/types' {
     microAppWindow: Window // Proxy target
     start (startParams: SandBoxStartParams): void
     stop (stopParams: SandBoxStopParams): void
-    releaseGlobalEffect (options: releaseGlobalEffectParams): void
+    recordAndReleaseEffect (options: releaseGlobalEffectParams, preventRecord?: boolean): void
+    // reset effect snapshot data
+    resetEffectSnapshot(): void
     // record umd snapshot before the first execution of umdHookMount
     recordEffectSnapshot (): void
     // rebuild umd snapshot before remount umd app
     rebuildEffectSnapshot (): void
-    recordAndReleaseEffect (options: releaseGlobalEffectParams, preventRecord?: boolean): void
+    releaseGlobalEffect (options: releaseGlobalEffectParams): void
     setRouteInfoForKeepAliveApp (): void
     removeRouteInfoForKeepAliveApp (): void
     setPreRenderState (state: boolean): void
     markUmdMode(state: boolean): void
     patchStaticElement (container: Element | ShadowRoot): void
+    actionBeforeExecScripts (container: Element | ShadowRoot): void
     deleteIframeElement? (): void
   }
 

@@ -242,34 +242,38 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   /**
-   * clear global event, timeout, data listener
+   * Record global effect and then release (effect: global event, timeout, data listener)
    * Scenes:
    * 1. unmount of default/umd app
    * 2. hidden keep-alive app
    * 3. after init prerender app
-   * @param clearData clear data from base app
-   * @param isPrerender is prerender app
-   * @param keepAlive is keep-alive app
-   * @param destroy completely destroy
+   * @param options {
+   *  @param clearData clear data from base app
+   *  @param isPrerender is prerender app
+   *  @param keepAlive is keep-alive app
+   * }
+   * @param preventRecord prevent record effect events
    */
-  public releaseGlobalEffect ({
-    clearData = false,
-    isPrerender = false,
-    keepAlive = false,
-    destroy = false,
-  }: releaseGlobalEffectParams): void {
-    this.effectController.release({
-      umdMode: this.proxyWindow.__MICRO_APP_UMD_MODE__,
-      isPrerender,
-      keepAlive,
-      destroy,
-    })
-    this.microAppWindow.microApp.clearDataListener()
-    this.microAppWindow.microApp.clearGlobalDataListener()
-    if (clearData) {
-      microApp.clearData(this.microAppWindow.__MICRO_APP_NAME__)
-      this.microAppWindow.microApp.clearData()
+  public recordAndReleaseEffect (
+    options: releaseGlobalEffectParams,
+    preventRecord = false,
+  ): void {
+    if (preventRecord) {
+      this.resetEffectSnapshot()
+    } else {
+      this.recordEffectSnapshot()
     }
+    this.releaseGlobalEffect(options)
+  }
+
+  /**
+   * reset effect snapshot data in default mode or destroy
+   * Scenes:
+   *  1. unmount hidden keep-alive app manually
+   *  2. unmount prerender app manually
+   */
+  public resetEffectSnapshot (): void {
+    this.effectController.reset()
   }
 
   /**
@@ -300,24 +304,34 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   /**
-   * Record global effect and then release (effect: global event, timeout, data listener)
+   * clear global event, timeout, data listener
    * Scenes:
    * 1. unmount of default/umd app
    * 2. hidden keep-alive app
    * 3. after init prerender app
-   * @param options {
-   *  @param clearData clear data from base app
-   *  @param isPrerender is prerender app
-   *  @param keepAlive is keep-alive app
-   * }
-   * @param preventRecord prevent record effect events
+   * @param clearData clear data from base app
+   * @param isPrerender is prerender app
+   * @param keepAlive is keep-alive app
+   * @param destroy completely destroy
    */
-  public recordAndReleaseEffect (
-    options: releaseGlobalEffectParams,
-    preventRecord = false,
-  ): void {
-    if (!preventRecord) this.recordEffectSnapshot()
-    this.releaseGlobalEffect(options)
+  public releaseGlobalEffect ({
+    clearData = false,
+    isPrerender = false,
+    keepAlive = false,
+    destroy = false,
+  }: releaseGlobalEffectParams): void {
+    this.effectController.release({
+      umdMode: this.proxyWindow.__MICRO_APP_UMD_MODE__,
+      isPrerender,
+      keepAlive,
+      destroy,
+    })
+    this.microAppWindow.microApp.clearDataListener()
+    this.microAppWindow.microApp.clearGlobalDataListener()
+    if (clearData) {
+      microApp.clearData(this.microAppWindow.__MICRO_APP_NAME__)
+      this.microAppWindow.microApp.clearData()
+    }
   }
 
   /**
@@ -352,7 +366,6 @@ export default class WithSandBox implements WithSandBoxInterface {
   private createProxyWindow (appName: string) {
     const rawWindow = globalEnv.rawWindow
     const descriptorTargetMap = new Map<PropertyKey, 'target' | 'rawWindow'>()
-    // window.xxx will trigger proxy
     return new Proxy(this.microAppWindow, {
       get: (target: microAppWindowType, key: PropertyKey): unknown => {
         throttleDeferForSetAppName(appName)
@@ -715,8 +728,22 @@ export default class WithSandBox implements WithSandBoxInterface {
     removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 
+  /**
+   * Format all html elements when init
+   * @param container micro app container
+   */
   public patchStaticElement (container: Element | ShadowRoot): void {
     patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
+  }
+
+  /**
+   * action before exec scripts when mount
+   * Actions:
+   * 1. patch static elements from html
+   * @param container micro app container
+   */
+  public actionBeforeExecScripts (container: Element | ShadowRoot): void {
+    this.patchStaticElement(container)
   }
 
   /**

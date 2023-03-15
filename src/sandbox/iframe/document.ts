@@ -54,7 +54,6 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     options?: ElementCreationOptions,
   ): HTMLElement {
     const element = globalEnv.rawCreateElement.call(this, tagName, options)
-    // console.log(111111, element)
     return updateElementInfo(element, appName)
   }
 
@@ -323,21 +322,23 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
       }
     })
 
-  const clearSnapshotData = () => {
+  const reset = (): void => {
     sstDocumentListenerMap.clear()
     sstOnClickHandler = null
   }
 
   /**
    * record event
+   * NOTE:
+   *  1.record maybe call twice when unmount prerender, keep-alive app manually
    * Scenes:
-   * 1. exec umdMountHook in umd mode
-   * 2. hidden keep-alive app
-   * 3. after init prerender app
+   *  1. exec umdMountHook in umd mode
+   *  2. hidden keep-alive app
+   *  3. after init prerender app
    */
   const record = (): void => {
     // record onclick handler
-    sstOnClickHandler = onClickHandler
+    sstOnClickHandler = sstOnClickHandler || onClickHandler
 
     // record document event
     const documentAppListenersMap = documentEventListenerMap.get(appName)
@@ -361,7 +362,7 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
       }
     })
 
-    clearSnapshotData()
+    reset()
   }
 
   const release = (): void => {
@@ -388,6 +389,7 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
   }
 
   return {
+    reset,
     record,
     rebuild,
     release,

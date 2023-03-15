@@ -103,8 +103,8 @@ function vite (props) {
         onBeforeshow={() => console.log('基座：keep-alive：Beforeshow 即将推入前台')}
         onAftershow={() => {console.log('基座：keep-alive：Aftershow 已经推入前台'); hideLoading(false)}}
         onError={() => console.log('渲染出错')}
-        destroy
-        inline
+        // destroy
+        // inline
         // disableSandbox
         iframe
         keep-router-state

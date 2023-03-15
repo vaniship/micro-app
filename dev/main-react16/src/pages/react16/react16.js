@@ -409,7 +409,7 @@ export default class App extends React.Component {
                   baseroute='/micro-app/demo/react16'
                   keep-alive
                   // destroy
-                  inline
+                  // inline
                   // disableSandbox
                   // disable-sandbox
                   // disableScopecss
@@ -424,7 +424,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  // iframe
+                  iframe
                 >
                 </micro-app>
               )
