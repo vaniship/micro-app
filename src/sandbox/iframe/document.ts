@@ -244,7 +244,7 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    const handler = isFunction(listener) ? (listener.__MICRO_APP_BOUND_FUNCTION__ = listener.bind(this)) : listener
+    const handler = isFunction(listener) ? (listener.__MICRO_APP_BOUND_FUNCTION__ = listener.__MICRO_APP_BOUND_FUNCTION__ || listener.bind(this)) : listener
     const appListenersMap = documentEventListenerMap.get(appName)
     if (appListenersMap) {
       const appListenerList = appListenersMap.get(type)

@@ -4,12 +4,12 @@ import config from './config'
 
 const prefetchConfig = [
   // {
-  //   name: 'vite',
-  //   url: `${config.vite}micro-app/vite`,
+  //   name: 'vite2',
+  //   url: `${config.vite2}micro-app/vite2`,
   //   level: 3,
   //   // inline: true,
   //   // 'disable-sandbox': true,
-  //   'default-page': '/micro-app/vite/page2',
+  //   'default-page': '/micro-app/vite2/page2',
   //   iframe: true,
   // },
   // {
@@ -131,7 +131,7 @@ microApp.start({
           return code
         }
       }],
-      vite: [{
+      vite2: [{
         escapeProperties: ['escapeKey3', 'escapeKey4'],
       }],
     }

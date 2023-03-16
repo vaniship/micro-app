@@ -1,5 +1,5 @@
 {
-  "name": "vite-project",
+  "name": "child-vite2",
   "version": "0.0.0",
   "scripts": {
     "start": "vite",
@@ -7,6 +7,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "element-plus": "^2.3.0",
     "vue": "^3.1.4",
     "vue-router": "^4.0.10"
   },
@@ -14,6 +15,9 @@
     "@vitejs/plugin-legacy": "^1.4.3",
     "@vitejs/plugin-vue": "^1.2.4",
     "@vue/compiler-sfc": "^3.1.4",
+    "unplugin-auto-import": "^0.15.1",
+    "unplugin-element-plus": "^0.7.0",
+    "unplugin-vue-components": "^0.24.1",
     "vite": "^2.6.13"
   }
 }

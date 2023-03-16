@@ -45,10 +45,10 @@ export default [
                 exact: false,
               },
               {
-                path: '/vite',
-                name: 'vite',
+                path: '/vite2',
+                name: 'vite2',
                 icon: 'SendOutlined',
-                component: './vite/vite',
+                component: './vite2/vite2',
                 exact: false,
               },
               {

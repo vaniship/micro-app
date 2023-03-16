@@ -21,16 +21,18 @@ function Vue3 () {
     microApp.router.push({name: 'vue3', path: '/micro-app/vue3/element-plus'})
   }
   function jumpToAntDesignVue () {
-    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/ant-design-vue'})
+    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/antd-vue'})
   }
 
   return (
     <div>
       <Col span={7} className='btn-con'>
-        <Button type="primary" onClick={changeData.bind(this, {type: '新数据' + new Date()})}>向子应用发送数据</Button>
+        <Button type="primary" onClick={changeData.bind(this, {type: '新数据' + new Date()})}>
+          向子应用发送数据
+        </Button>
         <Button type="primary" onClick={jumpToHome}>控制子应用跳转home</Button>
         <Button type="primary" onClick={jumpToElementPlus}>控制子应用跳转element-plus</Button>
-        <Button type="primary" onClick={jumpToAntDesignVue}>控制子应用跳转ant-design-vue</Button>
+        <Button type="primary" onClick={jumpToAntDesignVue}>控制子应用跳转antd-vue</Button>
       </Col>
       {
         showLoading && <Spin indicator={antIcon} />
@@ -49,7 +51,7 @@ function Vue3 () {
         // destroy
         // disableSandbox
         // shadowDOM
-        iframe
+        // iframe
       >
       </micro-app>
     </div>

@@ -6,48 +6,48 @@ import { Button, Spin, Col } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
 // import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
 import config from '../../config'
-import './vite.less'
+import './vite2.less'
 import microApp from '@micro-zoe/micro-app'
 
-// 注册子应用vite的数据通信对象
-// window.eventCenterForVite = new EventCenterForMicroApp('vite')
+// 注册子应用vite2的数据通信对象
+// window.eventCenterForVite = new EventCenterForMicroApp('vite2')
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
-function vite (props) {
+function vite2 (props) {
   const [data, changeData] = useState({from: '来自基座的初始化数据'})
   const [showLoading, hideLoading] = useState(true)
 
   function handleMounted () {
-    console.timeEnd('vite')
+    console.timeEnd('vite2')
     hideLoading(false)
-    console.log('主应用-生命周期：mounted -- vite')
+    console.log('主应用-生命周期：mounted -- vite2')
   }
 
   function handleDataChange (e) {
-    console.log('来自 vite 子应用的数据', e.detail.data)
+    console.log('来自 vite2 子应用的数据', e.detail.data)
   }
 
   function jumpToHome () {
-    microApp.router.push({name: 'vite', path: '/micro-app/vite/'})
+    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/'})
   }
 
   function jumpToPage2 () {
-    microApp.router.push({name: 'vite', path: '/micro-app/vite/page2'})
+    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/element-plus'})
   }
 
   function jumpToPage3 () {
-    microApp.router.push({name: 'vite', path: '/micro-app/vite/page3'})
+    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/antd-vue'})
   }
 
   useEffect(() => {
-    console.time('vite')
+    console.time('vite2')
     // const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
     //   console.log('全局 beforeEach: ', to, from, appName)
     // })
 
     // const releaseBeforeEach2 = microApp.router.beforeEach({
-    //   vite (to, from) {
+    //   vite2 (to, from) {
     //     console.log('指定 beforeEach: ', to, from)
     //   }
     // })
@@ -57,7 +57,7 @@ function vite (props) {
     // })
 
     // const releaseAfterEach2 = microApp.router.afterEach({
-    //   vite (to, from) {
+    //   vite2 (to, from) {
     //     console.log('指定 afterEach: ', to, from)
     //   }
     // })
@@ -76,25 +76,21 @@ function vite (props) {
     <div>
       <div className='btn-con'>
         <Col span={6} className='btn-con'>
-          <Button
-            type='primary'
-            onClick={() => changeData({from: '来自基座的数据' + (+new Date())})}
-            style={{width: '120px'}}
-          >
-            发送数据
+          <Button type='primary' onClick={() => changeData({from: '来自基座的数据' + (+new Date())})}>
+            向子应用发送数据
           </Button>
           <Button type="primary" onClick={jumpToHome}>控制子应用跳转首页</Button>
-          <Button type="primary" onClick={jumpToPage2}>控制子应用跳转page2</Button>
-          <Button type="primary" onClick={jumpToPage3}>控制子应用跳转page3</Button>
+          <Button type="primary" onClick={jumpToPage2}>控制子应用跳转element-plus</Button>
+          <Button type="primary" onClick={jumpToPage3}>控制子应用跳转antd-vue</Button>
         </Col>
       </div>
       {
         showLoading && <Spin indicator={antIcon} />
       }
       <micro-app
-        name='vite'
-        url={`${config.vite}micro-app/vite/`}
-        // url={`http://127.0.0.1:8080/micro-app/vite/`}
+        name='vite2'
+        url={`${config.vite2}micro-app/vite2/`}
+        // url={`http://127.0.0.1:8080/micro-app/vite2/`}
         data={data}
         // onBeforemount={() => hideLoading(false)}
         onMounted={handleMounted}
@@ -110,13 +106,13 @@ function vite (props) {
         keep-router-state
         // disable-patch-request
         keep-alive
-        // default-page='/micro-app/vite/page2'
+        // default-page='/micro-app/vite2/page2'
       >
       </micro-app>
 
-      {/* <iframe src={`${config.vite}micro-app/vite/`} width='100%' height='600px'></iframe> */}
+      {/* <iframe src={`${config.vite2}micro-app/vite2/`} width='100%' height='600px'></iframe> */}
     </div>
   )
 }
 
-export default vite
+export default vite2

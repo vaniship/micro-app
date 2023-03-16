@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import routes from './router'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
 
 function handleMicroData () {
   console.log('child-vite getData:', window.microApp?.getData())
@@ -45,6 +47,7 @@ window.mount = (data) => {
 
   app = createApp(App)
   app.use(router)
+  app.use(ElementPlus)
   app.mount('#vite-app')
 
   console.log('微应用vite渲染了 -- UMD模式', data);
@@ -88,32 +91,43 @@ window.addEventListener('unmount', function (e) {
   console.log(`子应用${window.__MICRO_APP_NAME__}内部unmount事件`)
 })
 
+// document.addEventListener("mousemove", (e) => {
+//   console.log(333333333, e)
+// });
 
 /* ---------------------- 全局事件 --------------------- */
-document.addEventListener('click', function () {
+const handleDocClick = function () {
   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
-}, false)
-
-document.onclick = () => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
 }
+document.addEventListener('click', handleDocClick)
+document.addEventListener('click', handleDocClick)
 
-window.addEventListener('scroll', () => {
-  console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
-}, false)
 
-window.addEventListener('click', () => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
-}, false)
+// setTimeout(() => {
+//   console.log(111111)
+//   document.removeEventListener('click', handleDocClick)
+//   document.removeEventListener('click', handleDocClick)
+// }, 5000);
+// document.onclick = () => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+// }
+
+// window.addEventListener('scroll', () => {
+//   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
+// }, false)
+
+// window.addEventListener('click', () => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
+// }, false)
 
 /* ---------------------- 定时器 --------------------- */
-setInterval(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
-}, 5000)
+// setInterval(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+// }, 5000)
 
-setTimeout(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
-}, 5000);
+// setTimeout(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+// }, 5000);
 
 
 /* ---------------------- 创建元素 --------------------- */
@@ -197,7 +211,7 @@ setTimeout(() => {
 
 /* ---------------------- Image --------------------- */
 // const newImg = new Image()
-// newImg.src = '/micro-app/vite/src/assets/logo.png'
+// newImg.src = '/micro-app/vite2/src/assets/logo.png'
 // document.body.appendChild(newImg)
 // newImg.setAttribute('width', '50px')
 
@@ -211,18 +225,18 @@ setTimeout(() => {
 // 依次放开每个注释来，尽可能覆盖所有场景
 setTimeout(() => {
   // window.microApp.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
-  // window.microApp.location.href = '/micro-app/vite/page2'
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2' // path改变，刷新浏览器
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/page2/' // hash从有到无，刷新浏览器
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite'
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/' // path相同，刷新浏览器
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite/?a=1' // search变化，刷新浏览器
+  // window.microApp.location.href = '/micro-app/vite2/page2'
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/page2' // path改变，刷新浏览器
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/page2/' // hash从有到无，刷新浏览器
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2'
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/' // path相同，刷新浏览器
+  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/?a=1' // search变化，刷新浏览器
 
 
-  // window.microApp.location.pathname = '/micro-app/vite/page2' // path改变，刷新浏览器
-  // window.microApp.location.pathname = '/micro-app/vite/page2#hash1' // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
-  // window.microApp.location.pathname = '/micro-app/vite/page2?b=2'
+  // window.microApp.location.pathname = '/micro-app/vite2/page2' // path改变，刷新浏览器
+  // window.microApp.location.pathname = '/micro-app/vite2/page2#hash1' // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
+  // window.microApp.location.pathname = '/micro-app/vite2/page2?b=2'
 
   // window.microApp.location.search = '?c=3' // search改变，刷新浏览器
   // window.microApp.location.search = '?c=3' // search不变，刷新浏览器
@@ -231,13 +245,13 @@ setTimeout(() => {
   // window.microApp.location.hash = '#a' // hash不变，不发送popstate、hashchange事件
 
 
-  // window.microApp.location.assign('/micro-app/vite/page2') // path改变，刷新浏览器
-  // window.microApp.location.assign('http://localhost:7001/micro-app/vite/page2') // path不改变，刷新浏览器
-  // window.microApp.location.assign('http://localhost:7001/micro-app/vite/page2#abc') // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+  // window.microApp.location.assign('/micro-app/vite2/page2') // path改变，刷新浏览器
+  // window.microApp.location.assign('http://localhost:7001/micro-app/vite2/page2') // path不改变，刷新浏览器
+  // window.microApp.location.assign('http://localhost:7001/micro-app/vite2/page2#abc') // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
 
-  // window.microApp.location.assign('/micro-app/vite/page2') // 同上
-  // window.microApp.location.replace('http://localhost:7001/micro-app/vite/page2') // 同上
-  // window.microApp.location.replace('http://localhost:7001/micro-app/vite/page2#abc') // 同上
+  // window.microApp.location.assign('/micro-app/vite2/page2') // 同上
+  // window.microApp.location.replace('http://localhost:7001/micro-app/vite2/page2') // 同上
+  // window.microApp.location.replace('http://localhost:7001/micro-app/vite2/page2#abc') // 同上
 
   // window.microApp.location.reload()
 
@@ -284,12 +298,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 /* ---------------------- 插件相关 --------------------- */
 // vite环境下无法设置window指向proxyWindow，其值依然是iframeWindow，所以插件无法使用
-window.escapeKey1 = 'escapeKey1' // 无效，只定义在iframeWindow上
-window.escapeKey2 = 'escapeKey2' // 无效，只定义在iframeWindow上
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  window.__MICRO_APP_PROXY_WINDOW__.escapeKey3 = 'escapeKey3' // 逃逸到rawWindow上
-  window.__MICRO_APP_PROXY_WINDOW__.escapeKey4 = 'escapeKey4' // 逃逸到rawWindow上
-}
+// window.escapeKey1 = 'escapeKey1' // 无效，只定义在iframeWindow上
+// window.escapeKey2 = 'escapeKey2' // 无效，只定义在iframeWindow上
+// if (window.__MICRO_APP_ENVIRONMENT__) {
+//   window.__MICRO_APP_PROXY_WINDOW__.escapeKey3 = 'escapeKey3' // 逃逸到rawWindow上
+//   window.__MICRO_APP_PROXY_WINDOW__.escapeKey4 = 'escapeKey4' // 逃逸到rawWindow上
+// }
 
 
 // console.log('scopeProperties scopeKeySpe: ', scopeKeySpe)
