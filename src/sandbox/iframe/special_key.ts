@@ -5,25 +5,20 @@ export const escape2RawWindowKeys = [
   'visualViewport',
   'matchMedia',
   // 'DOMParser',
-  'requestAnimationFrame',
-  'cancelAnimationFrame',
   'ResizeObserver',
-  'MutationObserver',
   'IntersectionObserver',
-  'innerHeight',
-  'outerHeight',
-  'innerWidth',
-  'outerWidth',
-  'screen',
-  'screenLeft',
-  'screenTop',
-  'screenX',
-  'screenY',
-  'fullScreen',
-  'scrollX',
-  'scrollY',
-  'pageXOffset', // same as scrollX
-  'pageYOffset', // same as scrollY
+  // 'dispatchEvent',
+]
+
+export const escape2RawWindowRegExpKeys = [
+  /animationFrame$/i,
+  /mutationObserver$/i,
+  /height$|width$/i,
+  /offset$/i,
+  // /event$/i,
+  /^screen/i,
+  /^scroll/i,
+  /X$|Y$/,
 ]
 
 export const scopeIframeWindowOnEvent = [
@@ -122,6 +117,7 @@ export const proxy2RawDocumentMethods = [
   'getElementsByTagNameNS',
   'hasFocus',
   'prepend',
+  // 'dispatchEvent',
 ]
 
 export const globalPropertyList = [

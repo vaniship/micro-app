@@ -307,11 +307,11 @@ export default class IframeSandbox {
   public releaseGlobalEffect ({ clearData = false }: releaseGlobalEffectParams): void {
     this.windowEffect.release()
     this.documentEffect.release()
-    this.microAppWindow.microApp.clearDataListener()
-    this.microAppWindow.microApp.clearGlobalDataListener()
+    this.microAppWindow.microApp?.clearDataListener()
+    this.microAppWindow.microApp?.clearGlobalDataListener()
     if (clearData) {
       microApp.clearData(this.microAppWindow.__MICRO_APP_NAME__)
-      this.microAppWindow.microApp.clearData()
+      this.microAppWindow.microApp?.clearData()
     }
   }
 

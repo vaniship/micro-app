@@ -86,6 +86,7 @@ function Vue2 () {
         // inline
         // disable-scopecss
         // disableSandbox
+        // disable-memory-router
         // clear-data
         iframe
       >

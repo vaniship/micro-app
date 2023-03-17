@@ -21,7 +21,7 @@ function Vue3 () {
     microApp.router.push({name: 'vue3', path: '/micro-app/vue3/element-plus'})
   }
   function jumpToAntDesignVue () {
-    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/antd-vue'})
+    microApp.router.push({name: 'vue3', path: '/micro-app/vue3/ant-design-vue'})
   }
 
   return (
@@ -32,7 +32,7 @@ function Vue3 () {
         </Button>
         <Button type="primary" onClick={jumpToHome}>控制子应用跳转home</Button>
         <Button type="primary" onClick={jumpToElementPlus}>控制子应用跳转element-plus</Button>
-        <Button type="primary" onClick={jumpToAntDesignVue}>控制子应用跳转antd-vue</Button>
+        <Button type="primary" onClick={jumpToAntDesignVue}>控制子应用跳转ant-design-vue</Button>
       </Col>
       {
         showLoading && <Spin indicator={antIcon} />
@@ -45,7 +45,7 @@ function Vue3 () {
         onBeforeshow={() => hideLoading(false)}
         // baseRoute='/micro-app/demo/vue3'
         // disableScopecss
-        keep-alive
+        // keep-alive
         keep-router-state
         // inline
         // destroy

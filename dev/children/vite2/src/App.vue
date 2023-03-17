@@ -8,7 +8,7 @@
     >
       <el-menu-item index="/">home</el-menu-item>
       <el-menu-item index="/element-plus">element-plus</el-menu-item>
-      <el-menu-item index="/antd-vue">antd-vue</el-menu-item>
+      <el-menu-item index="/ant-design-vue">ant-design-vue</el-menu-item>
     </el-menu>
     <router-view></router-view>
     <!-- <div id="test-innerHTML"></div> -->

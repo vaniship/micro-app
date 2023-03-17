@@ -12,6 +12,7 @@ import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
 import {
   escape2RawWindowKeys,
+  escape2RawWindowRegExpKeys,
   scopeIframeWindowOnEvent,
   scopeIframeWindowEvent,
 } from './special_key'
@@ -23,8 +24,33 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
     microAppWindow[key] = bindFunctionToRawTarget(rawWindow[key], rawWindow)
   })
 
-  Object.getOwnPropertyNames(rawWindow)
-    .filter((key: string) => /^on/.test(key) && !scopeIframeWindowOnEvent.includes(key))
+  Object.getOwnPropertyNames(microAppWindow)
+    .filter((key: string) => {
+      escape2RawWindowRegExpKeys.some((reg: RegExp) => {
+        if (reg.test(key) && key in microAppWindow.parent) {
+          if (isFunction(rawWindow[key])) {
+            microAppWindow[key] = bindFunctionToRawTarget(rawWindow[key], rawWindow)
+          } else {
+            const { configurable, enumerable } = Object.getOwnPropertyDescriptor(microAppWindow, key) || {
+              configurable: true,
+              enumerable: true,
+            }
+            if (configurable) {
+              rawDefineProperty(microAppWindow, key, {
+                configurable,
+                enumerable,
+                get: () => rawWindow[key],
+                set: (value) => { rawWindow[key] = value },
+              })
+            }
+          }
+          return true
+        }
+        return false
+      })
+
+      return /^on/.test(key) && !scopeIframeWindowOnEvent.includes(key)
+    })
     .forEach((eventName: string) => {
       const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microAppWindow, eventName) || {
         enumerable: true,

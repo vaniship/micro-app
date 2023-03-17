@@ -12,9 +12,9 @@ const routes = [
     component: () => import('./pages/element-plus.vue')
   },
   {
-    path: '/antd-vue',
-    name: 'antd-vue',
-    component: () => import('./pages/antd-vue.vue')
+    path: '/ant-design-vue',
+    name: 'ant-design-vue',
+    component: () => import('./pages/ant-design-vue.vue')
   }
 ]
 

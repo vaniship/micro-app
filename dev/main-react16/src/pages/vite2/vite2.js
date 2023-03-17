@@ -37,7 +37,7 @@ function vite2 (props) {
   }
 
   function jumpToPage3 () {
-    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/antd-vue'})
+    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/ant-design-vue'})
   }
 
   useEffect(() => {
@@ -81,7 +81,7 @@ function vite2 (props) {
           </Button>
           <Button type="primary" onClick={jumpToHome}>控制子应用跳转首页</Button>
           <Button type="primary" onClick={jumpToPage2}>控制子应用跳转element-plus</Button>
-          <Button type="primary" onClick={jumpToPage3}>控制子应用跳转antd-vue</Button>
+          <Button type="primary" onClick={jumpToPage3}>控制子应用跳转ant-design-vue</Button>
         </Col>
       </div>
       {

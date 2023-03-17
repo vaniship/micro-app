@@ -2,8 +2,10 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import routes from './router'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
+// import ElementPlus from 'element-plus'
+// import 'element-plus/dist/index.css'
+// import Antd from 'ant-design-vue'
+// import 'ant-design-vue/dist/antd.css'
 
 function handleMicroData () {
   console.log('child-vite getData:', window.microApp?.getData())
@@ -47,7 +49,8 @@ window.mount = (data) => {
 
   app = createApp(App)
   app.use(router)
-  app.use(ElementPlus)
+  // app.use(ElementPlus)
+  // app.use(Antd)
   app.mount('#vite-app')
 
   console.log('微应用vite渲染了 -- UMD模式', data);
@@ -96,18 +99,17 @@ window.addEventListener('unmount', function (e) {
 // });
 
 /* ---------------------- 全局事件 --------------------- */
-const handleDocClick = function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`)
-}
-document.addEventListener('click', handleDocClick)
-document.addEventListener('click', handleDocClick)
-
+// const handleDocClick = function (event) {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`, event instanceof PointerEvent)
+// }
+// document.addEventListener('click', handleDocClick)
 
 // setTimeout(() => {
-//   console.log(111111)
-//   document.removeEventListener('click', handleDocClick)
-//   document.removeEventListener('click', handleDocClick)
+//   console.log(222222222)
+//   document.dispatchEvent(new CustomEvent('click'))
 // }, 5000);
+
+
 // document.onclick = () => {
 //   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
 // }
@@ -116,9 +118,32 @@ document.addEventListener('click', handleDocClick)
 //   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
 // }, false)
 
-// window.addEventListener('click', () => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
+// window.addEventListener('click', (event) => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`, event instanceof PointerEvent)
 // }, false)
+
+// setTimeout(() => {
+//   console.log(222222222)
+//   window.dispatchEvent(new CustomEvent('click'))
+// }, 5000);
+
+/* ---------------------- 特殊事件 --------------------- */
+document.addEventListener('readystatechange', (event) => {
+  console.log(`子应用${window.__MICRO_APP_NAME__} readystatechange`, event, document.readyState)
+});
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  console.log(`子应用${window.__MICRO_APP_NAME__} DOMContentLoaded`, event, document.readyState)
+});
+
+window.addEventListener('popstate', (e) => {
+  console.log('子应用 popstate', 'state:', e)
+})
+
+window.addEventListener('hashchange', (e) => {
+  console.log('子应用 hashchange', e, e.newURL, e.oldURL)
+})
+
 
 /* ---------------------- 定时器 --------------------- */
 // setInterval(() => {

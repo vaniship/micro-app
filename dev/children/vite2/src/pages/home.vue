@@ -6,7 +6,7 @@
       <router-link to="/element-plus">Go to element-plus</router-link>
     </div>
     <div>
-      <router-link to="/antd-vue">Go to antd-vue</router-link>
+      <router-link to="/ant-design-vue">Go to ant-design-vue</router-link>
     </div>
     <div>
       <el-button @click="testHref" type="primary">测试location跳转</el-button>
