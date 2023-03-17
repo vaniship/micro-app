@@ -4,7 +4,7 @@
 
 #### 1、安装依赖
 ```bash
-npm i @micro-zoe/micro-app@alpha --save
+npm i @micro-zoe/micro-app@beta --save
 ```
 
 #### 2、初始化micro-app
@@ -166,6 +166,12 @@ window.addEventListener('unmount', function () {
 
 > [!NOTE]
 > nextjs默认支持css module功能，如果你使用了此功能，建议关闭样式隔离以提升性能：`<micro-app name='xx' url='xx' disableScopecss></micro-app>`
+
+#### 5、切换到iframe沙箱
+MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
+
+默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
+
 
 
 ## 常见问题

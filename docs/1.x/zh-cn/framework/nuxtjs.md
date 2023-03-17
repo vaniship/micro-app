@@ -4,7 +4,7 @@
 
 #### 1、安装依赖
 ```bash
-npm i @micro-zoe/micro-app@alpha --save
+npm i @micro-zoe/micro-app@beta --save
 ```
 
 #### 2、初始化micro-app
@@ -174,6 +174,12 @@ window.addEventListener('unmount', function () {
   // 执行卸载相关操作
 })
 ```
+
+#### 5、切换到iframe沙箱
+MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
+
+默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
+
 
 
 ## 常见问题

@@ -23,6 +23,16 @@ MicroApp会根据url地址自动补全子应用的静态资源，如js、css、�
 
 当`url`的值发生变化时，会卸载当前应用并根据新的`url`值重新渲染。
 
+## iframe
+- Desc: `开启iframe沙箱`
+- Default: `false`
+- 使用方式: `<micro-app iframe></micro-app>`
+
+MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
+
+默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱，比如vite。
+
+
 ## inline
 - Desc: `使用内联script`
 - Default: `false`
@@ -207,6 +217,7 @@ shadowDOM具有更强的样式隔离能力，开启后，`<micro-app>`标签会�
 import microApp from '@micro-zoe/micro-app'
 
 microApp.start({
+  iframe: true, // 默认值false
   inline: true, // 默认值false
   destroy: true, // 默认值false
   shadowDOM: true, // 默认值false
@@ -225,6 +236,7 @@ microApp.start({
 <micro-app 
   name='xx' 
   url='xx' 
+  iframe='false'
   inline='false'
   destroy='false'
   shadowDOM='false'

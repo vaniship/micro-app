@@ -4,7 +4,7 @@
 
 #### 1、安装依赖
 ```bash
-npm i @micro-zoe/micro-app@alpha --save
+npm i @micro-zoe/micro-app@beta --save
 ```
 
 #### 2、初始化micro-app
@@ -36,15 +36,24 @@ microApp.start()
 
 #### 1、设置跨域支持
 
-在`vue.config.js`中添加配置
+<!-- tabs:start -->
+
+#### ** vue.config.js **
 
 ```js
-devServer: {
-  headers: {
-    'Access-Control-Allow-Origin': '*',
+module.exports = {
+  devServer: {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    }
   }
 }
 ```
+
+#### ** vite.config.js **
+vite默认开启跨域支持，不需要额外配置。
+<!-- tabs:end -->
+
 
 #### 2、注册卸载函数
 子应用卸载时会自动执行`window.unmount`，在此可以进行卸载相关操作。
@@ -231,6 +240,12 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 // entry
 import './public-path'
 ```
+
+#### 4、切换到iframe沙箱
+MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
+
+默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
+
 
 
 ## 常见问题

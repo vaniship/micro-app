@@ -4,7 +4,7 @@
 
 1、安装依赖
 ```bash
-npm i @micro-zoe/micro-app@alpha --save
+npm i @micro-zoe/micro-app@beta --save
 ```
 
 2、初始化`micro-app`

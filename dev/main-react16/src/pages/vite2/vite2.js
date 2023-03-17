@@ -105,7 +105,7 @@ function vite2 (props) {
         iframe
         keep-router-state
         // disable-patch-request
-        keep-alive
+        // keep-alive
         // default-page='/micro-app/vite2/page2'
       >
       </micro-app>
