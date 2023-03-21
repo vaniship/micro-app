@@ -88,7 +88,7 @@ function Vue2 () {
         // disableSandbox
         // disable-memory-router
         // clear-data
-        iframe
+        // iframe
       >
       </micro-app>
     </div>

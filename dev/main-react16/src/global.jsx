@@ -3,15 +3,15 @@ import microApp, { unmountApp, unmountAllApps } from '@micro-zoe/micro-app'
 import config from './config'
 
 const prefetchConfig = [
-  // {
-  //   name: 'vite2',
-  //   url: `${config.vite2}micro-app/vite2`,
-  //   level: 3,
-  //   // inline: true,
-  //   // 'disable-sandbox': true,
-  //   'default-page': '/micro-app/vite2/page2',
-  //   iframe: true,
-  // },
+  {
+    name: 'vite2',
+    url: `${config.vite2}micro-app/vite2`,
+    level: 3,
+    // inline: true,
+    // 'disable-sandbox': true,
+    'default-page': '/micro-app/vite2/element-plus',
+    iframe: true,
+  },
   // {
   //   name: 'vue2',
   //   url: `${config.vue2}micro-app/vue2`,
@@ -73,6 +73,12 @@ microApp.start({
   // prefetchLevel: 3,
   // prefetchDelay: 10000,
   // iframe: true,
+  getRootParentNode (node, appName) {
+    if (node) {
+      return node.rawParentNode
+    }
+    return document.body
+  },
   lifeCycles: {
     created (e) {
       console.log('created 全局监听', 'name:', e.detail.name)

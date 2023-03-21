@@ -140,9 +140,28 @@ function invokePrototypeMethod (
    */
   if (hijackParent) {
     /**
-     * Adapter for
+     * If parentNode is <micro-app-body>, return rawDocument.body
+     * Scenes:
+     *  1. element-ui@2/lib/utils/vue-popper.js
+     *    if (this.popperElm.parentNode === document.body) ...
      * WARNING:
-     * Verifying that the parentNode of the targetChild points to document.body will cause other problems ?
+     *  Will it cause other problems ?
+     *  e.g. target.parentNode.remove(target)
+     * ISSUE:
+     *  1. https://github.com/micro-zoe/micro-app/issues/739
+     */
+    /**
+     * TODO: @ant-design/pro-components的drawer组件无法渲染
+     * 问题：https://github.com/micro-zoe/micro-app/issues/739
+     * 原因：拦截parentNode导致子应用的drawer组件判断错误，无法渲染
+     * 补充：
+     *  1. iframe环境没问题
+     * 难点：
+     *  1. 拦截micro-app-body下元素的parentNode是为了解决element-ui切换页面下拉框无法收起的问题，
+     * 解决思路：
+     *  1. 针对element-ui进行适配
+     *      问题是如何确定只有那个组件才有这个问题
+     *  2. 默认代理parentNode，并且在start中增加一个适配项，可以指定parentNode的值
      */
     if (
       !isIframeSandbox(app.name) &&
