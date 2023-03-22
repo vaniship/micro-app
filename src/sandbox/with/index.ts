@@ -496,6 +496,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     microAppWindow.__MICRO_APP_NAME__ = appName
     microAppWindow.__MICRO_APP_URL__ = url
     microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
+    microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
     microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
     microAppWindow.__MICRO_APP_PRE_RENDER__ = false
     microAppWindow.__MICRO_APP_UMD_MODE__ = false

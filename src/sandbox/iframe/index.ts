@@ -94,27 +94,14 @@ export default class IframeSandbox {
 
     this.microAppWindow = this.iframe!.contentWindow
 
-    // TODO: 优化代码
-    // exec before initStaticGlobalKeys
-    this.createProxyLocation(
-      appName,
-      url,
-      this.microAppWindow,
-      childStaticLocation,
-      browserHost,
-      childHost,
-    )
-
-    this.createProxyWindow(
-      appName,
-      this.microAppWindow,
-    )
-
-    this.initStaticGlobalKeys(appName, url)
-    // get escapeProperties from plugins
-    this.getSpecialProperties(appName)
-
     this.patchIframe(this.microAppWindow, (resolve: CallableFunction) => {
+      // TODO: 优化代码
+      // exec before initStaticGlobalKeys
+      this.createProxyLocation(appName, url, this.microAppWindow, childStaticLocation, browserHost, childHost)
+      this.createProxyWindow(appName, this.microAppWindow)
+      this.initStaticGlobalKeys(appName, url)
+      // get escapeProperties from plugins
+      this.getSpecialProperties(appName)
       this.createIframeTemplate(this.microAppWindow)
       patchIframeRoute(appName, this.microAppWindow, childFullPath)
       this.windowEffect = patchIframeWindow(appName, this.microAppWindow)
@@ -329,6 +316,7 @@ export default class IframeSandbox {
     this.microAppWindow.__MICRO_APP_NAME__ = appName
     this.microAppWindow.__MICRO_APP_URL__ = url
     this.microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
+    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
     this.microAppWindow.__MICRO_APP_WINDOW__ = this.microAppWindow
     this.microAppWindow.__MICRO_APP_PRE_RENDER__ = false
     this.microAppWindow.__MICRO_APP_UMD_MODE__ = false
@@ -346,17 +334,25 @@ export default class IframeSandbox {
 
   // TODO: RESTRUCTURE
   private patchIframe (microAppWindow: microAppWindowType, cb: CallableFunction): void {
+    const oldMicroDocument = microAppWindow.document
     this.sandboxReady = new Promise<void>((resolve) => {
       (function iframeLocationReady () {
         setTimeout(() => {
-          if (microAppWindow.location.href === 'about:blank') {
+          try {
+            if (microAppWindow.document === oldMicroDocument) {
+              iframeLocationReady()
+            } else {
+              /**
+               * NOTE:
+               *  1. microAppWindow will not be recreated
+               *  2. the properties of microAppWindow may be recreated, such as document
+               *  3. the variables added to microAppWindow may be cleared
+               */
+              microAppWindow.stop()
+              cb(resolve)
+            }
+          } catch (e) {
             iframeLocationReady()
-          } else {
-            /**
-             * microAppWindow.document rebuild
-             */
-            microAppWindow.stop()
-            cb(resolve)
           }
         }, 0)
       })()

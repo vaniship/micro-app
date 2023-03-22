@@ -341,3 +341,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // console.log('scopeProperties Vue: ', Vue)
 // console.log('scopeProperties window.Vue: ', window.Vue)
+
+
+/* ---------------------- 特殊操作 --------------------- */
+// window.document.domain = 'localhost';

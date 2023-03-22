@@ -9,8 +9,12 @@
       console.log('普通的内联script元素', window)
     </script>
     <script type="module">
-      console.log('我不应该执行2遍', '22222222222')
+      console.log('我不应该执行2遍 -- 内联module script')
     </script>
+    <!-- <script>
+      window.document.domain = 'localhost'
+      console.log('子应用修改了 window.document.domain')
+    </script> -->
   </head>
   <body>
     <div id="vite-app"></div>
