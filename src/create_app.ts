@@ -664,7 +664,7 @@ export default class CreateApp implements AppInterface {
   }
 
   private getMicroAppGlobalHook (eventName: string): Func | null {
-    const listener = (this.sandBox?.proxyWindow as Record<string, any>)[eventName]
+    const listener = (this.sandBox?.proxyWindow as Record<string, any>)?.[eventName]
     return isFunction(listener) ? listener : null
   }
 

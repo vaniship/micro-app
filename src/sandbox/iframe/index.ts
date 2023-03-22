@@ -98,7 +98,7 @@ export default class IframeSandbox {
       // TODO: 优化代码
       // exec before initStaticGlobalKeys
       this.createProxyLocation(appName, url, this.microAppWindow, childStaticLocation, browserHost, childHost)
-      this.createProxyWindow(appName, this.microAppWindow)
+      this.createProxyWindow(this.microAppWindow)
       this.initStaticGlobalKeys(appName, url)
       // get escapeProperties from plugins
       this.getSpecialProperties(appName)
@@ -405,7 +405,7 @@ export default class IframeSandbox {
     )
   }
 
-  private createProxyWindow (appName: string, microAppWindow: microAppWindowType): void {
+  private createProxyWindow (microAppWindow: microAppWindowType): void {
     const rawWindow = globalEnv.rawWindow
     this.proxyWindow = new Proxy(microAppWindow, {
       get: (target: microAppWindowType, key: PropertyKey): unknown => {
