@@ -147,16 +147,17 @@ export function patchElementTree (container: Element | ShadowRoot, appName: stri
 export function updateElementInfo <T extends Node> (node: T, appName: string): T {
   const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
   if (proxyWindow && isNode(node) && !node.__MICRO_APP_NAME__) {
-    // TODO: 测试baseURI和ownerDocument在with沙箱中是否正确
-    // 经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
+    /**
+     * TODO:
+     *  1. 测试baseURI和ownerDocument在with沙箱中是否正确
+     *    经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
+     *  2. with沙箱所有node设置__MICRO_APP_NAME__都使用updateElementInfo
+     *  3. 性能: defineProperty的性能肯定不如直接设置
+    */
     rawDefineProperties(node, {
       baseURI: {
         configurable: true,
         get: () => proxyWindow.location.href,
-      },
-      ownerDocument: {
-        configurable: true,
-        get: () => proxyWindow.document,
       },
       __MICRO_APP_NAME__: {
         configurable: true,
@@ -164,6 +165,13 @@ export function updateElementInfo <T extends Node> (node: T, appName: string): T
         value: appName,
       },
     })
+
+    if (isIframeSandbox(appName)) {
+      rawDefineProperty(node, 'ownerDocument', {
+        configurable: true,
+        get: () => proxyWindow.document,
+      })
+    }
   }
 
   return node

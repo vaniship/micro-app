@@ -4,10 +4,10 @@
 // import '@babel/polyfill'
 import React from 'react';
 import ReactDOM from 'react-dom';
-import 'antd/dist/antd.css';
+import './ant-custom.css'; // 自定义antd class前缀
 import './index.css';
 import Router from './router';
-import { Modal, notification } from 'antd';
+import { Modal, notification, ConfigProvider } from 'antd';
 import subMicroApp from '@micro-zoe/micro-app';
 // import './flexible';
 // import '@alifd/next/dist/next.css';
@@ -57,7 +57,9 @@ window.addEventListener('appstate-change', function (e) {
 /* ----------------------分割线-默认模式--------------------- */
 // ReactDOM.render(
 //   <React.StrictMode>
-//     <Router />
+//     <ConfigProvider prefixCls="react16">
+//       <Router />
+//     </ConfigProvider>
 //   </React.StrictMode>,
 //   document.getElementById('root')
 // );
@@ -75,7 +77,10 @@ window.addEventListener('appstate-change', function (e) {
 window.mount = (data) => {
   ReactDOM.render(
     <React.StrictMode>
-      <Router />
+      {/* 自定义antd class前缀 */}
+      <ConfigProvider prefixCls="react16">
+        <Router />
+      </ConfigProvider>
     </React.StrictMode>,
     document.getElementById('root')
   );

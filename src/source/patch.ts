@@ -157,11 +157,11 @@ function invokePrototypeMethod (
      *  1. element-ui@2/lib/utils/vue-popper.js
      *    if (this.popperElm.parentNode === document.body) ...
      * WARNING:
-     *  When operate child from parentNode async, may have been unmount
-     *  e.g. target.parentNode.remove(target)
+     *  1. When operate child from parentNode async, may have been unmount
+     *    e.g. target.parentNode.remove(target)
      * ISSUE:
      *  1. https://github.com/micro-zoe/micro-app/issues/739
-     *    Solution: Return the true value when node is not in document
+     *    Solution: Return the true value when node not in document
      */
     if (
       !isIframeSandbox(app.name) &&
