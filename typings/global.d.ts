@@ -348,6 +348,7 @@ declare module '@micro-app/types' {
     fetch?: fetchType
     globalAssets?: globalAssetsType,
     excludeAssetFilter?: (assetUrl: string) => boolean
+    getRootElementParentNode?: (node: Node, appName: AppName) => void
   }
 
   // MicroApp config

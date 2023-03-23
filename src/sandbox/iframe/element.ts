@@ -8,6 +8,7 @@ import {
   isScriptElement,
   isBaseElement,
   isElement,
+  isMicroAppBody,
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 import {
@@ -17,6 +18,7 @@ import {
 import {
   appInstanceMap,
 } from '../../create_app'
+import microApp from '../../micro_app'
 
 export function patchIframeElement (
   appName: string,
@@ -152,8 +154,8 @@ function patchIframeNode (
        *  Will it cause other problems ?
        *  e.g. target.parentNode.remove(target)
        */
-      if (result?.tagName === 'MICRO-APP-BODY' && appInstanceMap.get(appName)?.container) {
-        return rawDocument.body
+      if (isMicroAppBody(result) && appInstanceMap.get(appName)?.container) {
+        return microApp.options.getRootElementParentNode?.(this, appName) || rawDocument.body
       }
       return result
     },

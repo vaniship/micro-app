@@ -1,5 +1,12 @@
-import type { Func, AppInterface, NormalKey } from '@micro-app/types'
-import { appInstanceMap, isIframeSandbox } from '../create_app'
+import type {
+  Func,
+  AppInterface,
+  NormalKey,
+} from '@micro-app/types'
+import {
+  appInstanceMap,
+  isIframeSandbox,
+} from '../create_app'
 import {
   CompletionPath,
   getCurrentAppName,
@@ -15,13 +22,18 @@ import {
   isElement,
   isNode,
   rawDefineProperty,
+  rawDefineProperties,
   isLinkElement,
   isStyleElement,
   isScriptElement,
   isIFrameElement,
+  isMicroAppBody,
 } from '../libs/utils'
 import scopedCSS from '../sandbox/scoped_css'
-import { extractLinkFromHtml, formatDynamicLink } from './links'
+import {
+  extractLinkFromHtml,
+  formatDynamicLink,
+} from './links'
 import {
   extractScriptElement,
   runDynamicInlineScript,
@@ -145,41 +157,35 @@ function invokePrototypeMethod (
      *  1. element-ui@2/lib/utils/vue-popper.js
      *    if (this.popperElm.parentNode === document.body) ...
      * WARNING:
-     *  Will it cause other problems ?
+     *  When operate child from parentNode async, may have been unmount
      *  e.g. target.parentNode.remove(target)
      * ISSUE:
      *  1. https://github.com/micro-zoe/micro-app/issues/739
-     */
-    /**
-     * TODO: @ant-design/pro-components的drawer组件无法渲染
-     * 问题：https://github.com/micro-zoe/micro-app/issues/739
-     * 原因：拦截parentNode导致子应用的drawer组件判断错误，无法渲染
-     * 补充：
-     *  1. iframe环境没问题
-     * 难点：
-     *  1. 拦截micro-app-body下元素的parentNode是为了解决element-ui切换页面下拉框无法收起的问题，
-     * 解决思路：
-     *  1. 针对element-ui进行适配
-     *      问题是如何确定只有那个组件才有这个问题
-     *  2. 默认代理parentNode，并且在start中增加一个适配项，可以指定parentNode的值
+     *    Solution: Return the true value when node is not in document
      */
     if (
       !isIframeSandbox(app.name) &&
-      hijackParent.tagName === 'MICRO-APP-BODY' &&
+      isMicroAppBody(hijackParent) &&
       rawMethod !== globalEnv.rawRemoveChild
     ) {
       const descriptor = Object.getOwnPropertyDescriptor(targetChild, 'parentNode')
-      if (!descriptor || descriptor.configurable) {
-        rawDefineProperty(targetChild, 'parentNode', {
-          configurable: true,
-          get () {
-            /**
-             * When operate child from parentNode async, may have been unmount
-             * e.g.
-             * target.parentNode.remove(target)
-             */
-            return !app.container ? hijackParent : document.body
+      if ((!descriptor || descriptor.configurable) && !targetChild.__MICRO_APP_HAS_DPN__) {
+        rawDefineProperties(targetChild, {
+          parentNode: {
+            configurable: true,
+            get () {
+              const result = globalEnv.rawParentNodeDesc.get.call(this)
+              if (isMicroAppBody(result) && app.container) {
+                // TODO: remove getRootElementParentNode
+                return microApp.options.getRootElementParentNode?.(this, app.name) || document.body
+              }
+              return result
+            },
           },
+          __MICRO_APP_HAS_DPN__: {
+            configurable: true,
+            get: () => true,
+          }
         })
       }
     }
@@ -445,8 +451,8 @@ export function patchElementAndDocument (): void {
   //      * BUG:
   //      *  1. vue2 umdMode, throw error when render again (<div id='app'></div> will be deleted when render again )
   //      */
-  //     if (result?.tagName === 'MICRO-APP-BODY' && appInstanceMap.get(this.__MICRO_APP_NAME__)?.container) {
-  //       return globalEnv.rawDocument.body
+  //     if (isMicroAppBody(result) && appInstanceMap.get(this.__MICRO_APP_NAME__)?.container) {
+  //       return document.body
   //     }
   //     return result
   //   },

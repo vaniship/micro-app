@@ -148,6 +148,10 @@ export function isBaseElement (target: unknown): target is HTMLBaseElement {
   return (target as HTMLBaseElement)?.tagName?.toUpperCase() === 'BASE'
 }
 
+export function isMicroAppBody (target: unknown): target is HTMLElement {
+  return (target as HTMLElement)?.tagName?.toUpperCase() === 'MICRO-APP-BODY'
+}
+
 // is ProxyDocument
 export function isProxyDocument (target: unknown): target is Document {
   return toString.call(target) === '[object ProxyDocument]'

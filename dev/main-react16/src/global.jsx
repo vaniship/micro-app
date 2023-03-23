@@ -73,12 +73,9 @@ microApp.start({
   // prefetchLevel: 3,
   // prefetchDelay: 10000,
   // iframe: true,
-  getRootParentNode (node, appName) {
-    if (node) {
-      return node.rawParentNode
-    }
-    return document.body
-  },
+  // getRootElementParentNode (node, appName) {
+  //   return node.parentElement
+  // },
   lifeCycles: {
     created (e) {
       console.log('created 全局监听', 'name:', e.detail.name)

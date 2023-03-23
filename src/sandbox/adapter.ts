@@ -148,6 +148,7 @@ export function updateElementInfo <T extends Node> (node: T, appName: string): T
   const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
   if (proxyWindow && isNode(node) && !node.__MICRO_APP_NAME__) {
     // TODO: 测试baseURI和ownerDocument在with沙箱中是否正确
+    // 经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
     rawDefineProperties(node, {
       baseURI: {
         configurable: true,

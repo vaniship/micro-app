@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 // import legacy from '@vitejs/plugin-legacy'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver, AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
+import { ElementPlusResolver, AntDesignVueResolver, NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import ElementPlus from 'unplugin-element-plus/vite'
 
 // https://vitejs.dev/config/
@@ -18,11 +18,23 @@ export default defineConfig({
         ElementPlusResolver(),
         // AntDesignVueResolver(), // need it?
       ],
+      imports: [
+        'vue',
+        {
+          'naive-ui': [
+            'useDialog',
+            'useMessage',
+            'useNotification',
+            'useLoadingBar'
+          ]
+        }
+      ]
     }),
     Components({
       resolvers: [
         ElementPlusResolver(),
         AntDesignVueResolver(),
+        NaiveUiResolver(),
       ],
     }),
     ElementPlus()
