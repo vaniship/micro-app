@@ -24,16 +24,16 @@ export function patchIframeElement (
   appName: string,
   url: string,
   microAppWindow: microAppWindowType,
-  iframeSandbox: IframeSandbox,
+  sandbox: IframeSandbox,
 ): void {
-  patchIframeNode(appName, microAppWindow, iframeSandbox)
+  patchIframeNode(appName, microAppWindow, sandbox)
   patchIframeAttribute(appName, url, microAppWindow)
 }
 
 function patchIframeNode (
   appName: string,
   microAppWindow: microAppWindowType,
-  iframeSandbox: IframeSandbox,
+  sandbox: IframeSandbox,
 ): void {
   const microDocument = microAppWindow.document
   const rawDocument = globalEnv.rawDocument
@@ -52,9 +52,9 @@ function patchIframeNode (
   }
 
   const getRawTarget = (target: Node): Node => {
-    if (target === iframeSandbox.microHead) {
+    if (target === sandbox.microHead) {
       return rawDocument.head
-    } else if (target === iframeSandbox.microBody) {
+    } else if (target === sandbox.microBody) {
       return rawDocument.body
     }
 
@@ -144,7 +144,7 @@ function patchIframeNode (
     get () {
       // set html.parentNode to microDocument
       throttleDeferForParentNode(microDocument)
-      const result = rawParentNodeLDesc.get!.call(this)
+      const result: ParentNode = rawParentNodeLDesc.get!.call(this)
       /**
        * If parentNode is <micro-app-body>, return rawDocument.body
        * Scenes:

@@ -2,7 +2,7 @@ import type {
   microAppWindowType,
   MicroLocation,
   SandBoxStartParams,
-  CommonIframeEffect,
+  CommonEffectHook,
   SandBoxStopParams,
   releaseGlobalEffectParams,
   plugins,
@@ -64,6 +64,14 @@ import microApp from '../../micro_app'
 
 export default class IframeSandbox {
   static activeCount = 0 // number of active sandbox
+  private active = false
+  private windowEffect!: CommonEffectHook
+  private documentEffect!: CommonEffectHook
+  private removeHistoryListener!: CallableFunction
+  // Properties that can be escape to rawWindow
+  private escapeProperties: PropertyKey[] = []
+  // Properties escape to rawWindow, cleared when unmount
+  private escapeKeys = new Set<PropertyKey>()
   public iframe!: HTMLIFrameElement | null
   public sandboxReady!: Promise<void>
   public microAppWindow: microAppWindowType
@@ -73,14 +81,6 @@ export default class IframeSandbox {
   public microHead!: HTMLHeadElement
   public microBody!: HTMLBodyElement
   public deleteIframeElement: () => void
-  private active = false
-  private windowEffect!: CommonIframeEffect
-  private documentEffect!: CommonIframeEffect
-  private removeHistoryListener!: CallableFunction
-  // Properties that can be escape to rawWindow
-  private escapeProperties: PropertyKey[] = []
-  // Properties escape to rawWindow, cleared when unmount
-  private escapeKeys = new Set<PropertyKey>()
 
   constructor (appName: string, url: string) {
     const rawLocation = globalEnv.rawWindow.location
@@ -158,7 +158,8 @@ export default class IframeSandbox {
     if (!this.active) {
       this.active = true
       // TODO: 虚拟路由升级
-      if (useMemoryRouter) {
+      // eslint-disable-next-line
+      if (useMemoryRouter || true) {
         this.initRouteState(defaultPage)
         // unique listener of popstate event for sub app
         this.removeHistoryListener = addHistoryListener(

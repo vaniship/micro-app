@@ -1,4 +1,3 @@
-/* eslint-disable no-cond-assign */
 import type {
   microAppWindowType,
   WithSandBoxInterface,
@@ -7,16 +6,17 @@ import type {
   SandBoxAdapter,
   SandBoxStartParams,
   SandBoxStopParams,
-  EffectController,
+  CommonEffectHook,
   releaseGlobalEffectParams,
 } from '@micro-app/types'
+import globalEnv from '../../libs/global_env'
+import microApp from '../../micro_app'
 import {
   EventCenterForMicroApp,
   rebuildDataCenterSnapshot,
   recordDataCenterSnapshot,
   resetDataCenterSnapshot,
 } from '../../interact'
-import globalEnv from '../../libs/global_env'
 import { initEnvOfNestedApp } from '../../libs/nest_app'
 import {
   getEffectivePath,
@@ -33,12 +33,13 @@ import {
   pureCreateElement,
   assign,
 } from '../../libs/utils'
-import microApp from '../../micro_app'
 import bindFunctionToRawTarget from '../bind_function'
-import effect, {
-  effectDocumentEvent,
-  releaseEffectDocumentEvent,
-} from './effect'
+import {
+  createProxyDocument,
+} from './document'
+import {
+  patchWindowEffect,
+} from './window'
 import {
   patchElementAndDocument,
   releasePatchElementAndDocument,
@@ -56,7 +57,6 @@ import {
 } from '../router'
 import Adapter, {
   fixBabelPolyfill6,
-  throttleDeferForParentNode,
   patchElementTree,
 } from '../adapter'
 import {
@@ -83,6 +83,7 @@ export type MicroAppWindowDataType = {
   rawDocument: Document,
   removeDomScope: () => void,
 }
+
 export type MicroAppWindowType = Window & MicroAppWindowDataType
 export type proxyWindow = WindowProxy & MicroAppWindowDataType
 
@@ -91,7 +92,9 @@ const globalPropertyList: Array<PropertyKey> = ['window', 'self', 'globalThis']
 
 export default class WithSandBox implements WithSandBoxInterface {
   static activeCount = 0 // number of active sandbox
-  private effectController: EffectController
+  private active = false
+  private windowEffect: CommonEffectHook
+  private documentEffect: CommonEffectHook
   private removeHistoryListener!: CallableFunction
   private adapter: SandBoxAdapter
   /**
@@ -101,14 +104,10 @@ export default class WithSandBox implements WithSandBoxInterface {
   private scopeProperties: PropertyKey[] = []
   // Properties that can be escape to rawWindow
   private escapeProperties: PropertyKey[] = []
-  // Properties newly added to microAppWindow
-  private injectedKeys = new Set<PropertyKey>()
   // Properties escape to rawWindow, cleared when unmount
   private escapeKeys = new Set<PropertyKey>()
-  // record injected values before the first execution of umdHookMount and rebuild before remount umd app
-  // private recordUmdInjectedValues?: Map<PropertyKey, unknown>
-  // sandbox state
-  private active = false
+  // Properties newly added to microAppWindow
+  private injectedKeys = new Set<PropertyKey>()
   public proxyWindow: proxyWindow // Proxy
   public microAppWindow = {} as MicroAppWindowType // Proxy target
 
@@ -117,11 +116,13 @@ export default class WithSandBox implements WithSandBoxInterface {
     // get scopeProperties and escapeProperties from plugins
     this.getSpecialProperties(appName)
     // create proxyWindow with Proxy(microAppWindow)
-    this.proxyWindow = this.createProxyWindow(appName)
-    // Rewrite global event listener & timeout
-    this.effectController = effect(appName, this.microAppWindow)
+    this.proxyWindow = this.createProxyWindow(appName, this.microAppWindow)
+    // rewrite global event & timeout of window
+    this.windowEffect = patchWindowEffect(appName, this.microAppWindow)
+    // rewrite document of child app
+    this.documentEffect = this.patchWithDocument(appName, this.microAppWindow)
     // inject global properties
-    this.initStaticGlobalKeys(this.microAppWindow, appName, url)
+    this.initStaticGlobalKeys(appName, url, this.microAppWindow)
   }
 
   /**
@@ -144,9 +145,9 @@ export default class WithSandBox implements WithSandBoxInterface {
       if (useMemoryRouter) {
         if (isUndefined(this.microAppWindow.location)) {
           this.setMicroAppRouter(
-            this.microAppWindow,
             this.microAppWindow.__MICRO_APP_NAME__,
             this.microAppWindow.__MICRO_APP_URL__,
+            this.microAppWindow,
           )
         }
         this.initRouteState(defaultPage)
@@ -166,9 +167,9 @@ export default class WithSandBox implements WithSandBoxInterface {
        */
       if (!umdMode) {
         this.initGlobalKeysWhenStart(
-          this.microAppWindow,
           this.microAppWindow.__MICRO_APP_NAME__,
           this.microAppWindow.__MICRO_APP_URL__,
+          this.microAppWindow,
           disablePatchRequest,
         )
       }
@@ -179,7 +180,7 @@ export default class WithSandBox implements WithSandBoxInterface {
       }
 
       if (++WithSandBox.activeCount === 1) {
-        effectDocumentEvent()
+        // effectDocumentEvent()
         initEnvOfNestedApp()
       }
 
@@ -201,7 +202,7 @@ export default class WithSandBox implements WithSandBoxInterface {
     clearData,
   }: SandBoxStopParams): void {
     if (this.active) {
-      this.recordAndReleaseEffect({ clearData, destroy }, !umdMode || destroy)
+      this.recordAndReleaseEffect({ umdMode, clearData, destroy }, !umdMode || destroy)
 
       if (this.removeHistoryListener) {
         this.clearRouteState(keepRouteState)
@@ -235,7 +236,7 @@ export default class WithSandBox implements WithSandBoxInterface {
       }
 
       if (--WithSandBox.activeCount === 0) {
-        releaseEffectDocumentEvent()
+        // releaseEffectDocumentEvent()
       }
 
       this.active = false
@@ -274,7 +275,8 @@ export default class WithSandBox implements WithSandBoxInterface {
    *  2. unmount prerender app manually
    */
   public resetEffectSnapshot (): void {
-    this.effectController.reset()
+    this.windowEffect.reset()
+    this.documentEffect.reset()
     resetDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
@@ -286,22 +288,15 @@ export default class WithSandBox implements WithSandBoxInterface {
    * 3. after init prerender app
    */
   public recordEffectSnapshot (): void {
-    // this.microAppWindow.__MICRO_APP_UMD_MODE__ = true
-    this.effectController.record()
+    this.windowEffect.record()
+    this.documentEffect.record()
     recordDataCenterSnapshot(this.microAppWindow.microApp)
-
-    // this.recordUmdInjectedValues = new Map<PropertyKey, unknown>()
-    // this.injectedKeys.forEach((key: PropertyKey) => {
-    //   this.recordUmdInjectedValues!.set(key, Reflect.get(this.microAppWindow, key))
-    // })
   }
 
   // rebuild umd snapshot before remount umd app
   public rebuildEffectSnapshot (): void {
-    // this.recordUmdInjectedValues!.forEach((value: unknown, key: PropertyKey) => {
-    //   Reflect.set(this.proxyWindow, key, value)
-    // })
-    this.effectController.rebuild()
+    this.windowEffect.rebuild()
+    this.documentEffect.rebuild()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
@@ -311,23 +306,22 @@ export default class WithSandBox implements WithSandBoxInterface {
    * 1. unmount of default/umd app
    * 2. hidden keep-alive app
    * 3. after init prerender app
+   * @param umdMode is umd mode
    * @param clearData clear data from base app
    * @param isPrerender is prerender app
    * @param keepAlive is keep-alive app
    * @param destroy completely destroy
    */
   public releaseGlobalEffect ({
+    umdMode = false,
     clearData = false,
     isPrerender = false,
     keepAlive = false,
     destroy = false,
   }: releaseGlobalEffectParams): void {
-    this.effectController.release({
-      umdMode: this.proxyWindow.__MICRO_APP_UMD_MODE__,
-      isPrerender,
-      keepAlive,
-      destroy,
-    })
+    // default mode(not keep-alive or isPrerender)
+    this.windowEffect.release((!umdMode && !keepAlive && !isPrerender) || destroy)
+    this.documentEffect.release()
     this.microAppWindow.microApp?.clearDataListener()
     this.microAppWindow.microApp?.clearGlobalDataListener()
     if (clearData) {
@@ -365,10 +359,10 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   // create proxyWindow with Proxy(microAppWindow)
-  private createProxyWindow (appName: string) {
+  private createProxyWindow (appName: string, microAppWindow: microAppWindowType) {
     const rawWindow = globalEnv.rawWindow
     const descriptorTargetMap = new Map<PropertyKey, 'target' | 'rawWindow'>()
-    return new Proxy(this.microAppWindow, {
+    return new Proxy(microAppWindow, {
       get: (target: microAppWindowType, key: PropertyKey): unknown => {
         throttleDeferForSetAppName(appName)
         if (
@@ -471,49 +465,13 @@ export default class WithSandBox implements WithSandBoxInterface {
     })
   }
 
-  // set __MICRO_APP_PRE_RENDER__ state
-  public setPreRenderState (state: boolean): void {
-    this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
-  }
-
-  public markUmdMode (state: boolean): void {
-    this.microAppWindow.__MICRO_APP_UMD_MODE__ = state
-  }
-
   /**
-   * inject global properties to microAppWindow
-   * @param microAppWindow micro window
+   * create proxyDocument and MicroDocument, rewrite document of child app
    * @param appName app name
-   * @param url app url
-   * @param useMemoryRouter whether use memory router
+   * @param microAppWindow Proxy target
    */
-  private initStaticGlobalKeys (
-    microAppWindow: microAppWindowType,
-    appName: string,
-    url: string,
-  ): void {
-    microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
-    microAppWindow.__MICRO_APP_NAME__ = appName
-    microAppWindow.__MICRO_APP_URL__ = url
-    microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
-    microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
-    microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
-    microAppWindow.__MICRO_APP_PRE_RENDER__ = false
-    microAppWindow.__MICRO_APP_UMD_MODE__ = false
-    microAppWindow.rawWindow = globalEnv.rawWindow
-    microAppWindow.rawDocument = globalEnv.rawDocument
-    microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
-      removeDomScope,
-      pureCreateElement,
-      router,
-    })
-
-    this.setProxyDocument(microAppWindow, appName)
-    this.setMappingPropertiesWithRawDescriptor(microAppWindow)
-  }
-
-  private setProxyDocument (microAppWindow: microAppWindowType, appName: string): void {
-    const { proxyDocument, MicroDocument } = this.createProxyDocument(appName)
+  private patchWithDocument (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
+    const { proxyDocument, MicroDocument, documentEffect } = createProxyDocument(appName, this)
     rawDefineProperties(microAppWindow, {
       document: {
         configurable: false,
@@ -532,6 +490,46 @@ export default class WithSandBox implements WithSandBoxInterface {
         },
       }
     })
+
+    return documentEffect
+  }
+
+  // set __MICRO_APP_PRE_RENDER__ state
+  public setPreRenderState (state: boolean): void {
+    this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
+  }
+
+  public markUmdMode (state: boolean): void {
+    this.microAppWindow.__MICRO_APP_UMD_MODE__ = state
+  }
+
+  /**
+   * inject global properties to microAppWindow
+   * @param appName app name
+   * @param url app url
+   * @param microAppWindow micro window
+   */
+  private initStaticGlobalKeys (
+    appName: string,
+    url: string,
+    microAppWindow: microAppWindowType,
+  ): void {
+    microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
+    microAppWindow.__MICRO_APP_NAME__ = appName
+    microAppWindow.__MICRO_APP_URL__ = url
+    microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
+    microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
+    microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
+    microAppWindow.__MICRO_APP_PRE_RENDER__ = false
+    microAppWindow.__MICRO_APP_UMD_MODE__ = false
+    microAppWindow.rawWindow = globalEnv.rawWindow
+    microAppWindow.rawDocument = globalEnv.rawDocument
+    microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
+      removeDomScope,
+      pureCreateElement,
+      router,
+    })
+    this.setMappingPropertiesWithRawDescriptor(microAppWindow)
   }
 
   // properties associated with the native window
@@ -545,6 +543,7 @@ export default class WithSandBox implements WithSandBoxInterface {
       parentValue = rawWindow.parent
     }
 
+    // TODO: 用rawDefineProperties
     rawDefineProperty(
       microAppWindow,
       'top',
@@ -586,19 +585,19 @@ export default class WithSandBox implements WithSandBoxInterface {
    * @param disablePatchRequest prevent rewrite request method of child app
    */
   private initGlobalKeysWhenStart (
-    microAppWindow: microAppWindowType,
     appName: string,
     url: string,
+    microAppWindow: microAppWindowType,
     disablePatchRequest: boolean,
   ): void {
     microAppWindow.hasOwnProperty = (key: PropertyKey) => rawHasOwnProperty.call(microAppWindow, key) || rawHasOwnProperty.call(globalEnv.rawWindow, key)
-    this.setHijackProperty(microAppWindow, appName)
-    if (!disablePatchRequest) this.patchRequestApi(microAppWindow, appName, url)
+    this.setHijackProperty(appName, microAppWindow)
+    if (!disablePatchRequest) this.patchRequestApi(appName, url, microAppWindow)
     this.setScopeProperties(microAppWindow)
   }
 
   // set hijack Properties to microAppWindow
-  private setHijackProperty (microAppWindow: microAppWindowType, appName: string): void {
+  private setHijackProperty (appName: string, microAppWindow: microAppWindowType): void {
     let modifiedEval: unknown, modifiedImage: unknown
     rawDefineProperties(microAppWindow, {
       eval: {
@@ -627,7 +626,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   // rewrite fetch, XMLHttpRequest, EventSource
-  private patchRequestApi (microAppWindow: microAppWindowType, appName: string, url: string): void {
+  private patchRequestApi (appName: string, url: string, microAppWindow: microAppWindowType): void {
     let microFetch = createMicroFetch(url)
     let microXMLHttpRequest = createMicroXMLHttpRequest(url)
     let microEventSource = createMicroEventSource(appName, url)
@@ -680,7 +679,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   // set location & history for memory router
-  private setMicroAppRouter (microAppWindow: microAppWindowType, appName: string, url: string): void {
+  private setMicroAppRouter (appName: string, url: string, microAppWindow: microAppWindowType): void {
     const { microLocation, microHistory } = createMicroRouter(appName, url)
     rawDefineProperties(microAppWindow, {
       location: {
@@ -747,80 +746,5 @@ export default class WithSandBox implements WithSandBoxInterface {
    */
   public actionBeforeExecScripts (container: Element | ShadowRoot): void {
     this.patchStaticElement(container)
-  }
-
-  /**
-   * Create new document and Document
-   */
-  private createProxyDocument (appName: string) {
-    const rawDocument = globalEnv.rawDocument
-    const rawRootDocument = globalEnv.rawRootDocument
-
-    const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
-      const element = globalEnv.rawCreateElement.call(rawDocument, tagName, options)
-      element.__MICRO_APP_NAME__ = appName
-      return element
-    }
-
-    const proxyDocument = new Proxy(rawDocument, {
-      get: (target: Document, key: PropertyKey): unknown => {
-        throttleDeferForSetAppName(appName)
-        throttleDeferForParentNode(proxyDocument)
-        if (key === 'createElement') return createElement
-        if (key === Symbol.toStringTag) return 'ProxyDocument'
-        if (key === 'defaultView') return this.proxyWindow
-        return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
-      },
-      set: (target: Document, key: PropertyKey, value: unknown): boolean => {
-        /**
-         * 1. Fix TypeError: Illegal invocation when set document.title
-         * 2. If the set method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
-         */
-        Reflect.set(target, key, value)
-        return true
-      }
-    })
-
-    class MicroDocument {
-      static [Symbol.hasInstance] (target: unknown) {
-        let proto = target
-        while (proto = Object.getPrototypeOf(proto)) {
-          if (proto === MicroDocument.prototype) {
-            return true
-          }
-        }
-        return (
-          target === proxyDocument ||
-          target instanceof rawRootDocument
-        )
-      }
-    }
-
-    /**
-     * TIP:
-     * 1. child class __proto__, which represents the inherit of the constructor, always points to the parent class
-     * 2. child class prototype.__proto__, which represents the inherit of methods, always points to parent class prototype
-     * e.g.
-     * class B extends A {}
-     * B.__proto__ === A // true
-     * B.prototype.__proto__ === A.prototype // true
-     */
-    Object.setPrototypeOf(MicroDocument, rawRootDocument)
-    // Object.create(rawRootDocument.prototype) will cause MicroDocument and proxyDocument methods not same when exec Document.prototype.xxx = xxx in child app
-    Object.setPrototypeOf(MicroDocument.prototype, new Proxy(rawRootDocument.prototype, {
-      get (target: Document, key: PropertyKey): unknown {
-        throttleDeferForSetAppName(appName)
-        return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
-      },
-      set (target: Document, key: PropertyKey, value: unknown): boolean {
-        Reflect.set(target, key, value)
-        return true
-      }
-    }))
-
-    return {
-      proxyDocument,
-      MicroDocument,
-    }
   }
 }

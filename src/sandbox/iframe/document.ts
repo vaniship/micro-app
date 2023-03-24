@@ -1,7 +1,7 @@
 import type {
   microAppWindowType,
   MicroEventListener,
-  CommonIframeEffect,
+  CommonEffectHook,
   MicroLocation,
 } from '@micro-app/types'
 import {
@@ -37,11 +37,11 @@ export function patchIframeDocument (
   appName: string,
   microAppWindow: microAppWindowType,
   proxyLocation: MicroLocation,
-): CommonIframeEffect {
+): CommonEffectHook {
   patchDocumentPrototype(appName, microAppWindow)
   patchDocumentProperties(appName, microAppWindow, proxyLocation)
 
-  return documentEffect(appName, microAppWindow)
+  return patchDocumentEffect(appName, microAppWindow)
 }
 
 function patchDocumentPrototype (appName: string, microAppWindow: microAppWindowType): void {
@@ -222,18 +222,14 @@ function patchDocumentProperties (
   })
 }
 
-function documentEffect (appName: string, microAppWindow: microAppWindowType): CommonIframeEffect {
+function patchDocumentEffect (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
+  const { rawDocument, rawAddEventListener, rawRemoveEventListener } = globalEnv
   const documentEventListenerMap = new Map<string, Map<string, Set<MicroEventListener>>>()
   const sstDocumentListenerMap = new Map<string, Set<MicroEventListener>>()
   let onClickHandler: unknown = null
   let sstOnClickHandler: unknown = null
   const microRootDocument = microAppWindow.Document
   const microDocument = microAppWindow.document
-  const {
-    rawDocument,
-    rawAddEventListener,
-    rawRemoveEventListener,
-  } = globalEnv
 
   function getEventTarget (type: string, bindTarget: Document): Document {
     return scopeIframeDocumentEvent.includes(type) ? bindTarget : rawDocument
@@ -245,6 +241,7 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
     options?: boolean | AddEventListenerOptions,
   ): void {
     const handler = isFunction(listener) ? (listener.__MICRO_APP_BOUND_FUNCTION__ = listener.__MICRO_APP_BOUND_FUNCTION__ || listener.bind(this)) : listener
+    // TODO: documentEventListenerMap可以降低一层
     const appListenersMap = documentEventListenerMap.get(appName)
     if (appListenersMap) {
       const appListenerList = appListenersMap.get(type)
@@ -366,7 +363,7 @@ function documentEffect (appName: string, microAppWindow: microAppWindowType): C
   }
 
   const release = (): void => {
-    // Clear the function bound by micro application through document.onclick
+    // Clear the function bound by micro app through document.onclick
     if (isFunction(onClickHandler)) {
       rawRemoveEventListener.call(rawDocument, 'click', onClickHandler)
       onClickHandler = null

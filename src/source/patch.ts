@@ -174,7 +174,7 @@ function invokePrototypeMethod (
           parentNode: {
             configurable: true,
             get () {
-              const result = globalEnv.rawParentNodeDesc.get.call(this)
+              const result: ParentNode = globalEnv.rawParentNodeDesc.get.call(this)
               if (isMicroAppBody(result) && app.container) {
                 // TODO: remove getRootElementParentNode
                 return microApp.options.getRootElementParentNode?.(this, app.name) || document.body

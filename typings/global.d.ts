@@ -32,25 +32,11 @@ declare module '@micro-app/types' {
     args: any[],
   }
 
-  interface releaseEffectParams {
-    umdMode: boolean,
-    isPrerender: boolean,
-    keepAlive: boolean,
-    destroy: boolean,
-  }
-
-  interface EffectController {
+  interface CommonEffectHook {
     reset(): void
     record(): void
     rebuild(): void
-    release(options: releaseEffectParams): void
-  }
-
-  interface CommonIframeEffect {
-    reset(): void
-    record(): void
-    rebuild(): void
-    release(umdMode?: boolean, preRender?: boolean): void
+    release(clearTimer?: boolean): void
   }
 
   interface SandBoxStartParams {
@@ -69,6 +55,7 @@ declare module '@micro-app/types' {
   }
 
   interface releaseGlobalEffectParams {
+    umdMode?: boolean,
     clearData?: boolean,
     isPrerender?: boolean,
     keepAlive?: boolean,

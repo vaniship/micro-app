@@ -107,12 +107,6 @@ export function initGlobalEnv (): void {
     const rawClearTimeout = rawWindow.clearTimeout
     const rawPushState = rawWindow.history.pushState
     const rawReplaceState = rawWindow.history.replaceState
-
-    const rawWindowAddEventListener = rawWindow.addEventListener
-    const rawWindowRemoveEventListener = rawWindow.removeEventListener
-    const rawDocumentAddEventListener = rawDocument.addEventListener
-    const rawDocumentRemoveEventListener = rawDocument.removeEventListener
-    // TODO: 统一使用 EventTarget 去掉上面四个
     const rawAddEventListener = EventTarget.prototype.addEventListener
     const rawRemoveEventListener = EventTarget.prototype.removeEventListener
 
@@ -150,22 +144,16 @@ export function initGlobalEnv (): void {
       ImageProxy,
 
       // sandbox/effect
-      rawWindowAddEventListener,
-      rawWindowRemoveEventListener,
       rawSetInterval,
       rawSetTimeout,
       rawClearInterval,
       rawClearTimeout,
-      rawDocumentAddEventListener,
-      rawDocumentRemoveEventListener,
       rawPushState,
       rawReplaceState,
-
       rawAddEventListener,
       rawRemoveEventListener,
 
       // iframe
-
     })
 
     // global effect

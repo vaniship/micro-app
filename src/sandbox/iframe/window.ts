@@ -1,7 +1,7 @@
 import type {
   microAppWindowType,
   MicroEventListener,
-  CommonIframeEffect,
+  CommonEffectHook,
 } from '@micro-app/types'
 import {
   rawDefineProperty,
@@ -17,7 +17,7 @@ import {
   scopeIframeWindowEvent,
 } from './special_key'
 
-export function patchIframeWindow (appName: string, microAppWindow: microAppWindowType): CommonIframeEffect {
+export function patchIframeWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
   const rawWindow = globalEnv.rawWindow
 
   escape2RawWindowKeys.forEach((key: string) => {
@@ -83,15 +83,11 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
       }
     })
 
-  return windowEffect(microAppWindow)
+  return patchWindowEffect(microAppWindow)
 }
 
-function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
-  const {
-    rawWindow,
-    rawAddEventListener,
-    rawRemoveEventListener,
-  } = globalEnv
+function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHook {
+  const { rawWindow, rawAddEventListener, rawRemoveEventListener } = globalEnv
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const sstWindowListenerMap = new Map<string, Set<MicroEventListener>>()
 
@@ -99,6 +95,7 @@ function windowEffect (microAppWindow: microAppWindowType): CommonIframeEffect {
     return scopeIframeWindowEvent.includes(type) ? microAppWindow : rawWindow
   }
 
+  // TODO: listener 是否需要绑定microAppWindow，否则函数中的this指向原生window
   microAppWindow.addEventListener = function (
     type: string,
     listener: MicroEventListener,

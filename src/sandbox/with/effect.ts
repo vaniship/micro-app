@@ -1,8 +1,7 @@
 import type {
   microAppWindowType,
-  EffectController,
+  CommonEffectHook,
   MicroEventListener,
-  releaseEffectParams,
   timeInfo,
 } from '@micro-app/types'
 import {
@@ -54,7 +53,7 @@ function overwriteDocumentOnClick (): void {
 
       if (!hasDocumentClickInited && isFunction(f)) {
         hasDocumentClickInited = true
-        globalEnv.rawDocumentAddEventListener.call(globalEnv.rawDocument, 'click', onClickHandler, false)
+        globalEnv.rawAddEventListener.call(globalEnv.rawDocument, 'click', onClickHandler, false)
       }
     }
   })
@@ -69,8 +68,8 @@ const documentEventListenerMap = new Map<string, Map<string, Set<MicroEventListe
 export function effectDocumentEvent (): void {
   const {
     rawDocument,
-    rawDocumentAddEventListener,
-    rawDocumentRemoveEventListener,
+    rawAddEventListener,
+    rawRemoveEventListener,
   } = globalEnv
 
   !hasRewriteDocumentOnClick && overwriteDocumentOnClick()
@@ -101,7 +100,7 @@ export function effectDocumentEvent (): void {
       }
       listener && (listener.__MICRO_APP_MARK_OPTIONS__ = options)
     }
-    rawDocumentAddEventListener.call(rawDocument, type, listener, options)
+    rawAddEventListener.call(rawDocument, type, listener, options)
   }
 
   document.removeEventListener = function (
@@ -124,34 +123,33 @@ export function effectDocumentEvent (): void {
         }
       }
     }
-    rawDocumentRemoveEventListener.call(rawDocument, type, listener, options)
+    rawRemoveEventListener.call(rawDocument, type, listener, options)
   }
 }
 
 // Clear the document event agent
 export function releaseEffectDocumentEvent (): void {
-  document.addEventListener = globalEnv.rawDocumentAddEventListener
-  document.removeEventListener = globalEnv.rawDocumentRemoveEventListener
+  document.addEventListener = globalEnv.rawAddEventListener
+  document.removeEventListener = globalEnv.rawRemoveEventListener
 }
 
 /**
  * Rewrite side-effect events
  * @param microAppWindow micro window
  */
-export default function effect (appName: string, microAppWindow: microAppWindowType): EffectController {
+export default function effect (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const intervalIdMap = new Map<number, timeInfo>()
   const timeoutIdMap = new Map<number, timeInfo>()
   const {
     rawWindow,
     rawDocument,
-    rawWindowAddEventListener,
-    rawWindowRemoveEventListener,
+    rawAddEventListener,
+    rawRemoveEventListener,
     rawSetInterval,
     rawSetTimeout,
     rawClearInterval,
     rawClearTimeout,
-    rawDocumentRemoveEventListener,
   } = globalEnv
 
   // listener may be null, e.g test-passive
@@ -168,7 +166,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
       eventListenerMap.set(type, new Set([listener]))
     }
     listener && (listener.__MICRO_APP_MARK_OPTIONS__ = options)
-    rawWindowAddEventListener.call(rawWindow, type, listener, options)
+    rawAddEventListener.call(rawWindow, type, listener, options)
   }
 
   microAppWindow.removeEventListener = function (
@@ -181,7 +179,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
     if (listenerList?.size && listenerList.has(listener)) {
       listenerList.delete(listener)
     }
-    rawWindowRemoveEventListener.call(rawWindow, type, listener, options)
+    rawRemoveEventListener.call(rawWindow, type, listener, options)
   }
 
   microAppWindow.setInterval = function (
@@ -285,19 +283,19 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
   }
 
   // release all event listener & interval & timeout when unmount app
-  const release = ({ umdMode, isPrerender, keepAlive, destroy }: releaseEffectParams): void => {
+  const release = (clearTimer: boolean): void => {
     // Clear window binding events
     if (eventListenerMap.size) {
       eventListenerMap.forEach((listenerList, type) => {
         for (const listener of listenerList) {
-          rawWindowRemoveEventListener.call(rawWindow, type, listener)
+          rawRemoveEventListener.call(rawWindow, type, listener)
         }
       })
       eventListenerMap.clear()
     }
 
     // default mode(not keep-alive or isPrerender)
-    if ((!umdMode && !keepAlive && !isPrerender) || destroy) {
+    if (clearTimer) {
       intervalIdMap.forEach((_, intervalId: number) => {
         rawClearInterval.call(rawWindow, intervalId)
       })
@@ -318,7 +316,7 @@ export default function effect (appName: string, microAppWindow: microAppWindowT
     if (documentAppListenersMap) {
       documentAppListenersMap.forEach((listenerList, type) => {
         for (const listener of listenerList) {
-          rawDocumentRemoveEventListener.call(rawDocument, type, listener)
+          rawRemoveEventListener.call(rawDocument, type, listener)
         }
       })
       documentAppListenersMap.clear()

@@ -114,27 +114,30 @@ window.onunmount = () => {
 }
 
 /* ---------------------- 全局事件 --------------------- */
-// document.addEventListener('click', function () {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
-// }, false)
+document.addEventListener('click', function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
+  // console.log(this)
+}, false)
 
-// document.onclick = () => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-// }
+document.onclick = function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+  // console.log(this)
+}
 
-// window.addEventListener('click', () => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
-// }, false)
+window.addEventListener('click', function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
+  // console.log(this)
+}, false)
 
 
 /* ---------------------- 定时器 --------------------- */
-// setInterval(() => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
-// }, 5000)
+setInterval(() => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+}, 5000)
 
-// setTimeout(() => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
-// }, 5000);
+setTimeout(() => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+}, 5000);
 
 
 /* ---------------------- 创建元素 --------------------- */
