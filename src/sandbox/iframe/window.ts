@@ -89,7 +89,7 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
 function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHook {
   const { rawWindow, rawAddEventListener, rawRemoveEventListener } = globalEnv
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
-  const sstWindowListenerMap = new Map<string, Set<MicroEventListener>>()
+  const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
 
   function getEventTarget (type: string): Window {
     return scopeIframeWindowEvent.includes(type) ? microAppWindow : rawWindow
@@ -108,7 +108,6 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
       eventListenerMap.set(type, new Set([listener]))
     }
     listener && (listener.__MICRO_APP_MARK_OPTIONS__ = options)
-
     rawAddEventListener.call(getEventTarget(type), type, listener, options)
   }
 
@@ -125,7 +124,7 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
   }
 
   const reset = (): void => {
-    sstWindowListenerMap.clear()
+    sstEventListenerMap.clear()
   }
 
   /**
@@ -144,7 +143,7 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
     // record window event
     eventListenerMap.forEach((listenerList, type) => {
       if (listenerList.size) {
-        sstWindowListenerMap.set(type, new Set(listenerList))
+        sstEventListenerMap.set(type, new Set(listenerList))
       }
     })
   }
@@ -152,7 +151,7 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
   // rebuild event and timer before remount app
   const rebuild = (): void => {
     // rebuild window event
-    sstWindowListenerMap.forEach((listenerList, type) => {
+    sstEventListenerMap.forEach((listenerList, type) => {
       for (const listener of listenerList) {
         microAppWindow.addEventListener(type, listener, listener?.__MICRO_APP_MARK_OPTIONS__)
       }

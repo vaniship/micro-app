@@ -21,12 +21,12 @@ const prefetchConfig = [
   //   // 'disable-patch-request': false,
   //   iframe: true,
   // },
-  {
-    name: 'react16',
-    url: `${config.react16}micro-app/react16?a=1`,
-    level: 3,
-    iframe: true,
-  },
+  // {
+  //   name: 'react16',
+  //   url: `${config.react16}micro-app/react16?a=1`,
+  //   level: 3,
+  //   iframe: true,
+  // },
   // {
   //   name: 'react17',
   //   url: `${config.react17}micro-app/react17`,

@@ -11,13 +11,16 @@ import type {
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import microApp from '../../micro_app'
+import bindFunctionToRawTarget from '../bind_function'
 import {
   EventCenterForMicroApp,
   rebuildDataCenterSnapshot,
   recordDataCenterSnapshot,
   resetDataCenterSnapshot,
 } from '../../interact'
-import { initEnvOfNestedApp } from '../../libs/nest_app'
+import {
+  initEnvOfNestedApp,
+} from '../../libs/nest_app'
 import {
   getEffectivePath,
   isArray,
@@ -33,7 +36,6 @@ import {
   pureCreateElement,
   assign,
 } from '../../libs/utils'
-import bindFunctionToRawTarget from '../bind_function'
 import {
   createProxyDocument,
 } from './document'
@@ -64,11 +66,8 @@ import {
   useMicroEventSource,
   createMicroXMLHttpRequest,
 } from '../request'
-export {
-  router,
-  getNoHashMicroPathFromURL,
-} from '../router'
 
+// TODO: 放到global.d.ts
 export type MicroAppWindowDataType = {
   __MICRO_APP_ENVIRONMENT__: boolean,
   __MICRO_APP_NAME__: string,
@@ -108,17 +107,15 @@ export default class WithSandBox implements WithSandBoxInterface {
   private escapeKeys = new Set<PropertyKey>()
   // Properties newly added to microAppWindow
   private injectedKeys = new Set<PropertyKey>()
-  public proxyWindow: proxyWindow // Proxy
+  public proxyWindow!: proxyWindow // Proxy
   public microAppWindow = {} as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string) {
     this.adapter = new Adapter()
     // get scopeProperties and escapeProperties from plugins
     this.getSpecialProperties(appName)
-    // create proxyWindow with Proxy(microAppWindow)
-    this.proxyWindow = this.createProxyWindow(appName, this.microAppWindow)
-    // rewrite global event & timeout of window
-    this.windowEffect = patchWindowEffect(appName, this.microAppWindow)
+    // rewrite window of child app
+    this.windowEffect = this.patchWithWindow(appName, this.microAppWindow)
     // rewrite document of child app
     this.documentEffect = this.patchWithDocument(appName, this.microAppWindow)
     // inject global properties
@@ -140,52 +137,51 @@ export default class WithSandBox implements WithSandBoxInterface {
     defaultPage,
     disablePatchRequest,
   }: SandBoxStartParams): void {
-    if (!this.active) {
-      this.active = true
-      if (useMemoryRouter) {
-        if (isUndefined(this.microAppWindow.location)) {
-          this.setMicroAppRouter(
-            this.microAppWindow.__MICRO_APP_NAME__,
-            this.microAppWindow.__MICRO_APP_URL__,
-            this.microAppWindow,
-          )
-        }
-        this.initRouteState(defaultPage)
-        // unique listener of popstate event for sub app
-        this.removeHistoryListener = addHistoryListener(
-          this.microAppWindow.__MICRO_APP_NAME__,
-        )
-      } else {
-        this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
-      }
-
-      /**
-       * Target: Ensure default mode action exactly same to first time when render again
-       * 1. The following globalKey maybe modified when render, reset them when render again in default mode
-       * 2. Umd mode will not delete any keys during sandBox.stop, ignore umd mode
-       * 3. When sandbox.start called for the first time, it must be the default mode
-       */
-      if (!umdMode) {
-        this.initGlobalKeysWhenStart(
+    if (this.active) return
+    this.active = true
+    if (useMemoryRouter) {
+      if (isUndefined(this.microAppWindow.location)) {
+        this.setMicroAppRouter(
           this.microAppWindow.__MICRO_APP_NAME__,
           this.microAppWindow.__MICRO_APP_URL__,
           this.microAppWindow,
-          disablePatchRequest,
         )
       }
-
-      if (++globalEnv.activeSandbox === 1) {
-        patchElementAndDocument()
-        patchHistory()
-      }
-
-      if (++WithSandBox.activeCount === 1) {
-        // effectDocumentEvent()
-        initEnvOfNestedApp()
-      }
-
-      fixBabelPolyfill6()
+      this.initRouteState(defaultPage)
+      // unique listener of popstate event for sub app
+      this.removeHistoryListener = addHistoryListener(
+        this.microAppWindow.__MICRO_APP_NAME__,
+      )
+    } else {
+      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
     }
+
+    /**
+     * Target: Ensure default mode action exactly same to first time when render again
+     * 1. The following globalKey maybe modified when render, reset them when render again in default mode
+     * 2. Umd mode will not delete any keys during sandBox.stop, ignore umd mode
+     * 3. When sandbox.start called for the first time, it must be the default mode
+     */
+    if (!umdMode) {
+      this.initGlobalKeysWhenStart(
+        this.microAppWindow.__MICRO_APP_NAME__,
+        this.microAppWindow.__MICRO_APP_URL__,
+        this.microAppWindow,
+        disablePatchRequest,
+      )
+    }
+
+    if (++globalEnv.activeSandbox === 1) {
+      patchElementAndDocument()
+      patchHistory()
+    }
+
+    if (++WithSandBox.activeCount === 1) {
+      // effectDocumentEvent()
+      initEnvOfNestedApp()
+    }
+
+    fixBabelPolyfill6()
   }
 
   /**
@@ -201,46 +197,74 @@ export default class WithSandBox implements WithSandBoxInterface {
     destroy,
     clearData,
   }: SandBoxStopParams): void {
-    if (this.active) {
-      this.recordAndReleaseEffect({ umdMode, clearData, destroy }, !umdMode || destroy)
+    if (!this.active) return
+    this.recordAndReleaseEffect({ umdMode, clearData, destroy }, !umdMode || destroy)
 
-      if (this.removeHistoryListener) {
-        this.clearRouteState(keepRouteState)
-        // release listener of popstate
-        this.removeHistoryListener()
-      }
-
-      /**
-       * NOTE:
-       *  1. injectedKeys and escapeKeys must be placed at the back
-       *  2. if key in initial microAppWindow, and then rewrite, this key will be delete from microAppWindow when stop, and lost when restart
-       *  3. umd mode will not delete global keys
-       */
-      if (!umdMode || destroy) {
-        clearMicroEventSource(this.microAppWindow.__MICRO_APP_NAME__)
-
-        this.injectedKeys.forEach((key: PropertyKey) => {
-          Reflect.deleteProperty(this.microAppWindow, key)
-        })
-        this.injectedKeys.clear()
-
-        this.escapeKeys.forEach((key: PropertyKey) => {
-          Reflect.deleteProperty(globalEnv.rawWindow, key)
-        })
-        this.escapeKeys.clear()
-      }
-
-      if (--globalEnv.activeSandbox === 0) {
-        releasePatchElementAndDocument()
-        releasePatchHistory()
-      }
-
-      if (--WithSandBox.activeCount === 0) {
-        // releaseEffectDocumentEvent()
-      }
-
-      this.active = false
+    if (this.removeHistoryListener) {
+      this.clearRouteState(keepRouteState)
+      // release listener of popstate
+      this.removeHistoryListener()
     }
+
+    /**
+     * NOTE:
+     *  1. injectedKeys and escapeKeys must be placed at the back
+     *  2. if key in initial microAppWindow, and then rewrite, this key will be delete from microAppWindow when stop, and lost when restart
+     *  3. umd mode will not delete global keys
+     */
+    if (!umdMode || destroy) {
+      clearMicroEventSource(this.microAppWindow.__MICRO_APP_NAME__)
+
+      this.injectedKeys.forEach((key: PropertyKey) => {
+        Reflect.deleteProperty(this.microAppWindow, key)
+      })
+      this.injectedKeys.clear()
+
+      this.escapeKeys.forEach((key: PropertyKey) => {
+        Reflect.deleteProperty(globalEnv.rawWindow, key)
+      })
+      this.escapeKeys.clear()
+    }
+
+    if (--globalEnv.activeSandbox === 0) {
+      releasePatchElementAndDocument()
+      releasePatchHistory()
+    }
+
+    if (--WithSandBox.activeCount === 0) {
+      // releaseEffectDocumentEvent()
+    }
+
+    this.active = false
+  }
+
+  /**
+   * inject global properties to microAppWindow
+   * @param appName app name
+   * @param url app url
+   * @param microAppWindow micro window
+   */
+  private initStaticGlobalKeys (
+    appName: string,
+    url: string,
+    microAppWindow: microAppWindowType,
+  ): void {
+    microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
+    microAppWindow.__MICRO_APP_NAME__ = appName
+    microAppWindow.__MICRO_APP_URL__ = url
+    microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
+    microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
+    microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
+    microAppWindow.__MICRO_APP_PRE_RENDER__ = false
+    microAppWindow.__MICRO_APP_UMD_MODE__ = false
+    microAppWindow.rawWindow = globalEnv.rawWindow
+    microAppWindow.rawDocument = globalEnv.rawDocument
+    microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
+      removeDomScope,
+      pureCreateElement,
+      router,
+    })
+    this.setMappingPropertiesWithRawDescriptor(microAppWindow)
   }
 
   /**
@@ -374,48 +398,46 @@ export default class WithSandBox implements WithSandBoxInterface {
         return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
       },
       set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
-        if (this.active) {
-          /**
-           * TODO:
-           * 1、location域名相同，子应用内部跳转时的处理
-           */
-          if (this.adapter.escapeSetterKeyList.includes(key)) {
-            Reflect.set(rawWindow, key, value)
-          } else if (
-            // target.hasOwnProperty has been rewritten
-            !rawHasOwnProperty.call(target, key) &&
-            rawHasOwnProperty.call(rawWindow, key) &&
-            !this.scopeProperties.includes(key)
-          ) {
-            const descriptor = Object.getOwnPropertyDescriptor(rawWindow, key)
-            const { configurable, enumerable, writable, set } = descriptor!
-            // set value because it can be set
-            rawDefineProperty(target, key, {
-              value,
-              configurable,
-              enumerable,
-              writable: writable ?? !!set,
-            })
+        /**
+         * TODO:
+         * 1、location域名相同，子应用内部跳转时的处理
+         */
+        if (this.adapter.escapeSetterKeyList.includes(key)) {
+          Reflect.set(rawWindow, key, value)
+        } else if (
+          // target.hasOwnProperty has been rewritten
+          !rawHasOwnProperty.call(target, key) &&
+          rawHasOwnProperty.call(rawWindow, key) &&
+          !this.scopeProperties.includes(key)
+        ) {
+          const descriptor = Object.getOwnPropertyDescriptor(rawWindow, key)
+          const { configurable, enumerable, writable, set } = descriptor!
+          // set value because it can be set
+          rawDefineProperty(target, key, {
+            value,
+            configurable,
+            enumerable,
+            writable: writable ?? !!set,
+          })
 
-            this.injectedKeys.add(key)
-          } else {
-            !Reflect.has(target, key) && this.injectedKeys.add(key)
-            Reflect.set(target, key, value)
-          }
+          this.injectedKeys.add(key)
+        } else {
+          !Reflect.has(target, key) && this.injectedKeys.add(key)
+          Reflect.set(target, key, value)
+        }
 
-          if (
+        if (
+          (
+            this.escapeProperties.includes(key) ||
             (
-              this.escapeProperties.includes(key) ||
-              (
-                this.adapter.staticEscapeProperties.includes(key) &&
-                !Reflect.has(rawWindow, key)
-              )
-            ) &&
-            !this.scopeProperties.includes(key)
-          ) {
-            !Reflect.has(rawWindow, key) && this.escapeKeys.add(key)
-            Reflect.set(rawWindow, key, value)
-          }
+              this.adapter.staticEscapeProperties.includes(key) &&
+              !Reflect.has(rawWindow, key)
+            )
+          ) &&
+          !this.scopeProperties.includes(key)
+        ) {
+          !Reflect.has(rawWindow, key) && this.escapeKeys.add(key)
+          Reflect.set(rawWindow, key, value)
         }
 
         return true
@@ -466,6 +488,18 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   /**
+   * create proxyWindow, rewrite window event & timer of child app
+   * @param appName app name
+   * @param microAppWindow Proxy target
+   */
+  private patchWithWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
+    // create proxyWindow with Proxy(microAppWindow)
+    this.proxyWindow = this.createProxyWindow(appName, microAppWindow)
+    // rewrite global event & timeout of window
+    return patchWindowEffect(appName, microAppWindow)
+  }
+
+  /**
    * create proxyDocument and MicroDocument, rewrite document of child app
    * @param appName app name
    * @param microAppWindow Proxy target
@@ -501,35 +535,6 @@ export default class WithSandBox implements WithSandBoxInterface {
 
   public markUmdMode (state: boolean): void {
     this.microAppWindow.__MICRO_APP_UMD_MODE__ = state
-  }
-
-  /**
-   * inject global properties to microAppWindow
-   * @param appName app name
-   * @param url app url
-   * @param microAppWindow micro window
-   */
-  private initStaticGlobalKeys (
-    appName: string,
-    url: string,
-    microAppWindow: microAppWindowType,
-  ): void {
-    microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
-    microAppWindow.__MICRO_APP_NAME__ = appName
-    microAppWindow.__MICRO_APP_URL__ = url
-    microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
-    microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
-    microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
-    microAppWindow.__MICRO_APP_PRE_RENDER__ = false
-    microAppWindow.__MICRO_APP_UMD_MODE__ = false
-    microAppWindow.rawWindow = globalEnv.rawWindow
-    microAppWindow.rawDocument = globalEnv.rawDocument
-    microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
-      removeDomScope,
-      pureCreateElement,
-      router,
-    })
-    this.setMappingPropertiesWithRawDescriptor(microAppWindow)
   }
 
   // properties associated with the native window

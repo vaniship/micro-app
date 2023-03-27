@@ -68,10 +68,10 @@ export function createProxyDocument (
     MicroDocument: Function,
     documentEffect: CommonEffectHook,
   } {
-  const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
-  let sstOnClickHandler: unknown = null
+  const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
   let onClickHandler: unknown = null
+  let sstOnClickHandler: unknown = null
   const {
     rawDocument,
     rawCreateElement,
@@ -79,13 +79,17 @@ export function createProxyDocument (
     rawRemoveEventListener,
   } = globalEnv
 
-  const createElement = function (tagName: string, options?: ElementCreationOptions): HTMLElement {
+  function createElement (tagName: string, options?: ElementCreationOptions): HTMLElement {
     const element = rawCreateElement.call(rawDocument, tagName, options)
     element.__MICRO_APP_NAME__ = appName
     return element
   }
 
-  // TODO: listener 是否需要绑定proxyDocument，否则函数中的this指向原生window
+  /**
+   * TODO:
+   *  1. listener 是否需要绑定proxyDocument，否则函数中的this指向原生window
+   *  2. 相似代码提取为公共方法(with, iframe)
+   */
   function addEventListener (
     type: string,
     listener: MicroEventListener,

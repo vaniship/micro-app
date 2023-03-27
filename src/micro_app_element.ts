@@ -28,7 +28,7 @@ import { patchSetAttribute } from './source/patch'
 import microApp from './micro_app'
 import dispatchLifecyclesEvent from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
-import { getNoHashMicroPathFromURL, router } from './sandbox/with'
+import { getNoHashMicroPathFromURL, router } from './sandbox/router'
 
 /**
  * define element

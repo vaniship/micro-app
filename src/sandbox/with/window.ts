@@ -15,8 +15,8 @@ export function patchWindowEffect (
   appName: string,
   microAppWindow: microAppWindowType,
 ): CommonEffectHook {
-  const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
+  const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
   const intervalIdMap = new Map<number, timeInfo>()
   const timeoutIdMap = new Map<number, timeInfo>()
   const {

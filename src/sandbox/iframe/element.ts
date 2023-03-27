@@ -2,6 +2,8 @@ import type {
   microAppWindowType,
 } from '@micro-app/types'
 import type IframeSandbox from './index'
+import globalEnv from '../../libs/global_env'
+import microApp from '../../micro_app'
 import {
   rawDefineProperty,
   CompletionPath,
@@ -10,7 +12,6 @@ import {
   isElement,
   isMicroAppBody,
 } from '../../libs/utils'
-import globalEnv from '../../libs/global_env'
 import {
   updateElementInfo,
   throttleDeferForParentNode
@@ -18,7 +19,6 @@ import {
 import {
   appInstanceMap,
 } from '../../create_app'
-import microApp from '../../micro_app'
 
 export function patchIframeElement (
   appName: string,
