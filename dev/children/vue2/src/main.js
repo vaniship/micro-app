@@ -60,10 +60,15 @@ window.mount = () => {
 
 // 👇 将卸载操作放入 unmount 函数
 window.unmount = () => {
-  app.$destroy()
-  app.$el.innerHTML = ''
-  app = null
-  console.log("微应用vue2卸载了 -- UMD模式")
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      app.$destroy()
+      app.$el.innerHTML = ''
+      app = null
+      console.log("微应用vue2卸载了 -- UMD模式")
+      resolve()
+    }, 3000)
+  })
 }
 
 // 如果不在微前端环境，则直接执行mount渲染

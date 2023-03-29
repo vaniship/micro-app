@@ -4,8 +4,15 @@ import type {
   RequestIdleCallbackInfo,
   RequestIdleCallbackOptions,
 } from '@micro-app/types'
-import { isSupportModuleScript, isBrowser, getCurrentAppName, assign } from './utils'
-import { rejectMicroAppStyle } from '../source/patch'
+import {
+  isSupportModuleScript,
+  isBrowser,
+  getCurrentAppName,
+  assign,
+} from './utils'
+import {
+  rejectMicroAppStyle,
+} from '../source/patch'
 
 declare global {
   interface Window {

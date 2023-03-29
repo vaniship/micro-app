@@ -21,6 +21,7 @@ import {
   dispatchOnErrorEvent,
 } from './load_event'
 import sourceCenter from './source_center'
+import globalEnv from '../libs/global_env'
 
 /**
  *
@@ -48,7 +49,7 @@ function setConvertStyleAttr (convertStyle: HTMLStyleElement, attrs: AttrsType):
   attrs.forEach((value, key) => {
     if (key === 'rel') return
     if (key === 'href') key = 'data-origin-href'
-    convertStyle.setAttribute(key, value)
+    globalEnv.rawSetAttribute.call(convertStyle, key, value)
   })
 }
 
@@ -104,7 +105,7 @@ export function extractLinkFromHtml (
     }
   } else if (href) {
     // dns-prefetch preconnect modulepreload search ....
-    link.setAttribute('href', CompletionPath(href, app.url))
+    globalEnv.rawSetAttribute.call(link, 'href', CompletionPath(href, app.url))
   }
 
   if (isDynamic) {

@@ -29,10 +29,11 @@ import {
   pureCreateElement,
   isDivElement,
 } from './libs/utils'
-import dispatchLifecyclesEvent, { dispatchCustomEventToMicroApp } from './interact/lifecycles_event'
+import dispatchLifecyclesEvent, {
+  dispatchCustomEventToMicroApp,
+} from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
-import { releasePatchSetAttribute } from './source/patch'
-import microApp, { getActiveApps } from './micro_app'
+import microApp from './micro_app'
 import sourceCenter from './source/source_center'
 
 // micro app instances
@@ -376,7 +377,9 @@ export default class CreateApp implements AppInterface {
 
   /**
    * unmount app
-   * NOTE: Do not add any params on account of unmountApp
+   * NOTE:
+   *  1. Do not add any params on account of unmountApp
+   *  2.
    * @param destroy completely destroy, delete cache resources
    * @param clearData clear data of dateCenter
    * @param keepRouteState keep route state when unmount, default is false
@@ -389,16 +392,12 @@ export default class CreateApp implements AppInterface {
     unmountcb,
   }: UnmountParam): void {
     destroy = destroy || this.state === appStates.LOAD_FAILED
+
     this.setAppState(appStates.UNMOUNT)
 
-    // result of unmount function
-    let umdHookUnmountResult: unknown = null
-    /**
-     * send an unmount event to the micro app or call umd unmount hook
-     * before the sandbox is cleared
-     */
     try {
-      umdHookUnmountResult = this.umdHookUnmount?.(microApp.getData(this.name, true))
+      // call umd unmount hook before the sandbox is cleared
+      this.umdHookUnmount?.(microApp.getData(this.name, true))
     } catch (e) {
       logError('An error occurred in function unmount \n', this.name, e)
     }
@@ -413,42 +412,12 @@ export default class CreateApp implements AppInterface {
       microGlobalEvent.ONUNMOUNT,
     )
 
-    this.handleUnmounted(
-      destroy,
-      clearData,
-      keepRouteState,
-      umdHookUnmountResult,
-      unmountcb
-    )
-  }
-
-  /**
-   * handle for promise umdHookUnmount
-   * @param destroy completely destroy, delete cache resources
-   * @param clearData clear data of dateCenter
-   * @param keepRouteState keep route state when unmount, default is false
-   * @param umdHookUnmountResult result of umdHookUnmount
-   * @param unmountcb callback of unmount
-   */
-  private handleUnmounted (
-    destroy: boolean,
-    clearData: boolean,
-    keepRouteState: boolean,
-    umdHookUnmountResult: any,
-    unmountcb?: CallableFunction,
-  ): void {
-    const nextAction = () => this.actionsForUnmount({
+    this.actionsForUnmount({
       destroy,
       clearData,
       keepRouteState,
       unmountcb,
     })
-
-    if (isPromise(umdHookUnmountResult)) {
-      umdHookUnmountResult.then(nextAction).catch(nextAction)
-    } else {
-      nextAction()
-    }
   }
 
   /**
@@ -462,7 +431,7 @@ export default class CreateApp implements AppInterface {
     destroy,
     clearData,
     keepRouteState,
-    unmountcb
+    unmountcb,
   }: UnmountParam): void {
     if (this.umdMode && this.container && !destroy) {
       cloneContainer(this.container, this.source.html as Element, false)
@@ -480,10 +449,6 @@ export default class CreateApp implements AppInterface {
       destroy,
       clearData: clearData || destroy,
     })
-
-    if (!getActiveApps().length) {
-      releasePatchSetAttribute()
-    }
 
     // dispatch unmount event to base app
     dispatchLifecyclesEvent(

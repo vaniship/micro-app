@@ -127,7 +127,7 @@ function setConvertScriptAttr (convertScript: HTMLScriptElement, attrs: AttrsTyp
   attrs.forEach((value, key) => {
     if ((key === 'type' && value === 'module') || key === 'defer' || key === 'async') return
     if (key === 'src') key = 'data-origin-src'
-    convertScript.setAttribute(key, value)
+    globalEnv.rawSetAttribute.call(convertScript, key, value)
   })
 }
 
@@ -615,7 +615,7 @@ function runCode2InlineScript (
     } else {
       scriptElement.src = address
     }
-    scriptElement.setAttribute('type', 'module')
+    globalEnv.rawSetAttribute.call(scriptElement, 'type', 'module')
     if (callback) {
       callback.moduleCount && callback.moduleCount--
       /**

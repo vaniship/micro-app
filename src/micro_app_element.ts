@@ -4,6 +4,7 @@ import type {
   MicroAppElementType,
   AppInterface,
   OptionsType,
+  NormalKey,
 } from '@micro-app/types'
 import {
   defer,
@@ -16,6 +17,7 @@ import {
   isFunction,
   CompletionPath,
   createURL,
+  isPlainObject,
 } from './libs/utils'
 import {
   ObservedAttrName,
@@ -24,7 +26,6 @@ import {
   keepAliveStates,
 } from './constants'
 import CreateApp, { appInstanceMap } from './create_app'
-import { patchSetAttribute } from './source/patch'
 import microApp from './micro_app'
 import dispatchLifecyclesEvent from './interact/lifecycles_event'
 import globalEnv from './libs/global_env'
@@ -38,12 +39,6 @@ export function defineElement (tagName: string): void {
   class MicroAppElement extends HTMLElement implements MicroAppElementType {
     static get observedAttributes (): string[] {
       return ['name', 'url']
-    }
-
-    constructor () {
-      super()
-      // patchSetAttribute hijiack data attribute, it needs exec first
-      patchSetAttribute()
     }
 
     private isWaiting = false
@@ -389,6 +384,7 @@ export function defineElement (tagName: string): void {
      */
     private handleAppMount (app: AppInterface): void {
       app.isPrefetch = false
+      // TODO: Can defer be removed?
       defer(() => this.mount(app))
     }
 
@@ -547,6 +543,29 @@ export function defineElement (tagName: string): void {
         this.getAttribute('defaultPage') ||
         ''
       )
+    }
+
+    /**
+     * Rewrite micro-app.setAttribute, process attr data
+     * @param key attr name
+     * @param value attr value
+     */
+    public setAttribute (key: string, value: any): void {
+      if (key === 'data') {
+        if (isPlainObject(value)) {
+          const cloneValue: Record<NormalKey, unknown> = {}
+          Object.getOwnPropertyNames(value).forEach((ownKey: NormalKey) => {
+            if (!(isString(ownKey) && ownKey.indexOf('__') === 0)) {
+              cloneValue[ownKey] = value[ownKey]
+            }
+          })
+          this.data = cloneValue
+        } else if (value !== '[object Object]') {
+          logWarn('property data must be an object', this.appName)
+        }
+      } else {
+        globalEnv.rawSetAttribute.call(this, key, value)
+      }
     }
 
     /**

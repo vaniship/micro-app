@@ -52,7 +52,7 @@ function flatChildren (
       } else if (!(dom.hasAttribute('ignore') || checkIgnoreUrl(dom.getAttribute('href'), app.name))) {
         extractLinkFromHtml(dom, parent, app)
       } else if (dom.hasAttribute('href')) {
-        dom.setAttribute('href', CompletionPath(dom.getAttribute('href')!, app.url))
+        globalEnv.rawSetAttribute.call(dom, 'href', CompletionPath(dom.getAttribute('href')!, app.url))
       }
     } else if (isStyleElement(dom)) {
       if (dom.hasAttribute('exclude')) {
@@ -63,7 +63,7 @@ function flatChildren (
     } else if (isScriptElement(dom)) {
       extractScriptElement(dom, parent, app)
     } else if (isImageElement(dom) && dom.hasAttribute('src')) {
-      dom.setAttribute('src', CompletionPath(dom.getAttribute('src')!, app.url))
+      globalEnv.rawSetAttribute.call(dom, 'src', CompletionPath(dom.getAttribute('src')!, app.url))
     }
     /**
      * Don't remove meta and title, they have some special scenes

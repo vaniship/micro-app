@@ -1,7 +1,6 @@
 import type {
   Func,
   AppInterface,
-  NormalKey,
 } from '@micro-app/types'
 import {
   appInstanceMap,
@@ -12,9 +11,6 @@ import {
   getCurrentAppName,
   pureCreateElement,
   removeDomScope,
-  logWarn,
-  isPlainObject,
-  isString,
   isInvalidQuerySelectorKey,
   isUniqueElement,
   isProxyDocument,
@@ -263,6 +259,26 @@ function getMappingNode (node: Node): Node {
 }
 
 /**
+ * Attempt to complete the static resource address again before insert the node
+ * @param app app instance
+ * @param newChild target node
+ */
+function completePathDynamic (app: AppInterface, newChild: Node): void {
+  if (isElement(newChild)) {
+    if (/^(img|script)$/i.test(newChild.tagName)) {
+      if (newChild.hasAttribute('src')) {
+        globalEnv.rawSetAttribute.call(newChild, 'src', CompletionPath(newChild.getAttribute('src')!, app.url))
+      }
+      if (newChild.hasAttribute('srcset')) {
+        globalEnv.rawSetAttribute.call(newChild, 'srcset', CompletionPath(newChild.getAttribute('srcset')!, app.url))
+      }
+    } else if (/^link$/i.test(newChild.tagName) && newChild.hasAttribute('href')) {
+      globalEnv.rawSetAttribute.call(newChild, 'href', CompletionPath(newChild.getAttribute('href')!, app.url))
+    }
+  }
+}
+
+/**
  * method of handle new node
  * @param parent parent node
  * @param newChild new node
@@ -287,18 +303,7 @@ function commonElementHandler (
     newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
     if (app?.container) {
-      if (isElement(newChild)) {
-        if (/^(img|script)$/i.test(newChild.tagName)) {
-          if (newChild.hasAttribute('src')) {
-            globalEnv.rawSetAttribute.call(newChild, 'src', CompletionPath(newChild.getAttribute('src')!, app.url))
-          }
-          if (newChild.hasAttribute('srcset')) {
-            globalEnv.rawSetAttribute.call(newChild, 'srcset', CompletionPath(newChild.getAttribute('srcset')!, app.url))
-          }
-        } else if (/^link$/i.test(newChild.tagName) && newChild.hasAttribute('href')) {
-          globalEnv.rawSetAttribute.call(newChild, 'href', CompletionPath(newChild.getAttribute('href')!, app.url))
-        }
-      }
+      completePathDynamic(app, newChild)
 
       return invokePrototypeMethod(
         app,
@@ -417,6 +422,62 @@ export function patchElementAndDocument (): void {
     return globalEnv.rawElementQuerySelectorAll.call(target, selectors)
   }
 
+  // rewrite setAttribute, complete resource address
+  Element.prototype.setAttribute = function setAttribute (key: string, value: any): void {
+    const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()
+    if (
+      appName &&
+      appInstanceMap.has(appName) &&
+      (
+        ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
+        (key === 'href' && /^link$/i.test(this.tagName))
+      )
+    ) {
+      // console.log(4444444, appName, this, window.__MICRO_APP_ENVIRONMENT__)
+      const app = appInstanceMap.get(appName)
+      value = CompletionPath(value, app!.url)
+    }
+
+    globalEnv.rawSetAttribute.call(this, key, value)
+  }
+
+  /**
+   * TODO: 兼容直接通过img.src等操作设置的资源
+   * NOTE:
+   *  1. 卸载时恢复原始值
+   *  2. 循环嵌套的情况
+   *  3. 放在global_env中统一处理
+   *  4. 是否和completePathDynamic的作用重复？
+   */
+  // const protoAttrList: Array<[HTMLElement, string]> = [
+  //   [HTMLImageElement.prototype, 'src'],
+  //   [HTMLScriptElement.prototype, 'src'],
+  //   [HTMLLinkElement.prototype, 'href'],
+  // ]
+
+  // protoAttrList.forEach(([target, attr]) => {
+  //   const { enumerable, configurable, get, set } = Object.getOwnPropertyDescriptor(target, attr) || {
+  //     enumerable: true,
+  //     configurable: true,
+  //   }
+
+  //   rawDefineProperty(target, attr, {
+  //     enumerable,
+  //     configurable,
+  //     get: function () {
+  //       return get?.call(this)
+  //     },
+  //     set: function (value) {
+  //       const currentAppName = getCurrentAppName()
+  //       if (currentAppName && appInstanceMap.has(currentAppName)) {
+  //         const app = appInstanceMap.get(currentAppName)
+  //         value = CompletionPath(value, app!.url)
+  //       }
+  //       set?.call(this, value)
+  //     },
+  //   })
+  // })
+
   rawDefineProperty(Element.prototype, 'innerHTML', {
     configurable: true,
     enumerable: true,
@@ -434,7 +495,9 @@ export function patchElementAndDocument (): void {
     }
   })
 
-  // Abandon this way at 2023.2.28 before v1.0.0-beta.0, it will cause vue2 throw error when render again
+  /**
+   * NOTE:Abandon this way at 2023.2.28 before v1.0.0-beta.0, it will cause vue2 throw error when render again
+   */
   // rawDefineProperty(Node.prototype, 'parentNode', {
   //   configurable: true,
   //   enumerable: true,
@@ -598,48 +661,6 @@ function patchDocument () {
   }
 }
 
-/**
- * patchSetAttribute is different from other patch
- * NOTE:
- * 1. it not dependent on sandbox
- * 2. it should exec when first micro-app-element created & release when all app unmounted
- */
-let hasRewriteSetAttribute = false
-export function patchSetAttribute (): void {
-  if (hasRewriteSetAttribute) return
-  hasRewriteSetAttribute = true
-  Element.prototype.setAttribute = function setAttribute (key: string, value: any): void {
-    if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
-      if (isPlainObject(value)) {
-        const cloneValue: Record<NormalKey, unknown> = {}
-        Object.getOwnPropertyNames(value).forEach((ownKey: NormalKey) => {
-          if (!(isString(ownKey) && ownKey.indexOf('__') === 0)) {
-            cloneValue[ownKey] = value[ownKey]
-          }
-        })
-        this.data = cloneValue
-      } else if (value !== '[object Object]') {
-        logWarn('property data must be an object', this.getAttribute('name'))
-      }
-    } else {
-      const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()
-      if (
-        appName &&
-        appInstanceMap.has(appName) &&
-        (
-          ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
-          (key === 'href' && /^link$/i.test(this.tagName))
-        )
-      ) {
-        const app = appInstanceMap.get(appName)
-        value = CompletionPath(value, app!.url)
-      }
-
-      globalEnv.rawSetAttribute.call(this, key, value)
-    }
-  }
-}
-
 function releasePatchDocument (): void {
   const rawRootDocument = globalEnv.rawRootDocument
   rawRootDocument.prototype.createElement = globalEnv.rawCreateElement
@@ -667,13 +688,8 @@ export function releasePatchElementAndDocument (): void {
   Element.prototype.cloneNode = globalEnv.rawCloneNode
   Element.prototype.querySelector = globalEnv.rawElementQuerySelector
   Element.prototype.querySelectorAll = globalEnv.rawElementQuerySelectorAll
-  rawDefineProperty(Element.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
-}
-
-// exec when last child unmount
-export function releasePatchSetAttribute (): void {
-  hasRewriteSetAttribute = false
   Element.prototype.setAttribute = globalEnv.rawSetAttribute
+  rawDefineProperty(Element.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
 }
 
 // Set the style of micro-app-head and micro-app-body

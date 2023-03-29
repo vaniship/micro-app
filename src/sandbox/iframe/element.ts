@@ -115,6 +115,8 @@ function patchIframeNode (
     return rawMicroReplaceChild.call(_this, node, child)
   }
 
+  // TODO: removeChild呢？
+
   // patch cloneNode
   microRootNode.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
     const clonedNode = rawMicroCloneNode.call(this, deep)
@@ -209,6 +211,12 @@ function patchIframeAttribute (appName: string, url: string, microAppWindow: mic
     [microAppWindow.HTMLLinkElement.prototype, 'href'],
   ]
 
+  /**
+   * element.setAttribute does not trigger this actions:
+   *  1. img.src = xxx
+   *  2. script.src = xxx
+   *  3. link.href = xxx
+   */
   protoAttrList.forEach(([target, attr]) => {
     const { enumerable, configurable, get, set } = Object.getOwnPropertyDescriptor(target, attr) || {
       enumerable: true,
