@@ -1,7 +1,7 @@
 <template>
-  <div class="vite">
+  <div class="vite2">
     <micro-app
-      name='vite'
+      name='vite2'
       url='http://localhost:7001/micro-app/vite2/'
       iframe
     >
@@ -13,7 +13,7 @@
 <script>
 
 export default {
-  name: 'vite',
+  name: 'vite2',
   methods: {
 
   }

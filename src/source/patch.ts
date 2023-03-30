@@ -304,7 +304,6 @@ function commonElementHandler (
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
     if (app?.container) {
       completePathDynamic(app, newChild)
-
       return invokePrototypeMethod(
         app,
         rawMethod,

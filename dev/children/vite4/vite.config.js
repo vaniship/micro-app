@@ -56,7 +56,7 @@ export default defineConfig({
     ElementPlus()
   ],
   server: {
-    port: 7001,
+    port: 7002,
     host: true,
     proxy: {
       '/sugrec': {
@@ -67,8 +67,8 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'vite2',
+    outDir: 'vite4',
   },
   clearScreen: false,
-  base: `/micro-app/vite2/`,
+  base: `/micro-app/vite4/`,
 })

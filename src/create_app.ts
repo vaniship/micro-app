@@ -498,7 +498,6 @@ export default class CreateApp implements AppInterface {
   }
 
   private clearOptions (destroy: boolean): void {
-    removeDomScope()
     this.container!.innerHTML = ''
     this.container = null
     this.isPrerender = false
@@ -507,6 +506,7 @@ export default class CreateApp implements AppInterface {
     // in iframe sandbox & default mode, delete the sandbox & iframeElement
     if (this.iframe && !this.umdMode) this.sandBox = null
     if (destroy) this.actionsForCompletelyDestroy()
+    removeDomScope()
   }
 
   // actions for completely destroy

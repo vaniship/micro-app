@@ -17,6 +17,7 @@
     "@vitejs/plugin-legacy": "^1.4.3",
     "@vitejs/plugin-vue": "^1.2.4",
     "@vue/compiler-sfc": "^3.1.4",
+    "sass": "^1.60.0",
     "unplugin-auto-import": "^0.15.1",
     "unplugin-element-plus": "^0.7.0",
     "unplugin-vue-components": "^0.24.1",

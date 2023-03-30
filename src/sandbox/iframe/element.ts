@@ -43,7 +43,13 @@ function patchIframeNode (
   const rawMicroAppendChild = microRootNode.prototype.appendChild
   const rawMicroInsertBefore = microRootNode.prototype.insertBefore
   const rawMicroReplaceChild = microRootNode.prototype.replaceChild
+  const rawMicroRemoveChild = microRootNode.prototype.removeChild
+  // const rawMicroAppend = microRootElement.prototype.append
+  // const rawMicroPrepend = microRootElement.prototype.prepend
+  const rawMicroInsertAdjacentElement = microRootElement.prototype.insertAdjacentElement
   const rawMicroCloneNode = microRootNode.prototype.cloneNode
+  // const rawMicroElementQuerySelector = microRootElement.prototype.querySelector
+  // const rawMicroElementQuerySelectorAll = microRootElement.prototype.querySelectorAll
   const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(microRootElement.prototype, 'innerHTML') as PropertyDescriptor
   const rawParentNodeLDesc = Object.getOwnPropertyDescriptor(microRootNode.prototype, 'parentNode') as PropertyDescriptor
 
@@ -71,51 +77,60 @@ function patchIframeNode (
 
   microRootNode.prototype.appendChild = function appendChild <T extends Node> (node: T): T {
     updateElementInfo(node, appName)
-    // TODO：只有script才可以这样拦截，link、style不应该拦截
-    if (isPureNode(node)) {
+    const _this = getRawTarget(this)
+    if (_this === this || isPureNode(node)) {
       return rawMicroAppendChild.call(this, node)
     }
-    const _this = getRawTarget(this)
-    if (_this !== this) {
-      return _this.appendChild(node)
-    }
-    return rawMicroAppendChild.call(_this, node)
+    return _this.appendChild(node)
   }
 
   // TODO: 更多场景适配
   microRootNode.prototype.insertBefore = function insertBefore <T extends Node> (node: T, child: Node | null): T {
     updateElementInfo(node, appName)
-    if (isPureNode(node)) {
+    const _this = getRawTarget(this)
+    if (_this === this || isPureNode(node)) {
       return rawMicroInsertBefore.call(this, node, child)
     }
-    const _this = getRawTarget(this)
-    if (_this !== this) {
-      if (child && !_this.contains(child)) {
-        return _this.appendChild(node)
-      }
-      return _this.insertBefore(node, child)
-    }
-    return rawMicroInsertBefore.call(_this, node, child)
+    return _this.insertBefore(node, child)
   }
 
   // TODO: 更多场景适配
   microRootNode.prototype.replaceChild = function replaceChild <T extends Node> (node: Node, child: T): T {
     updateElementInfo(node, appName)
-    if (isPureNode(node)) {
+    const _this = getRawTarget(this)
+    if (_this === this || isPureNode(node)) {
       return rawMicroReplaceChild.call(this, node, child)
     }
-    const _this = getRawTarget(this)
-    if (_this !== this) {
-      if (child && !_this.contains(child)) {
-        _this.appendChild(node) as T
-        return child
-      }
-      return _this.replaceChild(node, child)
-    }
-    return rawMicroReplaceChild.call(_this, node, child)
+    return _this.replaceChild(node, child)
   }
 
-  // TODO: removeChild呢？
+  microRootNode.prototype.removeChild = function removeChild<T extends Node> (oldChild: T): T {
+    const _this = getRawTarget(this)
+    if (_this === this || isPureNode(oldChild) || this.contains(oldChild)) {
+      return rawMicroRemoveChild.call(this, oldChild)
+    }
+    return _this.removeChild(oldChild)
+  }
+
+  // microRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
+  //   console.log(55555, ...nodes)
+  //   // rawMicroAppend.call(this, ...nodes)
+  // }
+
+  // microRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
+  //   console.log(666666, ...nodes)
+  //   // rawMicroPrepend.call(this, ...nodes)
+  // }
+
+  /**
+   * The insertAdjacentElement() method of the Element interface inserts a given element node at a given position relative to the element it is invoked upon.
+   * Scenes:
+   *  1. vite4 development env for style
+   */
+  microRootElement.prototype.insertAdjacentElement = function insertAdjacentElement (where: InsertPosition, element: Element): Element | null {
+    // console.log(333333, element)
+    return rawMicroInsertAdjacentElement.call(this, where, element)
+  }
 
   // patch cloneNode
   microRootNode.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
