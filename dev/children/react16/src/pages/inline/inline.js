@@ -5,11 +5,13 @@ import { useState } from 'react'
 import { Button, Spin } from 'antd'
 import microApp from '@micro-zoe/micro-app'
 import config from '../../config'
+import logo from '../../assets/logo.svg';
 import './inline.less'
 
 function Vue2 () {
   const [data] = useState({from: '来自基座的初始化数据'})
   const [showLoading, hideLoading] = useState(true)
+
   return (
     <div>
       <h3>子应用多层嵌套</h3>
@@ -38,6 +40,7 @@ function Vue2 () {
         // disableSandbox
         // iframe
       />
+      <img src={logo} className="App-logo" alt="logo" width='100' />
     </div>
   )
 }

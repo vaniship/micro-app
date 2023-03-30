@@ -433,7 +433,6 @@ export function patchElementAndDocument (): void {
         (key === 'href' && /^link$/i.test(this.tagName))
       )
     ) {
-      // console.log(4444444, appName, this, window.__MICRO_APP_ENVIRONMENT__)
       const app = appInstanceMap.get(appName)
       value = CompletionPath(value, app!.url)
     }

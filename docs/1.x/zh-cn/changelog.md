@@ -16,6 +16,7 @@
 - **Bug Fix**
 
   - 🐞 修复了异步卸载子应用时`Element.prototype.setAttribute`方法可能被重置的问题。
+  - 🐞 修复了在多层嵌套时异步卸载子应用导致应用绑定作用域异常的问题。
 
 - **Update**
 

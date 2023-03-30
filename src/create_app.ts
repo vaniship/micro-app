@@ -28,6 +28,7 @@ import {
   execMicroAppGlobalHook,
   pureCreateElement,
   isDivElement,
+  removeDomScope,
 } from './libs/utils'
 import dispatchLifecyclesEvent, {
   dispatchCustomEventToMicroApp,
@@ -307,7 +308,7 @@ export default class CreateApp implements AppInterface {
                 try {
                   this.handleMounted(this.umdHookMount(microApp.getData(this.name, true)))
                 } catch (e) {
-                  logError('An error occurred in function mount \n', this.name, e)
+                  logError('An error occurred in window.mount \n', this.name, e)
                 }
               } else if (isFinished === true) {
                 this.handleMounted()
@@ -319,7 +320,7 @@ export default class CreateApp implements AppInterface {
           try {
             this.handleMounted(this.umdHookMount!(microApp.getData(this.name, true)))
           } catch (e) {
-            logError('An error occurred in function mount \n', this.name, e)
+            logError('An error occurred in window.mount \n', this.name, e)
           }
         }
       }
@@ -338,7 +339,7 @@ export default class CreateApp implements AppInterface {
       if (isPromise(umdHookMountResult)) {
         umdHookMountResult
           .then(() => this.dispatchMountedEvent())
-          .catch((e: Error) => this.onerror(e))
+          .catch(() => this.dispatchMountedEvent())
       } else {
         this.dispatchMountedEvent()
       }
@@ -378,8 +379,7 @@ export default class CreateApp implements AppInterface {
   /**
    * unmount app
    * NOTE:
-   *  1. Do not add any params on account of unmountApp
-   *  2.
+   *  1. do not add any params on account of unmountApp
    * @param destroy completely destroy, delete cache resources
    * @param clearData clear data of dateCenter
    * @param keepRouteState keep route state when unmount, default is false
@@ -395,11 +395,12 @@ export default class CreateApp implements AppInterface {
 
     this.setAppState(appStates.UNMOUNT)
 
+    let umdHookUnmountResult: unknown = null
     try {
       // call umd unmount hook before the sandbox is cleared
-      this.umdHookUnmount?.(microApp.getData(this.name, true))
+      umdHookUnmountResult = this.umdHookUnmount?.(microApp.getData(this.name, true))
     } catch (e) {
-      logError('An error occurred in function unmount \n', this.name, e)
+      logError('An error occurred in window.unmount \n', this.name, e)
     }
 
     // dispatch unmount event to micro app
@@ -412,12 +413,46 @@ export default class CreateApp implements AppInterface {
       microGlobalEvent.ONUNMOUNT,
     )
 
-    this.actionsForUnmount({
+    this.handleUnmounted({
+      destroy,
+      clearData,
+      keepRouteState,
+      unmountcb,
+      umdHookUnmountResult,
+    })
+  }
+
+  /**
+   * handle for promise umdHookUnmount
+   * @param destroy completely destroy, delete cache resources
+   * @param clearData clear data of dateCenter
+   * @param keepRouteState keep route state when unmount, default is false
+   * @param unmountcb callback of unmount
+   * @param umdHookUnmountResult result of umdHookUnmount
+   */
+  private handleUnmounted ({
+    destroy,
+    clearData,
+    keepRouteState,
+    unmountcb,
+    umdHookUnmountResult,
+  }: UnmountParam & {
+    umdHookUnmountResult: unknown,
+  }): void {
+    const nextAction = () => this.actionsForUnmount({
       destroy,
       clearData,
       keepRouteState,
       unmountcb,
     })
+
+    if (isPromise(umdHookUnmountResult)) {
+      // async window.unmount will cause appName bind error in nest app
+      removeDomScope()
+      umdHookUnmountResult.then(nextAction).catch(nextAction)
+    } else {
+      nextAction()
+    }
   }
 
   /**
@@ -463,6 +498,7 @@ export default class CreateApp implements AppInterface {
   }
 
   private clearOptions (destroy: boolean): void {
+    removeDomScope()
     this.container!.innerHTML = ''
     this.container = null
     this.isPrerender = false

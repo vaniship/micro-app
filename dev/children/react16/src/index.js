@@ -1,5 +1,5 @@
 /* eslint-disable */
-// import './public-path';
+// import './public-path'
 // import 'babel-polyfill'
 // import '@babel/polyfill'
 import React from 'react';
@@ -16,6 +16,10 @@ import subMicroApp from '@micro-zoe/micro-app';
 // 循环内嵌
 subMicroApp.start({
   tagName: 'micro-app-sub'
+})
+
+ConfigProvider.config({
+  prefixCls: 'react16',
 })
 
 // 数据监听
