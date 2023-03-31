@@ -45,6 +45,7 @@ onMounted(() => {
   text-align: center;
   color: #2c3e50;
   padding-bottom: 30px;
+  display: block;
 }
 body {
   background-color: #fff;

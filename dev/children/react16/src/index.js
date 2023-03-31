@@ -178,6 +178,23 @@ setTimeout(() => {
 //   dynamicDiv1.parentNode.removeChild(dynamicDiv1)
 // }, 5000);
 
+// -- 测试 Element.prototype.insertAdjacentElement -- 开始
+const dynamicStyle2 = document.createElement('style')
+dynamicStyle2.textContent = '.test-insertAdjacentElement { color: red; }'
+document.head.appendChild(dynamicStyle2)
+
+const dynamicStyle3 = document.createElement('style')
+dynamicStyle3.textContent = '.test-insertAdjacentElement { color: green; }'
+dynamicStyle2.insertAdjacentElement('afterend', dynamicStyle3)
+
+document.head.insertAdjacentElement('afterbegin', dynamicStyle3)
+
+const dynamicScript3 = document.createElement('script')
+dynamicScript3.textContent = `console.log('test insertAdjacentElement')`
+dynamicStyle2.insertAdjacentElement('afterend', dynamicScript3)
+
+document.head.insertAdjacentElement('afterbegin', dynamicScript3)
+// -- 测试 Element.prototype.insertAdjacentElement -- 结束
 
 
 /* ---------------------- 全局变量 --------------------- */

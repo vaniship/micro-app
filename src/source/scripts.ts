@@ -149,7 +149,7 @@ function getSandboxType (app: AppInterface, scriptInfo: ScriptSourceInfo): 'with
  */
 export function extractScriptElement (
   script: HTMLScriptElement,
-  parent: Node,
+  parent: Node | null,
   app: AppInterface,
   isDynamic = false,
 ): any {
@@ -255,7 +255,7 @@ export function extractScriptElement (
   if (isDynamic) {
     return { replaceComment }
   } else {
-    return parent.replaceChild(replaceComment!, script)
+    return parent?.replaceChild(replaceComment!, script)
   }
 }
 

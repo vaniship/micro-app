@@ -35,6 +35,7 @@ function patchIframeNode (
   microAppWindow: microAppWindowType,
   sandbox: IframeSandbox,
 ): void {
+  const rawRootElement = globalEnv.rawRootElement // native root Element
   const microDocument = microAppWindow.document
   const rawDocument = globalEnv.rawDocument
   const microRootNode = microAppWindow.Node
@@ -44,27 +45,25 @@ function patchIframeNode (
   const rawMicroInsertBefore = microRootNode.prototype.insertBefore
   const rawMicroReplaceChild = microRootNode.prototype.replaceChild
   const rawMicroRemoveChild = microRootNode.prototype.removeChild
-  // const rawMicroAppend = microRootElement.prototype.append
-  // const rawMicroPrepend = microRootElement.prototype.prepend
+  const rawMicroAppend = microRootElement.prototype.append
+  const rawMicroPrepend = microRootElement.prototype.prepend
   const rawMicroInsertAdjacentElement = microRootElement.prototype.insertAdjacentElement
   const rawMicroCloneNode = microRootNode.prototype.cloneNode
-  // const rawMicroElementQuerySelector = microRootElement.prototype.querySelector
-  // const rawMicroElementQuerySelectorAll = microRootElement.prototype.querySelectorAll
   const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(microRootElement.prototype, 'innerHTML') as PropertyDescriptor
   const rawParentNodeLDesc = Object.getOwnPropertyDescriptor(microRootNode.prototype, 'parentNode') as PropertyDescriptor
 
-  const isPureNode = (target: Node): boolean | void => {
+  const isPureNode = (target: unknown): boolean | void => {
     return (isScriptElement(target) || isBaseElement(target)) && target.__PURE_ELEMENT__
   }
 
-  const getRawTarget = (target: Node): Node => {
-    if (target === sandbox.microHead) {
+  const getRawTarget = (parent: Node): Node => {
+    if (parent === sandbox.microHead) {
       return rawDocument.head
-    } else if (target === sandbox.microBody) {
+    } else if (parent === sandbox.microBody) {
       return rawDocument.body
     }
 
-    return target
+    return parent
   }
 
   microRootNode.prototype.getRootNode = function getRootNode (): Node {
@@ -77,50 +76,60 @@ function patchIframeNode (
 
   microRootNode.prototype.appendChild = function appendChild <T extends Node> (node: T): T {
     updateElementInfo(node, appName)
-    const _this = getRawTarget(this)
-    if (_this === this || isPureNode(node)) {
+    if (isPureNode(node)) {
       return rawMicroAppendChild.call(this, node)
     }
-    return _this.appendChild(node)
+    return rawRootElement.prototype.appendChild.call(getRawTarget(this), node)
   }
 
-  // TODO: 更多场景适配
   microRootNode.prototype.insertBefore = function insertBefore <T extends Node> (node: T, child: Node | null): T {
     updateElementInfo(node, appName)
-    const _this = getRawTarget(this)
-    if (_this === this || isPureNode(node)) {
+    if (isPureNode(node)) {
       return rawMicroInsertBefore.call(this, node, child)
     }
-    return _this.insertBefore(node, child)
+    return rawRootElement.prototype.insertBefore.call(getRawTarget(this), node, child)
   }
 
-  // TODO: 更多场景适配
   microRootNode.prototype.replaceChild = function replaceChild <T extends Node> (node: Node, child: T): T {
     updateElementInfo(node, appName)
-    const _this = getRawTarget(this)
-    if (_this === this || isPureNode(node)) {
+    if (isPureNode(node)) {
       return rawMicroReplaceChild.call(this, node, child)
     }
-    return _this.replaceChild(node, child)
+    return rawRootElement.prototype.replaceChild.call(getRawTarget(this), node, child)
   }
 
   microRootNode.prototype.removeChild = function removeChild<T extends Node> (oldChild: T): T {
-    const _this = getRawTarget(this)
-    if (_this === this || isPureNode(oldChild) || this.contains(oldChild)) {
+    if (isPureNode(oldChild) || this.contains(oldChild)) {
       return rawMicroRemoveChild.call(this, oldChild)
     }
-    return _this.removeChild(oldChild)
+    return rawRootElement.prototype.removeChild.call(getRawTarget(this), oldChild)
   }
 
-  // microRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
-  //   console.log(55555, ...nodes)
-  //   // rawMicroAppend.call(this, ...nodes)
-  // }
+  microRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
+    let i = 0; let hasPureNode = false
+    while (i < nodes.length) {
+      updateElementInfo<unknown>(nodes[i], appName)
+      if (isPureNode(nodes[i])) hasPureNode = true
+      i++
+    }
+    if (hasPureNode) {
+      return rawMicroAppend.call(this, ...nodes)
+    }
+    return rawRootElement.prototype.append.call(getRawTarget(this), ...nodes)
+  }
 
-  // microRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
-  //   console.log(666666, ...nodes)
-  //   // rawMicroPrepend.call(this, ...nodes)
-  // }
+  microRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
+    let i = 0; let hasPureNode = false
+    while (i < nodes.length) {
+      updateElementInfo<unknown>(nodes[i], appName)
+      if (isPureNode(nodes[i])) hasPureNode = true
+      i++
+    }
+    if (hasPureNode) {
+      return rawMicroPrepend.call(this, ...nodes)
+    }
+    return rawRootElement.prototype.prepend.call(getRawTarget(this), ...nodes)
+  }
 
   /**
    * The insertAdjacentElement() method of the Element interface inserts a given element node at a given position relative to the element it is invoked upon.
@@ -128,8 +137,11 @@ function patchIframeNode (
    *  1. vite4 development env for style
    */
   microRootElement.prototype.insertAdjacentElement = function insertAdjacentElement (where: InsertPosition, element: Element): Element | null {
-    // console.log(333333, element)
-    return rawMicroInsertAdjacentElement.call(this, where, element)
+    updateElementInfo(element, appName)
+    if (isPureNode(element)) {
+      return rawMicroInsertAdjacentElement.call(this, where, element)
+    }
+    return rawRootElement.prototype.insertAdjacentElement.call(getRawTarget(this), where, element)
   }
 
   // patch cloneNode
@@ -176,7 +188,6 @@ function patchIframeNode (
       }
       return result
     },
-    set: undefined,
   })
 
   // Adapt to new image(...) scene

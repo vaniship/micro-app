@@ -63,7 +63,7 @@ function setConvertStyleAttr (convertStyle: HTMLStyleElement, attrs: AttrsType):
  */
 export function extractLinkFromHtml (
   link: HTMLLinkElement,
-  parent: Node,
+  parent: Node | null,
   app: AppInterface,
   isDynamic = false,
 ): any {
@@ -101,7 +101,7 @@ export function extractLinkFromHtml (
     if (isDynamic) {
       replaceComment = document.createComment(`link element with rel=${rel}${href ? ' & href=' + href : ''} removed by micro-app`)
     } else {
-      parent.removeChild(link)
+      parent?.removeChild(link)
     }
   } else if (href) {
     // dns-prefetch preconnect modulepreload search ....
@@ -111,7 +111,7 @@ export function extractLinkFromHtml (
   if (isDynamic) {
     return { replaceComment }
   } else if (replaceComment) {
-    return parent.replaceChild(replaceComment, link)
+    return parent?.replaceChild(replaceComment, link)
   }
 }
 

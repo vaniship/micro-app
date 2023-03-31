@@ -206,6 +206,38 @@ setTimeout(() => {
 //   dynamicDiv1.parentNode.removeChild(dynamicDiv1)
 // }, 5000);
 
+/* -- 测试 Element.prototype.insertAdjacentElement -- 开始 */
+const dynamicStyle2 = document.createElement('style')
+dynamicStyle2.textContent = '.test-insertAdjacentElement { color: red; }'
+document.head.appendChild(dynamicStyle2)
+
+const dynamicStyle3 = document.createElement('style')
+dynamicStyle3.textContent = '.test-insertAdjacentElement { color: green; }'
+dynamicStyle2.insertAdjacentElement('afterend', dynamicStyle3)
+
+document.head.insertAdjacentElement('afterbegin', dynamicStyle3)
+
+const dynamicScript3 = document.createElement('script')
+dynamicScript3.textContent = `console.log('test insertAdjacentElement')`
+dynamicStyle2.insertAdjacentElement('afterend', dynamicScript3)
+
+// document.head.insertAdjacentElement('afterbegin', dynamicScript3)
+/* -- 测试 Element.prototype.insertAdjacentElement -- 结束 */
+
+/* -- 测试向非head、body中插入元素 -- 开始 */
+setTimeout(() => {
+  const dynamicStyle4 = document.createElement('style')
+  dynamicStyle4.setAttribute('id', 'dynamicStyle4')
+  dynamicStyle4.textContent = '.test-custom-element-inline-style { color: red; }'
+  document.getElementById('app').children[0]?.appendChild(dynamicStyle4)
+
+  const dynamicScript4 = document.createElement('script')
+  dynamicScript4.textContent = `console.log('测试向非head、body中插入元素')`
+  document.getElementById('app').children[0]?.appendChild(dynamicScript4)
+  // document.getElementById('app').children[0]?.removeChild(dynamicScript4)
+}, 1000);
+/* -- 测试向非head、body中插入元素 -- 结束 */
+
 
 /* ---------------------- DOMParser --------------------- */
 // BUG TEST: https://github.com/micro-zoe/micro-app/issues/56

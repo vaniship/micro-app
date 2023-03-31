@@ -144,9 +144,14 @@ export function patchElementTree (container: Element | ShadowRoot, appName: stri
  * @param appName app name
  * @returns target node
  */
-export function updateElementInfo <T extends Node> (node: T, appName: string): T {
+export function updateElementInfo <T> (node: T, appName: string): T {
   const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
-  if (proxyWindow && isNode(node) && !node.__MICRO_APP_NAME__) {
+  if (
+    isNode(node) &&
+    !node.__MICRO_APP_NAME__ &&
+    !node.__PURE_ELEMENT__ &&
+    proxyWindow
+  ) {
     /**
      * TODO:
      *  1. 测试baseURI和ownerDocument在with沙箱中是否正确

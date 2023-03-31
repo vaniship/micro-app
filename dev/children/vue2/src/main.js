@@ -89,3 +89,9 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 window.addEventListener('click', () => {
   console.log('___子应用vue2的全局click事件___')
 })
+
+/* ---------------------- Image --------------------- */
+const newImg = new Image()
+newImg.src = '/micro-app/vue2/img/micro-app-logo.29137522.jpeg'
+document.body.appendChild(newImg)
+newImg.setAttribute('width', '50px')

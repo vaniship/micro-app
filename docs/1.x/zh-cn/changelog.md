@@ -11,7 +11,11 @@
 
 ### 1.0.0-beta.2
 
-`2023-03-30`
+`2023-02-02`
+
+- **New**
+
+  - 🆕 新增了对`Element.prototype.insertAdjacentElement`元素方法的处理。
 
 - **Bug Fix**
 

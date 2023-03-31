@@ -31,6 +31,9 @@ declare global {
     rawWindow: Window
     rawDocument: Document
     Document: any
+    Element: any,
+    Node: any,
+    EventTarget: any,
   }
 
   interface Node {
@@ -67,24 +70,26 @@ export function initGlobalEnv (): void {
     const rawWindow = window.rawWindow || Function('return window')()
     const rawDocument = window.rawDocument || Function('return document')()
     const rawRootDocument = rawWindow.Document || Function('return Document')()
-    const supportModuleScript = isSupportModuleScript()
-    /**
-     * save patch raw methods
-     * pay attention to this binding
-     */
-    const rawSetAttribute = Element.prototype.setAttribute
-    const rawAppendChild = Element.prototype.appendChild
-    const rawInsertBefore = Element.prototype.insertBefore
-    const rawReplaceChild = Element.prototype.replaceChild
-    const rawRemoveChild = Element.prototype.removeChild
-    const rawAppend = Element.prototype.append
-    const rawPrepend = Element.prototype.prepend
-    const rawCloneNode = Element.prototype.cloneNode
-    const rawElementQuerySelector = Element.prototype.querySelector
-    const rawElementQuerySelectorAll = Element.prototype.querySelectorAll
-    const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML')
-    const rawParentNodeDesc = Object.getOwnPropertyDescriptor(Node.prototype, 'parentNode')
+    const rawRootElement = rawWindow.Element
+    const rawRootNode = rawWindow.Node
+    const rawRootEventTarget = rawWindow.EventTarget
 
+    // save patch raw methods, pay attention to this binding
+    const rawSetAttribute = rawRootElement.prototype.setAttribute
+    const rawAppendChild = rawRootElement.prototype.appendChild
+    const rawInsertBefore = rawRootElement.prototype.insertBefore
+    const rawReplaceChild = rawRootElement.prototype.replaceChild
+    const rawRemoveChild = rawRootElement.prototype.removeChild
+    const rawAppend = rawRootElement.prototype.append
+    const rawPrepend = rawRootElement.prototype.prepend
+    const rawCloneNode = rawRootElement.prototype.cloneNode
+    const rawElementQuerySelector = rawRootElement.prototype.querySelector
+    const rawElementQuerySelectorAll = rawRootElement.prototype.querySelectorAll
+    const rawInsertAdjacentElement = rawRootElement.prototype.insertAdjacentElement
+    const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(rawRootElement.prototype, 'innerHTML')
+    const rawParentNodeDesc = Object.getOwnPropertyDescriptor(rawRootNode.prototype, 'parentNode')
+
+    // Document proto methods
     const rawCreateElement = rawRootDocument.prototype.createElement
     const rawCreateElementNS = rawRootDocument.prototype.createElementNS
     const rawCreateDocumentFragment = rawRootDocument.prototype.createDocumentFragment
@@ -99,7 +104,8 @@ export function initGlobalEnv (): void {
     const ImageProxy = new Proxy(Image, {
       construct (Target, args): HTMLImageElement {
         const elementImage = new Target(...args)
-        elementImage.__MICRO_APP_NAME__ = getCurrentAppName()
+        const currentAppName = getCurrentAppName()
+        if (currentAppName) elementImage.__MICRO_APP_NAME__ = currentAppName
         return elementImage
       },
     })
@@ -114,15 +120,18 @@ export function initGlobalEnv (): void {
     const rawClearTimeout = rawWindow.clearTimeout
     const rawPushState = rawWindow.history.pushState
     const rawReplaceState = rawWindow.history.replaceState
-    const rawAddEventListener = EventTarget.prototype.addEventListener
-    const rawRemoveEventListener = EventTarget.prototype.removeEventListener
+    const rawAddEventListener = rawRootEventTarget.prototype.addEventListener
+    const rawRemoveEventListener = rawRootEventTarget.prototype.removeEventListener
 
     assign(globalEnv, {
+      supportModuleScript: isSupportModuleScript(),
+
       // common global vars
       rawWindow,
       rawDocument,
       rawRootDocument,
-      supportModuleScript,
+      rawRootElement,
+      rawRootNode,
 
       // source/patch
       rawSetAttribute,
@@ -135,6 +144,7 @@ export function initGlobalEnv (): void {
       rawCloneNode,
       rawElementQuerySelector,
       rawElementQuerySelectorAll,
+      rawInsertAdjacentElement,
       rawInnerHTMLDesc,
       rawParentNodeDesc,
 

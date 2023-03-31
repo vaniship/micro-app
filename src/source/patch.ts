@@ -44,14 +44,20 @@ import { fixReactHMRConflict } from '../sandbox/adapter'
 // Record element and map element
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
 
+// Get the map element
+function getMappingNode (node: Node): Node {
+  return dynamicElementInMicroAppMap.get(node) ?? node
+}
+
 /**
  * Process the new node and format the style, link and script element
- * @param parent parent node
  * @param child new node
  * @param app app
  */
-function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
-  if (isStyleElement(child)) {
+function handleNewNode (child: Node, app: AppInterface): Node {
+  if (dynamicElementInMicroAppMap.has(child)) {
+    return dynamicElementInMicroAppMap.get(child)!
+  } else if (isStyleElement(child)) {
     if (child.hasAttribute('exclude')) {
       const replaceComment = document.createComment('style element with exclude attribute ignored by micro-app')
       dynamicElementInMicroAppMap.set(child, replaceComment)
@@ -79,7 +85,7 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
 
     const { address, linkInfo, replaceComment } = extractLinkFromHtml(
       child,
-      parent,
+      null,
       app,
       true,
     )
@@ -105,7 +111,7 @@ function handleNewNode (parent: Node, child: Node, app: AppInterface): Node {
 
     const { replaceComment, address, scriptInfo } = extractScriptElement(
       child,
-      parent,
+      null,
       app,
       true,
     ) || {}
@@ -232,6 +238,9 @@ function getHijackParent (
       }
       return app.querySelector<HTMLElement>('micro-app-body')
     }
+    if (app.iframe && isScriptElement(targetChild)) {
+      return app.sandBox.microBody
+    }
   }
   return null
 }
@@ -251,11 +260,6 @@ function invokeRawMethod (
 
 function isPendMethod (method: CallableFunction) {
   return method === globalEnv.rawAppend || method === globalEnv.rawPrepend
-}
-
-// Get the map element
-function getMappingNode (node: Node): Node {
-  return dynamicElementInMicroAppMap.get(node) ?? node
 }
 
 /**
@@ -308,7 +312,7 @@ function commonElementHandler (
         app,
         rawMethod,
         parent,
-        handleNewNode(parent, newChild, app),
+        handleNewNode(newChild, app),
         passiveChild && getMappingNode(passiveChild),
       )
     } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
@@ -337,29 +341,30 @@ function commonElementHandler (
 export function patchElementAndDocument (): void {
   patchDocument()
 
+  const rawRootElement = globalEnv.rawRootElement
+
   // prototype methods of add element👇
-  Element.prototype.appendChild = function appendChild<T extends Node> (newChild: T): T {
+  rawRootElement.prototype.appendChild = function appendChild<T extends Node> (newChild: T): T {
     return commonElementHandler(this, newChild, null, globalEnv.rawAppendChild)
   }
 
-  Element.prototype.insertBefore = function insertBefore<T extends Node> (newChild: T, refChild: Node | null): T {
+  rawRootElement.prototype.insertBefore = function insertBefore<T extends Node> (newChild: T, refChild: Node | null): T {
     return commonElementHandler(this, newChild, refChild, globalEnv.rawInsertBefore)
   }
 
-  Element.prototype.replaceChild = function replaceChild<T extends Node> (newChild: Node, oldChild: T): T {
+  rawRootElement.prototype.replaceChild = function replaceChild<T extends Node> (newChild: Node, oldChild: T): T {
     return commonElementHandler(this, newChild, oldChild, globalEnv.rawReplaceChild)
   }
 
-  Element.prototype.append = function append (...nodes: (Node | string)[]): void {
+  rawRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
     let i = 0
-    const length = nodes.length
-    while (i < length) {
+    while (i < nodes.length) {
       commonElementHandler(this, nodes[i] as Node, null, globalEnv.rawAppend)
       i++
     }
   }
 
-  Element.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
+  rawRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
     let i = nodes.length
     while (i > 0) {
       commonElementHandler(this, nodes[i - 1] as Node, null, globalEnv.rawPrepend)
@@ -368,7 +373,7 @@ export function patchElementAndDocument (): void {
   }
 
   // prototype methods of delete element👇
-  Element.prototype.removeChild = function removeChild<T extends Node> (oldChild: T): T {
+  rawRootElement.prototype.removeChild = function removeChild<T extends Node> (oldChild: T): T {
     if (oldChild?.__MICRO_APP_NAME__) {
       const app = appInstanceMap.get(oldChild.__MICRO_APP_NAME__)
       if (app?.container) {
@@ -389,8 +394,20 @@ export function patchElementAndDocument (): void {
     return globalEnv.rawRemoveChild.call(this, oldChild) as T
   }
 
+  rawRootElement.prototype.insertAdjacentElement = function (where: InsertPosition, element: Element): Element | null {
+    if (element?.__MICRO_APP_NAME__) {
+      const app = appInstanceMap.get(element.__MICRO_APP_NAME__)
+      if (app?.container) {
+        element = handleNewNode(element, app) as Element
+        const realParent = getHijackParent(this, element, app) ?? this
+        return globalEnv.rawInsertAdjacentElement.call(realParent, where, element)
+      }
+    }
+    return globalEnv.rawInsertAdjacentElement.call(this, where, element)
+  }
+
   // patch cloneNode
-  Element.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
+  rawRootElement.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
     const clonedNode = globalEnv.rawCloneNode.call(this, deep)
     this.__MICRO_APP_NAME__ && (clonedNode.__MICRO_APP_NAME__ = this.__MICRO_APP_NAME__)
     return clonedNode
@@ -411,18 +428,18 @@ export function patchElementAndDocument (): void {
     return null
   }
 
-  Element.prototype.querySelector = function querySelector (selectors: string): Node | null {
+  rawRootElement.prototype.querySelector = function querySelector (selectors: string): Node | null {
     const target = getQueryTarget(this) ?? this
     return globalEnv.rawElementQuerySelector.call(target, selectors)
   }
 
-  Element.prototype.querySelectorAll = function querySelectorAll (selectors: string): NodeListOf<Node> {
+  rawRootElement.prototype.querySelectorAll = function querySelectorAll (selectors: string): NodeListOf<Node> {
     const target = getQueryTarget(this) ?? this
     return globalEnv.rawElementQuerySelectorAll.call(target, selectors)
   }
 
   // rewrite setAttribute, complete resource address
-  Element.prototype.setAttribute = function setAttribute (key: string, value: any): void {
+  rawRootElement.prototype.setAttribute = function setAttribute (key: string, value: any): void {
     const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()
     if (
       appName &&
@@ -476,7 +493,7 @@ export function patchElementAndDocument (): void {
   //   })
   // })
 
-  rawDefineProperty(Element.prototype, 'innerHTML', {
+  rawDefineProperty(rawRootElement.prototype, 'innerHTML', {
     configurable: true,
     enumerable: true,
     get () {
@@ -677,17 +694,18 @@ export function releasePatchElementAndDocument (): void {
   removeDomScope()
   releasePatchDocument()
 
-  Element.prototype.appendChild = globalEnv.rawAppendChild
-  Element.prototype.insertBefore = globalEnv.rawInsertBefore
-  Element.prototype.replaceChild = globalEnv.rawReplaceChild
-  Element.prototype.removeChild = globalEnv.rawRemoveChild
-  Element.prototype.append = globalEnv.rawAppend
-  Element.prototype.prepend = globalEnv.rawPrepend
-  Element.prototype.cloneNode = globalEnv.rawCloneNode
-  Element.prototype.querySelector = globalEnv.rawElementQuerySelector
-  Element.prototype.querySelectorAll = globalEnv.rawElementQuerySelectorAll
-  Element.prototype.setAttribute = globalEnv.rawSetAttribute
-  rawDefineProperty(Element.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
+  const rawRootElement = globalEnv.rawRootElement
+  rawRootElement.prototype.appendChild = globalEnv.rawAppendChild
+  rawRootElement.prototype.insertBefore = globalEnv.rawInsertBefore
+  rawRootElement.prototype.replaceChild = globalEnv.rawReplaceChild
+  rawRootElement.prototype.removeChild = globalEnv.rawRemoveChild
+  rawRootElement.prototype.append = globalEnv.rawAppend
+  rawRootElement.prototype.prepend = globalEnv.rawPrepend
+  rawRootElement.prototype.cloneNode = globalEnv.rawCloneNode
+  rawRootElement.prototype.querySelector = globalEnv.rawElementQuerySelector
+  rawRootElement.prototype.querySelectorAll = globalEnv.rawElementQuerySelectorAll
+  rawRootElement.prototype.setAttribute = globalEnv.rawSetAttribute
+  rawDefineProperty(rawRootElement.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
 }
 
 // Set the style of micro-app-head and micro-app-body
