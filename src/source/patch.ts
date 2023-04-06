@@ -315,20 +315,10 @@ function commonElementHandler (
         handleNewNode(newChild, app),
         passiveChild && getMappingNode(passiveChild),
       )
-    } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
-      return rawMethod.call(parent, newChild)
     }
-  } else if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
-    if (!isNode(newChild) && currentAppName) {
-      const app = appInstanceMap.get(currentAppName)
-      if (app?.container) {
-        if (parent === document.head) {
-          return rawMethod.call(app.querySelector('micro-app-head'), newChild)
-        } else if (parent === document.body) {
-          return rawMethod.call(app.querySelector('micro-app-body'), newChild)
-        }
-      }
-    }
+  }
+
+  if (rawMethod === globalEnv.rawAppend || rawMethod === globalEnv.rawPrepend) {
     return rawMethod.call(parent, newChild)
   }
 
@@ -359,7 +349,9 @@ export function patchElementAndDocument (): void {
   rawRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
     let i = 0
     while (i < nodes.length) {
-      commonElementHandler(this, nodes[i] as Node, null, globalEnv.rawAppend)
+      let node = nodes[i]
+      node = isNode(node) ? node : globalEnv.rawCreateTextNode.call(globalEnv.rawDocument, node)
+      commonElementHandler(this, markElement(node as Node), null, globalEnv.rawAppend)
       i++
     }
   }
@@ -367,7 +359,9 @@ export function patchElementAndDocument (): void {
   rawRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
     let i = nodes.length
     while (i > 0) {
-      commonElementHandler(this, nodes[i - 1] as Node, null, globalEnv.rawPrepend)
+      let node = nodes[i - 1]
+      node = isNode(node) ? node : globalEnv.rawCreateTextNode.call(globalEnv.rawDocument, node)
+      commonElementHandler(this, markElement(node as Node), null, globalEnv.rawPrepend)
       i--
     }
   }
@@ -542,7 +536,7 @@ export function patchElementAndDocument (): void {
  * Mark the newly created element in the micro application
  * @param element new element
  */
-function markElement <T extends { __MICRO_APP_NAME__: string }> (element: T): T {
+function markElement <T extends Node> (element: T): T {
   const currentAppName = getCurrentAppName()
   if (currentAppName) element.__MICRO_APP_NAME__ = currentAppName
   return element
@@ -580,13 +574,17 @@ function patchDocument () {
     return markElement(element)
   }
 
+  // rawRootDocument.prototype.createTextNode = function createTextNode (data: string): Text {
+  //   const element = globalEnv.rawCreateTextNode.call(getBindTarget(this), data)
+  //   return markElement(element)
+  // }
+
   // query element👇
   function querySelector (this: Document, selectors: string): any {
     const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
       !currentAppName ||
-      !appInstanceMap.get(currentAppName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
       // see https://github.com/micro-zoe/micro-app/issues/56
@@ -603,7 +601,6 @@ function patchDocument () {
     const currentAppName = getCurrentAppName()
     if (
       !currentAppName ||
-      !appInstanceMap.get(currentAppName)?.container ||
       !selectors ||
       isUniqueElement(selectors) ||
       rawDocument !== _this

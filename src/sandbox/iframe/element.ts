@@ -11,6 +11,7 @@ import {
   isBaseElement,
   isElement,
   isMicroAppBody,
+  isNode,
 } from '../../libs/utils'
 import {
   updateElementInfo,
@@ -36,8 +37,8 @@ function patchIframeNode (
   sandbox: IframeSandbox,
 ): void {
   const rawRootElement = globalEnv.rawRootElement // native root Element
-  const microDocument = microAppWindow.document
   const rawDocument = globalEnv.rawDocument
+  const microDocument = microAppWindow.document
   const microRootNode = microAppWindow.Node
   const microRootElement = microAppWindow.Element
   // const rawMicroGetRootNode = microRootNode.prototype.getRootNode
@@ -108,7 +109,7 @@ function patchIframeNode (
   microRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
     let i = 0; let hasPureNode = false
     while (i < nodes.length) {
-      updateElementInfo<unknown>(nodes[i], appName)
+      nodes[i] = isNode(nodes[i]) ? nodes[i] : microDocument.createTextNode(nodes[i])
       if (isPureNode(nodes[i])) hasPureNode = true
       i++
     }
@@ -121,7 +122,7 @@ function patchIframeNode (
   microRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
     let i = 0; let hasPureNode = false
     while (i < nodes.length) {
-      updateElementInfo<unknown>(nodes[i], appName)
+      nodes[i] = isNode(nodes[i]) ? nodes[i] : microDocument.createTextNode(nodes[i])
       if (isPureNode(nodes[i])) hasPureNode = true
       i++
     }
@@ -132,7 +133,7 @@ function patchIframeNode (
   }
 
   /**
-   * The insertAdjacentElement() method of the Element interface inserts a given element node at a given position relative to the element it is invoked upon.
+   * The insertAdjacentElement method of the Element interface inserts a given element node at a given position relative to the element it is invoked upon.
    * Scenes:
    *  1. vite4 development env for style
    */

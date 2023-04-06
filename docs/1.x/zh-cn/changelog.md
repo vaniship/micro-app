@@ -11,16 +11,18 @@
 
 ### 1.0.0-beta.2
 
-`2023-02-02`
+`2023-04-06`
 
 - **New**
 
-  - 🆕 新增了对`Element.prototype.insertAdjacentElement`元素方法的处理。
+  - 🆕 新增了对`insertAdjacentElement`元素方法的处理。
+  - 🆕 新增了在iframe沙箱下对`append`、`prepend`元素方法的处理
 
 - **Bug Fix**
 
   - 🐞 修复了异步卸载子应用时`Element.prototype.setAttribute`方法可能被重置的问题。
   - 🐞 修复了在多层嵌套时异步卸载子应用导致应用绑定作用域异常的问题。
+  - 🐞 修复了在iframe沙箱下无法设置`document.title`的问题。
 
 - **Update**
 

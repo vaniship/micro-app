@@ -48,17 +48,25 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   const rawDocument = globalEnv.rawDocument
   const microRootDocument = microAppWindow.Document
   const microDocument = microAppWindow.document
+  const rawMicroCreateElement = microRootDocument.prototype.createElement
+  const rawMicroCreateTextNode = microRootDocument.prototype.createTextNode
+  const rawMicroQuerySelector = microRootDocument.prototype.querySelector
+  const rawMicroQuerySelectorAll = microRootDocument.prototype.querySelectorAll
+  const rawMicroGetElementById = microRootDocument.prototype.getElementById
+  const rawMicroGetElementsByClassName = microRootDocument.prototype.getElementsByClassName
+  const rawMicroGetElementsByTagName = microRootDocument.prototype.getElementsByTagName
+  const rawMicroGetElementsByName = microRootDocument.prototype.getElementsByName
 
   microRootDocument.prototype.createElement = function createElement (
     tagName: string,
     options?: ElementCreationOptions,
   ): HTMLElement {
-    const element = globalEnv.rawCreateElement.call(this, tagName, options)
+    const element = rawMicroCreateElement.call(this, tagName, options)
     return updateElementInfo(element, appName)
   }
 
   microRootDocument.prototype.createTextNode = function createTextNode (data: string): Text {
-    const element = globalEnv.rawCreateTextNode.call(this, data)
+    const element = rawMicroCreateTextNode.call(this, data)
     return updateElementInfo<Text>(element, appName)
   }
 
@@ -69,11 +77,12 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   // query element👇
   function querySelector (this: Document, selectors: string): any {
     if (
+      !selectors ||
       isUniqueElement(selectors) ||
       microDocument !== this
     ) {
       const _this = getDefaultRawTarget(this)
-      return globalEnv.rawQuerySelector.call(_this, selectors)
+      return rawMicroQuerySelector.call(_this, selectors)
     }
 
     return appInstanceMap.get(appName)?.querySelector(selectors) ?? null
@@ -81,11 +90,12 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
 
   function querySelectorAll (this: Document, selectors: string): any {
     if (
+      !selectors ||
       isUniqueElement(selectors) ||
       microDocument !== this
     ) {
       const _this = getDefaultRawTarget(this)
-      return globalEnv.rawQuerySelectorAll.call(_this, selectors)
+      return rawMicroQuerySelectorAll.call(_this, selectors)
     }
 
     return appInstanceMap.get(appName)?.querySelectorAll(selectors) ?? []
@@ -97,26 +107,26 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   microRootDocument.prototype.getElementById = function getElementById (key: string): HTMLElement | null {
     const _this = getDefaultRawTarget(this)
     if (isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementById.call(_this, key)
+      return rawMicroGetElementById.call(_this, key)
     }
 
     try {
       return querySelector.call(this, `#${key}`)
     } catch {
-      return globalEnv.rawGetElementById.call(_this, key)
+      return rawMicroGetElementById.call(_this, key)
     }
   }
 
   microRootDocument.prototype.getElementsByClassName = function getElementsByClassName (key: string): HTMLCollectionOf<Element> {
     const _this = getDefaultRawTarget(this)
     if (isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementsByClassName.call(_this, key)
+      return rawMicroGetElementsByClassName.call(_this, key)
     }
 
     try {
       return querySelectorAll.call(this, `.${key}`)
     } catch {
-      return globalEnv.rawGetElementsByClassName.call(_this, key)
+      return rawMicroGetElementsByClassName.call(_this, key)
     }
   }
 
@@ -127,26 +137,26 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
       isInvalidQuerySelectorKey(key) ||
       (!appInstanceMap.get(appName)?.inline && /^script$/i.test(key))
     ) {
-      return globalEnv.rawGetElementsByTagName.call(_this, key)
+      return rawMicroGetElementsByTagName.call(_this, key)
     }
 
     try {
       return querySelectorAll.call(this, key)
     } catch {
-      return globalEnv.rawGetElementsByTagName.call(_this, key)
+      return rawMicroGetElementsByTagName.call(_this, key)
     }
   }
 
   microRootDocument.prototype.getElementsByName = function getElementsByName (key: string): NodeListOf<HTMLElement> {
     const _this = getDefaultRawTarget(this)
     if (isInvalidQuerySelectorKey(key)) {
-      return globalEnv.rawGetElementsByName.call(_this, key)
+      return rawMicroGetElementsByName.call(_this, key)
     }
 
     try {
       return querySelectorAll.call(this, `[name=${key}]`)
     } catch {
-      return globalEnv.rawGetElementsByName.call(_this, key)
+      return rawMicroGetElementsByName.call(_this, key)
     }
   }
 }
@@ -217,7 +227,7 @@ function patchDocumentProperties (
       enumerable: true,
       configurable: true,
       get: () => rawDocument[tagName],
-      set: undefined,
+      set: (value: unknown) => { rawDocument[tagName] = value },
     })
   })
 }

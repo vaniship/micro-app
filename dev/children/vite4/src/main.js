@@ -105,27 +105,27 @@ window.addEventListener('unmount', function (e) {
 // });
 
 /* ---------------------- 全局事件 --------------------- */
-const handleDocClick = function (event) {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`, event instanceof PointerEvent)
-}
-document.addEventListener('click', handleDocClick)
+// const handleDocClick = function (event) {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`, event instanceof PointerEvent)
+// }
+// document.addEventListener('click', handleDocClick)
 
-// setTimeout(() => {
-//   document.dispatchEvent(new CustomEvent('click'))
-// }, 5000);
+// // setTimeout(() => {
+// //   document.dispatchEvent(new CustomEvent('click'))
+// // }, 5000);
 
 
-document.onclick = () => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-}
+// document.onclick = () => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+// }
 
-window.addEventListener('scroll', () => {
-  console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
-}, false)
+// window.addEventListener('scroll', () => {
+//   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
+// }, false)
 
-window.addEventListener('click', (event) => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`, event instanceof PointerEvent)
-}, false)
+// window.addEventListener('click', (event) => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`, event instanceof PointerEvent)
+// }, false)
 
 // setTimeout(() => {
 //   console.log(222222222)
@@ -151,13 +151,13 @@ window.addEventListener('hashchange', (e) => {
 
 
 /* ---------------------- 定时器 --------------------- */
-setInterval(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
-}, 5000)
+// setInterval(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+// }, 5000)
 
-setTimeout(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
-}, 5000);
+// setTimeout(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+// }, 5000);
 
 
 /* ---------------------- 创建元素 --------------------- */
@@ -221,7 +221,7 @@ const dynamicScript3 = document.createElement('script')
 dynamicScript3.textContent = `console.log('test insertAdjacentElement')`
 dynamicStyle2.insertAdjacentElement('afterend', dynamicScript3)
 
-// document.head.insertAdjacentElement('afterbegin', dynamicScript3)
+document.head.insertAdjacentElement('afterend', dynamicScript3)
 /* -- 测试 Element.prototype.insertAdjacentElement -- 结束 */
 
 /* -- 测试向非head、body中插入元素 -- 开始 */
@@ -231,10 +231,19 @@ setTimeout(() => {
   dynamicStyle4.textContent = '.test-custom-element-inline-style { color: red; }'
   document.getElementById('app').children[0]?.appendChild(dynamicStyle4)
 
+  // const dynamicScript4 = microApp.pureCreateElement('script')
   const dynamicScript4 = document.createElement('script')
   dynamicScript4.textContent = `console.log('测试向非head、body中插入元素')`
-  document.getElementById('app').children[0]?.appendChild(dynamicScript4)
+  // document.getElementById('app').children[0]?.appendChild(dynamicScript4)
+  // document.getElementById('app').children[0]?.insertBefore(dynamicScript4, dynamicStyle4)
+  // document.getElementById('app').children[0]?.replaceChild(dynamicScript4, dynamicStyle4)
   // document.getElementById('app').children[0]?.removeChild(dynamicScript4)
+  // document.getElementById('app').children[0]?.append(dynamicScript4, '1111')
+  // document.getElementById('app').children[0]?.prepend(dynamicScript4, '1111')
+  // document.head.prepend(dynamicScript4, '1111', undefined, {})
+  // document.getElementById('app').children[0]?.append(dynamicScript4, '1111', undefined, {})
+  // document.getElementById('app').children[0]?.prepend(dynamicScript4, '1111', undefined, {})
+  // document.body.append(dynamicScript4, '1111', undefined, {})
 }, 1000);
 /* -- 测试向非head、body中插入元素 -- 结束 */
 

@@ -196,6 +196,11 @@ dynamicStyle2.insertAdjacentElement('afterend', dynamicScript3)
 document.head.insertAdjacentElement('afterbegin', dynamicScript3)
 // -- 测试 Element.prototype.insertAdjacentElement -- 结束
 
+// -- 测试 Element.prototype.append -- 开始
+// document.body.append(1, '2', '<div>111</div>')
+// document.body.prepend(1, '2', '<div>111</div>')
+// -- 测试 Element.prototype.append -- 结束
+
 
 /* ---------------------- 全局变量 --------------------- */
 // console.log('__micro_app_environment__', window.__micro_app_environment__)
