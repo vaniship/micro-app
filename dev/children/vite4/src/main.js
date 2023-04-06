@@ -226,14 +226,14 @@ document.head.insertAdjacentElement('afterend', dynamicScript3)
 
 /* -- 测试向非head、body中插入元素 -- 开始 */
 setTimeout(() => {
-  const dynamicStyle4 = document.createElement('style')
-  dynamicStyle4.setAttribute('id', 'dynamicStyle4')
-  dynamicStyle4.textContent = '.test-custom-element-inline-style { color: red; }'
-  document.getElementById('app').children[0]?.appendChild(dynamicStyle4)
+  // const dynamicStyle4 = document.createElement('style')
+  // dynamicStyle4.setAttribute('id', 'dynamicStyle4')
+  // dynamicStyle4.textContent = '.test-custom-element-inline-style { color: red; }'
+  // document.getElementById('app').children[0]?.appendChild(dynamicStyle4)
 
-  // const dynamicScript4 = microApp.pureCreateElement('script')
-  const dynamicScript4 = document.createElement('script')
-  dynamicScript4.textContent = `console.log('测试向非head、body中插入元素')`
+  // // const dynamicScript4 = microApp.pureCreateElement('script')
+  // const dynamicScript4 = document.createElement('script')
+  // dynamicScript4.textContent = `console.log('测试向非head、body中插入元素')`
   // document.getElementById('app').children[0]?.appendChild(dynamicScript4)
   // document.getElementById('app').children[0]?.insertBefore(dynamicScript4, dynamicStyle4)
   // document.getElementById('app').children[0]?.replaceChild(dynamicScript4, dynamicStyle4)

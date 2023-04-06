@@ -16,18 +16,20 @@
 - **New**
 
   - 🆕 新增了对`insertAdjacentElement`元素方法的处理。
-  - 🆕 新增了在iframe沙箱下对`append`、`prepend`元素方法的处理
+  - 🆕 新增了在iframe沙箱下对`append`、`prepend`元素方法的处理。
 
 - **Bug Fix**
 
   - 🐞 修复了异步卸载子应用时`Element.prototype.setAttribute`方法可能被重置的问题。
   - 🐞 修复了在多层嵌套时异步卸载子应用导致应用绑定作用域异常的问题。
   - 🐞 修复了在iframe沙箱下无法设置`document.title`的问题。
+  - 🐞 修复了在开发环境下vite4样式隔离失效的问题。
+  - 🐞 修复了在with沙箱下循环嵌套子应用无法设置`document.onclick`的问题。
 
 - **Update**
 
-  - 🚀 优化了资源管理系统。
-  - 🚀 优化了with沙箱document的架构设计。
+  - 🚀 优化了with沙箱Document事件系统的架构设计，增加兼容性。
+  - 🚀 优化了iframe沙箱Document、Element原型方法。
   - 🚀 优化了iframe沙箱路由相关代码。
   - 🚀 更新了vite4的开发案例。
   
