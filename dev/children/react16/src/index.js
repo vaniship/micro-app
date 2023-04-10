@@ -118,30 +118,30 @@ window.onunmount = () => {
 }
 
 /* ---------------------- 全局事件 --------------------- */
-document.addEventListener('click', function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
-  // console.log(this)
-}, false)
+// document.addEventListener('click', function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
+//   // console.log(this)
+// }, false)
 
-document.onclick = function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-  // console.log(this)
-}
+// document.onclick = function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+//   // console.log(this)
+// }
 
-window.addEventListener('click', function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
-  // console.log(this)
-}, false)
+// window.addEventListener('click', function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
+//   // console.log(this)
+// }, false)
 
 
 /* ---------------------- 定时器 --------------------- */
-setInterval(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
-}, 5000)
+// setInterval(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+// }, 5000)
 
-setTimeout(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
-}, 5000);
+// setTimeout(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+// }, 5000);
 
 
 /* ---------------------- 创建元素 --------------------- */
@@ -190,6 +190,7 @@ dynamicStyle2.insertAdjacentElement('afterend', dynamicStyle3)
 document.head.insertAdjacentElement('afterbegin', dynamicStyle3)
 
 const dynamicScript3 = document.createElement('script')
+dynamicScript3.setAttribute('inline', 'true')
 dynamicScript3.textContent = `console.log('test insertAdjacentElement')`
 dynamicStyle2.insertAdjacentElement('afterend', dynamicScript3)
 

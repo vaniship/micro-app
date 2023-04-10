@@ -408,7 +408,7 @@ export function execScripts (
     // Notice the second render
     if (appSpaceData.defer || appSpaceData.async) {
       // TODO: defer和module彻底分开，不要混在一起
-      if (scriptInfo.isExternal && !scriptInfo.code && !(app.iframe && appSpaceData.module)) {
+      if (scriptInfo.isExternal && !scriptInfo.code && !isTypeModule(app, scriptInfo)) {
         deferScriptPromise.push(fetchSource(address, app.name))
       } else {
         deferScriptPromise.push(scriptInfo.code)
@@ -502,6 +502,10 @@ export function runScript (
       appSpaceData.parsedFunction = null
     }
 
+    /**
+     * TODO: 优化逻辑
+     * 是否是内联模式应该由外部传入，这样自外而内更加统一，逻辑更加清晰
+     */
     if (isInlineMode(app, scriptInfo)) {
       const scriptElement = replaceElement || pureCreateElement('script')
       runCode2InlineScript(
@@ -513,6 +517,12 @@ export function runScript (
         callback,
       )
 
+      /**
+       * TODO: 优化逻辑
+       * replaceElement不存在说明是初始化执行，需要主动插入script
+       * 但这里的逻辑不清晰，应该明确声明是什么环境下才需要主动插入，而不是用replaceElement间接判断
+       * replaceElement还有可能是注释类型(一定是在后台执行)，这里的判断都是间接判断，不够直观
+       */
       if (!replaceElement) {
         // TEST IGNORE
         const parent = app.iframe ? app.sandBox!.microBody : app.querySelector('micro-app-body')
@@ -557,7 +567,7 @@ export function runDynamicRemoteScript (
     !isTypeModule(app, scriptInfo) && dispatchScriptOnLoadEvent()
   }
 
-  if (scriptInfo.code || (app.iframe && scriptInfo.appSpace[app.name].module)) {
+  if (scriptInfo.code || isTypeModule(app, scriptInfo)) {
     defer(runDynamicScript)
   } else {
     fetchSource(address, app.name).then((code: string) => {

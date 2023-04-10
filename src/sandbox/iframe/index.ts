@@ -159,9 +159,7 @@ export default class IframeSandbox {
   }: SandBoxStartParams): void {
     if (this.active) return
     this.active = true
-    // TODO: 虚拟路由升级
-    // eslint-disable-next-line
-    if (useMemoryRouter || true) {
+    if (useMemoryRouter) {
       this.initRouteState(defaultPage)
       // unique listener of popstate event for sub app
       this.removeHistoryListener = addHistoryListener(

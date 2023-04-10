@@ -388,13 +388,19 @@ export function patchElementAndDocument (): void {
     return globalEnv.rawRemoveChild.call(this, oldChild) as T
   }
 
+  /**
+   * The insertAdjacentElement method of the Element interface inserts a given element node at a given position relative to the element it is invoked upon.
+   * NOTE:
+   *  1. parameter 2 of insertAdjacentElement must type 'Element'
+   */
   rawRootElement.prototype.insertAdjacentElement = function (where: InsertPosition, element: Element): Element | null {
-    if (element?.__MICRO_APP_NAME__) {
+    if (element?.__MICRO_APP_NAME__ && isElement(element)) {
       const app = appInstanceMap.get(element.__MICRO_APP_NAME__)
       if (app?.container) {
-        element = handleNewNode(element, app) as Element
-        const realParent = getHijackParent(this, element, app) ?? this
-        return globalEnv.rawInsertAdjacentElement.call(realParent, where, element)
+        const processedEle = handleNewNode(element, app) as Element
+        if (!isElement(processedEle)) return element
+        const realParent = getHijackParent(this, processedEle, app) ?? this
+        return globalEnv.rawInsertAdjacentElement.call(realParent, where, processedEle)
       }
     }
     return globalEnv.rawInsertAdjacentElement.call(this, where, element)
