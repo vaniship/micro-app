@@ -133,8 +133,10 @@ window.addEventListener('click', function () {
   // console.log(this)
 }, false)
 
+// 测试主动卸载预渲染、隐藏keep-alive应用，事件快照重复执行的问题
 setTimeout(() => {
-  console.log(22222222222)
+  console.log('5秒钟倒计时结束')
+
   window.addEventListener('click', function () {
     console.log(`在定时器内部的window.addEventListener(click)`)
   }, false)
@@ -144,6 +146,10 @@ setTimeout(() => {
   }, false)
 
   document.onclick = '1111'
+
+  window.microApp?.addDataListener((data) => {
+    console.log('在定时器内部的数据监听函数：', data)
+  }, true)
 }, 5000);
 
 

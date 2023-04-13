@@ -276,8 +276,11 @@ export class EventCenterForMicroApp extends EventCenterForGlobal {
  * @param microAppEventCenter instance of EventCenterForMicroApp
  */
 export function recordDataCenterSnapshot (microAppEventCenter: EventCenterForMicroApp): void {
-  if (microAppEventCenter && !microAppEventCenter.umdDataListeners) {
-    microAppEventCenter.umdDataListeners = { global: new Set(), normal: new Set() }
+  if (microAppEventCenter) {
+    microAppEventCenter.umdDataListeners = {
+      global: new Set(microAppEventCenter.umdDataListeners?.global),
+      normal: new Set(microAppEventCenter.umdDataListeners?.normal),
+    }
 
     const globalEventInfo = eventCenter.eventList.get('global')
     if (globalEventInfo) {
@@ -290,7 +293,9 @@ export function recordDataCenterSnapshot (microAppEventCenter: EventCenterForMic
 
     const subAppEventInfo = eventCenter.eventList.get(createEventName(microAppEventCenter.appName, true))
     if (subAppEventInfo) {
-      microAppEventCenter.umdDataListeners.normal = new Set(subAppEventInfo.callbacks)
+      for (const cb of subAppEventInfo.callbacks) {
+        microAppEventCenter.umdDataListeners.normal.add(cb)
+      }
     }
   }
 }

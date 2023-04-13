@@ -12,13 +12,12 @@
 
 `2023-04-13`
 
-
 - **Bug Fix**
 
   - 🐞 修复了在非内联模式下通过`insertAdjacentElement`插入script导致报错的问题。
   - 🐞 修复了在关闭沙箱时`module script`远程资源被重复加载的问题。
   - 🐞 修复了在加载资源过程中卸载`keep-alive`应用导致应用二次渲染失败的问题。
-  - 🐞 修复了在umd模式下卸载预渲染、`hidden keep-alive`应用导致事件覆盖的问题。
+  - 🐞 修复了在umd模式下卸载`preRender app`、`hidden keep-alive app`应用导致事件覆盖的问题。
   
 
 ### 1.0.0-beta.2

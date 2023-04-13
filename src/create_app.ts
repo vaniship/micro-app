@@ -132,7 +132,7 @@ export default class CreateApp implements AppInterface {
       this.source.html = html
       // this.setAppState(appStates.LOADED)
 
-      if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
+      if (!this.isPrefetch) {
         /**
          * TODO: 优化对keep-alive的兼容
          * 问题描述：
@@ -153,7 +153,12 @@ export default class CreateApp implements AppInterface {
          *  3、有没有什么方式可以即正常渲染，又可以兼容关闭虚拟路由系统的情况？？
          * 在js执行完成后，再次执行事件缓存操作？？似乎可以呀
          */
-        getRootContainer(this.container!).mount(this)
+        if (keepAliveStates.KEEP_ALIVE_HIDDEN === this.keepAliveState) {
+          getRootContainer(this.container!).unmount()
+        } else if (appStates.UNMOUNT !== this.state) {
+          getRootContainer(this.container!).mount(this)
+        }
+        // getRootContainer(this.container!).mount(this)
       } else if (this.isPrerender) {
         /**
          * PreRender is an option of prefetch, it will render app during prefetch
