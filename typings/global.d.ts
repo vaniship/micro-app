@@ -192,7 +192,14 @@ declare module '@micro-app/types' {
     // get app state
     getAppState (): string
 
+    // get keep-alive state
     getKeepAliveState(): string | null
+
+    // is app unmounted
+    isUnmounted (): boolean
+
+    // is app already hidden
+    isHidden (): boolean
 
     // actions for completely destroy
     actionsForCompletelyDestroy (): void

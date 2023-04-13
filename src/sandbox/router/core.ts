@@ -14,7 +14,9 @@ import {
   isPlainObject,
   createURL,
 } from '../../libs/utils'
-import { appInstanceMap } from '../../create_app'
+import {
+  appInstanceMap,
+} from '../../create_app'
 
 // set micro app state to origin state
 export function setMicroState (
@@ -206,5 +208,5 @@ export function getNoHashMicroPathFromURL (appName: string, baseUrl: string): st
  */
 export function isEffectiveApp (appName: string): boolean {
   const app = appInstanceMap.get(appName)
-  return !!(app && !app.isPrefetch)
+  return !!(app && !app.isPrefetch && !app.isHidden())
 }

@@ -7,7 +7,6 @@ export enum ObservedAttrName {
 export enum appStates {
   CREATED = 'created',
   LOADING = 'loading',
-  LOADED = 'loaded',
   LOAD_FAILED = 'load_failed',
   MOUNTING = 'mounting',
   MOUNTED = 'mounted',

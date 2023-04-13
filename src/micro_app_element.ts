@@ -21,9 +21,7 @@ import {
 } from './libs/utils'
 import {
   ObservedAttrName,
-  appStates,
   lifeCycles,
-  keepAliveStates,
 } from './constants'
 import CreateApp, { appInstanceMap } from './create_app'
 import microApp from './micro_app'
@@ -116,11 +114,7 @@ export function defineElement (tagName: string): void {
      */
     private handleDisconnected (destroy = false, callback?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
-      if (
-        app &&
-        app.getAppState() !== appStates.UNMOUNT &&
-        app.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN
-      ) {
+      if (app && !app.isUnmounted() && !app.isHidden()) {
         // keep-alive
         if (this.getKeepAliveModeResult() && !destroy) {
           this.handleHiddenKeepAliveApp(callback)
@@ -194,13 +188,13 @@ export function defineElement (tagName: string): void {
          * 3. When scopecss, useSandbox of prefetch app different from target app, delete prefetch app and create new one
          */
         if (
-          oldApp.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN &&
+          oldApp.isHidden() &&
           oldApp.url === this.appUrl
         ) {
           this.handleShowKeepAliveApp(oldApp)
         } else if (
           oldAppUrl === targetUrl && (
-            oldApp.getAppState() === appStates.UNMOUNT ||
+            oldApp.isUnmounted() ||
             (
               oldApp.isPrefetch &&
               this.sameCoreOptions(oldApp)
@@ -208,7 +202,7 @@ export function defineElement (tagName: string): void {
           )
         ) {
           this.handleMount(oldApp)
-        } else if (oldApp.isPrefetch || oldApp.getAppState() === appStates.UNMOUNT) {
+        } else if (oldApp.isPrefetch || oldApp.isUnmounted()) {
           if (__DEV__ && this.sameCoreOptions(oldApp)) {
             /**
              * url is different & old app is unmounted or prefetch, create new app to replace old one
@@ -238,11 +232,7 @@ export function defineElement (tagName: string): void {
          * If oldApp exist & appName is different, determine whether oldApp is running
          */
         if (formatAttrName !== this.appName && oldApp) {
-          if (
-            oldApp.getAppState() !== appStates.UNMOUNT &&
-            oldApp.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN &&
-            !oldApp.isPrefetch
-          ) {
+          if (!oldApp.isUnmounted() && !oldApp.isHidden() && !oldApp.isPrefetch) {
             this.setAttribute('name', this.appName)
             return logError(`app name conflict, an app named ${formatAttrName} is running`)
           }
@@ -294,7 +284,7 @@ export function defineElement (tagName: string): void {
        * scene5: if oldApp is KEEP_ALIVE_HIDDEN, name must different
        */
       if (oldApp) {
-        if (oldApp.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN) {
+        if (oldApp.isHidden()) {
           if (oldApp.url === this.appUrl) {
             this.handleShowKeepAliveApp(oldApp)
           } else {
@@ -308,7 +298,7 @@ export function defineElement (tagName: string): void {
          * 推荐：if (
          *  oldApp.url === this.appUrl &&
          *  oldApp.ssrUrl === this.ssrUrl && (
-         *    oldApp.getAppState() === appStates.UNMOUNT ||
+         *    oldApp.isUnmounted() ||
          *    (oldApp.isPrefetch && this.sameCoreOptions(oldApp))
          *  )
          * )
@@ -408,10 +398,7 @@ export function defineElement (tagName: string): void {
      */
     public unmount (destroy?: boolean, unmountcb?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
-      if (
-        app &&
-        app.getAppState() !== appStates.UNMOUNT
-      ) {
+      if (app && !app.isUnmounted()) {
         app.unmount({
           destroy: destroy || this.getDestroyCompatibleResult(),
           clearData: this.getDisposeResult('clear-data'),
@@ -424,11 +411,7 @@ export function defineElement (tagName: string): void {
     // hidden app when disconnectedCallback called with keep-alive
     private handleHiddenKeepAliveApp (callback?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
-      if (
-        app &&
-        app.getAppState() !== appStates.UNMOUNT &&
-        app.getKeepAliveState() !== keepAliveStates.KEEP_ALIVE_HIDDEN
-      ) {
+      if (app && !app.isUnmounted() && !app.isHidden()) {
         app.hiddenKeepAliveApp(callback)
       }
     }

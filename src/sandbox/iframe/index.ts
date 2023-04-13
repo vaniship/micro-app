@@ -282,8 +282,8 @@ export default class IframeSandbox {
    *  2. unmount prerender app manually
    */
   public resetEffectSnapshot (): void {
-    this.windowEffect.reset()
-    this.documentEffect.reset()
+    this.windowEffect?.reset()
+    this.documentEffect?.reset()
     resetDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
@@ -295,15 +295,15 @@ export default class IframeSandbox {
    * 3. after init prerender app
    */
   public recordEffectSnapshot (): void {
-    this.windowEffect.record()
-    this.documentEffect.record()
+    this.windowEffect?.record()
+    this.documentEffect?.record()
     recordDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
   // rebuild umd snapshot before remount umd app
   public rebuildEffectSnapshot (): void {
-    this.windowEffect.rebuild()
-    this.documentEffect.rebuild()
+    this.windowEffect?.rebuild()
+    this.documentEffect?.rebuild()
     rebuildDataCenterSnapshot(this.microAppWindow.microApp)
   }
 
@@ -318,8 +318,8 @@ export default class IframeSandbox {
    * @param keepAlive is keep-alive app
    */
   public releaseGlobalEffect ({ clearData = false }: releaseGlobalEffectParams): void {
-    this.windowEffect.release()
-    this.documentEffect.release()
+    this.windowEffect?.release()
+    this.documentEffect?.release()
     this.microAppWindow.microApp?.clearDataListener()
     this.microAppWindow.microApp?.clearGlobalDataListener()
     if (clearData) {

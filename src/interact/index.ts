@@ -324,5 +324,5 @@ export function rebuildDataCenterSnapshot (microAppEventCenter: EventCenterForMi
  * @param microAppEventCenter instance of EventCenterForMicroApp
  */
 export function resetDataCenterSnapshot (microAppEventCenter: EventCenterForMicroApp): void {
-  delete microAppEventCenter.umdDataListeners
+  delete microAppEventCenter?.umdDataListeners
 }

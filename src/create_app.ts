@@ -130,35 +130,15 @@ export default class CreateApp implements AppInterface {
   ): void {
     if (++this.loadSourceLevel === 2) {
       this.source.html = html
-      // this.setAppState(appStates.LOADED)
 
-      if (!this.isPrefetch) {
-        /**
-         * TODO: 优化对keep-alive的兼容
-         * 问题描述：
-         *  关闭虚拟路由，资源加载过程中卸载keep-alive应用，先隐藏后执行js，子应用路由事件监听没有清除
-         *  点击浏览器返回按钮，子应用会响应popstate事件，导致子应用兜底到404或页面空白
-         * 解决方式：
-         *  1、资源加载完成后判断为hidden应用，则不渲染，执行unmount方法，子应用二次渲染时执行mount，类似于正常应用加载资源过程中被卸载的处理方式。
-         *  问题：
-         *    1、二次渲染时不会触发keep-alive相关事件，包括基座和子应用，都不会接受到重新渲染的事件
-         *    2、再次渲染时会从头执行js，这样就没有keep-alive的效果了
-         *
-         *  这样的处理方式是最简单的，是否可以接受？？
-         *
-         *  2、执行mount方法，正常渲染，这样可以在二次渲染时正常发送keep-alive相关事件
-         *    问题：关闭虚拟路由，子应用路由事件监听没有清除，点击浏览器返回按钮，子应用会响应popstate事件，导致子应用兜底到404或页面空白
-         *    这个问题无解，bug的优先级更高，放弃这个方案
-         *
-         *  3、有没有什么方式可以即正常渲染，又可以兼容关闭虚拟路由系统的情况？？
-         * 在js执行完成后，再次执行事件缓存操作？？似乎可以呀
-         */
-        if (keepAliveStates.KEEP_ALIVE_HIDDEN === this.keepAliveState) {
-          getRootContainer(this.container!).unmount()
-        } else if (appStates.UNMOUNT !== this.state) {
-          getRootContainer(this.container!).mount(this)
-        }
-        // getRootContainer(this.container!).mount(this)
+      if (!this.isPrefetch && !this.isUnmounted()) {
+        getRootContainer(this.container!).mount(this)
+        // Abandonment plan
+        // if (this.isHidden()) {
+        //   getRootContainer(this.container!).unmount()
+        // } else if (!this.isUnmounted()) {
+        //   getRootContainer(this.container!).mount(this)
+        // }
       } else if (this.isPrerender) {
         /**
          * PreRender is an option of prefetch, it will render app during prefetch
@@ -200,7 +180,7 @@ export default class CreateApp implements AppInterface {
   public onLoadError (e: Error): void {
     this.loadSourceLevel = -1
 
-    if (appStates.UNMOUNT !== this.state) {
+    if (!this.isUnmounted()) {
       this.onerror(e)
       this.setAppState(appStates.LOAD_FAILED)
     }
@@ -382,7 +362,7 @@ export default class CreateApp implements AppInterface {
    * dispatch mounted event when app run finished
    */
   private dispatchMountedEvent (): void {
-    if (appStates.UNMOUNT !== this.state) {
+    if (!this.isUnmounted()) {
       this.setAppState(appStates.MOUNTED)
       // call window.onmount of child app
       execMicroAppGlobalHook(
@@ -398,6 +378,15 @@ export default class CreateApp implements AppInterface {
         this.name,
         lifeCycles.MOUNTED,
       )
+
+      /**
+       * Hidden Keep-alive app during resource loading, render normally to ensure their liveliness (running in the background) characteristics.
+       * Actions:
+       *  1. Record & release all global events after mount
+       */
+      if (this.isHidden()) {
+        this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
+      }
     }
   }
 
@@ -661,10 +650,20 @@ export default class CreateApp implements AppInterface {
     return this.keepAliveState
   }
 
+  // is app unmounted
+  public isUnmounted (): boolean {
+    return appStates.UNMOUNT === this.state
+  }
+
+  // is app already hidden
+  public isHidden (): boolean {
+    return keepAliveStates.KEEP_ALIVE_HIDDEN === this.keepAliveState
+  }
+
   // get umd library, if it not exist, return empty object
   private getUmdLibraryHooks (): Record<string, unknown> {
     // after execScripts, the app maybe unmounted
-    if (appStates.UNMOUNT !== this.state && this.sandBox) {
+    if (!this.isUnmounted() && this.sandBox) {
       const libraryName = getRootContainer(this.container!).getAttribute('library') || `micro-app-${this.name}`
 
       const proxyWindow = this.sandBox.proxyWindow as Record<string, any>

@@ -152,7 +152,7 @@ export function createProxyDocument (
   // rebuild event and timer before remount app
   const rebuild = (): void => {
     // rebuild onclick event
-    if (sstOnClickHandler) proxyDocument.onclick = sstOnClickHandler
+    if (sstOnClickHandler && !onClickHandler) proxyDocument.onclick = sstOnClickHandler
 
     // rebuild document event
     sstEventListenerMap.forEach((listenerList, type) => {

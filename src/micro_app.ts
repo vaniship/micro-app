@@ -26,7 +26,7 @@ import {
 import { EventCenterForBaseApp } from './interact'
 import globalEnv, { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
-import { appStates, keepAliveStates, lifeCycles } from './constants'
+import { lifeCycles } from './constants'
 import { router } from './sandbox/router'
 
 /**
@@ -42,7 +42,7 @@ export function getActiveApps ({
   const activeApps: AppName[] = []
   appInstanceMap.forEach((app: AppInterface, appName: AppName) => {
     if (
-      appStates.UNMOUNT !== app.getAppState() &&
+      !app.isUnmounted() &&
       (
         !app.isPrefetch || (
           app.isPrerender && !excludePreRender
@@ -50,7 +50,7 @@ export function getActiveApps ({
       ) &&
       (
         !excludeHiddenApp ||
-        keepAliveStates.KEEP_ALIVE_HIDDEN !== app.getKeepAliveState()
+        !app.isHidden()
       )
     ) {
       activeApps.push(appName)
@@ -79,9 +79,9 @@ type unmountAppOptions = {
  */
 export function unmountApp (appName: string, options?: unmountAppOptions): Promise<boolean> {
   const app = appInstanceMap.get(formatAppName(appName))
-  return new Promise((resolve) => { // eslint-disable-line
+  return new Promise((resolve) => {
     if (app) {
-      if (app.getAppState() === appStates.UNMOUNT || app.isPrefetch) {
+      if (app.isUnmounted() || app.isPrefetch) {
         if (app.isPrerender) {
           app.unmount({
             destroy: !!options?.destroy,
@@ -93,7 +93,7 @@ export function unmountApp (appName: string, options?: unmountAppOptions): Promi
           if (options?.destroy) app.actionsForCompletelyDestroy()
           resolve(true)
         }
-      } else if (app.getKeepAliveState() === keepAliveStates.KEEP_ALIVE_HIDDEN) {
+      } else if (app.isHidden()) {
         if (options?.destroy) {
           app.unmount({
             destroy: true,

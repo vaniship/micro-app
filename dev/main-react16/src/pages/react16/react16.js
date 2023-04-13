@@ -327,11 +327,11 @@ export default class App extends React.Component {
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
 
-    // setTimeout(() => {
-    //   this.setState({
-    //     showMicroApp: !this.state.showMicroApp,
-    //   })
-    // }, 0);
+    setTimeout(() => {
+      this.setState({
+        showMicroApp: !this.state.showMicroApp,
+      })
+    }, 0);
 
     // this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
     //   // const a = document.createElement('div')
@@ -421,7 +421,7 @@ export default class App extends React.Component {
                   // disableScopecss
                   // disable-scopecss
                   // shadowDOM
-                  disable-memory-router
+                  // disable-memory-router
                   // keep-router-state
                   // default-page='/micro-app/react16/page2'
                   // hidden-router
@@ -430,7 +430,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  // iframe
+                  iframe
                 >
                 </micro-app>
               )
