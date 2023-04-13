@@ -125,7 +125,7 @@ export function defineElement (tagName: string): void {
         if (this.getKeepAliveModeResult() && !destroy) {
           this.handleHiddenKeepAliveApp(callback)
         } else {
-          this.handleUnmount(destroy || this.getDestroyCompatibleResult(), callback)
+          this.unmount(destroy, callback)
         }
       }
     }
@@ -207,7 +207,7 @@ export function defineElement (tagName: string): void {
             )
           )
         ) {
-          this.handleAppMount(oldApp)
+          this.handleMount(oldApp)
         } else if (oldApp.isPrefetch || oldApp.getAppState() === appStates.UNMOUNT) {
           if (__DEV__ && this.sameCoreOptions(oldApp)) {
             /**
@@ -250,19 +250,16 @@ export function defineElement (tagName: string): void {
 
         if (formatAttrName !== this.appName || formatAttrUrl !== this.appUrl) {
           if (formatAttrName === this.appName) {
-            this.handleUnmount(true, () => {
+            this.unmount(true, () => {
               this.actionsForAttributeChange(formatAttrName, formatAttrUrl, oldApp)
             })
           } else if (this.getKeepAliveModeResult()) {
             this.handleHiddenKeepAliveApp()
             this.actionsForAttributeChange(formatAttrName, formatAttrUrl, oldApp)
           } else {
-            this.handleUnmount(
-              this.getDestroyCompatibleResult(),
-              () => {
-                this.actionsForAttributeChange(formatAttrName, formatAttrUrl, oldApp)
-              }
-            )
+            this.unmount(false, () => {
+              this.actionsForAttributeChange(formatAttrName, formatAttrUrl, oldApp)
+            })
           }
         }
       } else if (formatAttrName !== this.appName) {
@@ -318,7 +315,7 @@ export function defineElement (tagName: string): void {
          */
         } else if (oldApp.url === this.appUrl && oldApp.ssrUrl === this.ssrUrl) {
           // mount app
-          this.handleAppMount(oldApp)
+          this.handleMount(oldApp)
         } else {
           this.handleCreateApp()
         }
@@ -365,7 +362,7 @@ export function defineElement (tagName: string): void {
       const oldApp = appInstanceMap.get(this.appName)
       if (oldApp) {
         if (oldApp.isPrerender) {
-          this.handleUnmount(true, createAppInstance)
+          this.unmount(true, createAppInstance)
         } else {
           oldApp.actionsForCompletelyDestroy()
           createAppInstance()
@@ -382,7 +379,7 @@ export function defineElement (tagName: string): void {
      * 2. is remount in another container ?
      * 3. is remount with change properties of the container ?
      */
-    private handleAppMount (app: AppInterface): void {
+    private handleMount (app: AppInterface): void {
       app.isPrefetch = false
       // TODO: Can defer be removed?
       defer(() => this.mount(app))
@@ -407,15 +404,16 @@ export function defineElement (tagName: string): void {
     /**
      * unmount app
      * @param destroy delete cache resources when unmount
+     * @param unmountcb callback
      */
-    private handleUnmount (destroy: boolean, unmountcb?: CallableFunction): void {
+    public unmount (destroy?: boolean, unmountcb?: CallableFunction): void {
       const app = appInstanceMap.get(this.appName)
       if (
         app &&
         app.getAppState() !== appStates.UNMOUNT
       ) {
         app.unmount({
-          destroy,
+          destroy: destroy || this.getDestroyCompatibleResult(),
           clearData: this.getDisposeResult('clear-data'),
           keepRouteState: this.getDisposeResult('keep-router-state'),
           unmountcb,

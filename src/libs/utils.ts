@@ -428,8 +428,8 @@ export function pureCreateElement<K extends keyof HTMLElementTagNameMap> (tagNam
  * @param deep deep clone or transfer dom
  */
 export function cloneContainer <T extends Element | ShadowRoot, Q extends Element | ShadowRoot> (
-  origin: T,
   target: Q,
+  origin: T,
   deep: boolean,
 ): Q {
   target.innerHTML = ''

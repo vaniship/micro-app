@@ -1,5 +1,4 @@
 import type {
-  Func,
   AppInterface,
   RequestIdleCallbackInfo,
   RequestIdleCallbackOptions,
@@ -25,8 +24,6 @@ declare global {
     __MICRO_APP_UMD_MODE__?: boolean
     __MICRO_APP_BASE_APPLICATION__?: boolean
     __REACT_ERROR_OVERLAY_GLOBAL_HOOK__: boolean
-    mount: Func
-    unmount: Func
     rawLocation: Location
     rawWindow: Window
     rawDocument: Document
@@ -51,6 +48,7 @@ declare global {
   interface HTMLElement {
     reload(destroy?: boolean): Promise<boolean>
     mount(app: AppInterface): void
+    unmount (destroy?: boolean, unmountcb?: CallableFunction): void
   }
 }
 

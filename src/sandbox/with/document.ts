@@ -134,13 +134,17 @@ export function createProxyDocument (
    *  3. prerender/keep-alive(default, umd): not clear timers, record & rebuild events
    */
   const record = (): void => {
-    // record onclick handler
-    sstOnClickHandler = sstOnClickHandler || onClickHandler
+    /**
+     * record onclick handler
+     * onClickHandler maybe set again after prerender/keep-alive app hidden
+     */
+    sstOnClickHandler = onClickHandler || sstOnClickHandler
 
     // record document event
     eventListenerMap.forEach((listenerList, type) => {
       if (listenerList.size) {
-        sstEventListenerMap.set(type, new Set(listenerList))
+        const cacheList = sstEventListenerMap.get(type) || []
+        sstEventListenerMap.set(type, new Set([...cacheList, ...listenerList]))
       }
     })
   }
@@ -165,8 +169,8 @@ export function createProxyDocument (
     // Clear the function bound by micro app through document.onclick
     if (isFunction(onClickHandler)) {
       rawRemoveEventListener.call(rawDocument, 'click', onClickHandler)
-      onClickHandler = null
     }
+    onClickHandler = null
 
     // Clear document binding event
     if (eventListenerMap.size) {

@@ -130,9 +130,29 @@ export default class CreateApp implements AppInterface {
   ): void {
     if (++this.loadSourceLevel === 2) {
       this.source.html = html
-      this.setAppState(appStates.LOADED)
+      // this.setAppState(appStates.LOADED)
 
       if (!this.isPrefetch && appStates.UNMOUNT !== this.state) {
+        /**
+         * TODO: 优化对keep-alive的兼容
+         * 问题描述：
+         *  关闭虚拟路由，资源加载过程中卸载keep-alive应用，先隐藏后执行js，子应用路由事件监听没有清除
+         *  点击浏览器返回按钮，子应用会响应popstate事件，导致子应用兜底到404或页面空白
+         * 解决方式：
+         *  1、资源加载完成后判断为hidden应用，则不渲染，执行unmount方法，子应用二次渲染时执行mount，类似于正常应用加载资源过程中被卸载的处理方式。
+         *  问题：
+         *    1、二次渲染时不会触发keep-alive相关事件，包括基座和子应用，都不会接受到重新渲染的事件
+         *    2、再次渲染时会从头执行js，这样就没有keep-alive的效果了
+         *
+         *  这样的处理方式是最简单的，是否可以接受？？
+         *
+         *  2、执行mount方法，正常渲染，这样可以在二次渲染时正常发送keep-alive相关事件
+         *    问题：关闭虚拟路由，子应用路由事件监听没有清除，点击浏览器返回按钮，子应用会响应popstate事件，导致子应用兜底到404或页面空白
+         *    这个问题无解，bug的优先级更高，放弃这个方案
+         *
+         *  3、有没有什么方式可以即正常渲染，又可以兼容关闭虚拟路由系统的情况？？
+         * 在js执行完成后，再次执行事件缓存操作？？似乎可以呀
+         */
         getRootContainer(this.container!).mount(this)
       } else if (this.isPrerender) {
         /**
@@ -242,7 +262,7 @@ export default class CreateApp implements AppInterface {
          */
         this.sandBox?.rebuildEffectSnapshot()
         // current this.container is <div prerender='true'></div>
-        cloneContainer(this.container as Element, container as Element, false)
+        cloneContainer(container as Element, this.container as Element, false)
         /**
          * set this.container to <micro-app></micro-app>
          * NOTE:
@@ -278,7 +298,7 @@ export default class CreateApp implements AppInterface {
 
         this.setAppState(appStates.MOUNTING)
         // TODO: 将所有cloneContainer中的'as Element'去掉，兼容shadowRoot的场景
-        cloneContainer(this.source.html as Element, this.container as Element, !this.umdMode)
+        cloneContainer(this.container as Element, this.source.html as Element, !this.umdMode)
 
         this.sandBox?.start({
           umdMode: this.umdMode,
@@ -469,7 +489,7 @@ export default class CreateApp implements AppInterface {
     unmountcb,
   }: UnmountParam): void {
     if (this.umdMode && this.container && !destroy) {
-      cloneContainer(this.container, this.source.html as Element, false)
+      cloneContainer(this.source.html as Element, this.container, false)
     }
 
     /**
@@ -540,12 +560,6 @@ export default class CreateApp implements AppInterface {
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
 
-    this.container = cloneContainer(
-      this.container as Element,
-      pureCreateElement('div'),
-      false,
-    )
-
     this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
 
     callback?.()
@@ -570,8 +584,8 @@ export default class CreateApp implements AppInterface {
     this.setKeepAliveState(keepAliveStates.KEEP_ALIVE_SHOW)
 
     this.container = cloneContainer(
-      this.container as Element,
       container,
+      this.container as Element,
       false,
     )
 

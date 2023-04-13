@@ -118,30 +118,43 @@ window.onunmount = () => {
 }
 
 /* ---------------------- 全局事件 --------------------- */
-// document.addEventListener('click', function () {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
-//   // console.log(this)
-// }, false)
+document.addEventListener('click', function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
+  // console.log(this)
+}, false)
 
-// document.onclick = function () {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-//   // console.log(this)
-// }
+document.onclick = function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+  // console.log(this)
+}
 
-// window.addEventListener('click', function () {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
-//   // console.log(this)
-// }, false)
+window.addEventListener('click', function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
+  // console.log(this)
+}, false)
+
+setTimeout(() => {
+  console.log(22222222222)
+  window.addEventListener('click', function () {
+    console.log(`在定时器内部的window.addEventListener(click)`)
+  }, false)
+
+  document.addEventListener('click', function () {
+    console.log(`在定时器内部的document.addEventListener(click)`)
+  }, false)
+
+  document.onclick = '1111'
+}, 5000);
 
 
 /* ---------------------- 定时器 --------------------- */
-// setInterval(() => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
-// }, 5000)
+setInterval(() => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+}, 5000)
 
-// setTimeout(() => {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
-// }, 5000);
+setTimeout(() => {
+  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+}, 5000);
 
 
 /* ---------------------- 创建元素 --------------------- */

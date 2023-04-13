@@ -109,7 +109,8 @@ export function patchWindowEffect (
     // record window event
     eventListenerMap.forEach((listenerList, type) => {
       if (listenerList.size) {
-        sstEventListenerMap.set(type, new Set(listenerList))
+        const cacheList = sstEventListenerMap.get(type) || []
+        sstEventListenerMap.set(type, new Set([...cacheList, ...listenerList]))
       }
     })
   }

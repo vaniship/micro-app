@@ -335,13 +335,17 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
    *  3. after init prerender app
    */
   const record = (): void => {
-    // record onclick handler
-    sstOnClickHandler = sstOnClickHandler || onClickHandler
+    /**
+     * record onclick handler
+     * onClickHandler maybe set again after prerender/keep-alive app hidden
+     */
+    sstOnClickHandler = onClickHandler || sstOnClickHandler
 
     // record document event
     eventListenerMap.forEach((listenerList, type) => {
       if (listenerList.size) {
-        sstEventListenerMap.set(type, new Set(listenerList))
+        const cacheList = sstEventListenerMap.get(type) || []
+        sstEventListenerMap.set(type, new Set([...cacheList, ...listenerList]))
       }
     })
   }

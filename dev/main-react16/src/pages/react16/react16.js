@@ -327,6 +327,12 @@ export default class App extends React.Component {
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
 
+    // setTimeout(() => {
+    //   this.setState({
+    //     showMicroApp: !this.state.showMicroApp,
+    //   })
+    // }, 0);
+
     // this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
     //   // const a = document.createElement('div')
     //   // a.innerHTML = '44444444'
@@ -407,7 +413,7 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseroute='/micro-app/demo/react16'
-                  // keep-alive
+                  keep-alive
                   // destroy
                   // inline
                   // disableSandbox
@@ -424,7 +430,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  // iframe
+                  iframe
                 >
                 </micro-app>
               )
