@@ -327,11 +327,11 @@ export default class App extends React.Component {
 
     microApp.addGlobalDataListener(this.handleGlobalDataForBaseApp)
 
-    setTimeout(() => {
-      this.setState({
-        showMicroApp: !this.state.showMicroApp,
-      })
-    }, 0);
+    // setTimeout(() => {
+    //   this.setState({
+    //     showMicroApp: !this.state.showMicroApp,
+    //   })
+    // }, 0);
 
     // this.releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
     //   // const a = document.createElement('div')

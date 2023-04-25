@@ -6,48 +6,48 @@ import { Button, Spin, Col } from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
 // import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
 import config from '../../config'
-import './vite2.less'
+import './vite4.less'
 import microApp from '@micro-zoe/micro-app'
 
-// 注册子应用vite2的数据通信对象
-// window.eventCenterForVite = new EventCenterForMicroApp('vite2')
+// 注册子应用vite4的数据通信对象
+// window.eventCenterForVite = new EventCenterForMicroApp('vite4')
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
-function vite2 (props) {
+function vite4 (props) {
   const [data, changeData] = useState({from: '来自基座的初始化数据'})
   const [showLoading, hideLoading] = useState(true)
 
   function handleMounted () {
-    console.timeEnd('vite2')
+    console.timeEnd('vite4')
     hideLoading(false)
-    console.log('主应用-生命周期：mounted -- vite2')
+    console.log('主应用-生命周期：mounted -- vite4')
   }
 
   function handleDataChange (e) {
-    console.log('来自 vite2 子应用的数据', e.detail.data)
+    console.log('来自 vite4 子应用的数据', e.detail.data)
   }
 
   function jumpToHome () {
-    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/'})
+    microApp.router.push({name: 'vite4', path: '/micro-app/vite4/'})
   }
 
   function jumpToPage2 () {
-    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/element-plus'})
+    microApp.router.push({name: 'vite4', path: '/micro-app/vite4/element-plus'})
   }
 
   function jumpToPage3 () {
-    microApp.router.push({name: 'vite2', path: '/micro-app/vite2/ant-design-vue'})
+    microApp.router.push({name: 'vite4', path: '/micro-app/vite4/ant-design-vue'})
   }
 
   useEffect(() => {
-    console.time('vite2')
+    console.time('vite4')
     // const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
     //   console.log('全局 beforeEach: ', to, from, appName)
     // })
 
     // const releaseBeforeEach2 = microApp.router.beforeEach({
-    //   vite2 (to, from) {
+    //   vite4 (to, from) {
     //     console.log('指定 beforeEach: ', to, from)
     //   }
     // })
@@ -57,7 +57,7 @@ function vite2 (props) {
     // })
 
     // const releaseAfterEach2 = microApp.router.afterEach({
-    //   vite2 (to, from) {
+    //   vite4 (to, from) {
     //     console.log('指定 afterEach: ', to, from)
     //   }
     // })
@@ -88,9 +88,9 @@ function vite2 (props) {
         showLoading && <Spin indicator={antIcon} />
       }
       <micro-app
-        name='vite2'
-        url={`${config.vite2}micro-app/vite2/`}
-        // url={`http://127.0.0.1:8080/micro-app/vite2/`}
+        name='vite4'
+        url={`${config.vite4}micro-app/vite4/`}
+        // url={`http://127.0.0.1:8080/micro-app/vite4/`}
         data={data}
         // onBeforemount={() => hideLoading(false)}
         onMounted={handleMounted}
@@ -107,14 +107,14 @@ function vite2 (props) {
         disable-memory-router
         // disable-patch-request
         // keep-alive
-        // default-page='/micro-app/vite2/page2'
-        baseroute='/micro-app/demo/vite2'
+        // default-page='/micro-app/vite4/page2'
+        baseroute='/micro-app/demo/vite4'
       >
       </micro-app>
 
-      {/* <iframe src={`${config.vite2}micro-app/vite2/`} width='100%' height='600px'></iframe> */}
+      {/* <iframe src={`${config.vite4}micro-app/vite4/`} width='100%' height='600px'></iframe> */}
     </div>
   )
 }
 
-export default vite2
+export default vite4

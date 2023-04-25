@@ -388,6 +388,12 @@ export default class CreateApp implements AppInterface {
         this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
       }
     }
+    /**
+     * TODO: 这里增加一个处理，如果渲染完成时已经卸载，则进行一些操作
+     * 如果是默认模式：删除所有事件和定时器
+     * 如果是umd模式：重新记录和清空事件
+     * 补充：非必需，优先级低
+     */
   }
 
   /**

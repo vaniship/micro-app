@@ -17,6 +17,7 @@ import {
   setMicroState,
   getMicroState,
   getMicroPathFromURL,
+  isMemoryRouterEnabled,
 } from './core'
 import {
   logError,
@@ -99,7 +100,7 @@ function createRouterApi (): RouterApi {
       const appName = formatAppName(to.name)
       if (appName && isString(to.path)) {
         const app = appInstanceMap.get(appName)
-        if (app && (!app.sandBox || !app.useMemoryRouter)) {
+        if (app && !isMemoryRouterEnabled(appName)) {
           return logError(`navigation failed, memory router of app ${appName} is closed`)
         }
         // active apps, include hidden keep-alive app
@@ -204,8 +205,8 @@ function createRouterApi (): RouterApi {
    * 2. useMemoryRouter is false
    */
   function commonHandlerForAttachToURL (appName: string): void {
-    const app = appInstanceMap.get(appName)!
-    if (app.sandBox && app.useMemoryRouter) {
+    if (isMemoryRouterEnabled(appName)) {
+      const app = appInstanceMap.get(appName)!
       attachRouteToBrowserURL(
         appName,
         setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),

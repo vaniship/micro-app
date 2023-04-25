@@ -21,6 +21,7 @@ import {
   getMicroState,
   getMicroPathFromURL,
   isEffectiveApp,
+  isMemoryRouterEnabled,
 } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
@@ -116,6 +117,8 @@ export function nativeHistoryNavigate (
  * 2. proxyHistory.pushState/replaceState with limited popstateEvent
  * 3. api microApp.router.push/replace
  * 4. proxyLocation.hash = xxx
+ * NOTE:
+ *  1. hidden keep-alive app can jump internally, but will not synchronize to browser
  * @param appName app.name
  * @param methodName pushState/replaceState
  * @param result result of add/remove microApp path on browser url
@@ -191,8 +194,8 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
-      const app = appInstanceMap.get(appName)!
-      if (app.sandBox && app.useMemoryRouter && !getMicroPathFromURL(appName)) {
+      if (isMemoryRouterEnabled(appName) && !getMicroPathFromURL(appName)) {
+        const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
           appName,
           setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),

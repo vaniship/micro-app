@@ -47,7 +47,8 @@ let router = null
 let history = null
 // 将渲染操作放入 mount 函数
 window.mount = (data) => {
-  history = createWebHistory(import.meta.env.BASE_URL)
+  // console.log(1212121212121212, location.href)
+  history = createWebHistory(window.__MICRO_APP_BASE_ROUTE__ || import.meta.env.BASE_URL)
   router = createRouter({
     history,
     routes,

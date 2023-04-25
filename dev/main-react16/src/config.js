@@ -5,6 +5,7 @@ let config = {
   vue2: 'http://localhost:4001/',
   vue3: 'http://localhost:4002/',
   vite2: 'http://localhost:7001/',
+  vite4: 'http://localhost:7002/',
   angular11: 'http://localhost:6001/',
   angular14: 'http://localhost:6002/',
 }
@@ -20,6 +21,7 @@ if (isEnvPro) {
     angular11: locationOrigin,
     angular14: locationOrigin,
     vite2: locationOrigin,
+    vite4: locationOrigin,
   }
 }
 

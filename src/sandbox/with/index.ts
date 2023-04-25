@@ -52,7 +52,7 @@ import {
   initRouteStateWithURL,
   clearRouteStateFromURL,
   addHistoryListener,
-  removeStateAndPathFromBrowser,
+  removePathFromBrowser,
   updateBrowserURLWithLocation,
   patchHistory,
   releasePatchHistory,
@@ -732,7 +732,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   public removeRouteInfoForKeepAliveApp (): void {
-    removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
+    removePathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 
   /**

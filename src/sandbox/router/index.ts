@@ -101,7 +101,7 @@ export function clearRouteStateFromURL (
     const { pathname, search, hash } = createURL(url)
     updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
   }
-  removeStateAndPathFromBrowser(appName)
+  removePathFromBrowser(appName)
   clearRouterWhenUnmount(appName)
 }
 
@@ -109,7 +109,7 @@ export function clearRouteStateFromURL (
  * remove microState from history.state and remove microPath from browserURL
  * called on sandbox.stop or hidden of keep-alive app
  */
-export function removeStateAndPathFromBrowser (appName: string): void {
+export function removePathFromBrowser (appName: string): void {
   attachRouteToBrowserURL(
     appName,
     removeMicroPathFromURL(appName),

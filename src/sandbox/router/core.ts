@@ -23,6 +23,7 @@ export function setMicroState (
   appName: string,
   microState: MicroState,
 ): MicroState {
+  if (!isMemoryRouterEnabled(appName)) return microState
   const rawState = globalEnv.rawWindow.history.state
   const additionalState: Record<string, any> = {
     microAppState: assign({}, rawState?.microAppState, {
@@ -102,19 +103,22 @@ export function getMicroPathFromURL (appName: string): string | null {
  * @param microLocation location of child app
  */
 export function setMicroPathToURL (appName: string, microLocation: MicroLocation): HandleMicroPathResult {
+  const targetFullPath = microLocation.pathname + microLocation.search + microLocation.hash
+  let isAttach2Hash = false
+  if (!isMemoryRouterEnabled(appName)) {
+    return {
+      fullPath: targetFullPath,
+      isAttach2Hash,
+    }
+  }
   let { pathname, search, hash } = globalEnv.rawWindow.location
   const queryObject = getQueryObjectFromURL(search, hash)
-  const encodedMicroPath = encodeMicroPath(
-    microLocation.pathname +
-    microLocation.search +
-    microLocation.hash
-  )
+  const encodedMicroPath = encodeMicroPath(targetFullPath)
 
   /**
    * Is parent is hash router
    * In fact, this is not true. It just means that the parameter is added to the hash
    */
-  let isAttach2Hash = false
   // If hash exists and search does not exist, it is considered as a hash route
   if (hash && !search) {
     isAttach2Hash = true
@@ -208,5 +212,22 @@ export function getNoHashMicroPathFromURL (appName: string, baseUrl: string): st
  */
 export function isEffectiveApp (appName: string): boolean {
   const app = appInstanceMap.get(appName)
-  return !!(app && !app.isPrefetch && !app.isHidden())
+  /**
+   * !!(app && !app.isPrefetch && !app.isHidden())
+   * 隐藏的keep-alive应用暂时不作为无效应用，原因如下
+   * 1、隐藏后才执行去除浏览器上的微应用的路由信息的操作，导致微应用的路由信息无法去除
+   * 2、如果保持隐藏应用内部正常跳转，阻止同步路由信息到浏览器，这样理论上是好的，但是对于location跳转改如何处理？location跳转是基于修改浏览器地址后发送popstate事件实现的，所以应该是在隐藏后不支持通过location进行跳转
+   */
+  return !!(app && !app.isPrefetch)
+}
+
+/**
+ * Determine whether the app has enabled memory-router
+ * NOTE:
+ *  1. if sandbox disabled, memory-router is disabled
+ *  2. if app not exist, memory-router is disabled
+ */
+export function isMemoryRouterEnabled (appName: string): boolean {
+  const app = appInstanceMap.get(appName)
+  return !!(app && app.sandBox && app.useMemoryRouter)
 }

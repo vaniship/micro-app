@@ -28,13 +28,14 @@ import {
 } from '../../interact'
 import {
   patchIframeRoute,
+  actionsForDisableMemoryRoute,
 } from './route'
 import {
   router,
   initRouteStateWithURL,
   clearRouteStateFromURL,
   addHistoryListener,
-  removeStateAndPathFromBrowser,
+  removePathFromBrowser,
   updateBrowserURLWithLocation,
   patchHistory,
   releasePatchHistory,
@@ -166,7 +167,12 @@ export default class IframeSandbox {
         this.microAppWindow.__MICRO_APP_NAME__,
       )
     } else {
-      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+      // actions when memory-route disable
+      actionsForDisableMemoryRoute(
+        this.microAppWindow.__MICRO_APP_NAME__,
+        this.microAppWindow,
+        baseroute,
+      )
     }
 
     /**
@@ -486,7 +492,7 @@ export default class IframeSandbox {
   }
 
   public removeRouteInfoForKeepAliveApp (): void {
-    removeStateAndPathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
+    removePathFromBrowser(this.microAppWindow.__MICRO_APP_NAME__)
   }
 
   /**

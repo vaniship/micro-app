@@ -8,4 +8,5 @@ export default {
   'menu.multiple': '多个应用',
   'menu.self': '自带页面',
   'menu.vite2': 'vite2应用',
+  'menu.vite4': 'vite4应用',
 };

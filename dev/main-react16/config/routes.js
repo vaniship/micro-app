@@ -52,6 +52,13 @@ export default [
                 exact: false,
               },
               {
+                path: '/vite4',
+                name: 'vite4',
+                icon: 'RocketOutlined',
+                component: './vite4/vite4',
+                exact: false,
+              },
+              {
                 path: '/angular11',
                 name: 'angular11',
                 icon: 'HistoryOutlined',

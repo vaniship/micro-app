@@ -12,6 +12,7 @@ import {
 import {
   assign,
 } from '../../libs/utils'
+import globalEnv from '../../libs/global_env'
 
 export function patchIframeRoute (
   appName: string,
@@ -49,5 +50,36 @@ export function patchIframeRoute (
     childStaticLocation,
     browserHost,
     childHost,
+  )
+}
+
+/**
+ * actions when memory-route disable
+ * @param appName app name
+ * @param microAppWindow iframeWindow
+ * @param baseroute base route for child app
+ */
+export function actionsForDisableMemoryRoute (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  baseroute: string,
+): void {
+  microAppWindow.__MICRO_APP_BASE_ROUTE__ = microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+
+  /**
+   * Sync browser router info to iframe when disable memory-router
+   * e.g.:
+   *  vue-router@4.x get target path by remove the base section from location.pathname
+   *  code: window.location.pathname.slice(base.length) || '/'; (base is baseroute)
+   * NOTE:
+   *  1. iframe router and browser router are separated, we should update iframe router manually
+   *  2. withSandbox location is browser location when disable memory-router, so no need to do anything
+   */
+  const rawLocation = globalEnv.rawWindow.location
+  updateMicroLocation(
+    appName,
+    rawLocation.href,
+    rawLocation,
+    'prevent'
   )
 }
