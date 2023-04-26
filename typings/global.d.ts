@@ -52,6 +52,7 @@ declare module '@micro-app/types' {
     keepRouteState: boolean
     destroy: boolean
     clearData: boolean
+    useMemoryRouter: boolean
   }
 
   interface releaseGlobalEffectParams {

@@ -40,17 +40,21 @@ function vite4 (props) {
     microApp.router.push({name: 'vite4', path: '/micro-app/vite4/ant-design-vue'})
   }
 
+  function consoleRouteCurrent () {
+    console.log('router.current', microApp.router.current.get('vite4'))
+  }
+
   useEffect(() => {
     console.time('vite4')
-    // const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
-    //   console.log('全局 beforeEach: ', to, from, appName)
-    // })
+    const releaseBeforeEach1 = microApp.router.beforeEach((to, from, appName) => {
+      console.log('全局 beforeEach: ', to, from, appName)
+    })
 
-    // const releaseBeforeEach2 = microApp.router.beforeEach({
-    //   vite4 (to, from) {
-    //     console.log('指定 beforeEach: ', to, from)
-    //   }
-    // })
+    const releaseBeforeEach2 = microApp.router.beforeEach({
+      vite4 (to, from) {
+        console.log('指定 beforeEach: ', to, from)
+      }
+    })
 
     // const releaseAfterEach1 = microApp.router.afterEach((to, from, appName) => {
     //   console.log('全局 afterEach: ', to, from, appName)
@@ -65,8 +69,8 @@ function vite4 (props) {
     microApp.router.setBaseAppRouter(props.history)
 
     return () => {
-      // releaseBeforeEach1()
-      // releaseBeforeEach2()
+      releaseBeforeEach1()
+      releaseBeforeEach2()
       // releaseAfterEach1()
       // releaseAfterEach2()
     }
@@ -82,6 +86,7 @@ function vite4 (props) {
           <Button type="primary" onClick={jumpToHome}>控制子应用跳转首页</Button>
           <Button type="primary" onClick={jumpToPage2}>控制子应用跳转element-plus</Button>
           <Button type="primary" onClick={jumpToPage3}>控制子应用跳转ant-design-vue</Button>
+          <Button type="primary" onClick={consoleRouteCurrent}>打印router.current</Button>
         </Col>
       </div>
       {
@@ -106,7 +111,7 @@ function vite4 (props) {
         keep-router-state
         disable-memory-router
         // disable-patch-request
-        // keep-alive
+        keep-alive
         // default-page='/micro-app/vite4/page2'
         baseroute='/micro-app/demo/vite4'
       >

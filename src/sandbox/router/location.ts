@@ -258,6 +258,7 @@ export function updateMicroLocation (
 ): void {
   // record old values of microLocation to `from`
   const from = createGuardLocation(appName, microLocation)
+  // if is iframeSandbox, microLocation muse be rawLocation of iframe, not proxyLocation
   const newLocation = createURL(path, microLocation.href)
   if (isIframeSandbox(appName)) {
     const microAppWindow = appInstanceMap.get(appName)!.sandBox.microAppWindow

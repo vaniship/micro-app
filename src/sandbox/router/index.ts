@@ -62,7 +62,9 @@ export function initRouteStateWithURL (
 
 /**
  * initialize browser information according to microLocation
- * called on sandbox.start or reshow of keep-alive app
+ * Scenes:
+ *  1. sandbox.start
+ *  2. reshow of keep-alive app
  */
 export function updateBrowserURLWithLocation (
   appName: string,

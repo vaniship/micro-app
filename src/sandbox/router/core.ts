@@ -23,35 +23,48 @@ export function setMicroState (
   appName: string,
   microState: MicroState,
 ): MicroState {
-  if (!isMemoryRouterEnabled(appName)) return microState
-  const rawState = globalEnv.rawWindow.history.state
-  const additionalState: Record<string, any> = {
-    microAppState: assign({}, rawState?.microAppState, {
-      [appName]: microState
-    })
+  if (isMemoryRouterEnabled(appName)) {
+    const rawState = globalEnv.rawWindow.history.state
+    const additionalState: Record<string, any> = {
+      microAppState: assign({}, rawState?.microAppState, {
+        [appName]: microState
+      })
+    }
+
+    // create new state object
+    return assign({}, rawState, additionalState)
   }
 
-  // create new state object
-  return assign({}, rawState, additionalState)
+  return microState
 }
 
 // delete micro app state form origin state
 export function removeMicroState (appName: string, rawState: MicroState): MicroState {
-  if (isPlainObject(rawState?.microAppState)) {
-    if (!isUndefined(rawState.microAppState[appName])) {
-      delete rawState.microAppState[appName]
+  if (isMemoryRouterEnabled(appName)) {
+    if (isPlainObject(rawState?.microAppState)) {
+      if (!isUndefined(rawState.microAppState[appName])) {
+        delete rawState.microAppState[appName]
+      }
+      if (!Object.keys(rawState.microAppState).length) {
+        delete rawState.microAppState
+      }
     }
-    if (!Object.keys(rawState.microAppState).length) {
-      delete rawState.microAppState
-    }
+
+    return assign({}, rawState)
   }
 
-  return assign({}, rawState)
+  return rawState
 }
 
 // get micro app state form origin state
 export function getMicroState (appName: string): MicroState {
-  return globalEnv.rawWindow.history.state?.microAppState?.[appName] || null
+  const rawState = globalEnv.rawWindow.history.state
+
+  if (isMemoryRouterEnabled(appName)) {
+    return rawState?.microAppState?.[appName] || null
+  }
+
+  return rawState
 }
 
 const ENC_AD_RE = /&/g // %M1
@@ -92,58 +105,62 @@ function formatQueryAppName (appName: string) {
  */
 export function getMicroPathFromURL (appName: string): string | null {
   const rawLocation = globalEnv.rawWindow.location
-  const queryObject = getQueryObjectFromURL(rawLocation.search, rawLocation.hash)
-  const microPath = queryObject.hashQuery?.[formatQueryAppName(appName)] || queryObject.searchQuery?.[formatQueryAppName(appName)]
-  return isString(microPath) ? decodeMicroPath(microPath) : null
+  if (isMemoryRouterEnabled(appName)) {
+    const queryObject = getQueryObjectFromURL(rawLocation.search, rawLocation.hash)
+    const microPath = queryObject.hashQuery?.[formatQueryAppName(appName)] || queryObject.searchQuery?.[formatQueryAppName(appName)]
+    return isString(microPath) ? decodeMicroPath(microPath) : null
+  }
+  return rawLocation.pathname + rawLocation.search + rawLocation.hash
 }
 
 /**
  * Attach child app fullPath to browser url
  * @param appName app.name
- * @param microLocation location of child app
+ * @param targetLocation location of child app or rawLocation of window
  */
-export function setMicroPathToURL (appName: string, microLocation: MicroLocation): HandleMicroPathResult {
-  const targetFullPath = microLocation.pathname + microLocation.search + microLocation.hash
+export function setMicroPathToURL (appName: string, targetLocation: MicroLocation): HandleMicroPathResult {
+  const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
   let isAttach2Hash = false
-  if (!isMemoryRouterEnabled(appName)) {
+  if (isMemoryRouterEnabled(appName)) {
+    let { pathname, search, hash } = globalEnv.rawWindow.location
+    const queryObject = getQueryObjectFromURL(search, hash)
+    const encodedMicroPath = encodeMicroPath(targetFullPath)
+
+    /**
+     * Is parent is hash router
+     * In fact, this is not true. It just means that the parameter is added to the hash
+     */
+    // If hash exists and search does not exist, it is considered as a hash route
+    if (hash && !search) {
+      isAttach2Hash = true
+      if (queryObject.hashQuery) {
+        queryObject.hashQuery[formatQueryAppName(appName)] = encodedMicroPath
+      } else {
+        queryObject.hashQuery = {
+          [formatQueryAppName(appName)]: encodedMicroPath
+        }
+      }
+      const baseHash = hash.includes('?') ? hash.slice(0, hash.indexOf('?') + 1) : hash + '?'
+      hash = baseHash + stringifyQuery(queryObject.hashQuery)
+    } else {
+      if (queryObject.searchQuery) {
+        queryObject.searchQuery[formatQueryAppName(appName)] = encodedMicroPath
+      } else {
+        queryObject.searchQuery = {
+          [formatQueryAppName(appName)]: encodedMicroPath
+        }
+      }
+      search = '?' + stringifyQuery(queryObject.searchQuery)
+    }
+
     return {
-      fullPath: targetFullPath,
+      fullPath: pathname + search + hash,
       isAttach2Hash,
     }
   }
-  let { pathname, search, hash } = globalEnv.rawWindow.location
-  const queryObject = getQueryObjectFromURL(search, hash)
-  const encodedMicroPath = encodeMicroPath(targetFullPath)
-
-  /**
-   * Is parent is hash router
-   * In fact, this is not true. It just means that the parameter is added to the hash
-   */
-  // If hash exists and search does not exist, it is considered as a hash route
-  if (hash && !search) {
-    isAttach2Hash = true
-    if (queryObject.hashQuery) {
-      queryObject.hashQuery[formatQueryAppName(appName)] = encodedMicroPath
-    } else {
-      queryObject.hashQuery = {
-        [formatQueryAppName(appName)]: encodedMicroPath
-      }
-    }
-    const baseHash = hash.includes('?') ? hash.slice(0, hash.indexOf('?') + 1) : hash + '?'
-    hash = baseHash + stringifyQuery(queryObject.hashQuery)
-  } else {
-    if (queryObject.searchQuery) {
-      queryObject.searchQuery[formatQueryAppName(appName)] = encodedMicroPath
-    } else {
-      queryObject.searchQuery = {
-        [formatQueryAppName(appName)]: encodedMicroPath
-      }
-    }
-    search = '?' + stringifyQuery(queryObject.searchQuery)
-  }
 
   return {
-    fullPath: pathname + search + hash,
+    fullPath: targetFullPath,
     isAttach2Hash,
   }
 }
@@ -155,18 +172,20 @@ export function setMicroPathToURL (appName: string, microLocation: MicroLocation
  */
 export function removeMicroPathFromURL (appName: string, targetLocation?: MicroLocation): HandleMicroPathResult {
   let { pathname, search, hash } = targetLocation || globalEnv.rawWindow.location
-  const queryObject = getQueryObjectFromURL(search, hash)
-
   let isAttach2Hash = false
-  if (queryObject.hashQuery?.[formatQueryAppName(appName)]) {
-    isAttach2Hash = true
-    delete queryObject.hashQuery?.[formatQueryAppName(appName)]
-    const hashQueryStr = stringifyQuery(queryObject.hashQuery)
-    hash = hash.slice(0, hash.indexOf('?') + Number(Boolean(hashQueryStr))) + hashQueryStr
-  } else if (queryObject.searchQuery?.[formatQueryAppName(appName)]) {
-    delete queryObject.searchQuery?.[formatQueryAppName(appName)]
-    const searchQueryStr = stringifyQuery(queryObject.searchQuery)
-    search = searchQueryStr ? '?' + searchQueryStr : ''
+
+  if (isMemoryRouterEnabled(appName)) {
+    const queryObject = getQueryObjectFromURL(search, hash)
+    if (queryObject.hashQuery?.[formatQueryAppName(appName)]) {
+      isAttach2Hash = true
+      delete queryObject.hashQuery?.[formatQueryAppName(appName)]
+      const hashQueryStr = stringifyQuery(queryObject.hashQuery)
+      hash = hash.slice(0, hash.indexOf('?') + Number(Boolean(hashQueryStr))) + hashQueryStr
+    } else if (queryObject.searchQuery?.[formatQueryAppName(appName)]) {
+      delete queryObject.searchQuery?.[formatQueryAppName(appName)]
+      const searchQueryStr = stringifyQuery(queryObject.searchQuery)
+      search = searchQueryStr ? '?' + searchQueryStr : ''
+    }
   }
 
   return {

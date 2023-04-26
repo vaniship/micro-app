@@ -141,7 +141,9 @@ export function navigateWithNativeEvent (
     const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
     // navigate with native history method
     nativeHistoryNavigate(appName, methodName, result.fullPath, state, title)
-    if (oldFullPath !== result.fullPath) dispatchNativeEvent(appName, onlyForBrowser, oldHref)
+    if (oldFullPath !== result.fullPath && isMemoryRouterEnabled(appName)) {
+      dispatchNativeEvent(appName, onlyForBrowser, oldHref)
+    }
   }
 }
 

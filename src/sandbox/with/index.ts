@@ -139,6 +139,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   }: SandBoxStartParams): void {
     if (this.active) return
     this.active = true
+    // TODO: with沙箱关闭虚拟路由保持和iframe一致
     if (useMemoryRouter) {
       if (isUndefined(this.microAppWindow.location)) {
         this.setMicroAppRouter(
@@ -190,21 +191,24 @@ export default class WithSandBox implements WithSandBoxInterface {
    * @param keepRouteState prevent reset route
    * @param destroy completely destroy, delete cache resources
    * @param clearData clear data from base app
+   * @param useMemoryRouter use virtual router
    */
   public stop ({
     umdMode,
     keepRouteState,
     destroy,
     clearData,
+    useMemoryRouter,
   }: SandBoxStopParams): void {
     if (!this.active) return
     this.recordAndReleaseEffect({ umdMode, clearData, destroy }, !umdMode || destroy)
 
-    if (this.removeHistoryListener) {
+    if (useMemoryRouter) {
       this.clearRouteState(keepRouteState)
-      // release listener of popstate
-      this.removeHistoryListener()
     }
+
+    // release listener of popstate for child app
+    this.removeHistoryListener?.()
 
     /**
      * NOTE:

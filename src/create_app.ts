@@ -503,6 +503,7 @@ export default class CreateApp implements AppInterface {
       keepRouteState: keepRouteState && !destroy,
       destroy,
       clearData: clearData || destroy,
+      useMemoryRouter: this.useMemoryRouter,
     })
 
     // dispatch unmount event to base app
@@ -589,6 +590,12 @@ export default class CreateApp implements AppInterface {
       false,
     )
 
+    /**
+     * TODO:
+     * 1. iframe沙箱在关闭虚拟路由系统时，重新展示时不更新浏览器地址，这样和with沙箱保持一致。
+     *    但是iframe是可以做到重新展示时更新浏览器地址的，这里临时不支持，等待后续with沙箱也支持的时候再优化
+     *    只需要去除 if (this.useMemoryRouter) 的判断即可
+     */
     if (this.useMemoryRouter) {
       // called before lifeCyclesEvent
       this.sandBox?.setRouteInfoForKeepAliveApp()
