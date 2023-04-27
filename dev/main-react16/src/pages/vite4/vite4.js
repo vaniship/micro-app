@@ -111,7 +111,7 @@ function vite4 (props) {
         keep-router-state
         disable-memory-router
         // disable-patch-request
-        keep-alive
+        // keep-alive
         // default-page='/micro-app/vite4/page2'
         baseroute='/micro-app/demo/vite4'
       >
