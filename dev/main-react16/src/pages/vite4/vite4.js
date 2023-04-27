@@ -29,15 +29,15 @@ function vite4 (props) {
   }
 
   function jumpToHome () {
-    microApp.router.push({name: 'vite4', path: '/micro-app/vite4/'})
+    microApp.router.push({name: 'vite4', path: '/micro-app/demo/vite4/'})
   }
 
   function jumpToPage2 () {
-    microApp.router.push({name: 'vite4', path: '/micro-app/vite4/element-plus'})
+    microApp.router.push({name: 'vite4', path: '/micro-app/demo/vite4/element-plus'})
   }
 
   function jumpToPage3 () {
-    microApp.router.push({name: 'vite4', path: '/micro-app/vite4/ant-design-vue'})
+    microApp.router.push({name: 'vite4', path: '/micro-app/demo/vite4/ant-design-vue'})
   }
 
   function consoleRouteCurrent () {

@@ -195,17 +195,17 @@ microApp.start({
 //   })
 // }, 10000)
 
+window.addEventListener('hashchange', (e) => {
+  // const a = document.createElement('div')
+  //   a.innerHTML = '666666666'
+  //   document.body.appendChild(a)
+  console.log('基座 hashchange', e,)
+})
+
 window.addEventListener('popstate', (e) => {
   // const a = document.createElement('div')
   //   a.innerHTML = '55555555'
   //   document.body.appendChild(a)
   console.log('基座 popstate', 'state:', e.state)
   // history.replaceState(history.state, '', location.href)
-})
-
-window.addEventListener('hashchange', (e) => {
-  // const a = document.createElement('div')
-  //   a.innerHTML = '666666666'
-  //   document.body.appendChild(a)
-  console.log('基座 hashchange', e, e.newURL, e.oldURL)
 })

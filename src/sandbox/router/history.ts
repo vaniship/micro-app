@@ -141,6 +141,7 @@ export function navigateWithNativeEvent (
     const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
     // navigate with native history method
     nativeHistoryNavigate(appName, methodName, result.fullPath, state, title)
+    // TODO: 如果所有模式统一发送popstate事件，则isMemoryRouterEnabled(appName)要去掉
     if (oldFullPath !== result.fullPath && isMemoryRouterEnabled(appName)) {
       dispatchNativeEvent(appName, onlyForBrowser, oldHref)
     }

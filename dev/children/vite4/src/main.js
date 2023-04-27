@@ -47,7 +47,6 @@ let router = null
 let history = null
 // 将渲染操作放入 mount 函数
 window.mount = (data) => {
-  // console.log(1212121212121212, location.href)
   history = createWebHistory(window.__MICRO_APP_BASE_ROUTE__ || import.meta.env.BASE_URL)
   router = createRouter({
     history,
@@ -283,7 +282,7 @@ setTimeout(() => {
 
 /* ---------------------- Image --------------------- */
 // const newImg = new Image()
-// newImg.src = '/micro-app/vite2/src/assets/logo.png'
+// newImg.src = '/micro-app/vite4/src/assets/logo.png'
 // document.body.appendChild(newImg)
 // newImg.setAttribute('width', '50px')
 
@@ -296,19 +295,20 @@ setTimeout(() => {
 /* ---------------------- location 跳转 --------------------- */
 // 依次放开每个注释来，尽可能覆盖所有场景
 setTimeout(() => {
+  const baseRoute = (window.__MICRO_APP_BASE_ROUTE__ || import.meta.env.BASE_URL).replace(/\/$/, '')
   // window.microApp.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
-  // window.microApp.location.href = '/micro-app/vite2/page2'
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/page2' // path改变，刷新浏览器
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/page2/' // hash从有到无，刷新浏览器
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2'
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/' // path相同，刷新浏览器
-  // window.microApp.location.href = 'http://localhost:7001/micro-app/vite2/?a=1' // search变化，刷新浏览器
+  // window.microApp.location.href = `${baseRoute}/element-plus`
+  // window.microApp.location.href = `http://localhost:7002${baseRoute}/element-plus` // path改变，刷新浏览器
+  // window.microApp.location.href = `http://localhost:7002${baseRoute}/element-plus#abc` // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+  // window.microApp.location.href = `http://localhost:7002${baseRoute}/element-plus/` // hash从有到无，刷新浏览器
+  // window.microApp.location.href = `http://localhost:7002${baseRoute}`
+  // window.microApp.location.href = `http://localhost:7002${baseRoute}/` // path相同，刷新浏览器
+  // window.microApp.location.href = `http://localhost:7002${baseRoute}?a=1` // search变化，刷新浏览器
 
 
-  // window.microApp.location.pathname = '/micro-app/vite2/page2' // path改变，刷新浏览器
-  // window.microApp.location.pathname = '/micro-app/vite2/page2#hash1' // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
-  // window.microApp.location.pathname = '/micro-app/vite2/page2?b=2'
+  // window.microApp.location.pathname = `${baseRoute}/element-plus` // path改变，刷新浏览器
+  // window.microApp.location.pathname = `${baseRoute}/element-plus#hash1` // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
+  // window.microApp.location.pathname = `${baseRoute}/element-plus?b=2`
 
   // window.microApp.location.search = '?c=3' // search改变，刷新浏览器
   // window.microApp.location.search = '?c=3' // search不变，刷新浏览器
@@ -317,13 +317,13 @@ setTimeout(() => {
   // window.microApp.location.hash = '#a' // hash不变，不发送popstate、hashchange事件
 
 
-  // window.microApp.location.assign('/micro-app/vite2/page2') // path改变，刷新浏览器
-  // window.microApp.location.assign('http://localhost:7001/micro-app/vite2/page2') // path不改变，刷新浏览器
-  // window.microApp.location.assign('http://localhost:7001/micro-app/vite2/page2#abc') // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+  // window.microApp.location.assign(`${baseRoute}/element-plus`) // path改变，刷新浏览器
+  // window.microApp.location.assign(`http://localhost:7002${baseRoute}/element-plus`) // path不改变，刷新浏览器
+  // window.microApp.location.assign(`http://localhost:7002${baseRoute}/element-plus#abc`) // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
 
-  // window.microApp.location.assign('/micro-app/vite2/page2') // 同上
-  // window.microApp.location.replace('http://localhost:7001/micro-app/vite2/page2') // 同上
-  // window.microApp.location.replace('http://localhost:7001/micro-app/vite2/page2#abc') // 同上
+  // window.microApp.location.replace(`${baseRoute}/element-plus`) // 同上
+  // window.microApp.location.replace(`http://localhost:7002${baseRoute}/element-plus`) // 同上
+  // window.microApp.location.replace(`http://localhost:7002${baseRoute}/element-plus#abc`) // 同上
 
   // window.microApp.location.reload()
 
@@ -336,7 +336,7 @@ setTimeout(() => {
  * 基座和子应用都设置了/sugrec的代理，两者都可以正常拿到数据
  * 但是当走子应用的代理时，headers信息只能拿到 content-length 和 content-type(with和iframe都一样)
  * 走基座的代理时，可以拿到所有的headers头信息
- * 子应用：/sugrec，默认补全为 http://localhost:7001/sugrec
+ * 子应用：/sugrec，默认补全为 http://localhost:7002/sugrec
  * 主应用：http://localhost:3000/sugrec
  * 注意：！！
  * iframe环境下，会自动使用base补全fetch的地址

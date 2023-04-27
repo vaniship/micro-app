@@ -20,14 +20,14 @@ import HelloWorld from '../components/HelloWorld.vue'
 
 const testHref = () => {
   // 通过原生跳转会导致报错
-  // location.href = 'http://localhost:7001/micro-app/vite2/#/page2' // 报错
-  // location.href = '/micro-app/vite2/#/page2' // 报错
+  // location.href = 'http://localhost:7001/micro-app/vite4/#/page2' // 报错
+  // location.href = '/micro-app/vite4/#/page2' // 报错
   // location.href = 'https://www.baidu.com/' // 报错
-  // location.href = 'http://localhost:3000/micro-app/vite2/#/page2' // -- 不报错
+  // location.href = 'http://localhost:3000/micro-app/vite4/#/page2' // -- 不报错
 
   // vite环境下，通过window.microApp.location进行跳转
   // window.microApp.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
-  window.microApp.location.href = '/micro-app/vite2/page2'
+  window.microApp.location.href = window.__MICRO_APP_BASE_ROUTE__ ? window.__MICRO_APP_BASE_ROUTE__ + '/element-plus' : '/micro-app/vite4/element-plus'
 }
 
 // parent.console.timeEnd('vite')
