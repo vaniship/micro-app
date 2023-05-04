@@ -416,6 +416,8 @@ export default class IframeSandbox {
 
   private createProxyWindow (microAppWindow: microAppWindowType): void {
     const rawWindow = globalEnv.rawWindow
+    const customProperties: PropertyKey[] = []
+
     return new Proxy(microAppWindow, {
       get: (target: microAppWindowType, key: PropertyKey): unknown => {
         if (key === 'location') {
@@ -424,6 +426,10 @@ export default class IframeSandbox {
 
         if (globalPropertyList.includes(key.toString())) {
           return this.proxyWindow
+        }
+
+        if (customProperties.includes(key)) {
+          return Reflect.get(target, key)
         }
 
         return bindFunctionToRawTarget(Reflect.get(target, key), target)
@@ -436,6 +442,10 @@ export default class IframeSandbox {
          */
         if (key === 'location') {
           return Reflect.set(rawWindow, key, value)
+        }
+
+        if (!Reflect.has(target, key)) {
+          customProperties.push(key)
         }
 
         Reflect.set(target, key, value)
