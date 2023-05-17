@@ -585,6 +585,11 @@ function patchDocument () {
   //   return markElement(element)
   // }
 
+  rawRootDocument.prototype.createComment = function createComment (data: string): Comment {
+    const element = globalEnv.rawCreateComment.call(getBindTarget(this), data)
+    return markElement(element)
+  }
+
   // query element👇
   function querySelector (this: Document, selectors: string): any {
     const _this = getBindTarget(this)
