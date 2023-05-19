@@ -90,6 +90,7 @@ export function initGlobalEnv (): void {
     const rawCreateElementNS = rawRootDocument.prototype.createElementNS
     const rawCreateDocumentFragment = rawRootDocument.prototype.createDocumentFragment
     const rawCreateTextNode = rawRootDocument.prototype.createTextNode
+    const rawCreateComment = rawRootDocument.prototype.createComment
     const rawQuerySelector = rawRootDocument.prototype.querySelector
     const rawQuerySelectorAll = rawRootDocument.prototype.querySelectorAll
     const rawGetElementById = rawRootDocument.prototype.getElementById
@@ -151,6 +152,7 @@ export function initGlobalEnv (): void {
       rawCreateElementNS,
       rawCreateDocumentFragment,
       rawCreateTextNode,
+      rawCreateComment,
       rawQuerySelector,
       rawQuerySelectorAll,
       rawGetElementById,
