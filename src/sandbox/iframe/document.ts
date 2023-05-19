@@ -50,6 +50,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   const microDocument = microAppWindow.document
   const rawMicroCreateElement = microRootDocument.prototype.createElement
   const rawMicroCreateTextNode = microRootDocument.prototype.createTextNode
+  const rawMicroCreateComment = microRootDocument.prototype.createComment
   const rawMicroQuerySelector = microRootDocument.prototype.querySelector
   const rawMicroQuerySelectorAll = microRootDocument.prototype.querySelectorAll
   const rawMicroGetElementById = microRootDocument.prototype.getElementById
@@ -68,6 +69,11 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   microRootDocument.prototype.createTextNode = function createTextNode (data: string): Text {
     const element = rawMicroCreateTextNode.call(this, data)
     return updateElementInfo<Text>(element, appName)
+  }
+
+  microRootDocument.prototype.createComment = function createComment (data: string): Comment {
+    const element = rawMicroCreateComment.call(this, data)
+    return updateElementInfo<Comment>(element, appName)
   }
 
   function getDefaultRawTarget (target: Document): Document {
