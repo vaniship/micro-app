@@ -561,6 +561,16 @@ export default class CreateApp implements AppInterface {
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
 
+    /**
+     * TODO: 果然不行，遇到bug了，因为micro-app被隐藏还有另外一种情况，通过修改url和name
+     * micro-app元素没有被删除，而新的应用开始使用micro-app元素，两者同用一个元素，肯定会出问题
+     */
+    this.container = cloneContainer(
+      pureCreateElement('micro-app'),
+      this.container as Element,
+      false,
+    )
+
     this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
 
     callback?.()

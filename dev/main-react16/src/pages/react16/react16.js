@@ -150,10 +150,17 @@ export default class App extends React.Component {
   }
 
   changeNameUrl = () => {
-    this.setState({
-      name: 'react16',
-      url: `${config.react16}micro-app/react16/?a=2`,
-    })
+    if (this.state.name === 'vue2-change') {
+      this.setState({
+        name: 'react16',
+        url: `${config.react16}micro-app/react16/?a=1`,
+      })
+    } else {
+      this.setState({
+        name: 'vue2-change',
+        url: `${config.vue2}micro-app/vue2/`,
+      })
+    }
   }
 
   // 主动卸载应用

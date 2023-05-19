@@ -8,6 +8,19 @@
 
 ---
 
+### 1.0.0-beta.5
+
+`2023-05-25`
+
+- **Bug Fix**
+
+  - 🐞 修复了环境变量`__MICRO_APP_BASE_APPLICATION__`为undefined的问题。
+
+- **Update**
+
+  - 🚀 优化了部分开发案例。
+
+
 ### 1.0.0-beta.4
 
 `2023-04-27`

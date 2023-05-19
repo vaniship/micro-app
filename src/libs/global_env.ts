@@ -53,8 +53,6 @@ declare global {
 }
 
 const globalEnv: Record<string, any> = {
-  // mark current application as base application
-  __MICRO_APP_BASE_APPLICATION__: true,
   // active sandbox count
   activeSandbox: 0,
 }
@@ -120,6 +118,9 @@ export function initGlobalEnv (): void {
     const rawReplaceState = rawWindow.history.replaceState
     const rawAddEventListener = rawRootEventTarget.prototype.addEventListener
     const rawRemoveEventListener = rawRootEventTarget.prototype.removeEventListener
+
+    // mark current application as base application
+    window.__MICRO_APP_BASE_APPLICATION__ = true
 
     assign(globalEnv, {
       supportModuleScript: isSupportModuleScript(),

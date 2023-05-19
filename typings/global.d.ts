@@ -32,6 +32,10 @@ declare module '@micro-app/types' {
     args: any[],
   }
 
+  interface MicroAppElementTagNameMap extends HTMLElementTagNameMap {
+    'micro-app': any,
+  }
+
   interface CommonEffectHook {
     reset(): void
     record(): void
