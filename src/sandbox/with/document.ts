@@ -13,6 +13,7 @@ import {
 import {
   throttleDeferForParentNode,
 } from '../adapter'
+import microApp from '../../micro_app'
 
 function createMicroDocument (appName: string, proxyDocument: Document): Function {
   const { rawDocument, rawRootDocument } = globalEnv
@@ -196,15 +197,30 @@ export function createProxyDocument (
       return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
     },
     set: (target: Document, key: PropertyKey, value: unknown): boolean => {
-      if (key === 'onclick') {
-        if (isFunction(onClickHandler)) {
-          rawRemoveEventListener.call(rawDocument, 'click', onClickHandler, false)
-        }
-        // TODO: listener 是否需要绑定proxyDocument，否则函数中的this指向原生window
-        if (isFunction(value)) {
-          rawAddEventListener.call(rawDocument, 'click', value, false)
-        }
-        onClickHandler = value
+      // microApp framework built-in Proxy
+      const builtInProxyProps = new Map([
+        ['onclick', () => {
+          if (isFunction(onClickHandler)) {
+            rawRemoveEventListener.call(rawDocument, 'click', onClickHandler, false)
+          }
+          // TODO: listener 是否需要绑定proxyDocument，否则函数中的this指向原生window
+          if (isFunction(value)) {
+            rawAddEventListener.call(rawDocument, 'click', value, false)
+          }
+          onClickHandler = value
+        }]
+      ])
+      // external custom proxy
+      const customProxyDocumentProps = microApp.options?.customProxyDocumentProps || new Map()
+      // External has higher priority than built-in
+      const mergedProxyDocumentProps = new Map([
+        ...builtInProxyProps,
+        ...customProxyDocumentProps,
+      ])
+
+      if (mergedProxyDocumentProps.has(key)) {
+        const proxyCallback = mergedProxyDocumentProps.get(key)
+        proxyCallback()
       } else {
         /**
          * 1. Fix TypeError: Illegal invocation when set document.title
