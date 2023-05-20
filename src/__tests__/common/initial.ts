@@ -30,6 +30,7 @@ export const ports = {
   source_scripts2: 9012,
   source_patch: 9013,
   prefetch: 9014,
+  custom_proxy_document: 9015,
 }
 
 // 启动服务
