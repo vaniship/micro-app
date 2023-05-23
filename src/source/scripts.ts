@@ -618,20 +618,31 @@ function runCode2InlineScript (
   callback?: moduleCallBack,
 ): void {
   if (module) {
-    // module script is async, transform it to a blob for subsequent operations
+    globalEnv.rawSetAttribute.call(scriptElement, 'type', 'module')
     if (isInlineScript(address)) {
-      const blob = new Blob([code], { type: 'text/javascript' })
-      scriptElement.src = URL.createObjectURL(blob)
+      /**
+       * inline module script cannot convert to blob mode
+       * Issue: https://github.com/micro-zoe/micro-app/issues/805
+       */
+      scriptElement.textContent = code
     } else {
       scriptElement.src = address
     }
-    globalEnv.rawSetAttribute.call(scriptElement, 'type', 'module')
     if (callback) {
-      callback.moduleCount && callback.moduleCount--
+      const onloadHandler = () => {
+        callback.moduleCount && callback.moduleCount--
+        callback(callback.moduleCount === 0)
+      }
       /**
-       * module script will execute onload method only after it insert to document/iframe
+       * NOTE:
+       *  1. module script will execute onload method only after it insert to document/iframe
+       *  2. we can't know when the inline module script onload, and we use defer to simulate, this maybe cause some problems
        */
-      scriptElement.onload = callback.bind(scriptElement, callback.moduleCount === 0)
+      if (isInlineScript(address)) {
+        defer(onloadHandler)
+      } else {
+        scriptElement.onload = onloadHandler
+      }
     }
   } else {
     scriptElement.textContent = code

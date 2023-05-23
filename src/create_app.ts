@@ -133,12 +133,6 @@ export default class CreateApp implements AppInterface {
 
       if (!this.isPrefetch && !this.isUnmounted()) {
         getRootContainer(this.container!).mount(this)
-        // Abandonment plan
-        // if (this.isHidden()) {
-        //   getRootContainer(this.container!).unmount()
-        // } else if (!this.isUnmounted()) {
-        //   getRootContainer(this.container!).mount(this)
-        // }
       } else if (this.isPrerender) {
         /**
          * PreRender is an option of prefetch, it will render app during prefetch
@@ -204,7 +198,6 @@ export default class CreateApp implements AppInterface {
     baseroute,
     disablePatchRequest,
     fiber,
-    // hiddenRouter,
   }: MountParam): void {
     if (this.loadSourceLevel !== 2) {
       /**
@@ -217,8 +210,7 @@ export default class CreateApp implements AppInterface {
       // mount before prerender exec mount (loading source), set isPrerender to false
       this.isPrerender = false
       // reset app state to LOADING
-      this.setAppState(appStates.LOADING)
-      return
+      return this.setAppState(appStates.LOADING)
     }
 
     this.createSandbox()
@@ -267,7 +259,6 @@ export default class CreateApp implements AppInterface {
         this.fiber = fiber
         // use in sandbox/effect
         this.useMemoryRouter = useMemoryRouter
-        // this.hiddenRouter = hiddenRouter ?? this.hiddenRouter
 
         const dispatchBeforeMount = () => dispatchLifecyclesEvent(
           this.container!,
@@ -562,16 +553,19 @@ export default class CreateApp implements AppInterface {
     }
 
     /**
-     * TODO: 果然不行，遇到bug了，因为micro-app被隐藏还有另外一种情况，通过修改url和name
-     * micro-app元素没有被删除，而新的应用开始使用micro-app元素，两者同用一个元素，肯定会出问题
+     * Hidden app before the resources are loaded, then unmount the app
      */
-    this.container = cloneContainer(
-      pureCreateElement('micro-app'),
-      this.container as Element,
-      false,
-    )
+    if (this.loadSourceLevel !== 2) {
+      getRootContainer(this.container!).unmount()
+    } else {
+      this.container = cloneContainer(
+        pureCreateElement('div'),
+        this.container as Element,
+        false,
+      )
 
-    this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
+      this.sandBox?.recordAndReleaseEffect({ keepAlive: true })
+    }
 
     callback?.()
   }

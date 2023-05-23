@@ -42,7 +42,10 @@ export default class App extends React.Component {
   }
 
   unmount = () => {
-    console.log(`生命周期：unmount -- ${this.state.name}`, document.querySelector('#micro-app-template-style'))
+    this.setState({
+      showLoading: false
+    })
+    console.log(`生命周期：unmount -- ${this.state.name}`)
   }
 
   error = (e) => {

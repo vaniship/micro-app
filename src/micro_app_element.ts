@@ -387,7 +387,6 @@ export function defineElement (tagName: string): void {
         baseroute: this.getBaseRouteCompatible(),
         disablePatchRequest: this.getDisposeResult('disable-patch-request'),
         fiber: this.getDisposeResult('fiber'),
-        // hiddenRouter: this.getDisposeResult('hidden-router'),
       })
     }
 

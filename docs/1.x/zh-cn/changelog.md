@@ -10,11 +10,13 @@
 
 ### 1.0.0-beta.5
 
-`2023-05-25`
+`2023-05-23`
 
 - **Bug Fix**
 
   - 🐞 修复了环境变量`__MICRO_APP_BASE_APPLICATION__`为undefined的问题。
+  - 🐞 修复了`vite+react`子应用接入失败的问题。
+  - 🐞 修复了通过修改name和url渲染`keep-alive`应用失败的问题。
 
 - **Update**
 
