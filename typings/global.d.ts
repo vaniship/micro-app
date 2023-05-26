@@ -332,6 +332,7 @@ declare module '@micro-app/types' {
     'hidden-router'?: boolean
     'keep-alive'?: boolean
     'clear-data'?: boolean
+    'router-mode'?: string
     iframe?: boolean
     ssr?: boolean
     fiber?: boolean

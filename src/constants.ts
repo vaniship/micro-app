@@ -65,6 +65,7 @@ export enum MicroAppConfig {
 
 export const PREFETCH_LEVEL: number[] = [1, 2, 3]
 
+export const ROUTER_MODE_LIST: string[] = ['search', 'history', 'custom']
 /**
  * global key must be static key, they can not rewrite
  * e.g.
@@ -73,4 +74,4 @@ export const PREFETCH_LEVEL: number[] = [1, 2, 3]
  * NOTE:
  * 1. Do not add fetch, XMLHttpRequest, EventSource
  */
-export const globalKeyToBeCached = 'window,self,globalThis,document,Document,Array,Object,String,Boolean,Math,Number,Symbol,Date,Function,Proxy,WeakMap,WeakSet,Set,Map,Reflect,Element,Node,RegExp,Error,TypeError,JSON,isNaN,parseFloat,parseInt,performance,console,decodeURI,encodeURI,decodeURIComponent,encodeURIComponent,navigator,undefined,location,history'
+export const GLOBAL_CACHED_KEY = 'window,self,globalThis,document,Document,Array,Object,String,Boolean,Math,Number,Symbol,Date,Function,Proxy,WeakMap,WeakSet,Set,Map,Reflect,Element,Node,RegExp,Error,TypeError,JSON,isNaN,parseFloat,parseInt,performance,console,decodeURI,encodeURI,decodeURIComponent,encodeURIComponent,navigator,undefined,location,history'

@@ -52,6 +52,7 @@ export interface CreateAppParam {
   ssrUrl?: string
   isPrefetch?: boolean
   prefetchLevel?: number
+  routerMode?: string
 }
 
 export default class CreateApp implements AppInterface {
@@ -78,6 +79,7 @@ export default class CreateApp implements AppInterface {
   public prefetchLevel?: number
   public fiber = false
   public useMemoryRouter = true
+  public routerMode: string
 
   constructor ({
     name,
@@ -90,6 +92,7 @@ export default class CreateApp implements AppInterface {
     ssrUrl,
     isPrefetch,
     prefetchLevel,
+    routerMode,
   }: CreateAppParam) {
     appInstanceMap.set(name, this)
     // init actions
@@ -99,6 +102,7 @@ export default class CreateApp implements AppInterface {
     this.scopecss = this.useSandbox && scopecss
     this.inline = inline ?? false
     this.iframe = iframe ?? false
+    this.routerMode = routerMode ?? 'history'
 
     // not exist when prefetch 👇
     this.container = container ?? null

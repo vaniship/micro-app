@@ -176,7 +176,7 @@ export default class IframeSandbox {
      * 2. 导航拦截、current.route 可以正常使用
      * 3. 可以正常控制子应用跳转，方式还是自上而下(也可以是子应用内部跳转，这种方式更好一点，减小对基座的影响，不会导致vue的循环刷新)
      * 4. 关闭虚拟路由以后会对应 route-mode='custom' 模式，包括with沙箱也会这么做
-     * 5. 关闭虚拟路由是指尽可能模式没有虚拟路由的情况，子应用直接获取浏览器location和history，控制浏览器跳转
+     * 5. 关闭虚拟路由是指尽可能模拟没有虚拟路由的情况，子应用直接获取浏览器location和history，控制浏览器跳转
      */
     this.initRouteState(defaultPage)
 

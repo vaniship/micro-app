@@ -22,6 +22,7 @@ import {
 import {
   ObservedAttrName,
   lifeCycles,
+  ROUTER_MODE_LIST,
 } from './constants'
 import CreateApp, { appInstanceMap } from './create_app'
 import microApp from './micro_app'
@@ -334,12 +335,13 @@ export function defineElement (tagName: string): void {
       const createAppInstance = () => new CreateApp({
         name: this.appName,
         url: this.appUrl,
+        container: this.shadowRoot ?? this,
         scopecss: this.useScopecss(),
         useSandbox: this.useSandbox(),
         inline: this.getDisposeResult('inline'),
         iframe: this.getDisposeResult('iframe'),
-        container: this.shadowRoot ?? this,
         ssrUrl: this.ssrUrl,
+        routerMode: this.getRouterMode(),
       })
 
       /**
@@ -383,7 +385,7 @@ export function defineElement (tagName: string): void {
         container: this.shadowRoot ?? this,
         inline: this.getDisposeResult('inline'),
         useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
-        defaultPage: this.getDefaultPageValue(),
+        defaultPage: this.getDefaultPage(),
         baseroute: this.getBaseRouteCompatible(),
         disablePatchRequest: this.getDisposeResult('disable-patch-request'),
         fiber: this.getDisposeResult('fiber'),
@@ -501,7 +503,7 @@ export function defineElement (tagName: string): void {
         } else {
           // get path from browser URL
           let targetPath = getNoHashMicroPathFromURL(this.appName, baseUrl)
-          const defaultPagePath = this.getDefaultPageValue()
+          const defaultPagePath = this.getDefaultPage()
           if (!targetPath && defaultPagePath) {
             const targetLocation = createURL(defaultPagePath, baseUrl)
             targetPath = targetLocation.origin + targetLocation.pathname + targetLocation.search
@@ -516,13 +518,23 @@ export function defineElement (tagName: string): void {
     /**
      * get config of default page
      */
-    private getDefaultPageValue (): string {
+    private getDefaultPage (): string {
       return (
         router.getDefaultPage(this.appName) ||
         this.getAttribute('default-page') ||
         this.getAttribute('defaultPage') ||
         ''
       )
+    }
+
+    /**
+     * get config of router-mode
+     * @returns router-mode
+     */
+    private getRouterMode () : string {
+      // compatible with disable-memory-router in older versions
+      const routerMode = this.getDisposeResult('disable-memory-router') ? 'custom' : this.getAttribute('router-mode') || microApp.options['router-mode'] || ''
+      return ROUTER_MODE_LIST.includes(routerMode) ? routerMode : 'history'
     }
 
     /**

@@ -67,6 +67,7 @@ microApp.start({
   // 'disable-patch-request': true,
   // 'keep-router-state': true,
   // 'hidden-router': true,
+  // 'router-mode': 'custom',
   // esmodule: true,
   // ssr: true,
   // preFetchApps: prefetchConfig,

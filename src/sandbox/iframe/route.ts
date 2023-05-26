@@ -29,10 +29,10 @@ export function patchIframeRoute (
   assign(microHistory, createMicroHistory(appName, microAppWindow.location))
 
   /**
-   * Init microLocation before exec sandbox.start (sandbox.start will sync microLocation info to browser url)
+   * Init microLocation before exec sandbox.start
    * NOTE:
    *  1. exec updateMicroLocation after patch microHistory
-   *  2.
+   *  2. sandbox.start will sync microLocation info to browser url
    */
   updateMicroLocation(
     appName,
