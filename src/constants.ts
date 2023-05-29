@@ -32,10 +32,35 @@ export enum microGlobalEvent {
   ONUNMOUNT = 'onunmount',
 }
 
-// custom event of child app
-export const microAppCustomEvent = [
+// event bound to child app window
+export const SCOPE_WINDOW_EVENT = [
+  'popstate',
+  'hashchange',
+  'load',
+  'beforeunload',
+  'unload',
   'unmount',
   'appstate-change',
+]
+
+// on event bound to child app window
+export const SCOPE_WINDOW_ON_EVENT = [
+  'onpopstate',
+  'onhashchange',
+  'onload',
+  'onbeforeunload',
+  'onunload',
+]
+
+// event bound to child app document
+export const SCOPE_DOCUMENT_EVENT = [
+  'DOMContentLoaded',
+  'readystatechange',
+]
+
+// on event bound to child app document
+export const SCOPE_DOCUMENT_ON_EVENT = [
+  'onreadystatechange',
 ]
 
 // keep-alive status
@@ -65,7 +90,16 @@ export enum MicroAppConfig {
 
 export const PREFETCH_LEVEL: number[] = [1, 2, 3]
 
-export const ROUTER_MODE_LIST: string[] = ['search', 'history', 'custom']
+export const DEFAULT_ROUTER_MODE = 'search'
+export const ROUTER_MODE_HISTORY = 'history'
+export const ROUTER_MODE_CUSTOM = 'custom'
+
+export const ROUTER_MODE_LIST: string[] = [
+  DEFAULT_ROUTER_MODE,
+  ROUTER_MODE_HISTORY,
+  ROUTER_MODE_CUSTOM,
+]
+
 /**
  * global key must be static key, they can not rewrite
  * e.g.

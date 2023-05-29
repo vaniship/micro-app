@@ -210,3 +210,11 @@ window.addEventListener('popstate', (e) => {
   console.log('基座 popstate', 'state:', e.state)
   // history.replaceState(history.state, '', location.href)
 })
+
+window.onpopstate = function () {
+  console.log('基座 window.onpopstate 触发')
+}
+
+window.onhashchange = function () {
+  console.log('基座 window.onhashchange 触发')
+}

@@ -153,12 +153,12 @@ export default class IframeSandbox {
 
   public start ({
     baseroute,
-    useMemoryRouter,
     defaultPage,
     disablePatchRequest,
   }: SandBoxStartParams): void {
     if (this.active) return
     this.active = true
+    /* --- memory router part --- start */
     /**
      * Sync router info to iframe when exec sandbox.start with disable or enable memory-router
      * e.g.:
@@ -185,9 +185,8 @@ export default class IframeSandbox {
       this.microAppWindow.__MICRO_APP_NAME__,
     )
 
-    if (!useMemoryRouter) {
-      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
-    }
+    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    /* --- memory router part --- end */
 
     /**
      * create base element to iframe
@@ -212,16 +211,17 @@ export default class IframeSandbox {
     keepRouteState,
     destroy,
     clearData,
-    useMemoryRouter,
   }: SandBoxStopParams): void {
     if (!this.active) return
     this.recordAndReleaseEffect({ clearData }, !umdMode || destroy)
 
-    // if keep-route-state is true or disable memory-router, preserve microLocation state
-    this.clearRouteState(keepRouteState || !useMemoryRouter)
+    /* --- memory router part --- start */
+    // if keep-route-state is true, preserve microLocation state
+    this.clearRouteState(keepRouteState)
 
     // release listener of popstate for child app
     this.removeHistoryListener?.()
+    /* --- memory router part --- end */
 
     if (!umdMode || destroy) {
       this.deleteIframeElement()

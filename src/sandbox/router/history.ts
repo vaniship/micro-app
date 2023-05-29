@@ -21,7 +21,7 @@ import {
   getMicroState,
   getMicroPathFromURL,
   isEffectiveApp,
-  isMemoryRouterEnabled,
+  isRouterModeCustom,
 } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
@@ -141,8 +141,8 @@ export function navigateWithNativeEvent (
     const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
     // navigate with native history method
     nativeHistoryNavigate(appName, methodName, result.fullPath, state, title)
-    // TODO: 如果所有模式统一发送popstate事件，则isMemoryRouterEnabled(appName)要去掉
-    if (oldFullPath !== result.fullPath && isMemoryRouterEnabled(appName)) {
+    // TODO: 如果所有模式统一发送popstate事件，则!isRouterModeCustom(appName)要去掉
+    if (oldFullPath !== result.fullPath && !isRouterModeCustom(appName)) {
       dispatchNativeEvent(appName, onlyForBrowser, oldHref)
     }
   }
@@ -197,7 +197,7 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
-      if (isMemoryRouterEnabled(appName) && !getMicroPathFromURL(appName)) {
+      if (!isRouterModeCustom(appName) && !getMicroPathFromURL(appName)) {
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
           appName,

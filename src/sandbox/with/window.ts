@@ -5,7 +5,9 @@ import type {
   timeInfo,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import { formatEventName } from '../adapter'
+import {
+  SCOPE_WINDOW_EVENT,
+} from '../../constants'
 
 /**
  * Rewrite side-effect events
@@ -23,11 +25,16 @@ export function patchWindowEffect (
     rawWindow,
     rawAddEventListener,
     rawRemoveEventListener,
+    rawDispatchEvent,
     rawSetInterval,
     rawSetTimeout,
     rawClearInterval,
     rawClearTimeout,
   } = globalEnv
+
+  function getEventTarget (type: string): Window {
+    return SCOPE_WINDOW_EVENT.includes(type) ? microAppWindow : rawWindow
+  }
 
   // TODO: listener 是否需要绑定microAppWindow，否则函数中的this指向原生window
   // listener may be null, e.g test-passive
@@ -36,7 +43,6 @@ export function patchWindowEffect (
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    type = formatEventName(type, appName)
     const listenerList = eventListenerMap.get(type)
     if (listenerList) {
       listenerList.add(listener)
@@ -44,7 +50,7 @@ export function patchWindowEffect (
       eventListenerMap.set(type, new Set([listener]))
     }
     listener && (listener.__MICRO_APP_MARK_OPTIONS__ = options)
-    rawAddEventListener.call(rawWindow, type, listener, options)
+    rawAddEventListener.call(getEventTarget(type), type, listener, options)
   }
 
   microAppWindow.removeEventListener = function (
@@ -52,12 +58,15 @@ export function patchWindowEffect (
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    type = formatEventName(type, appName)
     const listenerList = eventListenerMap.get(type)
     if (listenerList?.size && listenerList.has(listener)) {
       listenerList.delete(listener)
     }
-    rawRemoveEventListener.call(rawWindow, type, listener, options)
+    rawRemoveEventListener.call(getEventTarget(type), type, listener, options)
+  }
+
+  microAppWindow.dispatchEvent = function (event: Event): boolean {
+    return rawDispatchEvent.call(getEventTarget(event?.type), event)
   }
 
   microAppWindow.setInterval = function (
@@ -133,7 +142,7 @@ export function patchWindowEffect (
     if (eventListenerMap.size) {
       eventListenerMap.forEach((listenerList, type) => {
         for (const listener of listenerList) {
-          rawRemoveEventListener.call(rawWindow, type, listener)
+          rawRemoveEventListener.call(getEventTarget(type), type, listener)
         }
       })
       eventListenerMap.clear()

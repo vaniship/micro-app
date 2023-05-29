@@ -1,5 +1,3 @@
-import { microAppCustomEvent } from '../../constants'
-
 export const escape2RawWindowKeys = [
   'getComputedStyle',
   'visualViewport',
@@ -19,32 +17,6 @@ export const escape2RawWindowRegExpKeys = [
   /^screen/i,
   /^scroll/i,
   /X$|Y$/,
-]
-
-export const scopeIframeWindowOnEvent = [
-  'onload',
-  'onbeforeunload',
-  'onunload',
-]
-
-export const scopeIframeWindowEvent = [
-  'hashchange',
-  'popstate',
-  'DOMContentLoaded',
-  'load',
-  'beforeunload',
-  'unload',
-  // 'unmount', // move to microAppCustomEvent
-  // 'appstate-change', // move to microAppCustomEvent
-].concat(microAppCustomEvent)
-
-export const scopeIframeDocumentEvent = [
-  'DOMContentLoaded',
-  'readystatechange',
-]
-
-export const scopeIframeDocumentOnEvent = [
-  'onreadystatechange',
 ]
 
 export const uniqueDocumentElement = [

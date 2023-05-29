@@ -142,13 +142,20 @@ document.addEventListener('DOMContentLoaded', (event) => {
 });
 
 window.addEventListener('popstate', (e) => {
-  console.log('子应用 popstate', 'state:', e)
+  console.log(`子应用${window.__MICRO_APP_NAME__} window.addEventListener('popstate') 触发`, e)
 })
 
 window.addEventListener('hashchange', (e) => {
-  console.log('子应用 hashchange', e, e.newURL, e.oldURL)
+  console.log(`子应用${window.__MICRO_APP_NAME__} window.addEventListener('hashchange') 触发`, e, e.newURL, e.oldURL)
 })
 
+window.onpopstate = function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__} window.onpopstate 触发`)
+}
+
+window.onhashchange = function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__} window.onhashchange 触发`)
+}
 
 /* ---------------------- 定时器 --------------------- */
 // setInterval(() => {

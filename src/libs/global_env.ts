@@ -119,6 +119,7 @@ export function initGlobalEnv (): void {
     const rawReplaceState = rawWindow.history.replaceState
     const rawAddEventListener = rawRootEventTarget.prototype.addEventListener
     const rawRemoveEventListener = rawRootEventTarget.prototype.removeEventListener
+    const rawDispatchEvent = rawRootEventTarget.prototype.dispatchEvent
 
     // mark current application as base application
     window.__MICRO_APP_BASE_APPLICATION__ = true
@@ -170,6 +171,7 @@ export function initGlobalEnv (): void {
       rawReplaceState,
       rawAddEventListener,
       rawRemoveEventListener,
+      rawDispatchEvent,
 
       // iframe
     })

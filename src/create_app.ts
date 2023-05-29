@@ -17,6 +17,8 @@ import {
   lifeCycles,
   keepAliveStates,
   microGlobalEvent,
+  DEFAULT_ROUTER_MODE,
+  ROUTER_MODE_CUSTOM,
 } from './constants'
 import {
   isFunction,
@@ -78,8 +80,7 @@ export default class CreateApp implements AppInterface {
   public isPrerender: boolean
   public prefetchLevel?: number
   public fiber = false
-  public useMemoryRouter = true
-  public routerMode: string
+  public routerMode: string = DEFAULT_ROUTER_MODE
 
   constructor ({
     name,
@@ -92,7 +93,6 @@ export default class CreateApp implements AppInterface {
     ssrUrl,
     isPrefetch,
     prefetchLevel,
-    routerMode,
   }: CreateAppParam) {
     appInstanceMap.set(name, this)
     // init actions
@@ -102,7 +102,6 @@ export default class CreateApp implements AppInterface {
     this.scopecss = this.useSandbox && scopecss
     this.inline = inline ?? false
     this.iframe = iframe ?? false
-    this.routerMode = routerMode ?? 'history'
 
     // not exist when prefetch 👇
     this.container = container ?? null
@@ -131,6 +130,8 @@ export default class CreateApp implements AppInterface {
     html: HTMLElement,
     defaultPage?: string,
     disablePatchRequest?: boolean,
+    routerMode?: string,
+    baseroute?: string,
   ): void {
     if (++this.loadSourceLevel === 2) {
       this.source.html = html
@@ -161,10 +162,10 @@ export default class CreateApp implements AppInterface {
         this.mount({
           container,
           inline: this.inline,
-          useMemoryRouter: true,
-          baseroute: '',
+          routerMode: routerMode!,
+          baseroute: baseroute || '',
           fiber: true,
-          defaultPage: defaultPage ?? '',
+          defaultPage: defaultPage || '',
           disablePatchRequest: disablePatchRequest ?? false,
         })
       }
@@ -188,7 +189,7 @@ export default class CreateApp implements AppInterface {
    * mount app
    * @param container app container
    * @param inline run js in inline mode
-   * @param useMemoryRouter use virtual router
+   * @param routerMode virtual router mode
    * @param defaultPage default page of virtual router
    * @param baseroute route prefix, default is ''
    * @param disablePatchRequest prevent rewrite request method of child app
@@ -197,7 +198,7 @@ export default class CreateApp implements AppInterface {
   public mount ({
     container,
     inline,
-    useMemoryRouter,
+    routerMode,
     defaultPage,
     baseroute,
     disablePatchRequest,
@@ -261,8 +262,7 @@ export default class CreateApp implements AppInterface {
         this.container = container
         this.inline = inline
         this.fiber = fiber
-        // use in sandbox/effect
-        this.useMemoryRouter = useMemoryRouter
+        this.routerMode = routerMode
 
         const dispatchBeforeMount = () => dispatchLifecyclesEvent(
           this.container!,
@@ -283,7 +283,6 @@ export default class CreateApp implements AppInterface {
         this.sandBox?.start({
           umdMode: this.umdMode,
           baseroute,
-          useMemoryRouter,
           defaultPage,
           disablePatchRequest,
         })
@@ -498,7 +497,6 @@ export default class CreateApp implements AppInterface {
       keepRouteState: keepRouteState && !destroy,
       destroy,
       clearData: clearData || destroy,
-      useMemoryRouter: this.useMemoryRouter,
     })
 
     // dispatch unmount event to base app
@@ -551,7 +549,7 @@ export default class CreateApp implements AppInterface {
       lifeCycles.AFTERHIDDEN,
     )
 
-    if (this.useMemoryRouter) {
+    if (this.routerMode !== ROUTER_MODE_CUSTOM) {
       // called after lifeCyclesEvent
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
@@ -600,11 +598,10 @@ export default class CreateApp implements AppInterface {
 
     /**
      * TODO:
-     * 1. iframe沙箱在关闭虚拟路由系统时，重新展示时不更新浏览器地址，这样和with沙箱保持一致。
-     *    但是iframe是可以做到重新展示时更新浏览器地址的，这里临时不支持，等待后续with沙箱也支持的时候再优化
-     *    只需要去除 if (this.useMemoryRouter) 的判断即可
+     *  问题：当路由模式为custom时，keep-alive应用在重新展示，是否需要根据子应用location信息更新浏览器地址？
+     *  暂时不这么做吧，因为无法确定二次展示时新旧地址是否相同，是否带有特殊信息
      */
-    if (this.useMemoryRouter) {
+    if (this.routerMode !== ROUTER_MODE_CUSTOM) {
       // called before lifeCyclesEvent
       this.sandBox?.setRouteInfoForKeepAliveApp()
     }

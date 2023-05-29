@@ -108,7 +108,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   // Properties newly added to microAppWindow
   private injectedKeys = new Set<PropertyKey>()
   public proxyWindow!: proxyWindow // Proxy
-  public microAppWindow = {} as MicroAppWindowType // Proxy target
+  public microAppWindow = new EventTarget() as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string) {
     this.adapter = new Adapter()
@@ -126,36 +126,36 @@ export default class WithSandBox implements WithSandBoxInterface {
    * open sandbox and perform some initial actions
    * @param umdMode is umd mode
    * @param baseroute base route for child
-   * @param useMemoryRouter use virtual router
    * @param defaultPage default page when mount child base on virtual router
    * @param disablePatchRequest prevent patchRequestApi
    */
   public start ({
     umdMode,
     baseroute,
-    useMemoryRouter,
     defaultPage,
     disablePatchRequest,
   }: SandBoxStartParams): void {
     if (this.active) return
     this.active = true
-    // TODO: with沙箱关闭虚拟路由保持和iframe一致
-    if (useMemoryRouter) {
-      if (isUndefined(this.microAppWindow.location)) {
-        this.setMicroAppRouter(
-          this.microAppWindow.__MICRO_APP_NAME__,
-          this.microAppWindow.__MICRO_APP_URL__,
-          this.microAppWindow,
-        )
-      }
-      this.initRouteState(defaultPage)
-      // unique listener of popstate event for sub app
-      this.removeHistoryListener = addHistoryListener(
+
+    /* --- memory router part --- start */
+    if (isUndefined(this.microAppWindow.location)) {
+      this.setMicroAppRouter(
         this.microAppWindow.__MICRO_APP_NAME__,
+        this.microAppWindow.__MICRO_APP_URL__,
+        this.microAppWindow,
       )
-    } else {
-      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
     }
+
+    this.initRouteState(defaultPage)
+
+    // unique listener of popstate event for sub app
+    this.removeHistoryListener = addHistoryListener(
+      this.microAppWindow.__MICRO_APP_NAME__,
+    )
+
+    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    /* --- memory router part --- end */
 
     /**
      * Target: Ensure default mode action exactly same to first time when render again
@@ -191,24 +191,23 @@ export default class WithSandBox implements WithSandBoxInterface {
    * @param keepRouteState prevent reset route
    * @param destroy completely destroy, delete cache resources
    * @param clearData clear data from base app
-   * @param useMemoryRouter use virtual router
    */
   public stop ({
     umdMode,
     keepRouteState,
     destroy,
     clearData,
-    useMemoryRouter,
   }: SandBoxStopParams): void {
     if (!this.active) return
     this.recordAndReleaseEffect({ umdMode, clearData, destroy }, !umdMode || destroy)
 
-    if (useMemoryRouter) {
-      this.clearRouteState(keepRouteState)
-    }
+    /* --- memory router part --- start */
+    // rest url and state of browser
+    this.clearRouteState(keepRouteState)
 
     // release listener of popstate for child app
     this.removeHistoryListener?.()
+    /* --- memory router part --- end */
 
     /**
      * NOTE:

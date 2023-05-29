@@ -46,7 +46,6 @@ declare module '@micro-app/types' {
   interface SandBoxStartParams {
     umdMode: boolean
     baseroute: string
-    useMemoryRouter: boolean
     defaultPage: string
     disablePatchRequest: boolean
   }
@@ -56,7 +55,6 @@ declare module '@micro-app/types' {
     keepRouteState: boolean
     destroy: boolean
     clearData: boolean
-    useMemoryRouter: boolean
   }
 
   interface releaseGlobalEffectParams {
@@ -138,7 +136,7 @@ declare module '@micro-app/types' {
   interface MountParam {
     container: HTMLElement | ShadowRoot // app container
     inline: boolean // run js in inline mode
-    useMemoryRouter: boolean // use virtual router
+    routerMode: string // virtual router mode
     defaultPage: string // default page of virtual router
     baseroute: string // route prefix, default is ''
     disablePatchRequest: boolean // prevent rewrite request method of child app
@@ -168,7 +166,7 @@ declare module '@micro-app/types' {
     container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, div(keep-alive)
     umdMode: boolean // is umd mode
     fiber: boolean // fiber mode
-    useMemoryRouter: boolean // use virtual router
+    routerMode: string // virtual router mode
     isPrefetch: boolean // whether prefetch app, default is false
     isPrerender: boolean
     prefetchLevel?: number
@@ -216,20 +214,6 @@ declare module '@micro-app/types' {
     showKeepAliveApp (container: HTMLElement | ShadowRoot): void
   }
 
-  interface MicroAppElementType {
-    appName: AttrType // app name
-    appUrl: AttrType // app url
-
-    // Hooks for element append to documents
-    connectedCallback (): void
-
-    // Hooks for element delete from documents
-    disconnectedCallback (): void
-
-    // Hooks for element attributes change
-    attributeChangedCallback (a: 'name' | 'url', o: string, n: string): void
-  }
-
   interface prefetchParam {
     name: string,
     url: string,
@@ -244,6 +228,10 @@ declare module '@micro-app/types' {
     level?: number
     'default-page'?: string
     'disable-patch-request'?: boolean
+    // prerender only 👇
+    'router-mode'?: string
+    baseroute?: string
+    // prerender only 👆
   }
 
   // prefetch params
@@ -358,6 +346,27 @@ declare module '@micro-app/types' {
     preFetch(apps: prefetchParamList): void
     router: Router // eslint-disable-line
     start(options?: OptionsType): void
+  }
+
+  interface MicroAppElementType {
+    appName: AttrType // app name
+    appUrl: AttrType // app url
+
+    // Hooks for element append to documents
+    connectedCallback (): void
+
+    // Hooks for element delete from documents
+    disconnectedCallback (): void
+
+    // Hooks for element attributes change
+    attributeChangedCallback (a: 'name' | 'url', o: string, n: string): void
+
+    /**
+     * Get configuration
+     * Global setting is lowest priority
+     * @param name Configuration item name
+     */
+    getDisposeResult <T extends keyof OptionsType> (name: T): boolean
   }
 
   // special CallableFunction for interact

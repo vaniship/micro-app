@@ -3,19 +3,21 @@ import type {
   MicroEventListener,
   CommonEffectHook,
 } from '@micro-app/types'
+import globalEnv from '../../libs/global_env'
+import bindFunctionToRawTarget from '../bind_function'
 import {
   rawDefineProperty,
   isFunction,
   logWarn,
 } from '../../libs/utils'
-import globalEnv from '../../libs/global_env'
-import bindFunctionToRawTarget from '../bind_function'
 import {
   escape2RawWindowKeys,
   escape2RawWindowRegExpKeys,
-  scopeIframeWindowOnEvent,
-  scopeIframeWindowEvent,
 } from './special_key'
+import {
+  SCOPE_WINDOW_EVENT,
+  SCOPE_WINDOW_ON_EVENT,
+} from '../../constants'
 
 export function patchIframeWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
   const rawWindow = globalEnv.rawWindow
@@ -49,7 +51,7 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
         return false
       })
 
-      return /^on/.test(key) && !scopeIframeWindowOnEvent.includes(key)
+      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
     })
     .forEach((eventName: string) => {
       const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microAppWindow, eventName) || {
@@ -67,8 +69,7 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
        *    比如 基座定义了 window.onpopstate，子应用执行跳转会不会触发基座的onpopstate函数？
        *
        * 2、如果基座已经定义了 window.onpopstate，子应用定义会不会覆盖基座的？
-       *    现在的逻辑看来，是会覆盖的，那么问题1就是 肯定的
-       * TODO: 一些特殊事件onpopstate、onhashchange不代理，放在scopeIframeWindowOnEvent中
+       *    现在的逻辑看来，是会覆盖的，那么问题1就是 肯定的 -- 已解决
        */
         rawDefineProperty(microAppWindow, eventName, {
           enumerable,
@@ -92,7 +93,7 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
 
   function getEventTarget (type: string): Window {
-    return scopeIframeWindowEvent.includes(type) ? microAppWindow : rawWindow
+    return SCOPE_WINDOW_EVENT.includes(type) ? microAppWindow : rawWindow
   }
 
   // TODO: listener 是否需要绑定microAppWindow，否则函数中的this指向原生window

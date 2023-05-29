@@ -9,6 +9,7 @@ import {
   removeMicroPathFromURL,
   removeMicroState,
   setMicroState,
+  isRouterModeCustom,
 } from './core'
 import {
   createMicroLocation,
@@ -19,12 +20,26 @@ import {
   createMicroHistory,
   attachRouteToBrowserURL,
 } from './history'
-import { createURL } from '../../libs/utils'
-import { clearRouterWhenUnmount } from './api'
-export { router } from './api'
-export { addHistoryListener } from './event'
-export { getNoHashMicroPathFromURL } from './core'
-export { patchHistory, releasePatchHistory } from './history'
+import {
+  createURL,
+} from '../../libs/utils'
+import {
+  clearRouterWhenUnmount,
+} from './api'
+export {
+  router,
+} from './api'
+export {
+  addHistoryListener,
+} from './event'
+export {
+  getNoHashMicroPathFromURL,
+  getRouterMode,
+} from './core'
+export {
+  patchHistory,
+  releasePatchHistory,
+} from './history'
 
 /**
  * TODO: 关于关闭虚拟路由系统的临时笔记
@@ -100,7 +115,7 @@ export function updateBrowserURLWithLocation (
  * @param appName app name
  * @param url app url
  * @param microLocation location of microApp
- * @param keepRouteState keep-router-state is only used to control whether to clear the location of microApp
+ * @param keepRouteState keep-router-state is only used to control whether to clear the location of microApp, default is false
  */
 export function clearRouteStateFromURL (
   appName: string,
@@ -108,11 +123,14 @@ export function clearRouteStateFromURL (
   microLocation: MicroLocation,
   keepRouteState: boolean,
 ): void {
-  if (!keepRouteState) {
-    const { pathname, search, hash } = createURL(url)
-    updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
+  if (!isRouterModeCustom(appName)) {
+    if (!keepRouteState) {
+      const { pathname, search, hash } = createURL(url)
+      updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
+    }
+    removePathFromBrowser(appName)
   }
-  removePathFromBrowser(appName)
+
   clearRouterWhenUnmount(appName)
 }
 

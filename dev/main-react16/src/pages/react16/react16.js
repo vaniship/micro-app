@@ -199,7 +199,7 @@ export default class App extends React.Component {
   }
 
   jumpToPage2 = () => {
-    microApp.router.push({name: this.state.name, path: '/micro-app/react16/page2'})
+    microApp.router.push({name: this.state.name, path: '/micro-app/demo/react16/page2'})
   }
 
   jumpToInline = () => {
@@ -431,7 +431,8 @@ export default class App extends React.Component {
                   // disableScopecss
                   // disable-scopecss
                   // shadowDOM
-                  disable-memory-router={this.state.testNum===1}
+                  // disable-memory-router={this.state.testNum===1}
+                  router-mode='custom'
                   // keep-router-state
                   // default-page='/micro-app/react16/page2'
                   // hidden-router

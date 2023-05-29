@@ -1,7 +1,6 @@
 import type { lifeCyclesType, AppInterface } from '@micro-app/types'
 import microApp from '../micro_app'
 import { logError, isFunction, removeDomScope, getRootContainer, assign } from '../libs/utils'
-import { formatEventName } from '../sandbox/adapter'
 
 function formatEventInfo (event: CustomEvent, element: HTMLElement): void {
   Object.defineProperties(event, {
@@ -74,10 +73,9 @@ export function dispatchCustomEventToMicroApp (
   eventName: string,
   detail: Record<string, any> = {},
 ): void {
-  const event = new CustomEvent(formatEventName(eventName, app.name), {
+  const event = new CustomEvent(eventName, {
     detail,
   })
 
-  const target = app.iframe ? app.sandBox.microAppWindow : window
-  target.dispatchEvent(event)
+  app.sandBox.microAppWindow.dispatchEvent(event)
 }

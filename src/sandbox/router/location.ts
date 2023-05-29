@@ -15,7 +15,7 @@ import {
   setMicroPathToURL,
   isEffectiveApp,
   getMicroState,
-  isMemoryRouterEnabled,
+  isRouterModeCustom,
 } from './core'
 import {
   dispatchNativeEvent,
@@ -88,7 +88,7 @@ export function createMicroLocation (
     if (targetLocation.origin === proxyLocation.origin) {
       const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
       // if disable memory-router, navigate directly through rawLocation
-      if (isMemoryRouterEnabled(appName)) {
+      if (!isRouterModeCustom(appName)) {
         /**
          * change hash with location.href will not trigger the browser reload
          * so we use pushState & reload to imitate href behavior
@@ -220,21 +220,23 @@ export function createMicroLocation (
             rawLocation.href = createURL(targetPath, rawLocation.origin).href
           }
         } else if (key === 'pathname') {
-          if (isMemoryRouterEnabled(appName)) {
+          if (isRouterModeCustom(appName)) {
+            rawLocation.pathname = value
+          } else {
             const targetPath = ('/' + value).replace(/^\/+/, '/') + proxyLocation.search + proxyLocation.hash
             handleForPathNameAndSearch(targetPath, 'pathname')
-          } else {
-            rawLocation.pathname = value
           }
         } else if (key === 'search') {
-          if (isMemoryRouterEnabled(appName)) {
+          if (isRouterModeCustom(appName)) {
+            rawLocation.search = value
+          } else {
             const targetPath = proxyLocation.pathname + ('?' + value).replace(/^\?+/, '?') + proxyLocation.hash
             handleForPathNameAndSearch(targetPath, 'search')
-          } else {
-            rawLocation.search = value
           }
         } else if (key === 'hash') {
-          if (isMemoryRouterEnabled(appName)) {
+          if (isRouterModeCustom(appName)) {
+            rawLocation.hash = value
+          } else {
             const targetPath = proxyLocation.pathname + proxyLocation.search + ('#' + value).replace(/^#+/, '#')
             const targetLocation = createURL(targetPath, url)
             // The same hash will not trigger popStateEvent
@@ -246,8 +248,6 @@ export function createMicroLocation (
                 false,
               )
             }
-          } else {
-            rawLocation.hash = value
           }
         } else {
           Reflect.set(target, key, value)

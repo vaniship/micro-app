@@ -15,14 +15,16 @@ import {
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
 import {
-  scopeIframeDocumentEvent,
-  scopeIframeDocumentOnEvent,
   uniqueDocumentElement,
   proxy2RawDocOrShadowKeys,
   proxy2RawDocOrShadowMethods,
   proxy2RawDocumentKeys,
   proxy2RawDocumentMethods,
 } from './special_key'
+import {
+  SCOPE_DOCUMENT_EVENT,
+  SCOPE_DOCUMENT_ON_EVENT,
+} from '../../constants'
 import {
   updateElementInfo,
 } from '../adapter'
@@ -248,7 +250,7 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
   const microDocument = microAppWindow.document
 
   function getEventTarget (type: string, bindTarget: Document): Document {
-    return scopeIframeDocumentEvent.includes(type) ? bindTarget : rawDocument
+    return SCOPE_DOCUMENT_EVENT.includes(type) ? bindTarget : rawDocument
   }
 
   microRootDocument.prototype.addEventListener = function (
@@ -304,7 +306,7 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
    * 2、shadowDOM
    */
   Object.getOwnPropertyNames(microRootDocument.prototype)
-    .filter((key: string) => /^on/.test(key) && !scopeIframeDocumentOnEvent.includes(key))
+    .filter((key: string) => /^on/.test(key) && !SCOPE_DOCUMENT_ON_EVENT.includes(key))
     .forEach((eventName: string) => {
       const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microRootDocument.prototype, eventName) || {
         enumerable: true,

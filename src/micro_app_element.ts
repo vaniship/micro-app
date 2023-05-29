@@ -6,6 +6,9 @@ import type {
   OptionsType,
   NormalKey,
 } from '@micro-app/types'
+import microApp from './micro_app'
+import dispatchLifecyclesEvent from './interact/lifecycles_event'
+import globalEnv from './libs/global_env'
 import {
   defer,
   formatAppName,
@@ -22,13 +25,15 @@ import {
 import {
   ObservedAttrName,
   lifeCycles,
-  ROUTER_MODE_LIST,
 } from './constants'
-import CreateApp, { appInstanceMap } from './create_app'
-import microApp from './micro_app'
-import dispatchLifecyclesEvent from './interact/lifecycles_event'
-import globalEnv from './libs/global_env'
-import { getNoHashMicroPathFromURL, router } from './sandbox/router'
+import CreateApp, {
+  appInstanceMap,
+} from './create_app'
+import {
+  router,
+  getNoHashMicroPathFromURL,
+  getRouterMode,
+} from './sandbox/router'
 
 /**
  * define element
@@ -341,7 +346,6 @@ export function defineElement (tagName: string): void {
         inline: this.getDisposeResult('inline'),
         iframe: this.getDisposeResult('iframe'),
         ssrUrl: this.ssrUrl,
-        routerMode: this.getRouterMode(),
       })
 
       /**
@@ -384,9 +388,9 @@ export function defineElement (tagName: string): void {
       app.mount({
         container: this.shadowRoot ?? this,
         inline: this.getDisposeResult('inline'),
-        useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
-        defaultPage: this.getDefaultPage(),
+        routerMode: this.getMemoryRouterMode(),
         baseroute: this.getBaseRouteCompatible(),
+        defaultPage: this.getDefaultPage(),
         disablePatchRequest: this.getDisposeResult('disable-patch-request'),
         fiber: this.getDisposeResult('fiber'),
       })
@@ -428,7 +432,7 @@ export function defineElement (tagName: string): void {
      * Global setting is lowest priority
      * @param name Configuration item name
      */
-    private getDisposeResult <T extends keyof OptionsType> (name: T): boolean {
+    public getDisposeResult <T extends keyof OptionsType> (name: T): boolean {
       return (this.compatibleProperties(name) || !!microApp.options[name]) && this.compatibleDisableProperties(name)
     }
 
@@ -531,14 +535,12 @@ export function defineElement (tagName: string): void {
      * get config of router-mode
      * @returns router-mode
      */
-    private getRouterMode () : string {
-      // compatible with disable-memory-router in older versions
-      const routerMode = this.getDisposeResult('disable-memory-router') ? 'custom' : this.getAttribute('router-mode') || microApp.options['router-mode'] || ''
-      return ROUTER_MODE_LIST.includes(routerMode) ? routerMode : 'history'
+    private getMemoryRouterMode () : string {
+      return getRouterMode(this.getAttribute('router-mode'), this)
     }
 
     /**
-     * Rewrite micro-app.setAttribute, process attr data
+     * rewrite micro-app.setAttribute, process attr data
      * @param key attr name
      * @param value attr value
      */
