@@ -3,11 +3,143 @@ import type {
   CommonEffectHook,
   MicroEventListener,
   timeInfo,
+  WithSandBoxInterface,
 } from '@micro-app/types'
+import type {
+  proxyWindow
+} from './index'
 import globalEnv from '../../libs/global_env'
+import bindFunctionToRawTarget from '../bind_function'
 import {
   SCOPE_WINDOW_EVENT,
 } from '../../constants'
+import {
+  isString,
+  unique,
+  throttleDeferForSetAppName,
+  rawDefineProperty,
+  rawHasOwnProperty,
+} from '../../libs/utils'
+
+// create proxyWindow with Proxy(microAppWindow)
+export function createProxyWindow (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: WithSandBoxInterface,
+): proxyWindow {
+  const rawWindow = globalEnv.rawWindow
+  const descriptorTargetMap = new Map<PropertyKey, 'target' | 'rawWindow'>()
+  return new Proxy(microAppWindow, {
+    get: (target: microAppWindowType, key: PropertyKey): unknown => {
+      throttleDeferForSetAppName(appName)
+      if (
+        Reflect.has(target, key) ||
+        (isString(key) && /^__MICRO_APP_/.test(key)) ||
+        sandbox.scopeProperties.includes(key)
+      ) return Reflect.get(target, key)
+
+      return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
+    },
+    set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
+      /**
+       * TODO:
+       * 1、location域名相同，子应用内部跳转时的处理
+       */
+      if (sandbox.adapter.escapeSetterKeyList.includes(key)) {
+        Reflect.set(rawWindow, key, value)
+      } else if (
+        // target.hasOwnProperty has been rewritten
+        !rawHasOwnProperty.call(target, key) &&
+        rawHasOwnProperty.call(rawWindow, key) &&
+        !sandbox.scopeProperties.includes(key)
+      ) {
+        const descriptor = Object.getOwnPropertyDescriptor(rawWindow, key)
+        const { configurable, enumerable, writable, set } = descriptor!
+        // set value because it can be set
+        rawDefineProperty(target, key, {
+          value,
+          configurable,
+          enumerable,
+          writable: writable ?? !!set,
+        })
+
+        sandbox.injectedKeys.add(key)
+      } else {
+        !Reflect.has(target, key) && sandbox.injectedKeys.add(key)
+        Reflect.set(target, key, value)
+      }
+
+      if (
+        (
+          sandbox.escapeProperties.includes(key) ||
+          (
+            sandbox.adapter.staticEscapeProperties.includes(key) &&
+            !Reflect.has(rawWindow, key)
+          )
+        ) &&
+        !sandbox.scopeProperties.includes(key)
+      ) {
+        !Reflect.has(rawWindow, key) && sandbox.escapeKeys.add(key)
+        Reflect.set(rawWindow, key, value)
+      }
+
+      return true
+    },
+    has: (target: microAppWindowType, key: PropertyKey): boolean => {
+      if (sandbox.scopeProperties.includes(key)) {
+        /**
+         * Some keywords, such as Vue, need to meet two conditions at the same time:
+         * 1. 'Vue' in window --> false
+         * 2. Vue (top level variable) // undefined
+         * Issue https://github.com/micro-zoe/micro-app/issues/686
+         */
+        if (sandbox.adapter.staticScopeProperties.includes(key)) {
+          return !!target[key]
+        }
+        return key in target
+      }
+      return key in target || key in rawWindow
+    },
+    // Object.getOwnPropertyDescriptor(window, key)
+    getOwnPropertyDescriptor: (target: microAppWindowType, key: PropertyKey): PropertyDescriptor|undefined => {
+      if (rawHasOwnProperty.call(target, key)) {
+        descriptorTargetMap.set(key, 'target')
+        return Object.getOwnPropertyDescriptor(target, key)
+      }
+
+      if (rawHasOwnProperty.call(rawWindow, key)) {
+        descriptorTargetMap.set(key, 'rawWindow')
+        const descriptor = Object.getOwnPropertyDescriptor(rawWindow, key)
+        if (descriptor && !descriptor.configurable) {
+          descriptor.configurable = true
+        }
+        return descriptor
+      }
+
+      return undefined
+    },
+    // Object.defineProperty(window, key, Descriptor)
+    defineProperty: (target: microAppWindowType, key: PropertyKey, value: PropertyDescriptor): boolean => {
+      const from = descriptorTargetMap.get(key)
+      if (from === 'rawWindow') {
+        return Reflect.defineProperty(rawWindow, key, value)
+      }
+      return Reflect.defineProperty(target, key, value)
+    },
+    // Object.getOwnPropertyNames(window)
+    ownKeys: (target: microAppWindowType): Array<string | symbol> => {
+      return unique(Reflect.ownKeys(rawWindow).concat(Reflect.ownKeys(target)))
+    },
+    deleteProperty: (target: microAppWindowType, key: PropertyKey): boolean => {
+      if (rawHasOwnProperty.call(target, key)) {
+        sandbox.injectedKeys.has(key) && sandbox.injectedKeys.delete(key)
+        sandbox.escapeKeys.has(key) && Reflect.deleteProperty(rawWindow, key)
+        return Reflect.deleteProperty(target, key)
+      }
+      return true
+    },
+  })
+}
 
 /**
  * Rewrite side-effect events
@@ -36,13 +168,19 @@ export function patchWindowEffect (
     return SCOPE_WINDOW_EVENT.includes(type) ? microAppWindow : rawWindow
   }
 
-  // TODO: listener 是否需要绑定microAppWindow，否则函数中的this指向原生window
-  // listener may be null, e.g test-passive
+  /**
+   * listener may be null, e.g test-passive
+   * TODO:
+   *  1. listener 是否需要绑定microAppWindow，否则函数中的this指向原生window
+   *  2. 如果this不指向proxyWindow 或 microAppWindow，应该要做处理
+   *  window.addEventListener.call(非window, type, listener, options)
+   */
   microAppWindow.addEventListener = function (
     type: string,
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
+    // console.log(3333333, this)
     const listenerList = eventListenerMap.get(type)
     if (listenerList) {
       listenerList.add(listener)

@@ -67,7 +67,7 @@ export default class CreateApp implements AppInterface {
   public umdMode = false
   public source: sourceType
   // TODO: 类型优化，加上iframe沙箱
-  public sandBox: WithSandBoxInterface | null = null
+  public sandBox: WithSandBoxInterface | IframeSandbox | null = null
   public name: string
   public url: string
   public container: HTMLElement | ShadowRoot | null

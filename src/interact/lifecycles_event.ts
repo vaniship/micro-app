@@ -65,7 +65,7 @@ export default function dispatchLifecyclesEvent (
 /**
  * Dispatch custom event to micro app
  * @param app app
- * @param eventName event name
+ * @param eventName event name ['unmount', 'appstate-change']
  * @param detail event detail
  */
 export function dispatchCustomEventToMicroApp (

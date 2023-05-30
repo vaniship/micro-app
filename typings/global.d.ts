@@ -65,8 +65,31 @@ declare module '@micro-app/types' {
     destroy?: boolean,
   }
 
+  interface SandBoxAdapter {
+    // Variables that can only assigned to rawWindow
+    escapeSetterKeyList: PropertyKey[]
+
+    // Variables that can escape to rawWindow
+    staticEscapeProperties: PropertyKey[]
+
+    // Variables that scoped in child app
+    staticScopeProperties: PropertyKey[]
+  }
+
   interface WithSandBoxInterface {
+    // adapter for sandbox
+    adapter: SandBoxAdapter
+    // Scoped global Properties(Properties that can only get and set in microAppWindow, will not escape to rawWindow)
+    scopeProperties: PropertyKey[]
+    // Properties that can be escape to rawWindow
+    escapeProperties: PropertyKey[]
+    // Properties escape to rawWindow, cleared when unmount
+    escapeKeys: Set<PropertyKey>
+    // Properties newly added to microAppWindow
+    injectedKeys: Set<PropertyKey>
+    // proxy(microWindow)
     proxyWindow: WindowProxy
+    // child window
     microAppWindow: Window // Proxy target
     start (startParams: SandBoxStartParams): void
     stop (stopParams: SandBoxStopParams): void
@@ -85,20 +108,6 @@ declare module '@micro-app/types' {
     patchStaticElement (container: Element | ShadowRoot): void
     actionBeforeExecScripts (container: Element | ShadowRoot): void
     deleteIframeElement? (): void
-  }
-
-  interface SandBoxAdapter {
-    // Variables that can only assigned to rawWindow
-    escapeSetterKeyList: PropertyKey[]
-
-    // Variables that can escape to rawWindow
-    staticEscapeProperties: PropertyKey[]
-
-    // Variables that scoped in child app
-    staticScopeProperties: PropertyKey[]
-
-    // adapter for react
-    // injectReactHMRProperty (): void
   }
 
   type LinkSourceInfo = {

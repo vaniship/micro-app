@@ -89,6 +89,7 @@ export function createProxyDocument (
    * TODO:
    *  1. listener 是否需要绑定proxyDocument，否则函数中的this指向原生window
    *  2. 相似代码提取为公共方法(with, iframe)
+   *  3. 如果this不指向proxyDocument 和 rawDocument，则需要特殊处理
    */
   function addEventListener (
     type: string,

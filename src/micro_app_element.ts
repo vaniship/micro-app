@@ -501,6 +501,7 @@ export function defineElement (tagName: string): void {
      */
     private updateSsrUrl (baseUrl: string): void {
       if (this.getDisposeResult('ssr')) {
+        // TODO: disable-memory-router不存在了，这里需要更新一下
         if (this.getDisposeResult('disable-memory-router') || this.getDisposeResult('disableSandbox')) {
           const rawLocation = globalEnv.rawWindow.location
           this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)

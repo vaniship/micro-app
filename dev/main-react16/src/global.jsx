@@ -53,7 +53,7 @@ const prefetchConfig = [
 // microApp.preFetch(prefetchConfig)
 
 window['scopeKeySpe'] = 'value from base app'
-window.Vue = 'Vue from base'
+window.Vue = { tip: 'Vue from base' }
 
 microApp.start({
   // shadowDOM: true,

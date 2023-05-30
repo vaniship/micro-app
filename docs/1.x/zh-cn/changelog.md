@@ -8,6 +8,30 @@
 
 ---
 
+### 1.0.0-beta.6
+
+`2023-06-02`
+
+- **New**
+
+  - 🆕 新增了虚拟路由多种模式功能，新增了三种路由模式：`search`、`history`、`custom`。
+  - 🆕 新增了在预渲染时可以选择不同路由模式进行渲染的功能。
+  - 🆕 删除了配置项`disable-memory-router`，虚拟路由不再支持关闭功能。
+
+- **Bug Fix**
+
+  - 🐞 修复了在with沙箱下子应用使用`vuedraggable`报错的问题。
+  - 🐞 修复了在iframe沙箱下子应用定义`onpopstate`、`onhashchange`会覆盖主应用方法的问题。
+  - 🐞 修复了`window.addEventListener`绑定非window对象时表现异常的问题。
+  - 🐞 修复了`document.addEventListener`绑定非document对象时表现异常的问题。
+
+- **Update**
+
+  - 🚀 优化了with沙箱中特殊事件的处理方式，`onpopstate`、`onhashchange`等方法不再绑定到原生window。
+  - 🚀 优化了沙箱的架构设计及代码。
+  - 🚀 更新了官网文档。
+
+
 ### 1.0.0-beta.5
 
 `2023-05-23`

@@ -133,6 +133,14 @@ window.onunmount = () => {
 //   // console.log(this)
 // }, false)
 
+window.onclick = function () {
+  console.log(111111)
+}
+
+window.addEventListener.call(document.querySelector('#root'), 'click', () => {
+  console.log(2222222)
+})
+
 // 测试主动卸载预渲染、隐藏keep-alive应用，事件快照重复执行的问题
 // setTimeout(() => {
 //   console.log('5秒钟倒计时结束')
