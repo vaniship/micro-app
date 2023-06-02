@@ -91,9 +91,3 @@ export const proxy2RawDocumentMethods = [
   'prepend',
   // 'dispatchEvent',
 ]
-
-export const globalPropertyList = [
-  'window',
-  'self',
-  'globalThis'
-]

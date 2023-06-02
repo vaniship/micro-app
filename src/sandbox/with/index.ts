@@ -21,6 +21,9 @@ import {
   initEnvOfNestedApp,
 } from '../../libs/nest_app'
 import {
+  GLOBAL_KEY_TO_WINDOW
+} from '../../constants'
+import {
   getEffectivePath,
   isArray,
   isPlainObject,
@@ -34,11 +37,11 @@ import {
   assign,
 } from '../../libs/utils'
 import {
-  createProxyDocument,
+  patchDocument,
 } from './document'
 import {
   createProxyWindow,
-  patchWindowEffect,
+  patchWindow,
 } from './window'
 import {
   patchElementAndDocument,
@@ -85,7 +88,6 @@ export type MicroAppWindowType = Window & MicroAppWindowDataType
 export type proxyWindow = WindowProxy & MicroAppWindowDataType
 
 const { createMicroEventSource, clearMicroEventSource } = useMicroEventSource()
-const globalPropertyList: Array<PropertyKey> = ['window', 'self', 'globalThis']
 
 export default class WithSandBox implements WithSandBoxInterface {
   static activeCount = 0 // number of active sandbox
@@ -112,10 +114,12 @@ export default class WithSandBox implements WithSandBoxInterface {
     this.adapter = new Adapter()
     // get scopeProperties and escapeProperties from plugins
     this.getSpecialProperties(appName)
+    // create proxyWindow with Proxy(microAppWindow)
+    this.proxyWindow = createProxyWindow(appName, this.microAppWindow, this)
     // rewrite window of child app
-    this.windowEffect = this.patchWithWindow(appName, this.microAppWindow)
+    this.windowEffect = patchWindow(appName, this.microAppWindow)
     // rewrite document of child app
-    this.documentEffect = this.patchWithDocument(appName, this.microAppWindow)
+    this.documentEffect = patchDocument(appName, this.microAppWindow, this)
     // inject global properties
     this.initStaticGlobalKeys(appName, url, this.microAppWindow)
   }
@@ -385,47 +389,6 @@ export default class WithSandBox implements WithSandBoxInterface {
     }
   }
 
-  /**
-   * create proxyWindow, rewrite window event & timer of child app
-   * @param appName app name
-   * @param microAppWindow Proxy target
-   */
-  private patchWithWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
-    // create proxyWindow with Proxy(microAppWindow)
-    this.proxyWindow = createProxyWindow(appName, microAppWindow, this)
-    // rewrite global event & timeout of window
-    return patchWindowEffect(appName, microAppWindow)
-  }
-
-  /**
-   * create proxyDocument and MicroDocument, rewrite document of child app
-   * @param appName app name
-   * @param microAppWindow Proxy target
-   */
-  private patchWithDocument (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
-    const { proxyDocument, MicroDocument, documentEffect } = createProxyDocument(appName, this)
-    rawDefineProperties(microAppWindow, {
-      document: {
-        configurable: false,
-        enumerable: true,
-        get () {
-          // return globalEnv.rawDocument
-          return proxyDocument
-        },
-      },
-      Document: {
-        configurable: false,
-        enumerable: false,
-        get () {
-          // return globalEnv.rawRootDocument
-          return MicroDocument
-        },
-      }
-    })
-
-    return documentEffect
-  }
-
   // set __MICRO_APP_PRE_RENDER__ state
   public setPreRenderState (state: boolean): void {
     this.microAppWindow.__MICRO_APP_PRE_RENDER__ = state
@@ -459,7 +422,7 @@ export default class WithSandBox implements WithSandBoxInterface {
       this.createDescriptorForMicroAppWindow('parent', parentValue)
     )
 
-    globalPropertyList.forEach((key: PropertyKey) => {
+    GLOBAL_KEY_TO_WINDOW.forEach((key: PropertyKey) => {
       rawDefineProperty(
         microAppWindow,
         key,

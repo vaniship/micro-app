@@ -32,6 +32,44 @@ export enum microGlobalEvent {
   ONUNMOUNT = 'onunmount',
 }
 
+// keep-alive status
+export enum keepAliveStates {
+  KEEP_ALIVE_SHOW = 'keep_alive_show',
+  KEEP_ALIVE_HIDDEN = 'keep_alive_hidden',
+}
+
+// micro-app config
+export enum MicroAppConfig {
+  DESTROY = 'destroy',
+  DESTORY = 'destory',
+  INLINE = 'inline',
+  DISABLESCOPECSS = 'disableScopecss',
+  DISABLESANDBOX = 'disableSandbox',
+  DISABLE_SCOPECSS = 'disable-scopecss',
+  DISABLE_SANDBOX = 'disable-sandbox',
+  DISABLE_MEMORY_ROUTER = 'disable-memory-router',
+  DISABLE_PATCH_REQUEST = 'disable-patch-request',
+  KEEP_ROUTER_STATE = 'keep-router-state',
+  HIDDEN_ROUTER = 'hidden-router',
+  KEEP_ALIVE = 'keep-alive',
+  CLEAR_DATA ='clear-data',
+  SSR = 'ssr',
+  FIBER = 'fiber',
+}
+
+// prefetch level
+export const PREFETCH_LEVEL: number[] = [1, 2, 3]
+
+// memory router constants
+export const DEFAULT_ROUTER_MODE = 'search'
+export const ROUTER_MODE_HISTORY = 'history'
+export const ROUTER_MODE_CUSTOM = 'custom'
+export const ROUTER_MODE_LIST: string[] = [
+  DEFAULT_ROUTER_MODE,
+  ROUTER_MODE_HISTORY,
+  ROUTER_MODE_CUSTOM,
+]
+
 // event bound to child app window
 export const SCOPE_WINDOW_EVENT = [
   'popstate',
@@ -63,41 +101,11 @@ export const SCOPE_DOCUMENT_ON_EVENT = [
   'onreadystatechange',
 ]
 
-// keep-alive status
-export enum keepAliveStates {
-  KEEP_ALIVE_SHOW = 'keep_alive_show',
-  KEEP_ALIVE_HIDDEN = 'keep_alive_hidden',
-}
-
-// micro-app config
-export enum MicroAppConfig {
-  DESTROY = 'destroy',
-  DESTORY = 'destory',
-  INLINE = 'inline',
-  DISABLESCOPECSS = 'disableScopecss',
-  DISABLESANDBOX = 'disableSandbox',
-  DISABLE_SCOPECSS = 'disable-scopecss',
-  DISABLE_SANDBOX = 'disable-sandbox',
-  DISABLE_MEMORY_ROUTER = 'disable-memory-router',
-  DISABLE_PATCH_REQUEST = 'disable-patch-request',
-  KEEP_ROUTER_STATE = 'keep-router-state',
-  HIDDEN_ROUTER = 'hidden-router',
-  KEEP_ALIVE = 'keep-alive',
-  CLEAR_DATA ='clear-data',
-  SSR = 'ssr',
-  FIBER = 'fiber',
-}
-
-export const PREFETCH_LEVEL: number[] = [1, 2, 3]
-
-export const DEFAULT_ROUTER_MODE = 'search'
-export const ROUTER_MODE_HISTORY = 'history'
-export const ROUTER_MODE_CUSTOM = 'custom'
-
-export const ROUTER_MODE_LIST: string[] = [
-  DEFAULT_ROUTER_MODE,
-  ROUTER_MODE_HISTORY,
-  ROUTER_MODE_CUSTOM,
+// global key point to window
+export const GLOBAL_KEY_TO_WINDOW: Array<PropertyKey> = [
+  'window',
+  'self',
+  'globalThis',
 ]
 
 /**

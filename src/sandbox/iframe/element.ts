@@ -21,7 +21,7 @@ import {
   appInstanceMap,
 } from '../../create_app'
 
-export function patchIframeElement (
+export function patchElement (
   appName: string,
   url: string,
   microAppWindow: microAppWindowType,

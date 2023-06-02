@@ -12,6 +12,7 @@ import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
 import {
   SCOPE_WINDOW_EVENT,
+  SCOPE_WINDOW_ON_EVENT,
 } from '../../constants'
 import {
   isString,
@@ -19,6 +20,7 @@ import {
   throttleDeferForSetAppName,
   rawDefineProperty,
   rawHasOwnProperty,
+  logWarn,
 } from '../../libs/utils'
 
 // create proxyWindow with Proxy(microAppWindow)
@@ -29,7 +31,8 @@ export function createProxyWindow (
 ): proxyWindow {
   const rawWindow = globalEnv.rawWindow
   const descriptorTargetMap = new Map<PropertyKey, 'target' | 'rawWindow'>()
-  return new Proxy(microAppWindow, {
+
+  const proxyWindow = new Proxy(microAppWindow, {
     get: (target: microAppWindowType, key: PropertyKey): unknown => {
       throttleDeferForSetAppName(appName)
       if (
@@ -139,16 +142,46 @@ export function createProxyWindow (
       return true
     },
   })
+
+  return proxyWindow
+}
+
+export function patchWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
+  const rawWindow = globalEnv.rawWindow
+  Object.getOwnPropertyNames(rawWindow)
+    .filter((key: string) => {
+      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
+    })
+    .forEach((eventName: string) => {
+      const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(rawWindow, eventName) || {
+        enumerable: true,
+        writable: true,
+      }
+      try {
+        /**
+         * 模拟iframe
+         */
+        rawDefineProperty(microAppWindow, eventName, {
+          enumerable,
+          configurable: true,
+          get: () => rawWindow[eventName],
+          set: writable ?? !!set
+            ? (value) => { rawWindow[eventName] = value }
+            : undefined,
+        })
+      } catch (e) {
+        logWarn(e, appName)
+      }
+    })
+
+  return patchWindowEffect(microAppWindow)
 }
 
 /**
  * Rewrite side-effect events
  * @param microAppWindow micro window
  */
-export function patchWindowEffect (
-  appName: string,
-  microAppWindow: microAppWindowType,
-): CommonEffectHook {
+function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHook {
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
   const intervalIdMap = new Map<number, timeInfo>()
@@ -180,7 +213,6 @@ export function patchWindowEffect (
     listener: MicroEventListener,
     options?: boolean | AddEventListenerOptions,
   ): void {
-    // console.log(3333333, this)
     const listenerList = eventListenerMap.get(type)
     if (listenerList) {
       listenerList.add(listener)

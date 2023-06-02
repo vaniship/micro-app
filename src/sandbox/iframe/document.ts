@@ -2,8 +2,8 @@ import type {
   microAppWindowType,
   MicroEventListener,
   CommonEffectHook,
-  MicroLocation,
 } from '@micro-app/types'
+import type IframeSandbox from './index'
 import {
   rawDefineProperty,
   rawDefineProperties,
@@ -28,23 +28,9 @@ import {
 import {
   updateElementInfo,
 } from '../adapter'
-import { appInstanceMap } from '../../create_app'
-
-/**
- * TODO:
- *  1、shadowDOM
- *  2、重构
- */
-export function patchIframeDocument (
-  appName: string,
-  microAppWindow: microAppWindowType,
-  proxyLocation: MicroLocation,
-): CommonEffectHook {
-  patchDocumentPrototype(appName, microAppWindow)
-  patchDocumentProperties(appName, microAppWindow, proxyLocation)
-
-  return patchDocumentEffect(appName, microAppWindow)
-}
+import {
+  appInstanceMap,
+} from '../../create_app'
 
 function patchDocumentPrototype (appName: string, microAppWindow: microAppWindowType): void {
   const rawDocument = globalEnv.rawDocument
@@ -172,7 +158,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
 function patchDocumentProperties (
   appName: string,
   microAppWindow: microAppWindowType,
-  proxyLocation: MicroLocation,
+  sandbox: IframeSandbox,
 ): void {
   const rawDocument = globalEnv.rawDocument
   const microRootDocument = microAppWindow.Document
@@ -193,8 +179,8 @@ function patchDocumentProperties (
   const createDescriptors = (): PropertyDescriptorMap => {
     const result: PropertyDescriptorMap = {}
     const descList: Array<[string, () => unknown]> = [
-      ['documentURI', () => proxyLocation.href],
-      ['URL', () => proxyLocation.href],
+      ['documentURI', () => sandbox.proxyLocation.href],
+      ['URL', () => sandbox.proxyLocation.href],
       ['documentElement', () => rawDocument.documentElement],
       ['scrollingElement', () => rawDocument.scrollingElement],
       ['forms', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'form')],
@@ -400,4 +386,20 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
     rebuild,
     release,
   }
+}
+
+/**
+ * TODO:
+ *  1、shadowDOM
+ *  2、重构
+ */
+export function patchDocument (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: IframeSandbox,
+): CommonEffectHook {
+  patchDocumentPrototype(appName, microAppWindow)
+  patchDocumentProperties(appName, microAppWindow, sandbox)
+
+  return patchDocumentEffect(appName, microAppWindow)
 }

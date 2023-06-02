@@ -13,7 +13,7 @@ import {
   assign,
 } from '../../libs/utils'
 
-export function patchIframeRoute (
+export function patchRoute (
   appName: string,
   url: string,
   microAppWindow: microAppWindowType,

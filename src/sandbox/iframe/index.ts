@@ -8,7 +8,6 @@ import type {
   plugins,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
-import bindFunctionToRawTarget from '../bind_function'
 import microApp from '../../micro_app'
 import {
   getEffectivePath,
@@ -27,7 +26,7 @@ import {
   resetDataCenterSnapshot,
 } from '../../interact'
 import {
-  patchIframeRoute,
+  patchRoute,
 } from './route'
 import {
   router,
@@ -40,20 +39,18 @@ import {
   releasePatchHistory,
 } from '../router'
 import {
-  globalPropertyList,
-} from './special_key'
-import {
   patchElementAndDocument,
   releasePatchElementAndDocument,
 } from '../../source/patch'
 import {
-  patchIframeWindow,
+  createProxyWindow,
+  patchWindow,
 } from './window'
 import {
-  patchIframeDocument,
+  patchDocument,
 } from './document'
 import {
-  patchIframeElement,
+  patchElement,
 } from './element'
 import {
   patchElementTree
@@ -66,9 +63,9 @@ export default class IframeSandbox {
   private documentEffect!: CommonEffectHook
   private removeHistoryListener!: CallableFunction
   // Properties that can be escape to rawWindow
-  private escapeProperties: PropertyKey[] = []
+  public escapeProperties: PropertyKey[] = []
   // Properties escape to rawWindow, cleared when unmount
-  private escapeKeys = new Set<PropertyKey>()
+  public escapeKeys = new Set<PropertyKey>()
   public deleteIframeElement: () => void
   public iframe!: HTMLIFrameElement | null
   public sandboxReady!: Promise<void>
@@ -93,22 +90,22 @@ export default class IframeSandbox {
       // get escapeProperties from plugins
       this.getSpecialProperties(appName)
       // rewrite location & history of child app
-      this.proxyLocation = patchIframeRoute(appName, url, this.microAppWindow, browserHost)
-      // create proxy window
-      this.proxyWindow = this.createProxyWindow(this.microAppWindow)
+      this.proxyLocation = patchRoute(appName, url, this.microAppWindow, browserHost)
+      // create proxyWindow with Proxy(microAppWindow)
+      this.proxyWindow = createProxyWindow(appName, this.microAppWindow, this)
+      // rewrite window of child app
+      this.windowEffect = patchWindow(appName, this.microAppWindow)
+      // rewrite document of child app
+      this.documentEffect = patchDocument(appName, this.microAppWindow, this)
+      // rewrite Node & Element of child app
+      patchElement(appName, url, this.microAppWindow, this)
       /**
        * create static properties
        * NOTE:
        *  1. execute as early as possible
-       *  2. run after patchIframeRoute & createProxyWindow
+       *  2. run after patchRoute & createProxyWindow
        */
       this.initStaticGlobalKeys(appName, url)
-      // rewrite window of child app
-      this.windowEffect = patchIframeWindow(appName, this.microAppWindow)
-      // rewrite document of child app
-      this.documentEffect = patchIframeDocument(appName, this.microAppWindow, this.proxyLocation)
-      // rewrite Node & Element of child app
-      patchIframeElement(appName, url, this.microAppWindow, this)
       resolve()
     })
   }
@@ -248,7 +245,7 @@ export default class IframeSandbox {
    * create static properties
    * NOTE:
    *  1. execute as early as possible
-   *  2. run after patchIframeRoute & createProxyWindow
+   *  2. run after patchRoute & createProxyWindow
    */
   private initStaticGlobalKeys (appName: string, url: string): void {
     this.microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
@@ -412,60 +409,6 @@ export default class IframeSandbox {
   // TODO: 初始化和每次跳转时都要更新base的href
   public updateIframeBase = (): void => {
     this.baseElement?.setAttribute('href', this.proxyLocation.protocol + '//' + this.proxyLocation.host + this.proxyLocation.pathname)
-  }
-
-  private createProxyWindow (microAppWindow: microAppWindowType): void {
-    const rawWindow = globalEnv.rawWindow
-    const customProperties: PropertyKey[] = []
-
-    return new Proxy(microAppWindow, {
-      get: (target: microAppWindowType, key: PropertyKey): unknown => {
-        if (key === 'location') {
-          return this.proxyLocation
-        }
-
-        if (globalPropertyList.includes(key.toString())) {
-          return this.proxyWindow
-        }
-
-        if (customProperties.includes(key)) {
-          return Reflect.get(target, key)
-        }
-
-        return bindFunctionToRawTarget(Reflect.get(target, key), target)
-      },
-      set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
-        /**
-         * TODO:
-         * 1、location域名相同，子应用内部跳转时的处理
-         * 2、和with沙箱的变量相同，提取成公共数组
-         */
-        if (key === 'location') {
-          return Reflect.set(rawWindow, key, value)
-        }
-
-        if (!Reflect.has(target, key)) {
-          customProperties.push(key)
-        }
-
-        Reflect.set(target, key, value)
-
-        if (this.escapeProperties.includes(key)) {
-          !Reflect.has(rawWindow, key) && this.escapeKeys.add(key)
-          Reflect.set(rawWindow, key, value)
-        }
-
-        return true
-      },
-      has: (target: microAppWindowType, key: PropertyKey) => key in target,
-      deleteProperty: (target: microAppWindowType, key: PropertyKey): boolean => {
-        if (Reflect.has(target, key)) {
-          this.escapeKeys.has(key) && Reflect.deleteProperty(rawWindow, key)
-          return Reflect.deleteProperty(target, key)
-        }
-        return true
-      },
-    })
   }
 
   /**

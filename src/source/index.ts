@@ -10,8 +10,16 @@ import {
   isStyleElement,
   isImageElement,
 } from '../libs/utils'
-import { extractLinkFromHtml, fetchLinksFromHtml } from './links'
-import { extractScriptElement, fetchScriptsFromHtml, checkExcludeUrl, checkIgnoreUrl } from './scripts'
+import {
+  extractLinkFromHtml,
+  fetchLinksFromHtml,
+} from './links'
+import {
+  extractScriptElement,
+  fetchScriptsFromHtml,
+  checkExcludeUrl,
+  checkIgnoreUrl,
+} from './scripts'
 import scopedCSS from '../sandbox/scoped_css'
 import globalEnv from '../libs/global_env'
 

@@ -3,6 +3,7 @@ import type {
   MicroEventListener,
   CommonEffectHook,
 } from '@micro-app/types'
+import type IframeSandbox from './index'
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
 import {
@@ -11,15 +12,76 @@ import {
   logWarn,
 } from '../../libs/utils'
 import {
-  escape2RawWindowKeys,
-  escape2RawWindowRegExpKeys,
-} from './special_key'
-import {
+  GLOBAL_KEY_TO_WINDOW,
   SCOPE_WINDOW_EVENT,
   SCOPE_WINDOW_ON_EVENT,
 } from '../../constants'
+import {
+  escape2RawWindowKeys,
+  escape2RawWindowRegExpKeys,
+} from './special_key'
 
-export function patchIframeWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
+export function createProxyWindow (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: IframeSandbox,
+): void {
+  const rawWindow = globalEnv.rawWindow
+  const customProperties: PropertyKey[] = []
+
+  const proxyWindow = new Proxy(microAppWindow, {
+    get: (target: microAppWindowType, key: PropertyKey): unknown => {
+      if (key === 'location') {
+        return sandbox.proxyLocation
+      }
+
+      if (GLOBAL_KEY_TO_WINDOW.includes(key.toString())) {
+        return proxyWindow
+      }
+
+      if (customProperties.includes(key)) {
+        return Reflect.get(target, key)
+      }
+
+      return bindFunctionToRawTarget(Reflect.get(target, key), target)
+    },
+    set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
+      /**
+       * TODO:
+       * 1、location域名相同，子应用内部跳转时的处理
+       * 2、和with沙箱的变量相同，提取成公共数组
+       */
+      if (key === 'location') {
+        return Reflect.set(rawWindow, key, value)
+      }
+
+      if (!Reflect.has(target, key)) {
+        customProperties.push(key)
+      }
+
+      Reflect.set(target, key, value)
+
+      if (sandbox.escapeProperties.includes(key)) {
+        !Reflect.has(rawWindow, key) && sandbox.escapeKeys.add(key)
+        Reflect.set(rawWindow, key, value)
+      }
+
+      return true
+    },
+    has: (target: microAppWindowType, key: PropertyKey) => key in target,
+    deleteProperty: (target: microAppWindowType, key: PropertyKey): boolean => {
+      if (Reflect.has(target, key)) {
+        sandbox.escapeKeys.has(key) && Reflect.deleteProperty(rawWindow, key)
+        return Reflect.deleteProperty(target, key)
+      }
+      return true
+    },
+  })
+
+  return proxyWindow
+}
+
+export function patchWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
   const rawWindow = globalEnv.rawWindow
 
   escape2RawWindowKeys.forEach((key: string) => {
