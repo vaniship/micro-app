@@ -96,8 +96,8 @@ export function extractLinkFromHtml (
     } else {
       return { address: href, linkInfo }
     }
-  } else if (rel && ['prefetch', 'preload', 'prerender', 'icon', 'apple-touch-icon'].includes(rel)) {
-    // preload prefetch icon ....
+  } else if (rel && ['prefetch', 'preload', 'prerender'].includes(rel)) {
+    // preload prefetch prerender ....
     if (isDynamic) {
       replaceComment = document.createComment(`link element with rel=${rel}${href ? ' & href=' + href : ''} removed by micro-app`)
     } else {
