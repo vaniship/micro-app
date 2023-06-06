@@ -108,6 +108,8 @@ export const GLOBAL_KEY_TO_WINDOW: Array<PropertyKey> = [
   'globalThis',
 ]
 
+export const RAW_GLOBAL_TARGET: Array<PropertyKey> = ['rawWindow', 'rawDocument']
+
 /**
  * global key must be static key, they can not rewrite
  * e.g.

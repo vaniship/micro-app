@@ -10,6 +10,7 @@ import bindFunctionToRawTarget from '../bind_function'
 import {
   SCOPE_WINDOW_EVENT,
   SCOPE_WINDOW_ON_EVENT,
+  RAW_GLOBAL_TARGET,
 } from '../../constants'
 import {
   isString,
@@ -18,6 +19,7 @@ import {
   rawDefineProperty,
   rawHasOwnProperty,
   logWarn,
+  removeDomScope,
 } from '../../libs/utils'
 
 /**
@@ -95,7 +97,10 @@ function createProxyWindow (
         Reflect.has(target, key) ||
         (isString(key) && /^__MICRO_APP_/.test(key)) ||
         sandbox.scopeProperties.includes(key)
-      ) return Reflect.get(target, key)
+      ) {
+        if (RAW_GLOBAL_TARGET.includes(key)) removeDomScope()
+        return Reflect.get(target, key)
+      }
 
       return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
     },
