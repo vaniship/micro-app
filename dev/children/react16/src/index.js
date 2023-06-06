@@ -134,7 +134,7 @@ window.onunmount = () => {
 // }, false)
 
 window.onclick = function () {
-  console.log(111111)
+  console.log(`子应用${window.__MICRO_APP_NAME__} window.onclick`)
 }
 
 window.addEventListener.call(document.querySelector('#root'), 'click', () => {

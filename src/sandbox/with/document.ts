@@ -17,9 +17,44 @@ import {
 } from '../adapter'
 
 /**
+ * create proxyDocument and MicroDocument, rewrite document of child app
+ * @param appName app name
+ * @param microAppWindow Proxy target
+ * @returns EffectHook
+ */
+export function patchDocument (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: WithSandBoxInterface,
+): CommonEffectHook {
+  const { proxyDocument, documentEffect } = createProxyDocument(appName, sandbox)
+  const MicroDocument = createMicroDocument(appName, proxyDocument)
+  rawDefineProperties(microAppWindow, {
+    document: {
+      configurable: false,
+      enumerable: true,
+      get () {
+        // return globalEnv.rawDocument
+        return proxyDocument
+      },
+    },
+    Document: {
+      configurable: false,
+      enumerable: false,
+      get () {
+        // return globalEnv.rawRootDocument
+        return MicroDocument
+      },
+    }
+  })
+
+  return documentEffect
+}
+
+/**
  * Create new document and Document
  */
-export function createProxyDocument (
+function createProxyDocument (
   appName: string,
   sandbox: WithSandBoxInterface,
 ): {
@@ -233,38 +268,4 @@ function createMicroDocument (appName: string, proxyDocument: Document): Functio
   }))
 
   return MicroDocument
-}
-
-/**
- * create proxyDocument and MicroDocument, rewrite document of child app
- * @param appName app name
- * @param microAppWindow Proxy target
- */
-export function patchDocument (
-  appName: string,
-  microAppWindow: microAppWindowType,
-  sandbox: WithSandBoxInterface,
-): CommonEffectHook {
-  const { proxyDocument, documentEffect } = createProxyDocument(appName, sandbox)
-  const MicroDocument = createMicroDocument(appName, proxyDocument)
-  rawDefineProperties(microAppWindow, {
-    document: {
-      configurable: false,
-      enumerable: true,
-      get () {
-        // return globalEnv.rawDocument
-        return proxyDocument
-      },
-    },
-    Document: {
-      configurable: false,
-      enumerable: false,
-      get () {
-        // return globalEnv.rawRootDocument
-        return MicroDocument
-      },
-    }
-  })
-
-  return documentEffect
 }

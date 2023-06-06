@@ -21,8 +21,105 @@ import {
   escape2RawWindowRegExpKeys,
 } from './special_key'
 
-export function createProxyWindow (
+/**
+ * patch window of child app
+ * @param appName app name
+ * @param microAppWindow microWindow of child app
+ * @param sandbox WithSandBox
+ * @returns EffectHook
+ */
+export function patchWindow (
   appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: IframeSandbox,
+): CommonEffectHook {
+  patchWindowProperty(appName, microAppWindow)
+  createProxyWindow(microAppWindow, sandbox)
+  return patchWindowEffect(microAppWindow)
+}
+/**
+ * rewrite special properties of window
+ * @param appName app name
+ * @param microAppWindow child app microWindow
+ */
+function patchWindowProperty (
+  appName: string,
+  microAppWindow: microAppWindowType,
+):void {
+  const rawWindow = globalEnv.rawWindow
+
+  escape2RawWindowKeys.forEach((key: string) => {
+    microAppWindow[key] = bindFunctionToRawTarget(rawWindow[key], rawWindow)
+  })
+
+  Object.getOwnPropertyNames(microAppWindow)
+    .filter((key: string) => {
+      escape2RawWindowRegExpKeys.some((reg: RegExp) => {
+        if (reg.test(key) && key in microAppWindow.parent) {
+          if (isFunction(rawWindow[key])) {
+            microAppWindow[key] = bindFunctionToRawTarget(rawWindow[key], rawWindow)
+          } else {
+            const { configurable, enumerable } = Object.getOwnPropertyDescriptor(microAppWindow, key) || {
+              configurable: true,
+              enumerable: true,
+            }
+            if (configurable) {
+              rawDefineProperty(microAppWindow, key, {
+                configurable,
+                enumerable,
+                get: () => rawWindow[key],
+                set: (value) => { rawWindow[key] = value },
+              })
+            }
+          }
+          return true
+        }
+        return false
+      })
+
+      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
+    })
+    .forEach((eventName: string) => {
+      const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microAppWindow, eventName) || {
+        enumerable: true,
+        writable: true,
+      }
+      try {
+      /**
+       * 如果设置了iframeWindow上的这些on事件，处理函数会设置到原生window上，但this会绑定到iframeWindow
+       * 获取这些值，则直接从原生window上取
+       * 总结：这些on事件全部都代理到原生window上
+       *
+       * TODO:
+       * 1、如果子应用没有设置，基座设置了on事件，子应用触发事件是会不会执行基座的函数？
+       *    比如 基座定义了 window.onpopstate，子应用执行跳转会不会触发基座的onpopstate函数？
+       *
+       * 2、如果基座和子应用同时定义，基座的绑定函数被覆盖，比如 window.onclick
+       *    这种情况一定会发生，除非定义一套复杂的处理逻辑，可以让基座的子应用的方法同时存在，又独立运行。
+       *    注意点：
+       *      1、多层嵌套
+       *      2、卸载时清空绑定函数
+       */
+        rawDefineProperty(microAppWindow, eventName, {
+          enumerable,
+          configurable: true,
+          get: () => rawWindow[eventName],
+          set: writable ?? !!set
+            ? (value) => { rawWindow[eventName] = isFunction(value) ? value.bind(microAppWindow) : value }
+            : undefined,
+        })
+      } catch (e) {
+        logWarn(e, appName)
+      }
+    })
+}
+
+/**
+ * create proxyWindow with Proxy(microAppWindow)
+ * @param microAppWindow micro app window
+ * @param sandbox IframeSandbox
+ */
+function createProxyWindow (
   microAppWindow: microAppWindowType,
   sandbox: IframeSandbox,
 ): void {
@@ -78,75 +175,7 @@ export function createProxyWindow (
     },
   })
 
-  return proxyWindow
-}
-
-export function patchWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
-  const rawWindow = globalEnv.rawWindow
-
-  escape2RawWindowKeys.forEach((key: string) => {
-    microAppWindow[key] = bindFunctionToRawTarget(rawWindow[key], rawWindow)
-  })
-
-  Object.getOwnPropertyNames(microAppWindow)
-    .filter((key: string) => {
-      escape2RawWindowRegExpKeys.some((reg: RegExp) => {
-        if (reg.test(key) && key in microAppWindow.parent) {
-          if (isFunction(rawWindow[key])) {
-            microAppWindow[key] = bindFunctionToRawTarget(rawWindow[key], rawWindow)
-          } else {
-            const { configurable, enumerable } = Object.getOwnPropertyDescriptor(microAppWindow, key) || {
-              configurable: true,
-              enumerable: true,
-            }
-            if (configurable) {
-              rawDefineProperty(microAppWindow, key, {
-                configurable,
-                enumerable,
-                get: () => rawWindow[key],
-                set: (value) => { rawWindow[key] = value },
-              })
-            }
-          }
-          return true
-        }
-        return false
-      })
-
-      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
-    })
-    .forEach((eventName: string) => {
-      const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microAppWindow, eventName) || {
-        enumerable: true,
-        writable: true,
-      }
-      try {
-      /**
-       * 如果设置了iframeWindow上的这些on事件，处理函数会设置到原生window上，但this会绑定到iframeWindow
-       * 获取这些值，则直接从原生window上取
-       * 总结：这些on事件全部都代理到原生window上
-       *
-       * 问题：
-       * 1、如果子应用没有设置，基座设置了on事件，子应用触发事件是会不会执行基座的函数？
-       *    比如 基座定义了 window.onpopstate，子应用执行跳转会不会触发基座的onpopstate函数？
-       *
-       * 2、如果基座已经定义了 window.onpopstate，子应用定义会不会覆盖基座的？
-       *    现在的逻辑看来，是会覆盖的，那么问题1就是 肯定的 -- 已解决
-       */
-        rawDefineProperty(microAppWindow, eventName, {
-          enumerable,
-          configurable: true,
-          get: () => rawWindow[eventName],
-          set: writable ?? !!set
-            ? (value) => { rawWindow[eventName] = isFunction(value) ? value.bind(microAppWindow) : value }
-            : undefined,
-        })
-      } catch (e) {
-        logWarn(e, appName)
-      }
-    })
-
-  return patchWindowEffect(microAppWindow)
+  sandbox.proxyWindow = proxyWindow
 }
 
 function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHook {

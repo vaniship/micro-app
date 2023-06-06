@@ -40,7 +40,6 @@ import {
   patchDocument,
 } from './document'
 import {
-  createProxyWindow,
   patchWindow,
 } from './window'
 import {
@@ -114,11 +113,9 @@ export default class WithSandBox implements WithSandBoxInterface {
     this.adapter = new Adapter()
     // get scopeProperties and escapeProperties from plugins
     this.getSpecialProperties(appName)
-    // create proxyWindow with Proxy(microAppWindow)
-    this.proxyWindow = createProxyWindow(appName, this.microAppWindow, this)
-    // rewrite window of child app
-    this.windowEffect = patchWindow(appName, this.microAppWindow)
-    // rewrite document of child app
+    // patch window of child app
+    this.windowEffect = patchWindow(appName, this.microAppWindow, this)
+    // patch document of child app
     this.documentEffect = patchDocument(appName, this.microAppWindow, this)
     // inject global properties
     this.initStaticGlobalKeys(appName, url, this.microAppWindow)

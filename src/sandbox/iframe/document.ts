@@ -32,6 +32,26 @@ import {
   appInstanceMap,
 } from '../../create_app'
 
+/**
+ * TODO: 1、shadowDOM 2、重构
+ *
+ * patch document of child app
+ * @param appName app name
+ * @param microAppWindow microWindow of child app
+ * @param sandbox IframeSandbox
+ * @returns EffectHook
+ */
+export function patchDocument (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: IframeSandbox,
+): CommonEffectHook {
+  patchDocumentPrototype(appName, microAppWindow)
+  patchDocumentProperty(appName, microAppWindow, sandbox)
+
+  return patchDocumentEffect(appName, microAppWindow)
+}
+
 function patchDocumentPrototype (appName: string, microAppWindow: microAppWindowType): void {
   const rawDocument = globalEnv.rawDocument
   const microRootDocument = microAppWindow.Document
@@ -155,7 +175,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   }
 }
 
-function patchDocumentProperties (
+function patchDocumentProperty (
   appName: string,
   microAppWindow: microAppWindowType,
   sandbox: IframeSandbox,
@@ -386,20 +406,4 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
     rebuild,
     release,
   }
-}
-
-/**
- * TODO:
- *  1、shadowDOM
- *  2、重构
- */
-export function patchDocument (
-  appName: string,
-  microAppWindow: microAppWindowType,
-  sandbox: IframeSandbox,
-): CommonEffectHook {
-  patchDocumentPrototype(appName, microAppWindow)
-  patchDocumentProperties(appName, microAppWindow, sandbox)
-
-  return patchDocumentEffect(appName, microAppWindow)
 }

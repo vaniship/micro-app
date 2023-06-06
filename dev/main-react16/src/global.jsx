@@ -218,3 +218,7 @@ window.onpopstate = function () {
 window.onhashchange = function () {
   console.log('基座 window.onhashchange 触发')
 }
+
+window.onclick = function () {
+  console.log(`基座 window.onclick`)
+}

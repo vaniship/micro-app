@@ -5,9 +5,6 @@ import type {
   timeInfo,
   WithSandBoxInterface,
 } from '@micro-app/types'
-import type {
-  proxyWindow
-} from './index'
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
 import {
@@ -23,12 +20,71 @@ import {
   logWarn,
 } from '../../libs/utils'
 
-// create proxyWindow with Proxy(microAppWindow)
-export function createProxyWindow (
+/**
+ * patch window of child app
+ * @param appName app name
+ * @param microAppWindow microWindow of child app
+ * @param sandbox WithSandBox
+ * @returns EffectHook
+ */
+export function patchWindow (
   appName: string,
   microAppWindow: microAppWindowType,
   sandbox: WithSandBoxInterface,
-): proxyWindow {
+): CommonEffectHook {
+  patchWindowProperty(appName, microAppWindow)
+  createProxyWindow(appName, microAppWindow, sandbox)
+  return patchWindowEffect(microAppWindow)
+}
+
+/**
+ * rewrite special properties of window
+ * @param appName app name
+ * @param microAppWindow child app microWindow
+ */
+function patchWindowProperty (
+  appName: string,
+  microAppWindow: microAppWindowType,
+):void {
+  const rawWindow = globalEnv.rawWindow
+  Object.getOwnPropertyNames(rawWindow)
+    .filter((key: string) => {
+      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
+    })
+    .forEach((eventName: string) => {
+      const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(rawWindow, eventName) || {
+        enumerable: true,
+        writable: true,
+      }
+      try {
+        /**
+         * 模拟iframe
+         */
+        rawDefineProperty(microAppWindow, eventName, {
+          enumerable,
+          configurable: true,
+          get: () => rawWindow[eventName],
+          set: writable ?? !!set
+            ? (value) => { rawWindow[eventName] = value }
+            : undefined,
+        })
+      } catch (e) {
+        logWarn(e, appName)
+      }
+    })
+}
+
+/**
+ * create proxyWindow with Proxy(microAppWindow)
+ * @param appName app name
+ * @param microAppWindow micro app window
+ * @param sandbox WithSandBox
+ */
+function createProxyWindow (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: WithSandBoxInterface,
+): void {
   const rawWindow = globalEnv.rawWindow
   const descriptorTargetMap = new Map<PropertyKey, 'target' | 'rawWindow'>()
 
@@ -143,38 +199,7 @@ export function createProxyWindow (
     },
   })
 
-  return proxyWindow
-}
-
-export function patchWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
-  const rawWindow = globalEnv.rawWindow
-  Object.getOwnPropertyNames(rawWindow)
-    .filter((key: string) => {
-      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
-    })
-    .forEach((eventName: string) => {
-      const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(rawWindow, eventName) || {
-        enumerable: true,
-        writable: true,
-      }
-      try {
-        /**
-         * 模拟iframe
-         */
-        rawDefineProperty(microAppWindow, eventName, {
-          enumerable,
-          configurable: true,
-          get: () => rawWindow[eventName],
-          set: writable ?? !!set
-            ? (value) => { rawWindow[eventName] = value }
-            : undefined,
-        })
-      } catch (e) {
-        logWarn(e, appName)
-      }
-    })
-
-  return patchWindowEffect(microAppWindow)
+  sandbox.proxyWindow = proxyWindow
 }
 
 /**

@@ -21,6 +21,13 @@ import {
   appInstanceMap,
 } from '../../create_app'
 
+/**
+ * patch Element & Node of child app
+ * @param appName app name
+ * @param url app url
+ * @param microAppWindow microWindow of child app
+ * @param sandbox IframeSandbox
+ */
 export function patchElement (
   appName: string,
   url: string,

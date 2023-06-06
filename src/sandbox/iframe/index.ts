@@ -43,7 +43,6 @@ import {
   releasePatchElementAndDocument,
 } from '../../source/patch'
 import {
-  createProxyWindow,
   patchWindow,
 } from './window'
 import {
@@ -89,15 +88,13 @@ export default class IframeSandbox {
       this.createIframeTemplate(this.microAppWindow)
       // get escapeProperties from plugins
       this.getSpecialProperties(appName)
-      // rewrite location & history of child app
+      // patch location & history of child app
       this.proxyLocation = patchRoute(appName, url, this.microAppWindow, browserHost)
-      // create proxyWindow with Proxy(microAppWindow)
-      this.proxyWindow = createProxyWindow(appName, this.microAppWindow, this)
-      // rewrite window of child app
-      this.windowEffect = patchWindow(appName, this.microAppWindow)
-      // rewrite document of child app
+      // patch window of child app
+      this.windowEffect = patchWindow(appName, this.microAppWindow, this)
+      // patch document of child app
       this.documentEffect = patchDocument(appName, this.microAppWindow, this)
-      // rewrite Node & Element of child app
+      // patch Node & Element of child app
       patchElement(appName, url, this.microAppWindow, this)
       /**
        * create static properties
