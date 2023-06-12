@@ -14,6 +14,8 @@ export const escape2RawWindowRegExpKeys = [
   /height$|width$/i,
   /offset$/i,
   // /event$/i,
+  /selection$/i,
+  /^range/i,
   /^screen/i,
   /^scroll/i,
   /X$|Y$/,
@@ -53,6 +55,7 @@ export const proxy2RawDocOrShadowMethods = [
   'append',
   'contains',
   'replaceChildren',
+  'createRange', // 普通元素没有 -- document或shadowRoot有
   'getSelection', // 普通元素没有 -- document或shadowRoot有
   'elementFromPoint', // 普通元素没有 -- document或shadowRoot有
   'elementsFromPoint', // 普通元素没有 -- document或shadowRoot有
