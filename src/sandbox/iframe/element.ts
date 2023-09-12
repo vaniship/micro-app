@@ -81,7 +81,6 @@ function patchIframeNode (
     // if (rootNode === appInstanceMap.get(appName)?.container) return microDocument
     // return rootNode
   }
-  console.log(11111)
 
   microRootNode.prototype.appendChild = function appendChild <T extends Node> (node: T): T {
     updateElementInfo(node, appName)
