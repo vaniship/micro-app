@@ -35,7 +35,7 @@ export function patchElement (
   sandbox: IframeSandbox,
 ): void {
   patchIframeNode(appName, microAppWindow, sandbox)
-  patchIframeAttribute(appName, url, microAppWindow)
+  patchIframeAttribute(url, microAppWindow)
 }
 
 function patchIframeNode (
@@ -212,19 +212,9 @@ function patchIframeNode (
     writable: true,
     value: ImageProxy,
   })
-
-  /**
-   * TODO:
-   * 1、append prepend
-   * 2、cloneNode -- 完成
-   * 3、innerHTML
-   * 4、querySelector、querySelectorAll (head, body)
-   * 5、Image -- 完成
-   * 都是Element原型链上的方法
-   */
 }
 
-function patchIframeAttribute (appName: string, url: string, microAppWindow: microAppWindowType): void {
+function patchIframeAttribute (url: string, microAppWindow: microAppWindowType): void {
   const microRootElement = microAppWindow.Element
   const rawMicroSetAttribute = microRootElement.prototype.setAttribute
 
