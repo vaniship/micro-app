@@ -104,7 +104,7 @@ function vite2 (props) {
         // disableSandbox
         iframe
         keep-router-state
-        // disable-memory-router
+        disable-memory-router
         // disable-patch-request
         // keep-alive
         // default-page='/micro-app/vite2/page2'

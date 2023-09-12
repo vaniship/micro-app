@@ -33,7 +33,7 @@ import {
 } from '../../create_app'
 
 /**
- * TODO: 1、shadowDOM 2、重构
+ * TODO: 1、shadowDOM 2、结构优化
  *
  * patch document of child app
  * @param appName app name
@@ -47,7 +47,7 @@ export function patchDocument (
   sandbox: IframeSandbox,
 ): CommonEffectHook {
   patchDocumentPrototype(appName, microAppWindow)
-  patchDocumentProperty(appName, microAppWindow, sandbox)
+  patchDocumentProperty(microAppWindow, sandbox)
 
   return patchDocumentEffect(appName, microAppWindow)
 }
@@ -176,7 +176,6 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
 }
 
 function patchDocumentProperty (
-  appName: string,
   microAppWindow: microAppWindowType,
   sandbox: IframeSandbox,
 ): void {

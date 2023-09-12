@@ -222,3 +222,7 @@ window.onhashchange = function () {
 window.onclick = function () {
   console.log(`基座 window.onclick`)
 }
+
+window.addEventListener('click', function (event) {
+  console.log(`基座`, event instanceof PointerEvent, this)
+}, false)

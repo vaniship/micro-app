@@ -85,21 +85,6 @@ function patchWindowProperty (
         writable: true,
       }
       try {
-      /**
-       * 如果设置了iframeWindow上的这些on事件，处理函数会设置到原生window上，但this会绑定到iframeWindow
-       * 获取这些值，则直接从原生window上取
-       * 总结：这些on事件全部都代理到原生window上
-       *
-       * TODO:
-       * 1、如果子应用没有设置，基座设置了on事件，子应用触发事件是会不会执行基座的函数？
-       *    比如 基座定义了 window.onpopstate，子应用执行跳转会不会触发基座的onpopstate函数？
-       *
-       * 2、如果基座和子应用同时定义，基座的绑定函数被覆盖，比如 window.onclick
-       *    这种情况一定会发生，除非定义一套复杂的处理逻辑，可以让基座的子应用的方法同时存在，又独立运行。
-       *    注意点：
-       *      1、多层嵌套
-       *      2、卸载时清空绑定函数
-       */
         rawDefineProperty(microAppWindow, eventName, {
           enumerable,
           configurable: true,
@@ -143,11 +128,6 @@ function createProxyWindow (
       return bindFunctionToRawTarget(Reflect.get(target, key), target)
     },
     set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
-      /**
-       * TODO:
-       * 1、location域名相同，子应用内部跳转时的处理
-       * 2、和with沙箱的变量相同，提取成公共数组
-       */
       if (key === 'location') {
         return Reflect.set(rawWindow, key, value)
       }

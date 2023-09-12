@@ -106,7 +106,7 @@ window.addEventListener('unmount', function (e) {
 
 /* ---------------------- 全局事件 --------------------- */
 const handleDocClick = function (event) {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`, event instanceof PointerEvent)
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`, event instanceof PointerEvent, this, document)
 }
 document.addEventListener('click', handleDocClick)
 
@@ -123,8 +123,8 @@ window.addEventListener('scroll', () => {
   console.log(`scroll event from ${window.__MICRO_APP_NAME__}`)
 }, false)
 
-window.addEventListener('click', (event) => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`, event instanceof PointerEvent)
+window.addEventListener('click', function (event) {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`, event instanceof PointerEvent, this, window)
 }, false)
 
 // setTimeout(() => {
@@ -149,6 +149,9 @@ window.addEventListener('hashchange', (e) => {
   console.log('子应用 hashchange', e, e.newURL, e.oldURL)
 })
 
+window.onclick = function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__} window.onclick`)
+}
 
 /* ---------------------- 定时器 --------------------- */
 // setInterval(() => {

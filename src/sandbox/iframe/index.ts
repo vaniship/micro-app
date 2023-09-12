@@ -164,7 +164,6 @@ export default class IframeSandbox {
      */
     /**
      * TODO:
-     * 做一些记录：
      * 1. iframe关闭虚拟路由系统后，default-page无法使用，推荐用户直接使用浏览器地址控制首页渲染
      *    补充：keep-router-state 也无法配置，因为keep-router-state一定为true。
      * 2. 导航拦截、current.route 可以正常使用
@@ -232,7 +231,7 @@ export default class IframeSandbox {
     }
 
     if (--IframeSandbox.activeCount === 0) {
-      // TODO: 有什么是可以放在这里的吗
+      // TODO: Is there anything to put here?
     }
 
     this.active = false
