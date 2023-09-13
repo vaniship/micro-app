@@ -145,7 +145,7 @@ describe('data center', () => {
     expect(app1Cb).toBeCalledTimes(1)
     // 空对象
     expect(JSON.stringify(baseApp.getData('test-app1'))).toBe('{}')
-    expect(baseApp.getData('test-app1', true)).toBe(dataToApp1Case1)
+    expect(baseApp.getData('test-app1', true)).toStrictEqual(dataToApp1Case1)
 
     // app2向基座发送数据
     // 相同数据，或非对象数据不会触发回调
