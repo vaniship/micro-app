@@ -106,7 +106,7 @@ window.addEventListener('unmount', function (e) {
 
 /* ---------------------- 全局事件 --------------------- */
 const handleDocClick = function (event) {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`, event instanceof PointerEvent, this, document)
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener(click)绑定`, event instanceof PointerEvent)
 }
 document.addEventListener('click', handleDocClick)
 
@@ -124,7 +124,7 @@ window.addEventListener('scroll', () => {
 }, false)
 
 window.addEventListener('click', function (event) {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`, event instanceof PointerEvent, this, window)
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`, event instanceof PointerEvent)
 }, false)
 
 // setTimeout(() => {
