@@ -113,6 +113,13 @@ describe('data center', () => {
     microApp2.addGlobalDataListener(app2GlobalCb)
     microApp2.addGlobalDataListener(app2GlobalCbAutoTrigger)
 
+    // 等待自动触发
+    await new Promise((resolve) => {
+      defer(() => {
+        resolve(true)
+      })
+    })
+
     // 自动触发
     expect(cbForApp2).not.toBeCalled()
     expect(cbForApp2AutoTrigger).toBeCalledWith(dataFromApp2Case1)
