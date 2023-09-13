@@ -234,6 +234,11 @@ describe('data center', () => {
     app1Global.mockClear()
     microApp1.removeGlobalDataListener(app1Global)
     baseApp.setGlobalData(globalData3)
+    await new Promise((resolve) => {
+      defer(() => {
+        resolve(true)
+      })
+    })
     expect(cbForGlobal).toBeCalledWith(globalData3)
     expect(app1Global).not.toBeCalled()
     expect(app2GlobalCb).toBeCalledWith(globalData3)
