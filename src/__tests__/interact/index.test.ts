@@ -44,6 +44,11 @@ describe('data center', () => {
     releaseConsole()
   })
 
+  const nextFrame = async () => await new Promise((resolve) => {
+    defer(() => {
+      resolve(true)
+    })
+  })
   const baseApp = new EventCenterForBaseApp()
   const microApp1 = new EventCenterForMicroApp('test-app1')
   const microApp2 = new EventCenterForMicroApp('test-app2')
@@ -87,11 +92,7 @@ describe('data center', () => {
 
     // dispatch是异步执行的，所以等待下一帧后执行后续操作
     microApp2.dispatch(dataFromApp2Case1)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
 
     baseApp.setData('test-app2', dataToApp2Case1)
     baseApp.setGlobalData(globalData1)
@@ -114,11 +115,7 @@ describe('data center', () => {
     microApp2.addGlobalDataListener(app2GlobalCbAutoTrigger)
 
     // 等待自动触发
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
 
     // 自动触发
     expect(cbForApp2).not.toBeCalled()
@@ -135,11 +132,7 @@ describe('data center', () => {
     baseApp.setData('test-app1', dataToApp1Case1)
     baseApp.setData('test-app1', '11' as any)
     // 等待事件触发
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(app1Cb).toBeCalledWith(dataToApp1Case1)
     expect(app1CbOther).toBeCalledWith(dataToApp1Case1)
     expect(app1Cb).toBeCalledTimes(1)
@@ -152,11 +145,7 @@ describe('data center', () => {
     microApp1.dispatch(dataFromApp1)
     microApp1.dispatch(dataFromApp1)
     microApp1.dispatch('11' as any)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(console.error).toBeCalledWith('[micro-app] event-center: data must be object')
     expect(cbForApp1).toBeCalledTimes(1)
     expect(cbForApp1).toBeCalledWith(dataFromApp1)
@@ -164,21 +153,13 @@ describe('data center', () => {
 
     // 基座向app2发送数据
     baseApp.setData('test-app2', dataToApp2Case2)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(app2Cb).toBeCalledWith(dataToApp2Case2)
     expect(app2CbAutoTrigger).toBeCalledWith(dataToApp2Case2)
 
     // 全局事件
     microApp1.setGlobalData(globalData2)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(cbForGlobal).toBeCalledWith(globalData2)
     expect(app1Global).toBeCalledWith(globalData2)
     expect(app2GlobalCb).toBeCalledWith(globalData2)
@@ -189,11 +170,7 @@ describe('data center', () => {
     // 基座应用卸载单个test-app2的监听
     baseApp.removeDataListener('test-app2', cbForApp2)
     microApp2.dispatch(dataFromApp2Case2)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(cbForApp2).not.toBeCalled()
     expect(cbForApp2AutoTrigger).toBeCalledWith(dataFromApp2Case2)
     expect(app2EventHandler).toBeCalled()
@@ -203,11 +180,7 @@ describe('data center', () => {
     // 基座应用卸载所有test-app2的监听
     baseApp.clearDataListener('test-app2')
     microApp2.dispatch(dataFromApp2Case3)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(cbForApp2).not.toBeCalled()
     expect(cbForApp2AutoTrigger).not.toBeCalled()
     // 监听卸载，缓存数据不删除
@@ -234,11 +207,7 @@ describe('data center', () => {
     app1Global.mockClear()
     microApp1.removeGlobalDataListener(app1Global)
     baseApp.setGlobalData(globalData3)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(cbForGlobal).toBeCalledWith(globalData3)
     expect(app1Global).not.toBeCalled()
     expect(app2GlobalCb).toBeCalledWith(globalData3)
@@ -251,11 +220,7 @@ describe('data center', () => {
     app2GlobalCbAutoTrigger.mockClear()
     microApp2.clearGlobalDataListener()
     baseApp.setGlobalData(globalData4)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     // 基座应用全局数据函数没有被清空
     expect(cbForGlobal).toBeCalledWith(globalData4)
     // 上一步已经解绑
@@ -271,11 +236,7 @@ describe('data center', () => {
     // 清空基座应用全局数据绑定
     baseApp.clearGlobalDataListener()
     baseApp.setGlobalData(globalData3)
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     // 基座全局绑定不再执行
     expect(cbForGlobal).not.toBeCalled()
     // microApp2全局数据函数正常执行
@@ -305,11 +266,7 @@ describe('data center', () => {
 
     appInstanceMap.get('test-app2')!.container = null
     microApp2.dispatch({ info: '容器被清空后发送数据' })
-    await new Promise((resolve) => {
-      defer(() => {
-        resolve(true)
-      })
-    })
+    await nextFrame()
     expect(app2EventHandler).not.toBeCalled()
     appInstanceMap.delete('test-app2')
     microApp2.dispatch({ info: '应用被卸载后发送数据' })
