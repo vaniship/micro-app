@@ -271,6 +271,11 @@ describe('data center', () => {
     // 清空基座应用全局数据绑定
     baseApp.clearGlobalDataListener()
     baseApp.setGlobalData(globalData3)
+    await new Promise((resolve) => {
+      defer(() => {
+        resolve(true)
+      })
+    })
     // 基座全局绑定不再执行
     expect(cbForGlobal).not.toBeCalled()
     // microApp2全局数据函数正常执行
