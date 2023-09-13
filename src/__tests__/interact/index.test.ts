@@ -134,6 +134,12 @@ describe('data center', () => {
     baseApp.setData('test-app1', dataToApp1Case1)
     baseApp.setData('test-app1', dataToApp1Case1)
     baseApp.setData('test-app1', '11' as any)
+    // 等待事件触发
+    await new Promise((resolve) => {
+      defer(() => {
+        resolve(true)
+      })
+    })
     expect(app1Cb).toBeCalledWith(dataToApp1Case1)
     expect(app1CbOther).toBeCalledWith(dataToApp1Case1)
     expect(app1Cb).toBeCalledTimes(1)
