@@ -251,6 +251,11 @@ describe('data center', () => {
     app2GlobalCbAutoTrigger.mockClear()
     microApp2.clearGlobalDataListener()
     baseApp.setGlobalData(globalData4)
+    await new Promise((resolve) => {
+      defer(() => {
+        resolve(true)
+      })
+    })
     // 基座应用全局数据函数没有被清空
     expect(cbForGlobal).toBeCalledWith(globalData4)
     // 上一步已经解绑
