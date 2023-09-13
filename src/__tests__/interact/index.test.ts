@@ -228,7 +228,7 @@ describe('data center', () => {
     expect(app1Cb).not.toBeCalled()
     expect(app1CbOther).not.toBeCalled()
     // 即便卸载所有监听，但数据缓存不清除
-    expect(microApp1.getData()).toBe(dataToApp1Case2)
+    expect(microApp1.getData()).toStrictEqual(dataToApp1Case2)
 
     // 删除单个全局监听
     app1Global.mockClear()
