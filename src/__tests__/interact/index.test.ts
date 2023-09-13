@@ -211,7 +211,7 @@ describe('data center', () => {
     expect(cbForApp2).not.toBeCalled()
     expect(cbForApp2AutoTrigger).not.toBeCalled()
     // 监听卸载，缓存数据不删除
-    expect(baseApp.getData('test-app2')).toBe(dataFromApp2Case3)
+    expect(baseApp.getData('test-app2')).toStrictEqual(dataFromApp2Case3)
     expect(app2EventHandler).toBeCalled()
 
     app1Cb.mockClear()
