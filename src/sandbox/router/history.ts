@@ -82,7 +82,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
       /**
        * If the set() method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
        * e.g. history.state = {}
-       * TypeError: 'set' on proxy: trap returned falsish for property 'state'
+       * TypeError: 'set' on proxy: trap returned false for property 'state'
        */
       return true
     }
