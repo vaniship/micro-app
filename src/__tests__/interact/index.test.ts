@@ -174,6 +174,11 @@ describe('data center', () => {
 
     // 全局事件
     microApp1.setGlobalData(globalData2)
+    await new Promise((resolve) => {
+      defer(() => {
+        resolve(true)
+      })
+    })
     expect(cbForGlobal).toBeCalledWith(globalData2)
     expect(app1Global).toBeCalledWith(globalData2)
     expect(app2GlobalCb).toBeCalledWith(globalData2)
