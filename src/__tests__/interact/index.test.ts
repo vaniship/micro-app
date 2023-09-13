@@ -164,6 +164,11 @@ describe('data center', () => {
 
     // 基座向app2发送数据
     baseApp.setData('test-app2', dataToApp2Case2)
+    await new Promise((resolve) => {
+      defer(() => {
+        resolve(true)
+      })
+    })
     expect(app2Cb).toBeCalledWith(dataToApp2Case2)
     expect(app2CbAutoTrigger).toBeCalledWith(dataToApp2Case2)
 
