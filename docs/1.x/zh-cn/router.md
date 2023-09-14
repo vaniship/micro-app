@@ -345,19 +345,19 @@ window.microApp.router.forward()
  * @param {string} name 必填，子应用的name
  * @param {string} path 必填，页面地址
  */
-router.setDefaultPage(name: string, path: string)
+router.setDefaultPage({ name: '子应用名称', path: '页面地址' })
 
 /**
  * 删除子应用默认页面
  * @param {string} name 必填，子应用的name
  */
-router.removeDefaultPage(name: string)
+router.removeDefaultPage(name: '子应用名称')
 
 /**
  * 获取子应用默认页面
  * @param {string} name 必填，子应用的name
  */
-router.getDefaultPage(name: string)
+router.getDefaultPage(name: '子应用名称')
 ```
 
 **示例：**
