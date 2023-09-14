@@ -218,20 +218,6 @@ removeDomScope()
 ```
 
 
-## EventCenterForMicroApp
-**描述：**创建子应用通信对象，用于沙箱关闭时(如：vite)与子应用进行通信
-
-**使用方式：**
-```js
-import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
-
-// 每个子应用根据appName单独分配一个通信对象
-window.eventCenterForAppName = new EventCenterForMicroApp(appName)
-```
-
-详情查看：[关闭沙箱后的通信方式](/zh-cn/data?id=关闭沙箱后的通信方式)
-
-
 ## unmountApp
 **描述：**手动卸载应用
 
@@ -430,6 +416,16 @@ microApp.renderApp({
     },
   }
 })
+```
+
+## document.microAppElement
+**描述：**获取子应用所在的`micro-app`元素。
+
+**限制：**只能在子应用内部使用，基座中可以使用`document.querySelector`获取micro-app元素
+
+**使用方式：**
+```js
+document.microAppElement.appendChild(...)
 ```
 
 

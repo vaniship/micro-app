@@ -47,7 +47,7 @@ export function patchDocument (
   sandbox: IframeSandbox,
 ): CommonEffectHook {
   patchDocumentPrototype(appName, microAppWindow)
-  patchDocumentProperty(microAppWindow, sandbox)
+  patchDocumentProperty(appName, microAppWindow, sandbox)
 
   return patchDocumentEffect(appName, microAppWindow)
 }
@@ -176,6 +176,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
 }
 
 function patchDocumentProperty (
+  appName: string,
   microAppWindow: microAppWindowType,
   sandbox: IframeSandbox,
 ): void {
@@ -186,7 +187,6 @@ function patchDocumentProperty (
   const getCommonDescriptor = (key: PropertyKey, getter: () => unknown): PropertyDescriptor => {
     const { enumerable } = Object.getOwnPropertyDescriptor(microRootDocument.prototype, key) || {
       enumerable: true,
-      writable: true,
     }
     return {
       configurable: true,
@@ -205,6 +205,8 @@ function patchDocumentProperty (
       ['forms', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'form')],
       ['images', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'img')],
       ['links', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'a')],
+      // unique keys of micro-app
+      ['microAppElement', () => appInstanceMap.get(appName)?.container],
     ]
 
     descList.forEach((desc) => {

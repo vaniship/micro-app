@@ -16,7 +16,7 @@
 
   - 🆕 新增了虚拟路由多种模式功能，新增了三种路由模式：`search`、`history`、`custom`。
   - 🆕 新增了在预渲染时可以选择不同路由模式进行渲染的功能。
-  - 🆕 新增了全局变量`document.microAppElement`，用于获取子应用的`micro-app`元素。
+  - 🆕 新增了全局变量`document.microAppElement`，用于获取子应用所在的`micro-app`元素。
   
 - **Bug Fix**
 

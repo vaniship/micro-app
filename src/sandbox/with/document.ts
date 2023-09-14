@@ -15,6 +15,9 @@ import {
 import {
   throttleDeferForParentNode,
 } from '../adapter'
+import {
+  appInstanceMap,
+} from '../../create_app'
 
 /**
  * create proxyDocument and MicroDocument, rewrite document of child app
@@ -187,6 +190,7 @@ function createProxyDocument (
       if (key === 'onclick') return onClickHandler
       if (key === 'addEventListener') return addEventListener
       if (key === 'removeEventListener') return removeEventListener
+      if (key === 'microAppElement') return appInstanceMap.get(appName)?.container
       return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
     },
     set: (target: Document, key: PropertyKey, value: unknown): boolean => {
@@ -199,7 +203,7 @@ function createProxyDocument (
           rawAddEventListener.call(rawDocument, 'click', value, false)
         }
         onClickHandler = value
-      } else {
+      } else if (key !== 'microAppElement') {
         /**
          * 1. Fix TypeError: Illegal invocation when set document.title
          * 2. If the set method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
