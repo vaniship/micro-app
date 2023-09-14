@@ -478,4 +478,9 @@ window.addEventListener('hashchange', (e) => {
 
 // console.log('document.firstElementChild: ', document.firstElementChild)
 
-console.log('console === parent.console: ', console === parent.console)
+// console.log('console === parent.console: ', console === parent.console)
+
+console.log('micro-app容器元素document.microAppElement', document.microAppElement)
+
+// --- document.querySelector(':root'), document.documentElement 和 动态设置css变量
+// console.log(`document.querySelector(':root'): `, document.querySelector(':root'), document.querySelector(':root') === document.documentElement)

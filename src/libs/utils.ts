@@ -462,7 +462,8 @@ export function isUniqueElement (key: string): boolean {
     /^body$/i.test(key) ||
     /^head$/i.test(key) ||
     /^html$/i.test(key) ||
-    /^title$/i.test(key)
+    /^title$/i.test(key) ||
+    /^:root$/i.test(key)
   )
 }
 
