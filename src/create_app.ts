@@ -338,7 +338,10 @@ export default class CreateApp implements AppInterface {
       if (isPromise(umdHookMountResult)) {
         umdHookMountResult
           .then(() => this.dispatchMountedEvent())
-          .catch(() => this.dispatchMountedEvent())
+          .catch((e) => {
+            logError('An error occurred in window.mount \n', this.name, e)
+            this.dispatchMountedEvent()
+          })
       } else {
         this.dispatchMountedEvent()
       }
