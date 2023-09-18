@@ -73,8 +73,8 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     y: number,
   ): Range {
     // 这里this指向document才可以获取到子应用的document实例，range才可以被成功生成
-    const element = rawMicroElementFromPoint.call(document, x, y)
-    const range = rawMicroCaretRangeFromPoint.call(document, x, y)
+    const element = rawMicroElementFromPoint.call(rawDocument, x, y)
+    const range = rawMicroCaretRangeFromPoint.call(rawDocument, x, y)
     updateElementInfo(element, appName)
     return range
   }
