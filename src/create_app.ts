@@ -264,6 +264,8 @@ export default class CreateApp implements AppInterface {
         this.fiber = fiber
         this.routerMode = routerMode
 
+        this.setAppState(appStates.BEFORE_MOUNT)
+
         const dispatchBeforeMount = () => dispatchLifecyclesEvent(
           this.container!,
           this.name,

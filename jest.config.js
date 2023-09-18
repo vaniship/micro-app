@@ -42,7 +42,7 @@ module.exports = {
     __TEST__: true,
     'ts-jest': {
       tsconfig: {
-        target: 'es5',
+        target: 'ES2017',
         noUnusedLocals: true,
         strictNullChecks: true,
         noUnusedParameters: true,

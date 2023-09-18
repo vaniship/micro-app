@@ -8,6 +8,7 @@ export enum appStates {
   CREATED = 'created',
   LOADING = 'loading',
   LOAD_FAILED = 'load_failed',
+  BEFORE_MOUNT = 'before_mount',
   MOUNTING = 'mounting',
   MOUNTED = 'mounted',
   UNMOUNT = 'unmount',
