@@ -26,8 +26,8 @@ import {
   resetDataCenterSnapshot,
 } from '../../interact'
 import {
-  patchRoute,
-} from './route'
+  patchRouter,
+} from './router'
 import {
   router,
   initRouteStateWithURL,
@@ -83,13 +83,12 @@ export default class IframeSandbox {
     this.microAppWindow = this.iframe!.contentWindow
 
     this.patchIframe(this.microAppWindow, (resolve: CallableFunction) => {
-      // TODO: 优化代码
       // create new html to iframe
       this.createIframeTemplate(this.microAppWindow)
       // get escapeProperties from plugins
       this.getSpecialProperties(appName)
       // patch location & history of child app
-      this.proxyLocation = patchRoute(appName, url, this.microAppWindow, browserHost)
+      this.proxyLocation = patchRouter(appName, url, this.microAppWindow, browserHost)
       // patch window of child app
       this.windowEffect = patchWindow(appName, this.microAppWindow, this)
       // patch document of child app
@@ -100,7 +99,7 @@ export default class IframeSandbox {
        * create static properties
        * NOTE:
        *  1. execute as early as possible
-       *  2. run after patchRoute & createProxyWindow
+       *  2. run after patchRouter & createProxyWindow
        */
       this.initStaticGlobalKeys(appName, url)
       resolve()
@@ -241,7 +240,7 @@ export default class IframeSandbox {
    * create static properties
    * NOTE:
    *  1. execute as early as possible
-   *  2. run after patchRoute & createProxyWindow
+   *  2. run after patchRouter & createProxyWindow
    */
   private initStaticGlobalKeys (appName: string, url: string): void {
     this.microAppWindow.__MICRO_APP_ENVIRONMENT__ = true

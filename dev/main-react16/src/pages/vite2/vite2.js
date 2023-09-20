@@ -92,7 +92,7 @@ function vite2 (props) {
         url={`${config.vite2}micro-app/vite2/`}
         // url={`http://127.0.0.1:8080/micro-app/vite2/`}
         data={data}
-        onCreated={() => Promise.resolve().then(() => jumpToElementPlus())}
+        // onCreated={() => Promise.resolve().then(() => jumpToElementPlus())}
         // onBeforemount={() => jumpToElementPlus()}
         onMounted={handleMounted}
         onDataChange={handleDataChange}

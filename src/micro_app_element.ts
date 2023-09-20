@@ -25,6 +25,7 @@ import {
 import {
   ObservedAttrName,
   lifeCycles,
+  appStates,
 } from './constants'
 import CreateApp, {
   appInstanceMap,
@@ -346,6 +347,7 @@ export function defineElement (tagName: string): void {
         inline: this.getDisposeResult('inline'),
         iframe: this.getDisposeResult('iframe'),
         ssrUrl: this.ssrUrl,
+        routerMode: this.getMemoryRouterMode(),
       })
 
       /**
@@ -377,7 +379,12 @@ export function defineElement (tagName: string): void {
      */
     private handleMount (app: AppInterface): void {
       app.isPrefetch = false
-      // TODO: Can defer be removed?
+      /**
+       * Fix error when navigate before app.mount by microApp.router.push(...)
+       * Issue: https://github.com/micro-zoe/micro-app/issues/908
+       */
+      app.setAppState(appStates.BEFORE_MOUNT)
+      // exec mount async, simulate the first render scene
       defer(() => this.mount(app))
     }
 

@@ -349,6 +349,7 @@ interface RenderAppOptions {
   name: string, // 应用名称，必传
   url: string, // 应用地址，必传
   container: string | Element, // 应用容器或选择器，必传
+  iframe?: boolean, // 是否切换为iframe沙箱，可选
   inline?: boolean, // 开启内联模式运行js，可选
   'disable-scopecss'?: boolean, // 关闭样式隔离，可选
   'disable-sandbox'?: boolean, // 关闭沙箱，可选

@@ -13,7 +13,7 @@ import {
   assign,
 } from '../../libs/utils'
 
-export function patchRoute (
+export function patchRouter (
   appName: string,
   url: string,
   microAppWindow: microAppWindowType,

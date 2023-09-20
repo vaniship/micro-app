@@ -80,7 +80,7 @@ export default class CreateApp implements AppInterface {
   public isPrerender: boolean
   public prefetchLevel?: number
   public fiber = false
-  public routerMode: string = DEFAULT_ROUTER_MODE
+  public routerMode: string
 
   constructor ({
     name,
@@ -93,6 +93,7 @@ export default class CreateApp implements AppInterface {
     ssrUrl,
     isPrefetch,
     prefetchLevel,
+    routerMode,
   }: CreateAppParam) {
     appInstanceMap.set(name, this)
     // init actions
@@ -102,6 +103,11 @@ export default class CreateApp implements AppInterface {
     this.scopecss = this.useSandbox && scopecss
     this.inline = inline ?? false
     this.iframe = iframe ?? false
+    /**
+     * NOTE:
+     *  1. Navigate after micro-app created, before mount
+     */
+    this.routerMode = routerMode || DEFAULT_ROUTER_MODE
 
     // not exist when prefetch 👇
     this.container = container ?? null
@@ -220,6 +226,8 @@ export default class CreateApp implements AppInterface {
 
     this.createSandbox()
 
+    this.setAppState(appStates.BEFORE_MOUNT)
+
     const nextAction = () => {
       /**
        * Special scenes:
@@ -263,8 +271,6 @@ export default class CreateApp implements AppInterface {
         this.inline = inline
         this.fiber = fiber
         this.routerMode = routerMode
-
-        this.setAppState(appStates.BEFORE_MOUNT)
 
         const dispatchBeforeMount = () => dispatchLifecyclesEvent(
           this.container!,
@@ -654,7 +660,7 @@ export default class CreateApp implements AppInterface {
   }
 
   // set app state
-  private setAppState (state: string): void {
+  public setAppState (state: string): void {
     this.state = state
   }
 

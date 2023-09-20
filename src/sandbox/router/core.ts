@@ -241,7 +241,7 @@ export function isEffectiveApp (appName: string): boolean {
   const app = appInstanceMap.get(appName)
   /**
    * !!(app && !app.isPrefetch && !app.isHidden())
-   * TODO: 隐藏的keep-alive应用暂时不作为无效应用，原因如下
+   * NOTE: 隐藏的keep-alive应用暂时不作为无效应用，原因如下
    * 1、隐藏后才执行去除浏览器上的微应用的路由信息的操作，导致微应用的路由信息无法去除
    * 2、如果保持隐藏应用内部正常跳转，阻止同步路由信息到浏览器，这样理论上是好的，但是对于location跳转改如何处理？location跳转是基于修改浏览器地址后发送popstate事件实现的，所以应该是在隐藏后不支持通过location进行跳转
    */

@@ -10,7 +10,7 @@
 
 ### 1.0.0-beta.7
 
-`2023-09-19`
+`2023-09-20`
 
 - **New**
 
@@ -18,9 +18,11 @@
 
 - **Bug Fix**
 
-  - 🐞 修复了在iframe模式下，子应用使用`monaco-editor`时代码输入框光标失效的问题。
+  - 🐞 修复了在iframe沙箱模式下，子应用使用`monaco-editor`时代码输入框光标失效的问题。
   - 🐞 修复了在`window.mount`为Promise时抛出的错误无法捕获的问题。
-  - 🐞 修复了在iframe模式下，子应用加载完成之前进行导航导致报错的问题。
+  - 🐞 修复了在iframe沙箱模式下，子应用加载完成之前进行导航导致报错的问题。
+  - 🐞 修复了在with沙箱模式下，异步创建路由系统导致部分场景下location未定义的问题，issue [#908](https://github.com/micro-zoe/micro-app/issues/908)。
+  - 🐞 修复了在micro-app子应用开始渲染到渲染完成之前通过路由API无法控制跳转的问题。
 
 - **Update**
 

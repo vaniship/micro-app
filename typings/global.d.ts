@@ -201,6 +201,9 @@ declare module '@micro-app/types' {
     // app rendering error
     onerror (e: Error): void
 
+    // set app state
+    setAppState (state: string): void
+
     // get app state
     getAppState (): string
 
