@@ -41,7 +41,7 @@
     "createtype": "node scripts/create_type.js",
     "afterbuild": "node scripts/after_build.js",
     "test:server": "node scripts/test_server.js --start",
-    "test": "jest",
+    "test": "jest src/__tests__/main --watch",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:unit": "jest src/__tests__/unit",

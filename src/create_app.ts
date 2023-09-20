@@ -226,6 +226,7 @@ export default class CreateApp implements AppInterface {
 
     this.createSandbox()
 
+    // place outside of nextAction, as nextAction may execute async
     this.setAppState(appStates.BEFORE_MOUNT)
 
     const nextAction = () => {

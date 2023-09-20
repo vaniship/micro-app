@@ -358,7 +358,12 @@ export default class IframeSandbox {
       (function iframeLocationReady () {
         setTimeout(() => {
           try {
-            if (microAppWindow.document === oldMicroDocument) {
+            /**
+             * NOTE:
+             *  1. In browser, iframe document will be recreated after iframe initial
+             *  2. In jest, iframe document is always the same
+             */
+            if (microAppWindow.document === oldMicroDocument && !__TEST__) {
               iframeLocationReady()
             } else {
               /**

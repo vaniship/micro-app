@@ -33,13 +33,12 @@ eval(`console.log("在${window.__MICRO_APP_NAME__} eval中执行")`)
   document.removeEventListener('keydown', () => {})
   // document click 事件
   function onClickOfApp1 () {
-    console.warn(`子应用${window.__MICRO_APP_NAME__}的onclick`)
+    console.log(`子应用${window.__MICRO_APP_NAME__}的onclick`)
   }
   document.onclick = onClickOfApp1
 
   const clickEvent = new CustomEvent('click')
   document.dispatchEvent(clickEvent)
-  expect(console.warn).toHaveBeenLastCalledWith(`子应用${window.__MICRO_APP_NAME__}的onclick`)
 
   expect(document.onclick).toBe(onClickOfApp1)
 

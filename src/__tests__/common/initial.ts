@@ -45,8 +45,8 @@ export function startServer (port?: number): void {
 const rawWarn = global.console.warn
 const rawError = global.console.error
 export function rewriteConsole (): void {
-  global.console.warn = jest.fn()
-  global.console.error = jest.fn()
+  // global.console.warn = jest.fn()
+  // global.console.error = jest.fn()
 }
 
 // 释放console

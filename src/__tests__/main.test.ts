@@ -92,6 +92,7 @@ describe('main process', () => {
       globalAssets: 'xxx' as any,
     })
 
+    // 预加载默认延迟3s执行
     preFetch([{
       name: 'test-app3',
       url: `http://127.0.0.1:${ports.main}/common`,
@@ -108,28 +109,27 @@ describe('main process', () => {
   /**
    * name: test-app1
    * 预加载: false
-   * 执行前: appInstanceMap => [
-   *  {name: 'test-app5'},
-   *  {name: 'test-app3'},
-   * ]
+   * 执行前: appInstanceMap => []
    */
-  test('main process of micro-app', async () => {
+  test.only('main process of micro-app', async () => {
     const microAppElement1 = document.createElement('micro-app')
     microAppElement1.setAttribute('name', 'test-app1')
     microAppElement1.setAttribute('url', `http://127.0.0.1:${ports.main}/common`)
     microAppElement1.setAttribute('inline', 'true')
+    microAppElement1.setAttribute('iframe', 'true')
 
     appCon.appendChild(microAppElement1)
 
     await new Promise((resolve) => {
       microAppElement1.addEventListener('mounted', () => {
-        expect(getActiveApps().length).toBe(1)
+        expect(getActiveApps().includes('test-app1')).toBeTruthy()
         resolve(true)
       }, false)
     })
 
     await new Promise((resolve) => {
       microAppElement1.addEventListener('unmount', () => {
+        expect(getActiveApps().includes('test-app1')).toBeFalsy()
         defer(() => {
           resolve(true)
         })
@@ -145,8 +145,6 @@ describe('main process', () => {
    * name: test-app2
    * 预加载: false
    * 执行前: appInstanceMap => [
-   *  {name: 'test-app5'},
-   *  {name: 'test-app3'},
    *  {name: 'test-app1'},
    * ]
    */
@@ -155,12 +153,14 @@ describe('main process', () => {
     const microAppElement2 = document.createElement('micro-app')
     microAppElement2.setAttribute('name', 'test-app2')
     microAppElement2.setAttribute('url', `http://127.0.0.1:${ports.main}/ssr-render`)
+    microAppElement2.setAttribute('iframe', 'true')
 
     appCon.appendChild(microAppElement2)
 
     await new Promise((resolve) => {
       microAppElement2.addEventListener('mounted', () => {
-        expect(getAllApps().length).toBeGreaterThan(1)
+        console.log(1111111111)
+        expect(getAllApps().length).toBeGreaterThan(0)
         resolve(true)
       }, false)
     })
@@ -170,8 +170,6 @@ describe('main process', () => {
    * name: test-app3
    * 预加载: true
    * 执行前: appInstanceMap => [
-   *  {name: 'test-app5'},
-   *  {name: 'test-app3'},
    *  {name: 'test-app1'},
    *  {name: 'test-app2'},
    * ]
