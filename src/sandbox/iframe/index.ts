@@ -101,7 +101,7 @@ export default class IframeSandbox {
        *  1. execute as early as possible
        *  2. run after patchRouter & createProxyWindow
        */
-      this.initStaticGlobalKeys(appName, url)
+      this.initStaticGlobalKeys(appName, url, this.microAppWindow)
       resolve()
     })
   }
@@ -242,20 +242,25 @@ export default class IframeSandbox {
    *  1. execute as early as possible
    *  2. run after patchRouter & createProxyWindow
    */
-  private initStaticGlobalKeys (appName: string, url: string): void {
-    this.microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
-    this.microAppWindow.__MICRO_APP_NAME__ = appName
-    this.microAppWindow.__MICRO_APP_URL__ = url
-    this.microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
-    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
-    this.microAppWindow.__MICRO_APP_WINDOW__ = this.microAppWindow
-    this.microAppWindow.__MICRO_APP_PRE_RENDER__ = false
-    this.microAppWindow.__MICRO_APP_UMD_MODE__ = false
-    this.microAppWindow.__MICRO_APP_SANDBOX__ = this
-    this.microAppWindow.__MICRO_APP_PROXY_WINDOW__ = this.proxyWindow
-    this.microAppWindow.rawWindow = globalEnv.rawWindow
-    this.microAppWindow.rawDocument = globalEnv.rawDocument
-    this.microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
+  private initStaticGlobalKeys (
+    appName: string,
+    url: string,
+    microAppWindow: microAppWindowType,
+  ): void {
+    microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
+    microAppWindow.__MICRO_APP_NAME__ = appName
+    microAppWindow.__MICRO_APP_URL__ = url
+    microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
+    microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
+    microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
+    microAppWindow.__MICRO_APP_PRE_RENDER__ = false
+    microAppWindow.__MICRO_APP_UMD_MODE__ = false
+    microAppWindow.__MICRO_APP_PROXY_WINDOW__ = this.proxyWindow
+    microAppWindow.__MICRO_APP_SANDBOX__ = this
+    microAppWindow.__MICRO_APP_SANDBOX_TYPE__ = 'iframe'
+    microAppWindow.rawWindow = globalEnv.rawWindow
+    microAppWindow.rawDocument = globalEnv.rawDocument
+    microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
       removeDomScope,
       pureCreateElement,
       location: this.proxyLocation,

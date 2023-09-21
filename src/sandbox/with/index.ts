@@ -253,6 +253,8 @@ export default class WithSandBox implements WithSandBoxInterface {
     microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
     microAppWindow.__MICRO_APP_PRE_RENDER__ = false
     microAppWindow.__MICRO_APP_UMD_MODE__ = false
+    microAppWindow.__MICRO_APP_SANDBOX__ = this
+    microAppWindow.__MICRO_APP_SANDBOX_TYPE__ = 'with'
     microAppWindow.rawWindow = globalEnv.rawWindow
     microAppWindow.rawDocument = globalEnv.rawDocument
     microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
