@@ -1,5 +1,11 @@
 /* eslint-disable promise/param-names, no-console */
-import { commonStartEffect, releaseAllEffect, ports, jestConsoleWarn, jestConsoleError } from './common/initial'
+import {
+  commonStartEffect,
+  releaseAllEffect,
+  ports,
+  jestConsoleWarn,
+  jestConsoleError,
+} from './common/initial'
 import microApp, {
   preFetch,
   removeDomScope,
@@ -257,35 +263,37 @@ describe('main process', () => {
     microAppElement6.setAttribute('name', 'test-app6')
     microAppElement6.setAttribute('url', `http://127.0.0.1:${ports.main}/umd1`)
 
-    let commonSolve: CallableFunction
-    function firstMountHandler () {
-      window.dispatchEvent(new CustomEvent('umd-window-event'))
-      expect(jestConsoleWarn).toHaveBeenCalledWith('umd-window-event is triggered')
-      document.dispatchEvent(new CustomEvent('click'))
-      expect(jestConsoleWarn).toHaveBeenCalledWith('click event from umd init env')
-      microAppElement6.removeEventListener('mounted', firstMountHandler)
-      appCon.removeChild(microAppElement6)
-    }
+    // TODO: 如果在卸载的钩子中立即渲染会出错，需要设置延迟才能解决，需要再验证一下
+    // microAppElement6.addEventListener('unmount', function () {
+    //   setTimeout(() => {
+    //     appCon.appendChild(microAppElement6)
+    //   }, 1000);
+    // })
 
-    microAppElement6.addEventListener('mounted', firstMountHandler)
+    await new Promise((resolve) => {
+      function firstMountHandler () {
+        window.dispatchEvent(new CustomEvent('umd-window-event'))
+        expect(jestConsoleWarn).toHaveBeenCalledWith('umd-window-event is triggered')
+        document.dispatchEvent(new CustomEvent('click'))
+        expect(jestConsoleWarn).toHaveBeenCalledWith('click event from umd init env')
+        microAppElement6.removeEventListener('mounted', firstMountHandler)
+        appCon.removeChild(microAppElement6)
+        resolve(true)
+      }
 
-    microAppElement6.addEventListener('unmount', function () {
+      microAppElement6.addEventListener('mounted', firstMountHandler)
+      appCon.appendChild(microAppElement6)
+    })
+
+    await new Promise((resolve) => {
       microAppElement6.addEventListener('mounted', () => {
         window.dispatchEvent(new CustomEvent('umd-window-event'))
         expect(jestConsoleWarn).toHaveBeenCalledWith('umd-window-event is triggered')
         document.dispatchEvent(new CustomEvent('click'))
         expect(jestConsoleWarn).toHaveBeenCalledWith('click event from umd init env')
-        commonSolve(true)
+        resolve(true)
       })
-      // TODO: 延迟时间小于100会报错，需要解决
-      setTimeout(() => {
-        // 再次渲染
-        appCon.appendChild(microAppElement6)
-      }, 1000);
-    })
-
-    await new Promise((resolve) => {
-      commonSolve = resolve
+      // 再次渲染
       appCon.appendChild(microAppElement6)
     })
   })
@@ -300,25 +308,22 @@ describe('main process', () => {
    *
    * 关闭沙箱后，micro-app只渲染umd app，快照功能失效
    */
-  test.only('render umd app with disableSandbox', async () => {
+  test('render umd app with disableSandbox', async () => {
     const microAppElement7 = document.createElement('micro-app')
     microAppElement7.setAttribute('name', 'test-app7')
     microAppElement7.setAttribute('url', `http://127.0.0.1:${ports.main}/umd1`)
     microAppElement7.setAttribute('disableSandbox', 'true')
 
-    let commonSolve: CallableFunction
-    function firstMountHandler () {
-      window.dispatchEvent(new CustomEvent('umd-window-event'))
-      expect(jestConsoleWarn).toHaveBeenCalledWith('umd-window-event is triggered')
-      microAppElement7.removeEventListener('mounted', firstMountHandler)
-      appCon.removeChild(microAppElement7)
-      commonSolve(true)
-    }
-
-    microAppElement7.addEventListener('mounted', firstMountHandler)
-
     await new Promise((resolve) => {
-      commonSolve = resolve
+      function firstMountHandler () {
+        window.dispatchEvent(new CustomEvent('umd-window-event'))
+        expect(jestConsoleWarn).toHaveBeenCalledWith('umd-window-event is triggered')
+        microAppElement7.removeEventListener('mounted', firstMountHandler)
+        appCon.removeChild(microAppElement7)
+        resolve(true)
+      }
+
+      microAppElement7.addEventListener('mounted', firstMountHandler)
       appCon.appendChild(microAppElement7)
     })
 
@@ -328,28 +333,22 @@ describe('main process', () => {
         expect(jestConsoleWarn).toHaveBeenCalledWith('umd-window-event is triggered')
         resolve(true)
       })
-      // TODO: 延迟时间小于100会报错，需要解决
-      setTimeout(() => {
-        // 再次渲染
-        appCon.appendChild(microAppElement7)
-      }, 1000);
       // 再次渲染
-      // appCon.appendChild(microAppElement7)
+      appCon.appendChild(microAppElement7)
     })
   })
 
   /**
    * 卸载所有应用
    * 卸载前：appInstanceMap => [
-   *  {name: 'test-app5'},
    *  {name: 'test-app2'},
    *  {name: 'test-app6'},
    *  {name: 'test-app7'},
    * ]
    */
-  test.skip('clear all apps', () => {
+  test('clear all apps', () => {
     appCon.innerHTML = ''
     // test-app5为预加载，test-app2不强制删除，所以卸载后还有2个应用
-    expect(appInstanceMap.size).toBe(4)
+    expect(appInstanceMap.size).toBe(3)
   })
 })

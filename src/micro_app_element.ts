@@ -136,20 +136,31 @@ export function defineElement (tagName: string): void {
         this.legalAttribute(attr, newVal) &&
         this[attr === ObservedAttrName.NAME ? 'appName' : 'appUrl'] !== newVal
       ) {
-        if (attr === ObservedAttrName.URL && !this.appUrl) {
+        if (
+          attr === ObservedAttrName.URL && (
+            !this.appUrl ||
+            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+          )
+        ) {
           newVal = formatAppURL(newVal, this.appName)
           if (!newVal) {
             return logError(`Invalid attribute url ${newVal}`, this.appName)
           }
           this.appUrl = newVal
           this.handleInitialNameAndUrl()
-        } else if (attr === ObservedAttrName.NAME && !this.appName) {
+        } else if (
+          attr === ObservedAttrName.NAME && (
+            !this.appName ||
+            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+          )
+        ) {
           const formatNewName = formatAppName(newVal)
 
           if (!formatNewName) {
             return logError(`Invalid attribute name ${newVal}`, this.appName)
           }
 
+          // TODO: 当micro-app还未插入文档中就修改name，逻辑可否再优化一下
           if (this.cacheData) {
             microApp.setData(formatNewName, this.cacheData)
             this.cacheData = null
@@ -230,7 +241,6 @@ export function defineElement (tagName: string): void {
      */
     private handleAttributeUpdate = (): void => {
       this.isWaiting = false
-      if (!this.connectStateMap.get(this.connectedCount)) return
       const formatAttrName = formatAppName(this.getAttribute('name'))
       const formatAttrUrl = formatAppURL(this.getAttribute('url'), this.appName)
       if (this.legalAttribute('name', formatAttrName) && this.legalAttribute('url', formatAttrUrl)) {

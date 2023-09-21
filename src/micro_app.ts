@@ -271,6 +271,7 @@ export function renderApp (options: RenderAppOptions): Promise<boolean> {
 
 export class MicroApp extends EventCenterForBaseApp implements MicroAppBaseType {
   tagName = 'micro-app'
+  hasInit = false
   options: OptionsType = {}
   router: Router = router
   preFetch = preFetch
@@ -284,6 +285,17 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppBaseType 
     if (!isBrowser || !window.customElements) {
       return logError('micro-app is not supported in this environment')
     }
+
+    /**
+     * TODO: 优化代码和逻辑
+     *  1、同一个基座中initGlobalEnv不能被多次执行，否则会导致死循环
+     *  2、判断逻辑是否放在initGlobalEnv中合适？--- 不合适
+     */
+    if (this.hasInit) {
+      return logError('microApp.start executed repeatedly')
+    }
+
+    this.hasInit = true
 
     if (options?.tagName) {
       if (/^micro-app(-\S+)?/.test(options.tagName)) {
