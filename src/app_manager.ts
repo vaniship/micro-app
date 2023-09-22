@@ -2,7 +2,7 @@ import { appInstanceMap } from './create_app'
 import { AppInterface } from '@micro-app/types'
 
 export interface IAppManager {
-  get(appName: string): AppInterface | undefined
+  get(appName: string): AppInterface | void
   set(appName: string, app: AppInterface): void
   getAll(): AppInterface[]
   clear(): void
@@ -11,7 +11,7 @@ export interface IAppManager {
 // 管理 app 的单例
 export class AppManager implements IAppManager {
   private static instance: AppManager;
-  // Todo: appInstanceMap 由 AppManager 来创建，不再由 create_app 管理
+  // TODO: appInstanceMap 由 AppManager 来创建，不再由 create_app 管理
   private appInstanceMap = appInstanceMap;
 
   public static getInstance (): AppManager {
@@ -21,7 +21,7 @@ export class AppManager implements IAppManager {
     return this.instance
   }
 
-  public get (appName: string): AppInterface | undefined {
+  public get (appName: string): AppInterface | void {
     return this.appInstanceMap.get(appName)
   }
 

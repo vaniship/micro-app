@@ -28,6 +28,8 @@
 
 这是由webpack提供的功能，会在运行时动态设置webpack.publicPath，详细配置参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
 
+*如果你已经设置了publicPath为带域名的绝对地址(如：https://xxx)，则忽略此章节*
+
 #### 设置方式
 
 **步骤1:** 在子应用src目录下创建名称为`public-path.js`的文件，并添加如下内容
@@ -39,7 +41,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 }
 ```
 
-**步骤2:** 在子应用入口文件的`最顶部`引入`public-path.js`
+**步骤2:** 在子应用入口文件的**最顶部**引入`public-path.js`
 ```js
 // entry
 import './public-path'

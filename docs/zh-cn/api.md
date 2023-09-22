@@ -1,6 +1,6 @@
 <!-- tabs:start -->
 
-# ** 基座应用API **
+# ** 主应用API **
 ## start
 **描述：**micro-app注册函数，全局执行一次
 
@@ -40,7 +40,7 @@ start (options?: {
   plugins?: {
     // 全局插件，作用于所有子应用的js文件
     global?: Array<{
-      // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到基座应用中，scopeProperties可以禁止这种情况)
+      // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到主应用中，scopeProperties可以禁止这种情况)
       scopeProperties?: string[],
       // 可选，可以逃逸到外部的全局变量(escapeProperties中的变量会同时赋值到子应用和外部真实的window上)
       escapeProperties?: string[],
@@ -60,7 +60,7 @@ start (options?: {
     modules?: {
       // appName为应用的名称，这些插件只会作用于指定的应用
       [name: string]: Array<{
-        // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到基座应用中，scopeProperties可以禁止这种情况)
+        // 可选，强隔离的全局变量(默认情况下子应用无法找到的全局变量会兜底到主应用中，scopeProperties可以禁止这种情况)
         scopeProperties?: string[],
         // 可选，可以逃逸到外部的全局变量(escapeProperties中的变量会同时赋值到子应用和外部真实的window上)
         escapeProperties?: string[],
@@ -138,18 +138,28 @@ preFetch(() => [
 **介绍：**
 ```js
 /**
+ * getActiveApps接受一个对象作为参数，详情如下：
  * @param excludeHiddenApp 是否过滤处于隐藏状态的keep-alive应用，默认false
+ * @param excludePreRender 是否过滤预渲染的应用，默认false
  */
-function getActiveApps(excludeHiddenApp?: boolean): string[]
+function getActiveApps({ 
+  excludeHiddenApp?: boolean,
+  excludePreRender?: boolean,
+}): string[]
 ```
 
 **使用方式：**
 ```js
 import { getActiveApps } from '@micro-zoe/micro-app'
 
-getActiveApps() // [子应用name, 子应用name, ...]
+// 获取所有正在运行的应用的名称
+getActiveApps() // [子应用1name, 子应用2name, ...]
 
-getActiveApps(true) // 处于隐藏状态的keep-alive将会被过滤
+// 获取所有正在运行的应用的名称，但不包括已经处于隐藏状态的keep-alive应用
+getActiveApps({ excludeHiddenApp: true })
+
+// 获取所有正在运行的应用的名称，但不包括预渲染应用
+getActiveApps({ excludePreRender: true })
 ```
 
 ## getAllApps
@@ -197,7 +207,7 @@ document.body.appendChild(pureDiv)
 
 
 ## removeDomScope
-**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致基座元素错误绑定到子应用的情况
+**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致主应用元素错误绑定到子应用的情况
 
 **使用方式：**
 ```js
@@ -206,20 +216,6 @@ import { removeDomScope } from '@micro-zoe/micro-app'
 // 重置作用域
 removeDomScope()
 ```
-
-
-## EventCenterForMicroApp
-**描述：**创建子应用通信对象，用于沙箱关闭时(如：vite)与子应用进行通信
-
-**使用方式：**
-```js
-import { EventCenterForMicroApp } from '@micro-zoe/micro-app'
-
-// 每个子应用根据appName单独分配一个通信对象
-window.eventCenterForAppName = new EventCenterForMicroApp(appName)
-```
-
-详情查看：[关闭沙箱后的通信方式](/zh-cn/data?id=关闭沙箱后的通信方式)
 
 
 ## unmountApp
@@ -237,16 +233,16 @@ interface unmountAppParams {
    * 对于已经卸载的应用: 当子应用已经卸载或keep-alive应用已经推入后台，则清除应用状态及缓存资源
    * 对于正在运行的应用: 当子应用正在运行，则卸载应用并删除状态及缓存资源
    */
-  destroy?: boolean;
+  destroy?: boolean
   /**
    * clearAliveState: 是否清空应用的缓存状态，默认值：false
    * 解释: 如果子应用是keep-alive，则卸载并清空状态，并保留缓存资源，如果子应用不是keep-alive，则执行正常卸载流程，并保留缓存资源
    * 补充: 无论keep-alive应用正在运行还是已经推入后台，都将执行卸载操作，清空应用缓存状态，并保留缓存资源
    */
-  clearAliveState?: boolean;
+  clearAliveState?: boolean
 }
 
-function unmountApp(appName: string, options?: unmountAppParams): Promise<void>
+function unmountApp(appName: string, options?: unmountAppParams): Promise<boolean>
 ```
 
 **使用方式：**
@@ -279,16 +275,16 @@ interface unmountAppParams {
    * 对于已经卸载的应用: 当子应用已经卸载或keep-alive应用已经推入后台，则清除应用状态及缓存资源
    * 对于正在运行的应用: 当子应用正在运行，则卸载应用并删除状态及缓存资源
    */
-  destroy?: boolean;
+  destroy?: boolean
   /**
    * clearAliveState: 是否清空应用的缓存状态，默认值：false
    * 解释: 如果子应用是keep-alive，则卸载并清空状态，并保留缓存资源，如果子应用不是keep-alive，则执行正常卸载流程，并保留缓存资源
    * 补充: 无论keep-alive应用正在运行还是已经推入后台，都将执行卸载操作，清空应用缓存状态，并保留缓存资源
    */
-  clearAliveState?: boolean;
+  clearAliveState?: boolean
 }
 
-function unmountAllApps(appName: string, options?: unmountAppParams): Promise<void>
+function unmountAllApps(options?: unmountAppParams): Promise<boolean>
 ```
 
 **使用方式：**
@@ -305,6 +301,134 @@ unmountAllApps({ clearAliveState: true }).then(() => console.log('卸载成功')
 // 如果destroy和clearAliveState同时为true，则clearAliveState将失效
 unmountAllApps({ destroy: true, clearAliveState: true }).then(() => console.log('卸载成功'))
 ```
+
+
+## reload
+**描述：**重新渲染子应用
+
+**版本限制：** 1.0.0及以上版本
+
+**介绍：**
+```js
+/**
+ * @param appName 应用名称，必传
+ * @param destroy 重新渲染时是否彻底删除缓存值，可选
+ */
+function reload(appName: string, destroy?: boolean): Promise<boolean>
+```
+
+**使用方式：**
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 案例一：重新渲染子应用my-app
+microApp.reload('my-app').then((result) => {
+  if (result) {
+    console.log('重新渲染成功')
+  } else {
+    console.log('重新渲染失败')
+  }
+})
+
+// 案例二：重新渲染子应用my-app，并彻底删除缓存值
+microApp.reload('my-app', true).then((result) => {
+  if (result) {
+    console.log('重新渲染成功')
+  } else {
+    console.log('重新渲染失败')
+  }
+})
+```
+
+## renderApp
+**描述：**手动渲染子应用
+
+**介绍：**
+```js
+interface RenderAppOptions {
+  name: string, // 应用名称，必传
+  url: string, // 应用地址，必传
+  container: string | Element, // 应用容器或选择器，必传
+  iframe?: boolean, // 是否切换为iframe沙箱，可选
+  inline?: boolean, // 开启内联模式运行js，可选
+  'disable-scopecss'?: boolean, // 关闭样式隔离，可选
+  'disable-sandbox'?: boolean, // 关闭沙箱，可选
+  'disable-memory-router'?: boolean, // 关闭虚拟路由系统，可选
+  'default-page'?: string, // 指定默认渲染的页面，可选
+  'keep-router-state'?: boolean, // 保留路由状态，可选
+  'disable-patch-request'?: boolean, // 关闭子应用请求的自动补全功能，可选
+  'keep-alive'?: boolean, // 开启keep-alive模式，可选
+  destroy?: boolean, // 卸载时强制删除缓存资源，可选
+  fiber?: boolean, // 开启fiber模式，可选
+  baseroute?: string, // 设置子应用的基础路由，可选
+  ssr?: boolean, // 开启ssr模式，可选
+  shadowDOM?: boolean, // 开启shadowDOM，可选
+  data?: Object, // 传递给子应用的数据，可选
+  onDataChange?: Function, // 获取子应用发送数据的监听函数，可选
+  // 注册子应用的生命周期
+  lifeCycles?: {
+    created(e: CustomEvent): void, // 加载资源前触发
+    beforemount(e: CustomEvent): void, // 加载资源完成后，开始渲染之前触发
+    mounted(e: CustomEvent): void, // 子应用渲染结束后触发
+    unmount(e: CustomEvent): void, // 子应用卸载时触发
+    error(e: CustomEvent): void, // 子应用渲染出错时触发
+    beforeshow(e: CustomEvent): void, // 子应用推入前台之前触发（keep-alive模式特有）
+    aftershow(e: CustomEvent): void, // 子应用推入前台之后触发（keep-alive模式特有）
+    afterhidden(e: CustomEvent): void, // 子应用推入后台时触发（keep-alive模式特有）
+  },
+}
+
+/**
+ * @param options RenderAppOptions 配置项
+ */
+function renderApp(options: RenderAppOptions): Promise<boolean>
+```
+
+**使用方式：**
+```js
+import microApp from '@micro-zoe/micro-app'
+
+// 案例一
+microApp.renderApp({
+  name: 'my-app',
+  url: 'http://localhost:3000',
+  container: '#container',
+}).then((result) => {
+  if (result) {
+    console.log('渲染成功')
+  } else {
+    console.log('渲染失败')
+  }
+})
+
+// 案例二
+microApp.renderApp({
+  name: 'my-app',
+  url: 'http://localhost:3000',
+  container: '#container',
+  inline: true,
+  data: { key: '初始化数据' },
+  lifeCycles: {
+    mounted () {
+      console.log('子应用已经渲染')
+    },
+    unmount () {
+      console.log('子应用已经卸载')
+    },
+  }
+})
+```
+
+## document.microAppElement
+**描述：**获取子应用所在的`micro-app`元素。
+
+**限制：**只能在子应用内部使用，基座中可以使用`document.querySelector`获取micro-app元素
+
+**使用方式：**
+```js
+document.microAppElement.appendChild(...)
+```
+
 
 ## setData
 **描述：**向指定的子应用发送数据
@@ -363,7 +487,7 @@ microApp.addDataListener('my-app', dataListener)
 ```
 
 ## removeDataListener
-**描述：**解除基座绑定的指定子应用的数据监听函数
+**描述：**解除主应用的数据监听函数
 
 **使用方式：**
 
@@ -379,7 +503,7 @@ microApp.removeDataListener('my-app', dataListener)
 ```
 
 ## clearDataListener
-**描述：**清空基座绑定的指定子应用的所有数据监听函数
+**描述：**清空主应用的所有数据监听函数
 
 **使用方式：**
 
@@ -443,7 +567,7 @@ microApp.removeGlobalDataListener(dataListener)
 ```
 
 ## clearGlobalDataListener
-**描述：**清空基座应用绑定的所有全局数据监听函数
+**描述：**清空主应用绑定的所有全局数据监听函数
 
 **使用方式：**
 
@@ -488,7 +612,7 @@ document.body.appendChild(pureDiv)
 
 
 ## removeDomScope
-**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致基座元素错误绑定到子应用的情况
+**描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致主应用元素错误绑定到子应用的情况
 
 **版本限制：** 0.8.2及以上版本
 
@@ -516,11 +640,11 @@ window.rawDocument
 
 
 ## getData
-**描述：**获取基座下发的data数据
+**描述：**获取主应用下发的data数据
 
 **使用方式：**
 ```js
-const data = window.microApp.getData() // 返回基座下发的data数据
+const data = window.microApp.getData() // 返回主应用下发的data数据
 ```
 
 ## addDataListener
@@ -532,8 +656,8 @@ const data = window.microApp.getData() // 返回基座下发的data数据
  * 绑定监听函数，监听函数只有在数据变化时才会触发
  * dataListener: 绑定函数
  * autoTrigger: 在初次绑定监听函数时如果有缓存数据，是否需要主动触发一次，默认为false
- * !!!重要说明: 因为子应用是异步渲染的，而基座发送数据是同步的，
- * 如果在子应用渲染结束前基座应用发送数据，则在绑定监听函数前数据已经发送，在初始化后不会触发绑定函数，
+ * !!!重要说明: 因为子应用是异步渲染的，而主应用发送数据是同步的，
+ * 如果在子应用渲染结束前主应用发送数据，则在绑定监听函数前数据已经发送，在初始化后不会触发绑定函数，
  * 但这个数据会放入缓存中，此时可以设置autoTrigger为true主动触发一次监听函数来获取数据。
  */
 window.microApp.addDataListener(dataListener: Function, autoTrigger?: boolean)
@@ -542,7 +666,7 @@ window.microApp.addDataListener(dataListener: Function, autoTrigger?: boolean)
 **使用方式：**
 ```js
 function dataListener (data) {
-  console.log('来自基座应用的数据', data)
+  console.log('来自主应用的数据', data)
 }
 
 window.microApp.addDataListener(dataListener)
@@ -555,7 +679,7 @@ window.microApp.addDataListener(dataListener)
 
 ```js
 function dataListener (data) {
-  console.log('来自基座应用的数据', data)
+  console.log('来自主应用的数据', data)
 }
 
 window.microApp.removeDataListener(dataListener)
@@ -571,7 +695,7 @@ window.microApp.clearDataListener()
 ```
 
 ## dispatch
-**描述：**向基座应用发送数据
+**描述：**向主应用发送数据
 
 **使用方式：**
 
