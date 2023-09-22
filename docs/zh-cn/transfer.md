@@ -3,7 +3,7 @@
 ### 迁移步骤
 **1、安装最新版本**
 ```bash
-npm i @micro-zoe/micro-app@beta --save
+npm i @micro-zoe/micro-app@latest --save
 ```
 
 **2、在start中增加配置**
