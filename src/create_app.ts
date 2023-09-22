@@ -316,6 +316,11 @@ export default class CreateApp implements AppInterface {
                 try {
                   this.handleMounted(this.umdHookMount(microApp.getData(this.name, true)))
                 } catch (e) {
+                  /**
+                   * TODO:
+                   *  1. 是否应该直接抛出错误
+                   *  2. 是否应该触发error生命周期
+                   */
                   logError('An error occurred in window.mount \n', this.name, e)
                 }
               } else if (isFinished === true) {
@@ -545,10 +550,13 @@ export default class CreateApp implements AppInterface {
   // hidden app when disconnectedCallback called with keep-alive
   public hiddenKeepAliveApp (callback?: CallableFunction): void {
     this.setKeepAliveState(keepAliveStates.KEEP_ALIVE_HIDDEN)
-
     /**
-     * event should dispatch before clone node
-     * dispatch afterHidden event to micro-app
+     * afterhidden事件需要提前发送，原因如下：
+     *  1. 此时发送this.container还指向micro-app元素，而不是临时div元素
+     *  2. 沙箱执行recordAndReleaseEffect后会将appstate-change方法也清空，之后再发送子应用也接受不到了
+     *  3. 对于this.loadSourceLevel !== 2的情况，unmount是同步执行的，所以也会出现2的问题
+     * TODO: 有可能导致的问题
+     *  1. 在基座接受到afterhidden方法后立即执行unmount，彻底destroy应用时，因为unmount时同步执行，所以this.container为null后才执行cloneContainer
      */
     dispatchCustomEventToMicroApp(this, 'appstate-change', {
       appState: 'afterhidden',

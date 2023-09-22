@@ -1,4 +1,9 @@
 /* eslint-disable promise/param-names */
+import {
+  rewriteConsole,
+  releaseConsole,
+  jestConsoleError,
+} from '../common/initial'
 import microApp from '../..'
 import {
   EventCenterForBaseApp,
@@ -6,8 +11,9 @@ import {
   recordDataCenterSnapshot,
   rebuildDataCenterSnapshot,
 } from '../../interact'
-import { defer } from '../../libs/utils'
-import { rewriteConsole, releaseConsole } from '../common/initial'
+import {
+  defer,
+} from '../../libs/utils'
 import CreateApp, { appInstanceMap } from '../../create_app'
 
 describe('data center', () => {
@@ -146,7 +152,7 @@ describe('data center', () => {
     microApp1.dispatch(dataFromApp1)
     microApp1.dispatch('11' as any)
     await nextFrame()
-    expect(console.error).toBeCalledWith('[micro-app] event-center: data must be object')
+    expect(jestConsoleError).toBeCalledWith('[micro-app] event-center: data must be object')
     expect(cbForApp1).toBeCalledTimes(1)
     expect(cbForApp1).toBeCalledWith(dataFromApp1)
     expect(app1EventHandler).toBeCalled()
@@ -254,15 +260,15 @@ describe('data center', () => {
     baseApp.setData(123 as any, {})
     baseApp.removeDataListener({} as any, () => {})
     baseApp.addDataListener((() => {}) as any, () => {})
-    expect(console.error).toBeCalledTimes(4)
-    expect(console.error).toBeCalledWith('[micro-app] event-center: Invalid name')
+    expect(jestConsoleError).toBeCalledTimes(4)
+    expect(jestConsoleError).toBeCalledWith('[micro-app] event-center: Invalid name')
 
     // 非正常函数
     baseApp.addDataListener('test-app1', null as any)
     baseApp.removeDataListener('test-app1', null as any)
     microApp1.removeGlobalDataListener(null as any)
     microApp1.removeDataListener('abc' as any)
-    expect(console.error).toBeCalledWith('[micro-app] event-center: Invalid callback function')
+    expect(jestConsoleError).toBeCalledWith('[micro-app] event-center: Invalid callback function')
 
     appInstanceMap.get('test-app2')!.container = null
     microApp2.dispatch({ info: '容器被清空后发送数据' })
@@ -288,10 +294,10 @@ describe('data center', () => {
 
     // 初始化子应用数据对象 - 错误的appName
     new EventCenterForMicroApp('&') // eslint-disable-line
-    expect(console.error).toHaveBeenCalledWith('[micro-app] Invalid appName &')
+    expect(jestConsoleError).toHaveBeenCalledWith('[micro-app] Invalid appName &')
 
     // 基座应用发送数据 - 错误的appName
     baseApp.setData('^', {})
-    expect(console.error).toHaveBeenCalledWith('[micro-app] event-center: Invalid name')
+    expect(jestConsoleError).toHaveBeenCalledWith('[micro-app] event-center: Invalid name')
   })
 })

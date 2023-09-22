@@ -30,6 +30,7 @@ export const ports = {
   source_scripts2: 9012,
   source_patch: 9013,
   prefetch: 9014,
+  micro_app: 9015,
 }
 
 // 启动服务
@@ -48,11 +49,11 @@ export const jestConsoleWarn = jest.fn()
 export const jestConsoleError = jest.fn()
 export function rewriteConsole (): void {
   global.console.warn = function warn(...rests: any[]) {
-    rawWarn.call(global.console, ...rests)
+    // rawWarn.call(global.console, ...rests)
     jestConsoleWarn(...rests)
   }
   global.console.error = function error(...rests: any[]) {
-    rawError.call(global.console, ...rests)
+    // rawError.call(global.console, ...rests)
     jestConsoleError(...rests)
   }
   // global.console.warn = jestConsoleWarn

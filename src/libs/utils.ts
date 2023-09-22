@@ -433,19 +433,22 @@ export function cloneContainer <T extends Element | ShadowRoot, Q extends Elemen
   origin: T,
   deep: boolean,
 ): Q {
-  target.innerHTML = ''
-  if (deep) {
-    // TODO: ShadowRoot兼容，ShadowRoot不能直接使用cloneNode
-    const clonedNode = origin.cloneNode(true)
-    const fragment = document.createDocumentFragment()
-    Array.from(clonedNode.childNodes).forEach((node: Node | Element) => {
-      fragment.appendChild(node)
-    })
-    target.appendChild(fragment)
-  } else {
-    Array.from(origin.childNodes).forEach((node: Node | Element) => {
-      target.appendChild(node)
-    })
+  // 在基座接受到afterhidden方法后立即执行unmount，彻底destroy应用时，因为unmount时同步执行，所以this.container为null后才执行cloneContainer
+  if (origin) {
+    target.innerHTML = ''
+    if (deep) {
+      // TODO: ShadowRoot兼容，ShadowRoot不能直接使用cloneNode
+      const clonedNode = origin.cloneNode(true)
+      const fragment = document.createDocumentFragment()
+      Array.from(clonedNode.childNodes).forEach((node: Node | Element) => {
+        fragment.appendChild(node)
+      })
+      target.appendChild(fragment)
+    } else {
+      Array.from(origin.childNodes).forEach((node: Node | Element) => {
+        target.appendChild(node)
+      })
+    }
   }
   return target
 }
