@@ -30,6 +30,7 @@
 
 - 其他
   - [API](zh-cn/api)
+  - [Micro-App-DevTools](zh-cn/micro-app-devtools)
   - [部署](zh-cn/deploy)
   - [常见问题](zh-cn/questions)
   - [更新日志](zh-cn/changelog)
