@@ -15,6 +15,11 @@ const routes = [
     path: '/ant-design-vue',
     name: 'ant-design-vue',
     component: () => import('./pages/ant-design-vue.vue')
+  },
+  {
+    path: '/inline',
+    name: 'inline',
+    component: () => import('./pages/inline.vue')
   }
 ]
 
