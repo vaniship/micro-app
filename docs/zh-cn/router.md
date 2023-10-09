@@ -2,7 +2,7 @@ MicroApp通过自定义location和history，实现了一套虚拟路由系统，
 
 子应用的路由信息会作为query参数同步到浏览器地址上，如下：
 
-![alt](../../media/memory-image-1.png ':size=700')
+![alt](https://img12.360buyimg.com/imagetools/jfs/t1/204018/30/36539/9736/6523add2F41753832/31f5ad7e48ea6570.png ':size=700')
 
 虚拟路由系统还提供了丰富的功能，帮助用户提升开发效率和使用体验。
 
@@ -507,7 +507,7 @@ const routeInfo = window.microApp.router.current.get('my-app')
 ## 编解码
 **介绍：**子应用同步到浏览器的路由信息是经过特殊编码的(encodeURIComponent + 特殊字符转译)，如果用户想要编码或解码子应用的路由信息，可以使用编解码的API。
 
-![alt](../../media/memory-image-1.png ':size=700')
+![alt](https://img12.360buyimg.com/imagetools/jfs/t1/204018/30/36539/9736/6523add2F41753832/31f5ad7e48ea6570.png ':size=700')
 
 ```js
 /**

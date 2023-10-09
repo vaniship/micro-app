@@ -124,7 +124,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 
 子应用的路由信息会作为query参数同步到浏览器地址上，如下：
 
-![alt](../../media/memory-image-1.png ':size=700')
+![alt](https://img12.360buyimg.com/imagetools/jfs/t1/204018/30/36539/9736/6523add2F41753832/31f5ad7e48ea6570.png ':size=700')
 
 设置`disable-memory-router`可以关闭虚拟路由系统，子应用将基于浏览器的路由系统进行渲染，参考[browser-router](/zh-cn/browser-router)
 

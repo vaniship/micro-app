@@ -193,4 +193,4 @@ window.addEventListener('unmount', function () {
 
 **解决方式：**通过`ngZone.run()`触发更改检测，具体方式如下：
 
-![angular-question3](../../static/images/angular-1.png ':size=800')
+![angular-question3](https://img14.360buyimg.com/imagetools/jfs/t1/207551/36/34684/49729/6523aee1F5efef0be/e50e6d782a223dc9.png ':size=800')

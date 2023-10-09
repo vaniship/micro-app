@@ -212,7 +212,7 @@ MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 **解决方式：**通过`ngZone.run()`触发更改检测，具体方式如下：
 
-![angular-question3](../../../static/images/angular-1.png ':size=800')
+![angular-question3](https://img14.360buyimg.com/imagetools/jfs/t1/207551/36/34684/49729/6523aee1F5efef0be/e50e6d782a223dc9.png ':size=800')
 
 #### 2、主应用是react、nextjs应用，引入zone.js后导致micro-app元素生命周期异常
 目前无法解决，请暂停使用生命周期函数。

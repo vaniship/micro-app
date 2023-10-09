@@ -6,7 +6,7 @@
 - 1、随着项目迭代应用越来越庞大，难以维护。
 - 2、跨团队或跨部门协作开发项目导致效率低下的问题。
 
-![microfroentend](https://img13.360buyimg.com/imagetools/jfs/t1/182098/24/20562/94562/6123569cE7a4b5bc3/f135ab0912746bd6.png ':size=750')
+![microfroentend](https://img14.360buyimg.com/imagetools/jfs/t1/183357/37/39498/93302/6523acd0F9383d35c/88532a84c0fe64bf.png ':size=800')
 
 ### 关于micro-app
   在`micro-app`之前，业内已经有一些开源的微前端框架，比较流行的有2个：`single-spa`和`qiankun`。
