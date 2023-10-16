@@ -222,7 +222,7 @@ window.addEventListener('unmount', function () {
 
 **解决方式：**修改子应用的webpack配置。
 
-`jsonpFunction`是webapck4中的名称，在webpack5中名称为`chunkLoadingGlobal`，请根据自己项目的webpack版本设置。
+`jsonpFunction`是webpack4中的名称，在webpack5中名称为`chunkLoadingGlobal`，请根据自己项目的webpack版本设置。
 
 在`next.config.js`中配置webpack：
 ```js
