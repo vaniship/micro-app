@@ -118,20 +118,28 @@ window.onunmount = () => {
 }
 
 /* ---------------------- 全局事件 --------------------- */
-document.addEventListener('click', function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
-  // console.log(this)
-}, false)
+// document.addEventListener('click', function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.addEventListener绑定`)
+//   // console.log(this)
+// }, false)
 
-document.onclick = function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-  // console.log(this)
+// document.onclick = function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+//   // console.log(this)
+// }
+
+// window.addEventListener('click', function () {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
+//   // console.log(this)
+// }, false)
+
+window.onclick = function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__} window.onclick`)
 }
 
-window.addEventListener('click', function () {
-  console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
-  // console.log(this)
-}, false)
+window.addEventListener.call(document.querySelector('#root'), 'click', () => {
+  console.log(2222222)
+})
 
 // 测试主动卸载预渲染、隐藏keep-alive应用，事件快照重复执行的问题
 // setTimeout(() => {
@@ -154,13 +162,13 @@ window.addEventListener('click', function () {
 
 
 /* ---------------------- 定时器 --------------------- */
-setInterval(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
-}, 5000)
+// setInterval(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setInterval`)
+// }, 5000)
 
-setTimeout(() => {
-  console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
-}, 5000);
+// setTimeout(() => {
+//   console.log(`子应用${window.__MICRO_APP_NAME__}的setTimeout`)
+// }, 5000);
 
 
 /* ---------------------- 创建元素 --------------------- */
@@ -470,4 +478,9 @@ window.addEventListener('hashchange', (e) => {
 
 // console.log('document.firstElementChild: ', document.firstElementChild)
 
-console.log('console === parent.console: ', console === parent.console)
+// console.log('console === parent.console: ', console === parent.console)
+
+console.log('micro-app容器元素document.microAppElement', document.microAppElement)
+
+// --- document.querySelector(':root'), document.documentElement 和 动态设置css变量
+// console.log(`document.querySelector(':root'): `, document.querySelector(':root'), document.querySelector(':root') === document.documentElement)

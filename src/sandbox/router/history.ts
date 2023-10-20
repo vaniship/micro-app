@@ -21,7 +21,7 @@ import {
   getMicroState,
   getMicroPathFromURL,
   isEffectiveApp,
-  isMemoryRouterEnabled,
+  isRouterModeCustom,
 } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
@@ -82,7 +82,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
       /**
        * If the set() method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
        * e.g. history.state = {}
-       * TypeError: 'set' on proxy: trap returned falsish for property 'state'
+       * TypeError: 'set' on proxy: trap returned false for property 'state'
        */
       return true
     }
@@ -141,8 +141,12 @@ export function navigateWithNativeEvent (
     const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
     // navigate with native history method
     nativeHistoryNavigate(appName, methodName, result.fullPath, state, title)
-    // TODO: 如果所有模式统一发送popstate事件，则isMemoryRouterEnabled(appName)要去掉
-    if (oldFullPath !== result.fullPath && isMemoryRouterEnabled(appName)) {
+    /**
+     * TODO:
+     *  1. 如果所有模式统一发送popstate事件，则!isRouterModeCustom(appName)要去掉
+     *  2. 如果发送事件，则会导致vue router-view :key='router.path'绑定，无限卸载应用，死循环
+     */
+    if (oldFullPath !== result.fullPath && !isRouterModeCustom(appName)) {
       dispatchNativeEvent(appName, onlyForBrowser, oldHref)
     }
   }
@@ -197,7 +201,7 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
-      if (isMemoryRouterEnabled(appName) && !getMicroPathFromURL(appName)) {
+      if (!isRouterModeCustom(appName) && !getMicroPathFromURL(appName)) {
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
           appName,

@@ -12,9 +12,6 @@ import {
   getActiveApps,
 } from '../../micro_app'
 import {
-  formatEventName,
-} from '../adapter'
-import {
   getMicroPathFromURL,
   getMicroState,
   isEffectiveApp,
@@ -120,18 +117,16 @@ export function dispatchPopStateEventToMicroApp (
   // })
   // create PopStateEvent named popstate-appName with sub app state
   const newPopStateEvent = new PopStateEvent(
-    formatEventName('popstate', appName),
+    'popstate',
     { state: getMicroState(appName) }
   )
 
-  if (isIframeSandbox(appName)) {
-    microAppWindow.dispatchEvent(newPopStateEvent)
-  } else {
-    globalEnv.rawWindow.dispatchEvent(newPopStateEvent)
-  }
+  microAppWindow.dispatchEvent(newPopStateEvent)
 
-  // call function window.onpopstate if it exists
-  isFunction(proxyWindow.onpopstate) && proxyWindow.onpopstate(newPopStateEvent)
+  if (!isIframeSandbox(appName)) {
+    // call function window.onpopstate if it exists
+    isFunction(proxyWindow.onpopstate) && proxyWindow.onpopstate(newPopStateEvent)
+  }
 }
 
 /**
@@ -147,20 +142,19 @@ export function dispatchHashChangeEventToMicroApp (
   oldHref: string,
 ): void {
   const newHashChangeEvent = new HashChangeEvent(
-    formatEventName('hashchange', appName),
+    'hashchange',
     {
       newURL: proxyWindow.location.href,
       oldURL: oldHref,
     }
   )
-  if (isIframeSandbox(appName)) {
-    microAppWindow.dispatchEvent(newHashChangeEvent)
-  } else {
-    globalEnv.rawWindow.dispatchEvent(newHashChangeEvent)
-  }
 
-  // call function window.onhashchange if it exists
-  isFunction(proxyWindow.onhashchange) && proxyWindow.onhashchange(newHashChangeEvent)
+  microAppWindow.dispatchEvent(newHashChangeEvent)
+
+  if (!isIframeSandbox(appName)) {
+    // call function window.onhashchange if it exists
+    isFunction(proxyWindow.onhashchange) && proxyWindow.onhashchange(newHashChangeEvent)
+  }
 }
 
 /**

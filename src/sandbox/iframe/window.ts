@@ -3,21 +3,49 @@ import type {
   MicroEventListener,
   CommonEffectHook,
 } from '@micro-app/types'
+import type IframeSandbox from './index'
+import globalEnv from '../../libs/global_env'
+import bindFunctionToRawTarget from '../bind_function'
 import {
   rawDefineProperty,
   isFunction,
   logWarn,
 } from '../../libs/utils'
-import globalEnv from '../../libs/global_env'
-import bindFunctionToRawTarget from '../bind_function'
+import {
+  GLOBAL_KEY_TO_WINDOW,
+  SCOPE_WINDOW_EVENT,
+  SCOPE_WINDOW_ON_EVENT,
+} from '../../constants'
 import {
   escape2RawWindowKeys,
   escape2RawWindowRegExpKeys,
-  scopeIframeWindowOnEvent,
-  scopeIframeWindowEvent,
 } from './special_key'
 
-export function patchIframeWindow (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
+/**
+ * patch window of child app
+ * @param appName app name
+ * @param microAppWindow microWindow of child app
+ * @param sandbox WithSandBox
+ * @returns EffectHook
+ */
+export function patchWindow (
+  appName: string,
+  microAppWindow: microAppWindowType,
+  sandbox: IframeSandbox,
+): CommonEffectHook {
+  patchWindowProperty(appName, microAppWindow)
+  createProxyWindow(microAppWindow, sandbox)
+  return patchWindowEffect(microAppWindow)
+}
+/**
+ * rewrite special properties of window
+ * @param appName app name
+ * @param microAppWindow child app microWindow
+ */
+function patchWindowProperty (
+  appName: string,
+  microAppWindow: microAppWindowType,
+):void {
   const rawWindow = globalEnv.rawWindow
 
   escape2RawWindowKeys.forEach((key: string) => {
@@ -49,7 +77,7 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
         return false
       })
 
-      return /^on/.test(key) && !scopeIframeWindowOnEvent.includes(key)
+      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
     })
     .forEach((eventName: string) => {
       const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microAppWindow, eventName) || {
@@ -57,19 +85,6 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
         writable: true,
       }
       try {
-      /**
-       * 如果设置了iframeWindow上的这些on事件，处理函数会设置到原生window上，但this会绑定到iframeWindow
-       * 获取这些值，则直接从原生window上取
-       * 总结：这些on事件全部都代理到原生window上
-       *
-       * 问题：
-       * 1、如果子应用没有设置，基座设置了on事件，子应用触发事件是会不会执行基座的函数？
-       *    比如 基座定义了 window.onpopstate，子应用执行跳转会不会触发基座的onpopstate函数？
-       *
-       * 2、如果基座已经定义了 window.onpopstate，子应用定义会不会覆盖基座的？
-       *    现在的逻辑看来，是会覆盖的，那么问题1就是 肯定的
-       * TODO: 一些特殊事件onpopstate、onhashchange不代理，放在scopeIframeWindowOnEvent中
-       */
         rawDefineProperty(microAppWindow, eventName, {
           enumerable,
           configurable: true,
@@ -82,8 +97,65 @@ export function patchIframeWindow (appName: string, microAppWindow: microAppWind
         logWarn(e, appName)
       }
     })
+}
 
-  return patchWindowEffect(microAppWindow)
+/**
+ * create proxyWindow with Proxy(microAppWindow)
+ * @param microAppWindow micro app window
+ * @param sandbox IframeSandbox
+ */
+function createProxyWindow (
+  microAppWindow: microAppWindowType,
+  sandbox: IframeSandbox,
+): void {
+  const rawWindow = globalEnv.rawWindow
+  const customProperties: PropertyKey[] = []
+
+  const proxyWindow = new Proxy(microAppWindow, {
+    get: (target: microAppWindowType, key: PropertyKey): unknown => {
+      if (key === 'location') {
+        return sandbox.proxyLocation
+      }
+
+      if (GLOBAL_KEY_TO_WINDOW.includes(key.toString())) {
+        return proxyWindow
+      }
+
+      if (customProperties.includes(key)) {
+        return Reflect.get(target, key)
+      }
+
+      return bindFunctionToRawTarget(Reflect.get(target, key), target)
+    },
+    set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
+      if (key === 'location') {
+        return Reflect.set(rawWindow, key, value)
+      }
+
+      if (!Reflect.has(target, key)) {
+        customProperties.push(key)
+      }
+
+      Reflect.set(target, key, value)
+
+      if (sandbox.escapeProperties.includes(key)) {
+        !Reflect.has(rawWindow, key) && sandbox.escapeKeys.add(key)
+        Reflect.set(rawWindow, key, value)
+      }
+
+      return true
+    },
+    has: (target: microAppWindowType, key: PropertyKey) => key in target,
+    deleteProperty: (target: microAppWindowType, key: PropertyKey): boolean => {
+      if (Reflect.has(target, key)) {
+        sandbox.escapeKeys.has(key) && Reflect.deleteProperty(rawWindow, key)
+        return Reflect.deleteProperty(target, key)
+      }
+      return true
+    },
+  })
+
+  sandbox.proxyWindow = proxyWindow
 }
 
 function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHook {
@@ -92,7 +164,7 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
 
   function getEventTarget (type: string): Window {
-    return scopeIframeWindowEvent.includes(type) ? microAppWindow : rawWindow
+    return SCOPE_WINDOW_EVENT.includes(type) ? microAppWindow : rawWindow
   }
 
   // TODO: listener 是否需要绑定microAppWindow，否则函数中的this指向原生window

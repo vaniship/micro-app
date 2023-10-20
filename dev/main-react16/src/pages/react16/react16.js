@@ -23,10 +23,13 @@ export default class App extends React.Component {
     showMicroApp: true,
     testNum: 0,
     showModal: false,
+    routerMode: 'custom',
+    baseroute: '/micro-app/demo/react16',
   }
 
   handleCreated = () => {
     console.log(`生命周期：created -- ${this.state.name}`)
+    // Promise.resolve().then(() => microApp.router.push({name: this.state.name, path: this.state.baseroute + '/page2'}))
   }
 
   beforemount = (e) => {
@@ -42,7 +45,10 @@ export default class App extends React.Component {
   }
 
   unmount = () => {
-    console.log(`生命周期：unmount -- ${this.state.name}`, document.querySelector('#micro-app-template-style'))
+    this.setState({
+      showLoading: false
+    })
+    console.log(`生命周期：unmount -- ${this.state.name}`)
   }
 
   error = (e) => {
@@ -184,23 +190,34 @@ export default class App extends React.Component {
     })
   }
 
+  changeRouterMode = () => {
+    const newMode = {
+      custom: 'search',
+      search: 'history',
+      history: 'custom',
+    }
+
+    this.setState({
+      routerMode: newMode[this.state.routerMode],
+    })
+  }
+
   changeTestNum = () => {
     this.setState({
       testNum: this.state.testNum + 1,
     })
-    console.log(33333, this.props.history)
   }
 
   jumpToHome = () => {
-    microApp.router.push({name: this.state.name, path: '/micro-app/react16/'})
+    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/'})
   }
 
   jumpToPage2 = () => {
-    microApp.router.push({name: this.state.name, path: '/micro-app/react16/page2'})
+    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/page2'})
   }
 
   jumpToInline = () => {
-    microApp.router.push({name: this.state.name, path: '/micro-app/react16/inline'})
+    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/inline'})
   }
 
   useRouterGo = () => {
@@ -388,6 +405,7 @@ export default class App extends React.Component {
             {/* <Button type="primary" onClick={this.clearGlobalData}>清空全局数据</Button> */}
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
             <Button type="primary" onClick={this.useUnmountApp}>主动卸载应用</Button>
+            <Button type="primary" onClick={this.changeRouterMode}>切换路由模式</Button>
             <Button type="primary" onClick={this.jumpToHome}>控制子应用跳转home</Button>
             <Button type="primary" onClick={this.jumpToPage2}>控制子应用跳转page2</Button>
             <Button type="primary" onClick={this.jumpToInline}>控制子应用跳转inline</Button>
@@ -419,8 +437,8 @@ export default class App extends React.Component {
                   onAftershow={this.handleAftershow}
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
-                  baseroute='/micro-app/demo/react16'
-                  keep-alive
+                  baseroute={this.state.baseroute}
+                  // keep-alive
                   // destroy
                   // inline
                   // disableSandbox
@@ -428,7 +446,8 @@ export default class App extends React.Component {
                   // disableScopecss
                   // disable-scopecss
                   // shadowDOM
-                  // disable-memory-router
+                  // disable-memory-router={this.state.testNum===1}
+                  router-mode='custom'
                   // keep-router-state
                   // default-page='/micro-app/react16/page2'
                   // hidden-router

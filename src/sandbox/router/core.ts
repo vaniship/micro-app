@@ -3,6 +3,7 @@ import type {
   MicroState,
   LocationQuery,
   HandleMicroPathResult,
+  MicroAppElementType,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
 import {
@@ -17,13 +18,20 @@ import {
 import {
   appInstanceMap,
 } from '../../create_app'
+import {
+  ROUTER_MODE_LIST,
+  DEFAULT_ROUTER_MODE,
+  ROUTER_MODE_CUSTOM,
+  ROUTER_MODE_HISTORY,
+} from '../../constants'
+import microApp from '../../micro_app'
 
 // set micro app state to origin state
 export function setMicroState (
   appName: string,
   microState: MicroState,
 ): MicroState {
-  if (isMemoryRouterEnabled(appName)) {
+  if (!isRouterModeCustom(appName)) {
     const rawState = globalEnv.rawWindow.history.state
     const additionalState: Record<string, any> = {
       microAppState: assign({}, rawState?.microAppState, {
@@ -40,7 +48,7 @@ export function setMicroState (
 
 // delete micro app state form origin state
 export function removeMicroState (appName: string, rawState: MicroState): MicroState {
-  if (isMemoryRouterEnabled(appName)) {
+  if (!isRouterModeCustom(appName)) {
     if (isPlainObject(rawState?.microAppState)) {
       if (!isUndefined(rawState.microAppState[appName])) {
         delete rawState.microAppState[appName]
@@ -60,7 +68,7 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
 export function getMicroState (appName: string): MicroState {
   const rawState = globalEnv.rawWindow.history.state
 
-  if (isMemoryRouterEnabled(appName)) {
+  if (!isRouterModeCustom(appName)) {
     return rawState?.microAppState?.[appName] || null
   }
 
@@ -105,7 +113,7 @@ function formatQueryAppName (appName: string) {
  */
 export function getMicroPathFromURL (appName: string): string | null {
   const rawLocation = globalEnv.rawWindow.location
-  if (isMemoryRouterEnabled(appName)) {
+  if (!isRouterModeCustom(appName)) {
     const queryObject = getQueryObjectFromURL(rawLocation.search, rawLocation.hash)
     const microPath = queryObject.hashQuery?.[formatQueryAppName(appName)] || queryObject.searchQuery?.[formatQueryAppName(appName)]
     return isString(microPath) ? decodeMicroPath(microPath) : null
@@ -121,7 +129,7 @@ export function getMicroPathFromURL (appName: string): string | null {
 export function setMicroPathToURL (appName: string, targetLocation: MicroLocation): HandleMicroPathResult {
   const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
   let isAttach2Hash = false
-  if (isMemoryRouterEnabled(appName)) {
+  if (!isRouterModeCustom(appName)) {
     let { pathname, search, hash } = globalEnv.rawWindow.location
     const queryObject = getQueryObjectFromURL(search, hash)
     const encodedMicroPath = encodeMicroPath(targetFullPath)
@@ -174,7 +182,7 @@ export function removeMicroPathFromURL (appName: string, targetLocation?: MicroL
   let { pathname, search, hash } = targetLocation || globalEnv.rawWindow.location
   let isAttach2Hash = false
 
-  if (isMemoryRouterEnabled(appName)) {
+  if (!isRouterModeCustom(appName)) {
     const queryObject = getQueryObjectFromURL(search, hash)
     if (queryObject.hashQuery?.[formatQueryAppName(appName)]) {
       isAttach2Hash = true
@@ -233,7 +241,7 @@ export function isEffectiveApp (appName: string): boolean {
   const app = appInstanceMap.get(appName)
   /**
    * !!(app && !app.isPrefetch && !app.isHidden())
-   * 隐藏的keep-alive应用暂时不作为无效应用，原因如下
+   * NOTE: 隐藏的keep-alive应用暂时不作为无效应用，原因如下
    * 1、隐藏后才执行去除浏览器上的微应用的路由信息的操作，导致微应用的路由信息无法去除
    * 2、如果保持隐藏应用内部正常跳转，阻止同步路由信息到浏览器，这样理论上是好的，但是对于location跳转改如何处理？location跳转是基于修改浏览器地址后发送popstate事件实现的，所以应该是在隐藏后不支持通过location进行跳转
    */
@@ -241,12 +249,50 @@ export function isEffectiveApp (appName: string): boolean {
 }
 
 /**
- * Determine whether the app has enabled memory-router
+ * router mode is custom
  * NOTE:
- *  1. if sandbox disabled, memory-router is disabled
- *  2. if app not exist, memory-router is disabled
+ *  1. if sandbox disabled, router mode defaults to custom
+ *  2. if app not exist, router mode defaults to custom
  */
-export function isMemoryRouterEnabled (appName: string): boolean {
+export function isRouterModeCustom (appName: string): boolean {
   const app = appInstanceMap.get(appName)
-  return !!(app && app.sandBox && app.useMemoryRouter)
+  return !app || !app.sandBox || app.routerMode === ROUTER_MODE_CUSTOM
+}
+
+// router mode is search
+export function isRouterModeSearch (appName: string): boolean {
+  const app = appInstanceMap.get(appName)
+  return !!(app && app.sandBox && app.routerMode === DEFAULT_ROUTER_MODE)
+}
+
+// router mode is history
+export function isRouterModeHistory (appName: string): boolean {
+  const app = appInstanceMap.get(appName)
+  return !!(app && app.sandBox && app.routerMode === ROUTER_MODE_HISTORY)
+}
+
+/**
+ * get memory router mode of child app
+ * NOTE:
+ *  1. if microAppElement exists, it means the app render by the micro-app element
+ *  2. if microAppElement not exists, it means it is prerender app
+ * @param mode native config
+ * @param microAppElement micro-app element
+ * @returns mode
+ */
+export function getRouterMode (
+  mode: string | null | void,
+  microAppElement?: MicroAppElementType,
+): string {
+  let routerMode: string
+  /**
+   * compatible with disable-memory-router in older versions
+   * if disable-memory-router is true, router-mode will be custom
+   */
+  if (microAppElement) {
+    routerMode = microAppElement.getDisposeResult('disable-memory-router') ? ROUTER_MODE_CUSTOM : mode || microApp.options['router-mode'] || ''
+  } else {
+    routerMode = microApp.options['disable-memory-router'] ? ROUTER_MODE_CUSTOM : mode || microApp.options['router-mode'] || ''
+  }
+  return ROUTER_MODE_LIST.includes(routerMode) ? routerMode : DEFAULT_ROUTER_MODE
 }

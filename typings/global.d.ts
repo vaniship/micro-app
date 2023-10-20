@@ -46,7 +46,6 @@ declare module '@micro-app/types' {
   interface SandBoxStartParams {
     umdMode: boolean
     baseroute: string
-    useMemoryRouter: boolean
     defaultPage: string
     disablePatchRequest: boolean
   }
@@ -56,7 +55,6 @@ declare module '@micro-app/types' {
     keepRouteState: boolean
     destroy: boolean
     clearData: boolean
-    useMemoryRouter: boolean
   }
 
   interface releaseGlobalEffectParams {
@@ -67,8 +65,31 @@ declare module '@micro-app/types' {
     destroy?: boolean,
   }
 
+  interface SandBoxAdapter {
+    // Variables that can only assigned to rawWindow
+    escapeSetterKeyList: PropertyKey[]
+
+    // Variables that can escape to rawWindow
+    staticEscapeProperties: PropertyKey[]
+
+    // Variables that scoped in child app
+    staticScopeProperties: PropertyKey[]
+  }
+
   interface WithSandBoxInterface {
+    // adapter for sandbox
+    adapter: SandBoxAdapter
+    // Scoped global Properties(Properties that can only get and set in microAppWindow, will not escape to rawWindow)
+    scopeProperties: PropertyKey[]
+    // Properties that can be escape to rawWindow
+    escapeProperties: PropertyKey[]
+    // Properties escape to rawWindow, cleared when unmount
+    escapeKeys: Set<PropertyKey>
+    // Properties newly added to microAppWindow
+    injectedKeys: Set<PropertyKey>
+    // proxy(microWindow)
     proxyWindow: WindowProxy
+    // child window
     microAppWindow: Window // Proxy target
     start (startParams: SandBoxStartParams): void
     stop (stopParams: SandBoxStopParams): void
@@ -87,20 +108,6 @@ declare module '@micro-app/types' {
     patchStaticElement (container: Element | ShadowRoot): void
     actionBeforeExecScripts (container: Element | ShadowRoot): void
     deleteIframeElement? (): void
-  }
-
-  interface SandBoxAdapter {
-    // Variables that can only assigned to rawWindow
-    escapeSetterKeyList: PropertyKey[]
-
-    // Variables that can escape to rawWindow
-    staticEscapeProperties: PropertyKey[]
-
-    // Variables that scoped in child app
-    staticScopeProperties: PropertyKey[]
-
-    // adapter for react
-    // injectReactHMRProperty (): void
   }
 
   type LinkSourceInfo = {
@@ -138,7 +145,7 @@ declare module '@micro-app/types' {
   interface MountParam {
     container: HTMLElement | ShadowRoot // app container
     inline: boolean // run js in inline mode
-    useMemoryRouter: boolean // use virtual router
+    routerMode: string // virtual router mode
     defaultPage: string // default page of virtual router
     baseroute: string // route prefix, default is ''
     disablePatchRequest: boolean // prevent rewrite request method of child app
@@ -168,7 +175,7 @@ declare module '@micro-app/types' {
     container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, div(keep-alive)
     umdMode: boolean // is umd mode
     fiber: boolean // fiber mode
-    useMemoryRouter: boolean // use virtual router
+    routerMode: string // virtual router mode
     isPrefetch: boolean // whether prefetch app, default is false
     isPrerender: boolean
     prefetchLevel?: number
@@ -194,6 +201,9 @@ declare module '@micro-app/types' {
     // app rendering error
     onerror (e: Error): void
 
+    // set app state
+    setAppState (state: string): void
+
     // get app state
     getAppState (): string
 
@@ -216,20 +226,6 @@ declare module '@micro-app/types' {
     showKeepAliveApp (container: HTMLElement | ShadowRoot): void
   }
 
-  interface MicroAppElementType {
-    appName: AttrType // app name
-    appUrl: AttrType // app url
-
-    // Hooks for element append to documents
-    connectedCallback (): void
-
-    // Hooks for element delete from documents
-    disconnectedCallback (): void
-
-    // Hooks for element attributes change
-    attributeChangedCallback (a: 'name' | 'url', o: string, n: string): void
-  }
-
   interface prefetchParam {
     name: string,
     url: string,
@@ -244,6 +240,10 @@ declare module '@micro-app/types' {
     level?: number
     'default-page'?: string
     'disable-patch-request'?: boolean
+    // prerender only 👇
+    'router-mode'?: string
+    baseroute?: string
+    // prerender only 👆
   }
 
   // prefetch params
@@ -251,14 +251,14 @@ declare module '@micro-app/types' {
 
   // lifeCycles
   interface lifeCyclesType {
-    created(e: CustomEvent): void
-    beforemount(e: CustomEvent): void
-    mounted(e: CustomEvent): void
-    unmount(e: CustomEvent): void
-    error(e: CustomEvent): void
-    beforeshow(e: CustomEvent): void
-    aftershow(e: CustomEvent): void
-    afterhidden(e: CustomEvent): void
+    created?(e: CustomEvent): void
+    beforemount?(e: CustomEvent): void
+    mounted?(e: CustomEvent): void
+    unmount?(e: CustomEvent): void
+    error?(e: CustomEvent): void
+    beforeshow?(e: CustomEvent): void
+    aftershow?(e: CustomEvent): void
+    afterhidden?(e: CustomEvent): void
   }
 
   type AssetsChecker = (url: string) => boolean;
@@ -332,6 +332,7 @@ declare module '@micro-app/types' {
     'hidden-router'?: boolean
     'keep-alive'?: boolean
     'clear-data'?: boolean
+    'router-mode'?: string
     iframe?: boolean
     ssr?: boolean
     fiber?: boolean
@@ -354,10 +355,32 @@ declare module '@micro-app/types' {
   // MicroApp config
   interface MicroAppBaseType {
     tagName: string
+    hasInit: boolean
     options: OptionsType
     preFetch(apps: prefetchParamList): void
     router: Router // eslint-disable-line
     start(options?: OptionsType): void
+  }
+
+  interface MicroAppElementType {
+    appName: AttrType // app name
+    appUrl: AttrType // app url
+
+    // Hooks for element append to documents
+    connectedCallback (): void
+
+    // Hooks for element delete from documents
+    disconnectedCallback (): void
+
+    // Hooks for element attributes change
+    attributeChangedCallback (a: 'name' | 'url', o: string, n: string): void
+
+    /**
+     * Get configuration
+     * Global setting is lowest priority
+     * @param name Configuration item name
+     */
+    getDisposeResult <T extends keyof OptionsType> (name: T): boolean
   }
 
   // special CallableFunction for interact

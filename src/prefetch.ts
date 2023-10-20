@@ -1,6 +1,19 @@
-import type { prefetchParamList, prefetchParam, globalAssetsType } from '@micro-app/types'
-import type { SourceCenter as SourceCenterType } from './source/source_center'
-import CreateApp, { appInstanceMap } from './create_app'
+import type {
+  prefetchParamList,
+  prefetchParam,
+  globalAssetsType,
+} from '@micro-app/types'
+import type {
+  SourceCenter as SourceCenterType,
+} from './source/source_center'
+import microApp from './micro_app'
+import sourceCenter from './source/source_center'
+import {
+  PREFETCH_LEVEL,
+} from './constants'
+import CreateApp, {
+  appInstanceMap,
+} from './create_app'
 import {
   requestIdleCallback,
   formatAppURL,
@@ -15,10 +28,12 @@ import {
   promiseRequestIdle,
   isNumber,
 } from './libs/utils'
-import { fetchSource } from './source/fetch'
-import sourceCenter from './source/source_center'
-import microApp from './micro_app'
-import { PREFETCH_LEVEL } from './constants'
+import {
+  fetchSource,
+} from './source/fetch'
+import {
+  getRouterMode,
+} from './sandbox/router'
 
 /**
  * preFetch([
@@ -104,7 +119,14 @@ function preFetchAction (options: prefetchParam): Promise<void> {
         const oldOnLoadError = app.onLoadError
         app.onLoad = (html: HTMLElement): void => {
           resolve()
-          oldOnload.call(app, html, options['default-page'], options['disable-patch-request'])
+          oldOnload.call(
+            app,
+            html,
+            options['default-page'],
+            options['disable-patch-request'],
+            getRouterMode(options['router-mode']),
+            options.baseroute,
+          )
         }
 
         app.onLoadError = (...rests): void => {

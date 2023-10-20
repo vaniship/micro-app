@@ -170,7 +170,6 @@ class CSSParser {
     if (this.cssText[0] !== '@') return false
     // reset scopecssDisableNextLine
     this.scopecssDisableNextLine = false
-
     return this.keyframesRule() ||
       this.mediaRule() ||
       this.customMediaRule() ||
@@ -178,6 +177,7 @@ class CSSParser {
       this.importRule() ||
       this.charsetRule() ||
       this.namespaceRule() ||
+      this.containerRule() ||
       this.documentRule() ||
       this.pageRule() ||
       this.hostRule() ||
@@ -274,8 +274,10 @@ class CSSParser {
   private charsetRule = this.createMatcherForNoneBraceAtRule('charset')
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSNamespaceRule
   private namespaceRule = this.createMatcherForNoneBraceAtRule('namespace')
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/@container
+  private containerRule = this.createMatcherForRuleWithChildRule(/^@container *([^{]+)/, '@container')
 
-  // common matcher for @media, @supports, @document, @host, :global
+  // common matcher for @media, @supports, @document, @host, :global, @container
   private createMatcherForRuleWithChildRule (reg: RegExp, name: string): () => boolean | void {
     return () => {
       if (!this.commonMatch(reg)) return false

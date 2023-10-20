@@ -2,8 +2,8 @@ import type {
   microAppWindowType,
   MicroEventListener,
   CommonEffectHook,
-  MicroLocation,
 } from '@micro-app/types'
+import type IframeSandbox from './index'
 import {
   rawDefineProperty,
   rawDefineProperties,
@@ -15,8 +15,6 @@ import {
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
 import {
-  scopeIframeDocumentEvent,
-  scopeIframeDocumentOnEvent,
   uniqueDocumentElement,
   proxy2RawDocOrShadowKeys,
   proxy2RawDocOrShadowMethods,
@@ -24,22 +22,32 @@ import {
   proxy2RawDocumentMethods,
 } from './special_key'
 import {
+  SCOPE_DOCUMENT_EVENT,
+  SCOPE_DOCUMENT_ON_EVENT,
+} from '../../constants'
+import {
   updateElementInfo,
 } from '../adapter'
-import { appInstanceMap } from '../../create_app'
+import {
+  appInstanceMap,
+} from '../../create_app'
 
 /**
- * TODO:
- *  1、shadowDOM
- *  2、重构
+ * TODO: 1、shadowDOM 2、结构优化
+ *
+ * patch document of child app
+ * @param appName app name
+ * @param microAppWindow microWindow of child app
+ * @param sandbox IframeSandbox
+ * @returns EffectHook
  */
-export function patchIframeDocument (
+export function patchDocument (
   appName: string,
   microAppWindow: microAppWindowType,
-  proxyLocation: MicroLocation,
+  sandbox: IframeSandbox,
 ): CommonEffectHook {
   patchDocumentPrototype(appName, microAppWindow)
-  patchDocumentProperties(appName, microAppWindow, proxyLocation)
+  patchDocumentProperty(appName, microAppWindow, sandbox)
 
   return patchDocumentEffect(appName, microAppWindow)
 }
@@ -57,6 +65,19 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   const rawMicroGetElementsByClassName = microRootDocument.prototype.getElementsByClassName
   const rawMicroGetElementsByTagName = microRootDocument.prototype.getElementsByTagName
   const rawMicroGetElementsByName = microRootDocument.prototype.getElementsByName
+  const rawMicroElementFromPoint = microRootDocument.prototype.elementFromPoint
+  const rawMicroCaretRangeFromPoint = microRootDocument.prototype.caretRangeFromPoint
+
+  microRootDocument.prototype.caretRangeFromPoint = function caretRangeFromPoint (
+    x: number,
+    y: number,
+  ): Range {
+    // 这里this指向document才可以获取到子应用的document实例，range才可以被成功生成
+    const element = rawMicroElementFromPoint.call(rawDocument, x, y)
+    const range = rawMicroCaretRangeFromPoint.call(rawDocument, x, y)
+    updateElementInfo(element, appName)
+    return range
+  }
 
   microRootDocument.prototype.createElement = function createElement (
     tagName: string,
@@ -167,10 +188,10 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   }
 }
 
-function patchDocumentProperties (
+function patchDocumentProperty (
   appName: string,
   microAppWindow: microAppWindowType,
-  proxyLocation: MicroLocation,
+  sandbox: IframeSandbox,
 ): void {
   const rawDocument = globalEnv.rawDocument
   const microRootDocument = microAppWindow.Document
@@ -179,7 +200,6 @@ function patchDocumentProperties (
   const getCommonDescriptor = (key: PropertyKey, getter: () => unknown): PropertyDescriptor => {
     const { enumerable } = Object.getOwnPropertyDescriptor(microRootDocument.prototype, key) || {
       enumerable: true,
-      writable: true,
     }
     return {
       configurable: true,
@@ -191,13 +211,15 @@ function patchDocumentProperties (
   const createDescriptors = (): PropertyDescriptorMap => {
     const result: PropertyDescriptorMap = {}
     const descList: Array<[string, () => unknown]> = [
-      ['documentURI', () => proxyLocation.href],
-      ['URL', () => proxyLocation.href],
+      ['documentURI', () => sandbox.proxyLocation.href],
+      ['URL', () => sandbox.proxyLocation.href],
       ['documentElement', () => rawDocument.documentElement],
       ['scrollingElement', () => rawDocument.scrollingElement],
       ['forms', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'form')],
       ['images', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'img')],
       ['links', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'a')],
+      // unique keys of micro-app
+      ['microAppElement', () => appInstanceMap.get(appName)?.container],
     ]
 
     descList.forEach((desc) => {
@@ -248,7 +270,7 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
   const microDocument = microAppWindow.document
 
   function getEventTarget (type: string, bindTarget: Document): Document {
-    return scopeIframeDocumentEvent.includes(type) ? bindTarget : rawDocument
+    return SCOPE_DOCUMENT_EVENT.includes(type) ? bindTarget : rawDocument
   }
 
   microRootDocument.prototype.addEventListener = function (
@@ -304,7 +326,7 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
    * 2、shadowDOM
    */
   Object.getOwnPropertyNames(microRootDocument.prototype)
-    .filter((key: string) => /^on/.test(key) && !scopeIframeDocumentOnEvent.includes(key))
+    .filter((key: string) => /^on/.test(key) && !SCOPE_DOCUMENT_ON_EVENT.includes(key))
     .forEach((eventName: string) => {
       const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microRootDocument.prototype, eventName) || {
         enumerable: true,

@@ -8,6 +8,7 @@ export enum appStates {
   CREATED = 'created',
   LOADING = 'loading',
   LOAD_FAILED = 'load_failed',
+  BEFORE_MOUNT = 'before_mount',
   MOUNTING = 'mounting',
   MOUNTED = 'mounted',
   UNMOUNT = 'unmount',
@@ -31,12 +32,6 @@ export enum microGlobalEvent {
   ONMOUNT = 'onmount',
   ONUNMOUNT = 'onunmount',
 }
-
-// custom event of child app
-export const microAppCustomEvent = [
-  'unmount',
-  'appstate-change',
-]
 
 // keep-alive status
 export enum keepAliveStates {
@@ -63,7 +58,58 @@ export enum MicroAppConfig {
   FIBER = 'fiber',
 }
 
+// prefetch level
 export const PREFETCH_LEVEL: number[] = [1, 2, 3]
+
+// memory router constants
+export const DEFAULT_ROUTER_MODE = 'search'
+export const ROUTER_MODE_HISTORY = 'history'
+export const ROUTER_MODE_CUSTOM = 'custom'
+export const ROUTER_MODE_LIST: string[] = [
+  DEFAULT_ROUTER_MODE,
+  ROUTER_MODE_HISTORY,
+  ROUTER_MODE_CUSTOM,
+]
+
+// event bound to child app window
+export const SCOPE_WINDOW_EVENT = [
+  'popstate',
+  'hashchange',
+  'load',
+  'beforeunload',
+  'unload',
+  'unmount',
+  'appstate-change',
+]
+
+// on event bound to child app window
+export const SCOPE_WINDOW_ON_EVENT = [
+  'onpopstate',
+  'onhashchange',
+  'onload',
+  'onbeforeunload',
+  'onunload',
+]
+
+// event bound to child app document
+export const SCOPE_DOCUMENT_EVENT = [
+  'DOMContentLoaded',
+  'readystatechange',
+]
+
+// on event bound to child app document
+export const SCOPE_DOCUMENT_ON_EVENT = [
+  'onreadystatechange',
+]
+
+// global key point to window
+export const GLOBAL_KEY_TO_WINDOW: Array<PropertyKey> = [
+  'window',
+  'self',
+  'globalThis',
+]
+
+export const RAW_GLOBAL_TARGET: Array<PropertyKey> = ['rawWindow', 'rawDocument']
 
 /**
  * global key must be static key, they can not rewrite
@@ -73,4 +119,4 @@ export const PREFETCH_LEVEL: number[] = [1, 2, 3]
  * NOTE:
  * 1. Do not add fetch, XMLHttpRequest, EventSource
  */
-export const globalKeyToBeCached = 'window,self,globalThis,document,Document,Array,Object,String,Boolean,Math,Number,Symbol,Date,Function,Proxy,WeakMap,WeakSet,Set,Map,Reflect,Element,Node,RegExp,Error,TypeError,JSON,isNaN,parseFloat,parseInt,performance,console,decodeURI,encodeURI,decodeURIComponent,encodeURIComponent,navigator,undefined,location,history'
+export const GLOBAL_CACHED_KEY = 'window,self,globalThis,document,Document,Array,Object,String,Boolean,Math,Number,Symbol,Date,Function,Proxy,WeakMap,WeakSet,Set,Map,Reflect,Element,Node,RegExp,Error,TypeError,JSON,isNaN,parseFloat,parseInt,performance,console,decodeURI,encodeURI,decodeURIComponent,encodeURIComponent,navigator,undefined,location,history'

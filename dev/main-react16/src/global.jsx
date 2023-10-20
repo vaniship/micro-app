@@ -53,7 +53,7 @@ const prefetchConfig = [
 // microApp.preFetch(prefetchConfig)
 
 window['scopeKeySpe'] = 'value from base app'
-window.Vue = 'Vue from base'
+window.Vue = { tip: 'Vue from base' }
 
 microApp.start({
   // shadowDOM: true,
@@ -67,6 +67,7 @@ microApp.start({
   // 'disable-patch-request': true,
   // 'keep-router-state': true,
   // 'hidden-router': true,
+  // 'router-mode': 'custom',
   // esmodule: true,
   // ssr: true,
   // preFetchApps: prefetchConfig,
@@ -209,3 +210,19 @@ window.addEventListener('popstate', (e) => {
   console.log('基座 popstate', 'state:', e.state)
   // history.replaceState(history.state, '', location.href)
 })
+
+window.onpopstate = function () {
+  console.log('基座 window.onpopstate 触发')
+}
+
+window.onhashchange = function () {
+  console.log('基座 window.onhashchange 触发')
+}
+
+window.onclick = function () {
+  console.log(`基座 window.onclick`)
+}
+
+// window.addEventListener('click', function (event) {
+//   console.log(`基座`, event instanceof PointerEvent, this)
+// }, false)

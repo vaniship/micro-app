@@ -6,6 +6,9 @@ import type {
   OptionsType,
   NormalKey,
 } from '@micro-app/types'
+import microApp from './micro_app'
+import dispatchLifecyclesEvent from './interact/lifecycles_event'
+import globalEnv from './libs/global_env'
 import {
   defer,
   formatAppName,
@@ -22,12 +25,16 @@ import {
 import {
   ObservedAttrName,
   lifeCycles,
+  appStates,
 } from './constants'
-import CreateApp, { appInstanceMap } from './create_app'
-import microApp from './micro_app'
-import dispatchLifecyclesEvent from './interact/lifecycles_event'
-import globalEnv from './libs/global_env'
-import { getNoHashMicroPathFromURL, router } from './sandbox/router'
+import CreateApp, {
+  appInstanceMap,
+} from './create_app'
+import {
+  router,
+  getNoHashMicroPathFromURL,
+  getRouterMode,
+} from './sandbox/router'
 
 /**
  * define element
@@ -129,20 +136,31 @@ export function defineElement (tagName: string): void {
         this.legalAttribute(attr, newVal) &&
         this[attr === ObservedAttrName.NAME ? 'appName' : 'appUrl'] !== newVal
       ) {
-        if (attr === ObservedAttrName.URL && !this.appUrl) {
+        if (
+          attr === ObservedAttrName.URL && (
+            !this.appUrl ||
+            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+          )
+        ) {
           newVal = formatAppURL(newVal, this.appName)
           if (!newVal) {
             return logError(`Invalid attribute url ${newVal}`, this.appName)
           }
           this.appUrl = newVal
           this.handleInitialNameAndUrl()
-        } else if (attr === ObservedAttrName.NAME && !this.appName) {
+        } else if (
+          attr === ObservedAttrName.NAME && (
+            !this.appName ||
+            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+          )
+        ) {
           const formatNewName = formatAppName(newVal)
 
           if (!formatNewName) {
             return logError(`Invalid attribute name ${newVal}`, this.appName)
           }
 
+          // TODO: 当micro-app还未插入文档中就修改name，逻辑可否再优化一下
           if (this.cacheData) {
             microApp.setData(formatNewName, this.cacheData)
             this.cacheData = null
@@ -223,7 +241,6 @@ export function defineElement (tagName: string): void {
      */
     private handleAttributeUpdate = (): void => {
       this.isWaiting = false
-      if (!this.connectStateMap.get(this.connectedCount)) return
       const formatAttrName = formatAppName(this.getAttribute('name'))
       const formatAttrUrl = formatAppURL(this.getAttribute('url'), this.appName)
       if (this.legalAttribute('name', formatAttrName) && this.legalAttribute('url', formatAttrUrl)) {
@@ -334,12 +351,13 @@ export function defineElement (tagName: string): void {
       const createAppInstance = () => new CreateApp({
         name: this.appName,
         url: this.appUrl,
+        container: this.shadowRoot ?? this,
         scopecss: this.useScopecss(),
         useSandbox: this.useSandbox(),
         inline: this.getDisposeResult('inline'),
         iframe: this.getDisposeResult('iframe'),
-        container: this.shadowRoot ?? this,
         ssrUrl: this.ssrUrl,
+        routerMode: this.getMemoryRouterMode(),
       })
 
       /**
@@ -371,7 +389,12 @@ export function defineElement (tagName: string): void {
      */
     private handleMount (app: AppInterface): void {
       app.isPrefetch = false
-      // TODO: Can defer be removed?
+      /**
+       * Fix error when navigate before app.mount by microApp.router.push(...)
+       * Issue: https://github.com/micro-zoe/micro-app/issues/908
+       */
+      app.setAppState(appStates.BEFORE_MOUNT)
+      // exec mount async, simulate the first render scene
       defer(() => this.mount(app))
     }
 
@@ -382,12 +405,11 @@ export function defineElement (tagName: string): void {
       app.mount({
         container: this.shadowRoot ?? this,
         inline: this.getDisposeResult('inline'),
-        useMemoryRouter: !this.getDisposeResult('disable-memory-router'),
-        defaultPage: this.getDefaultPageValue(),
+        routerMode: this.getMemoryRouterMode(),
         baseroute: this.getBaseRouteCompatible(),
+        defaultPage: this.getDefaultPage(),
         disablePatchRequest: this.getDisposeResult('disable-patch-request'),
         fiber: this.getDisposeResult('fiber'),
-        // hiddenRouter: this.getDisposeResult('hidden-router'),
       })
     }
 
@@ -427,7 +449,7 @@ export function defineElement (tagName: string): void {
      * Global setting is lowest priority
      * @param name Configuration item name
      */
-    private getDisposeResult <T extends keyof OptionsType> (name: T): boolean {
+    public getDisposeResult <T extends keyof OptionsType> (name: T): boolean {
       return (this.compatibleProperties(name) || !!microApp.options[name]) && this.compatibleDisableProperties(name)
     }
 
@@ -496,13 +518,14 @@ export function defineElement (tagName: string): void {
      */
     private updateSsrUrl (baseUrl: string): void {
       if (this.getDisposeResult('ssr')) {
+        // TODO: disable-memory-router不存在了，这里需要更新一下
         if (this.getDisposeResult('disable-memory-router') || this.getDisposeResult('disableSandbox')) {
           const rawLocation = globalEnv.rawWindow.location
           this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)
         } else {
           // get path from browser URL
           let targetPath = getNoHashMicroPathFromURL(this.appName, baseUrl)
-          const defaultPagePath = this.getDefaultPageValue()
+          const defaultPagePath = this.getDefaultPage()
           if (!targetPath && defaultPagePath) {
             const targetLocation = createURL(defaultPagePath, baseUrl)
             targetPath = targetLocation.origin + targetLocation.pathname + targetLocation.search
@@ -517,7 +540,7 @@ export function defineElement (tagName: string): void {
     /**
      * get config of default page
      */
-    private getDefaultPageValue (): string {
+    private getDefaultPage (): string {
       return (
         router.getDefaultPage(this.appName) ||
         this.getAttribute('default-page') ||
@@ -527,7 +550,15 @@ export function defineElement (tagName: string): void {
     }
 
     /**
-     * Rewrite micro-app.setAttribute, process attr data
+     * get config of router-mode
+     * @returns router-mode
+     */
+    private getMemoryRouterMode () : string {
+      return getRouterMode(this.getAttribute('router-mode'), this)
+    }
+
+    /**
+     * rewrite micro-app.setAttribute, process attr data
      * @param key attr name
      * @param value attr value
      */

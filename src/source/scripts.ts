@@ -32,7 +32,7 @@ import {
 } from './load_event'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
-import { globalKeyToBeCached } from '../constants'
+import { GLOBAL_CACHED_KEY } from '../constants'
 import sourceCenter from './source_center'
 
 export type moduleCallBack = Func & { moduleCount?: number, errorCount?: number }
@@ -618,20 +618,31 @@ function runCode2InlineScript (
   callback?: moduleCallBack,
 ): void {
   if (module) {
-    // module script is async, transform it to a blob for subsequent operations
+    globalEnv.rawSetAttribute.call(scriptElement, 'type', 'module')
     if (isInlineScript(address)) {
-      const blob = new Blob([code], { type: 'text/javascript' })
-      scriptElement.src = URL.createObjectURL(blob)
+      /**
+       * inline module script cannot convert to blob mode
+       * Issue: https://github.com/micro-zoe/micro-app/issues/805
+       */
+      scriptElement.textContent = code
     } else {
       scriptElement.src = address
     }
-    globalEnv.rawSetAttribute.call(scriptElement, 'type', 'module')
     if (callback) {
-      callback.moduleCount && callback.moduleCount--
+      const onloadHandler = () => {
+        callback.moduleCount && callback.moduleCount--
+        callback(callback.moduleCount === 0)
+      }
       /**
-       * module script will execute onload method only after it insert to document/iframe
+       * NOTE:
+       *  1. module script will execute onload method only after it insert to document/iframe
+       *  2. we can't know when the inline module script onload, and we use defer to simulate, this maybe cause some problems
        */
-      scriptElement.onload = callback.bind(scriptElement, callback.moduleCount === 0)
+      if (isInlineScript(address)) {
+        defer(onloadHandler)
+      } else {
+        scriptElement.onload = onloadHandler
+      }
     }
   } else {
     scriptElement.textContent = code
@@ -667,7 +678,7 @@ function bindScope (
   }
 
   if (isWrapInSandBox(app, scriptInfo)) {
-    return app.iframe ? `(function(window,self,global,location){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyLocation);` : `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${globalKeyToBeCached}){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${globalKeyToBeCached})}})(window.__MICRO_APP_PROXY_WINDOW__);`
+    return app.iframe ? `(function(window,self,global,location){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyWindow,window.__MICRO_APP_SANDBOX__.proxyLocation);` : `;(function(proxyWindow){with(proxyWindow.__MICRO_APP_WINDOW__){(function(${GLOBAL_CACHED_KEY}){;${code}\n${isInlineScript(address) ? '' : `//# sourceURL=${address}\n`}}).call(proxyWindow,${GLOBAL_CACHED_KEY})}})(window.__MICRO_APP_PROXY_WINDOW__);`
   }
 
   return code
