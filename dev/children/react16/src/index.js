@@ -79,6 +79,7 @@ window.addEventListener('appstate-change', function (e) {
 /* ----------------------分割线-umd模式--------------------- */
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
 window.mount = (data) => {
+  console.log(22222222, document.getElementById('root'))
   ReactDOM.render(
     <React.StrictMode>
       {/* 自定义antd class前缀 */}
@@ -137,9 +138,9 @@ window.onclick = function () {
   console.log(`子应用${window.__MICRO_APP_NAME__} window.onclick`)
 }
 
-window.addEventListener.call(document.querySelector('#root'), 'click', () => {
-  console.log(2222222)
-})
+// window.addEventListener.call(document.querySelector('#root'), 'click', () => {
+//   console.log(2222222)
+// })
 
 // 测试主动卸载预渲染、隐藏keep-alive应用，事件快照重复执行的问题
 // setTimeout(() => {
