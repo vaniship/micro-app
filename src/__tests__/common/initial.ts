@@ -31,6 +31,7 @@ export const ports = {
   source_patch: 9013,
   prefetch: 9014,
   micro_app: 9015,
+  custom_proxy_document: 9016,
 }
 
 // 启动服务
