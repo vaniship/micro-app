@@ -18,6 +18,7 @@ import {
 import {
   appInstanceMap,
 } from '../../create_app'
+import microApp from '../../micro_app'
 
 /**
  * create proxyDocument and MicroDocument, rewrite document of child app
@@ -180,6 +181,32 @@ function createProxyDocument (
     }
   }
 
+  const genProxyDocumentProps = () => {
+    // microApp framework built-in Proxy
+    const builtInProxyProps = new Map([
+      ['onclick', (value: unknown) => {
+        if (isFunction(onClickHandler)) {
+          rawRemoveEventListener.call(rawDocument, 'click', onClickHandler, false)
+        }
+        // TODO: listener 是否需要绑定proxyDocument，否则函数中的this指向原生window
+        if (isFunction(value)) {
+          rawAddEventListener.call(rawDocument, 'click', value, false)
+        }
+        onClickHandler = value
+      }]
+    ])
+    // external custom proxy
+    const customProxyDocumentProps = microApp.options?.customProxyDocumentProps || new Map()
+    // External has higher priority than built-in
+    const mergedProxyDocumentProps = new Map([
+      ...builtInProxyProps,
+      ...customProxyDocumentProps,
+    ]);
+    return mergedProxyDocumentProps
+  }
+
+  const mergedProxyDocumentProps = genProxyDocumentProps();
+
   const proxyDocument = new Proxy(rawDocument, {
     get: (target: Document, key: PropertyKey): unknown => {
       throttleDeferForSetAppName(appName)
@@ -194,15 +221,9 @@ function createProxyDocument (
       return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
     },
     set: (target: Document, key: PropertyKey, value: unknown): boolean => {
-      if (key === 'onclick') {
-        if (isFunction(onClickHandler)) {
-          rawRemoveEventListener.call(rawDocument, 'click', onClickHandler, false)
-        }
-        // TODO: listener 是否需要绑定proxyDocument，否则函数中的this指向原生window
-        if (isFunction(value)) {
-          rawAddEventListener.call(rawDocument, 'click', value, false)
-        }
-        onClickHandler = value
+      if (mergedProxyDocumentProps.has(key)) {
+        const proxyCallback = mergedProxyDocumentProps.get(key)
+        proxyCallback(value)
       } else if (key !== 'microAppElement') {
         /**
          * 1. Fix TypeError: Illegal invocation when set document.title
