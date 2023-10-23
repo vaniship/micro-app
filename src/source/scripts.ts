@@ -57,17 +57,13 @@ function isSpecialScript (app: AppInterface, scriptInfo: ScriptSourceInfo): bool
  * 2. inline attr in script element
  * 3. module script
  * 4. script with special attr
- * TODO:
- *  1. 如果以后iframe沙箱不再强制使用inline模式，那么getElementsByTagName获取script默认从iframe中查询的方式要改一下，因为非inline模式下，iframe中的script可能为空
- *  2. 如果iframe沙箱必须开启inline模式，那么将其提前到create_app中
  */
 function isInlineMode (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean {
   return (
     app.inline ||
     scriptInfo.appSpace[app.name].inline ||
     isTypeModule(app, scriptInfo) ||
-    isSpecialScript(app, scriptInfo) ||
-    app.iframe
+    isSpecialScript(app, scriptInfo)
   )
 }
 

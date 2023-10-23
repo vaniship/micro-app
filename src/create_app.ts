@@ -101,8 +101,9 @@ export default class CreateApp implements AppInterface {
     this.url = url
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
+    // exec before getInlineModeState
     this.iframe = iframe ?? false
-    this.inline = inline ?? false
+    this.inline = this.getInlineModeState(inline)
     /**
      * NOTE:
      *  1. Navigate after micro-app created, before mount
@@ -269,7 +270,7 @@ export default class CreateApp implements AppInterface {
         this.sandBox?.setPreRenderState(false)
       } else {
         this.container = container
-        this.inline = inline
+        this.inline = this.getInlineModeState(inline)
         this.fiber = fiber
         this.routerMode = routerMode
 
@@ -731,6 +732,15 @@ export default class CreateApp implements AppInterface {
 
   public querySelectorAll (selectors: string): NodeListOf<Node> {
     return this.container ? globalEnv.rawElementQuerySelectorAll.call(this.container, selectors) : []
+  }
+
+  /**
+   * NOTE:
+   * 1. If the iframe sandbox no longer enforces the use of inline mode in the future, the way getElementsByTagName retrieves the script from the iframe by default needs to be changed, because in non inline mode, the script in the iframe may be empty
+   * @param inline inline mode config
+   */
+  private getInlineModeState (inline?: boolean): boolean {
+    return (this.iframe || inline) ?? false
   }
 }
 

@@ -22,7 +22,7 @@
   - 🐞 修复了在iframe沙箱下开启`inline`模式导致通过`getElementsByTagName`获取script元素失败的问题。
 
 - **Update**
-
+  - 🆕 优化了内存占用，在iframe沙箱模式下默认开启inline模式。
   - 🚀 更新了官网文档。
   
 
