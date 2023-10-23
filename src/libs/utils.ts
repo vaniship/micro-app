@@ -650,8 +650,25 @@ export function execMicroAppGlobalHook (
   }
 }
 
+/**
+ * remove all childNode from target node
+ * @param $dom target node
+ */
 export function clearDOM ($dom: HTMLElement | ShadowRoot | Document): void {
   while ($dom?.firstChild) {
     $dom.removeChild($dom.firstChild)
   }
+}
+
+type BaseHTMLElementType = HTMLElement & {
+  new (): HTMLElement;
+  prototype: HTMLElement;
+}
+
+/**
+ * get HTMLElement from base app
+ * @returns HTMLElement
+ */
+export function getBaseHTMLElement (): BaseHTMLElementType {
+  return (window.rawWindow?.HTMLElement || window.HTMLElement) as BaseHTMLElementType
 }
