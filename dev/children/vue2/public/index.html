@@ -11,7 +11,11 @@
     <!-- <link rel="stylesheet" href="<%= BASE_URL %>layui/css/layui.css" />
     <script src="<%= BASE_URL %>layui/layui.js"></script> -->
     <script>
-      console.log('Vue', Vue, "Vue" in window)
+      try {
+        console.log('Vue', Vue, "Vue" in window)
+      } catch (e) {
+        console.log(e)
+      }
     </script>
   </head>
   <body>

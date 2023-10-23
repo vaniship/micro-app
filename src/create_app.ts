@@ -101,8 +101,8 @@ export default class CreateApp implements AppInterface {
     this.url = url
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
-    this.inline = inline ?? false
     this.iframe = iframe ?? false
+    this.inline = inline ?? false
     /**
      * NOTE:
      *  1. Navigate after micro-app created, before mount
