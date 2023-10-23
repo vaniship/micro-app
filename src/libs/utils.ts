@@ -416,7 +416,7 @@ export function isSafari (): boolean {
  * Create pure elements
  */
 export function pureCreateElement<K extends keyof MicroAppElementTagNameMap> (tagName: K, options?: ElementCreationOptions): MicroAppElementTagNameMap[K] {
-  const element = document.createElement(tagName, options)
+  const element = (window.rawDocument || document).createElement(tagName, options)
   if (element.__MICRO_APP_NAME__) delete element.__MICRO_APP_NAME__
   element.__PURE_ELEMENT__ = true
   return element

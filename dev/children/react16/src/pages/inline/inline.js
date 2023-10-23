@@ -35,10 +35,10 @@ function Vue2 () {
         onMounted={() => hideLoading(false)}
         // shadowDOM
         // destory
-        // inline
+        inline
         // disableScopecss
         // disableSandbox
-        iframe
+        // iframe
       />
       <img src={logo} className="App-logo" alt="logo" width='100' />
     </div>
