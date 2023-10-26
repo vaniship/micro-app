@@ -174,6 +174,7 @@ declare module '@micro-app/types' {
     ssrUrl: string // html path in ssr mode
     container: HTMLElement | ShadowRoot | null // container maybe null, micro-app, shadowRoot, div(keep-alive)
     umdMode: boolean // is umd mode
+    componentMode: boolean // is component Mode
     fiber: boolean // fiber mode
     routerMode: string // virtual router mode
     isPrefetch: boolean // whether prefetch app, default is false

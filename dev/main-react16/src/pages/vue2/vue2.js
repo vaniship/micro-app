@@ -8,6 +8,7 @@ import microApp from '@micro-zoe/micro-app'
 import config from '../../config'
 import './vue2.less'
 import lessStyles from './module.less'
+import umdJs from './umd-module'
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
@@ -74,8 +75,10 @@ function Vue2 () {
       }
       <micro-app
         name='vue2'
-        url={`${config.vue2}micro-app/vue2/`}
+        // url={`${config.vue2}micro-app/vue2/`}
+        url={umdJs}
         data={data}
+        componentMode
         // onBeforemount={() => hideLoading(false)}
         onMounted={mounted}
         onUnmount={unmount}
@@ -88,7 +91,7 @@ function Vue2 () {
         // disableSandbox
         // disable-memory-router
         // clear-data
-        // iframe
+        iframe
       >
       </micro-app>
     </div>

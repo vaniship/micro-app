@@ -76,6 +76,24 @@ describe('HTMLLoader', () => {
     })
   })
 
+  test('给定一个componentMode', async () => {
+    const { htmlLoader, successCb, errorCb, onLoadError } = setup(MOCK_BASIC_HTML, true)
+    const app = {
+      name: 'app-2',
+      url: MOCK_APP_URL,
+      componentMode: 'true',
+      onerror: errorCb as any,
+      onLoadError: onLoadError as any,
+    } as AppInterface
+    htmlLoader.run(app, successCb)
+
+    const logError = jest.spyOn(console, 'error')
+    await waitFor(() => {
+      expect(logError).toBeCalled()
+      expect(errorCb).not.toBeCalled()
+    })
+  })
+
   describe('plugin', () => {
     afterEach(() => {
       microApp.plugins = undefined

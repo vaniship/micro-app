@@ -358,6 +358,7 @@ export function defineElement (tagName: string): void {
         iframe: this.getDisposeResult('iframe'),
         ssrUrl: this.ssrUrl,
         routerMode: this.getMemoryRouterMode(),
+        componentMode: this.getDisposeResult('componentMode'),
       })
 
       /**
