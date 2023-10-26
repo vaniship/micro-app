@@ -64,6 +64,7 @@ export default class CreateApp implements AppInterface {
   private umdHookMount: Func | null = null
   private umdHookUnmount: Func | null = null
   private preRenderEvents?: CallableFunction[] | null
+  private lifeCycleState: string | null = null
   public umdMode = false
   public source: sourceType
   // TODO: 类型优化，加上iframe沙箱
@@ -279,11 +280,14 @@ export default class CreateApp implements AppInterface {
         this.fiber = fiber
         this.routerMode = routerMode
 
-        const dispatchBeforeMount = () => dispatchLifecyclesEvent(
-          this.container!,
-          this.name,
-          lifeCycles.BEFOREMOUNT,
-        )
+        const dispatchBeforeMount = () => {
+          this.setLifeCycleState(lifeCycles.BEFOREMOUNT)
+          dispatchLifecyclesEvent(
+            this.container!,
+            this.name,
+            lifeCycles.BEFOREMOUNT,
+          )
+        }
 
         if (this.isPrerender) {
           (this.preRenderEvents ??= []).push(dispatchBeforeMount)
@@ -402,6 +406,8 @@ export default class CreateApp implements AppInterface {
 
       // dispatch mounted event to micro app
       dispatchCustomEventToMicroApp(this, 'mounted')
+
+      this.setLifeCycleState(lifeCycles.MOUNTED)
 
       // dispatch event mounted to parent
       dispatchLifecyclesEvent(
@@ -541,6 +547,8 @@ export default class CreateApp implements AppInterface {
       clearData: clearData || destroy,
     })
 
+    this.setLifeCycleState(lifeCycles.UNMOUNT)
+
     // dispatch unmount event to base app
     dispatchLifecyclesEvent(
       this.container!,
@@ -587,6 +595,7 @@ export default class CreateApp implements AppInterface {
       appState: 'afterhidden',
     })
 
+    this.setLifeCycleState(lifeCycles.AFTERHIDDEN)
     // dispatch afterHidden event to base app
     dispatchLifecyclesEvent(
       this.container!,
@@ -656,6 +665,8 @@ export default class CreateApp implements AppInterface {
       appState: 'aftershow',
     })
 
+    this.setLifeCycleState(lifeCycles.AFTERSHOW)
+
     // dispatch afterShow event to base app
     dispatchLifecyclesEvent(
       this.container,
@@ -669,6 +680,8 @@ export default class CreateApp implements AppInterface {
    * @param e Error
    */
   public onerror (e: Error): void {
+    this.setLifeCycleState(lifeCycles.ERROR)
+
     // dispatch state event to micro app
     dispatchCustomEventToMicroApp(this, 'statechange', {
       appState: appStates.LOAD_FAILED
@@ -709,6 +722,16 @@ export default class CreateApp implements AppInterface {
   // get app state
   public getAppState (): string {
     return this.state
+  }
+
+  // set app lifeCycleState
+  private setLifeCycleState (state: string): void {
+    this.lifeCycleState = state
+  }
+
+  // get app lifeCycleState
+  public getLifeCycleState (): string {
+    return this.lifeCycleState || ''
   }
 
   // set keep-alive state

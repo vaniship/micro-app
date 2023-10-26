@@ -225,6 +225,9 @@ declare module '@micro-app/types' {
 
     // show app when connectedCallback with keep-alive
     showKeepAliveApp (container: HTMLElement | ShadowRoot): void
+
+    // get app lifecycle state
+    getLifeCycleState (): string
   }
 
   interface prefetchParam {
