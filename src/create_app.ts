@@ -400,6 +400,9 @@ export default class CreateApp implements AppInterface {
         appState: appStates.MOUNTED
       })
 
+      // dispatch mounted event to micro app
+      dispatchCustomEventToMicroApp(this, 'mounted')
+
       // dispatch event mounted to parent
       dispatchLifecyclesEvent(
         this.container!,

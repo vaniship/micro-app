@@ -81,6 +81,7 @@ export const SCOPE_WINDOW_EVENT = [
   'unmount',
   'appstate-change',
   'statechange',
+  'mounted',
 ]
 
 // on event bound to child app window
