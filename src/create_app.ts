@@ -220,6 +220,12 @@ export default class CreateApp implements AppInterface {
       this.container = container
       // mount before prerender exec mount (loading source), set isPrerender to false
       this.isPrerender = false
+
+      // dispatch state event to micro app
+      dispatchCustomEventToMicroApp(this, 'statechange', {
+        appState: appStates.LOADING
+      })
+
       // reset app state to LOADING
       return this.setAppState(appStates.LOADING)
     }
@@ -286,6 +292,12 @@ export default class CreateApp implements AppInterface {
         }
 
         this.setAppState(appStates.MOUNTING)
+
+        // dispatch state event to micro app
+        dispatchCustomEventToMicroApp(this, 'statechange', {
+          appState: appStates.MOUNTING
+        })
+
         // TODO: 将所有cloneContainer中的'as Element'去掉，兼容shadowRoot的场景
         cloneContainer(this.container as Element, this.source.html as Element, !this.umdMode)
 
@@ -383,6 +395,11 @@ export default class CreateApp implements AppInterface {
         microApp.getData(this.name, true)
       )
 
+      // dispatch state event to micro app
+      dispatchCustomEventToMicroApp(this, 'statechange', {
+        appState: appStates.MOUNTED
+      })
+
       // dispatch event mounted to parent
       dispatchLifecyclesEvent(
         this.container!,
@@ -433,6 +450,11 @@ export default class CreateApp implements AppInterface {
     } catch (e) {
       logError('An error occurred in window.unmount \n', this.name, e)
     }
+
+    // dispatch state event to micro app
+    dispatchCustomEventToMicroApp(this, 'statechange', {
+      appState: appStates.UNMOUNT
+    })
 
     // dispatch unmount event to micro app
     dispatchCustomEventToMicroApp(this, 'unmount')
@@ -644,6 +666,11 @@ export default class CreateApp implements AppInterface {
    * @param e Error
    */
   public onerror (e: Error): void {
+    // dispatch state event to micro app
+    dispatchCustomEventToMicroApp(this, 'statechange', {
+      appState: appStates.LOAD_FAILED
+    })
+
     dispatchLifecyclesEvent(
       this.container!,
       this.name,
