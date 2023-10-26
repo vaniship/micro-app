@@ -137,9 +137,9 @@ window.onclick = function () {
   console.log(`子应用${window.__MICRO_APP_NAME__} window.onclick`)
 }
 
-window.addEventListener.call(document.querySelector('#root'), 'click', () => {
-  console.log(2222222)
-})
+// window.addEventListener.call(document.querySelector('#root'), 'click', () => {
+//   console.log(2222222)
+// })
 
 // 测试主动卸载预渲染、隐藏keep-alive应用，事件快照重复执行的问题
 // setTimeout(() => {
@@ -478,4 +478,9 @@ window.addEventListener('hashchange', (e) => {
 
 // console.log('document.firstElementChild: ', document.firstElementChild)
 
-console.log('console === parent.console: ', console === parent.console)
+// console.log('console === parent.console: ', console === parent.console)
+
+console.log('micro-app容器元素document.microAppElement', document.microAppElement)
+
+// --- document.querySelector(':root'), document.documentElement 和 动态设置css变量
+// console.log(`document.querySelector(':root'): `, document.querySelector(':root'), document.querySelector(':root') === document.documentElement)

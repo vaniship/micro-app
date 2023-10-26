@@ -42,7 +42,7 @@ export {
 } from './history'
 
 /**
- * TODO: 关于关闭虚拟路由系统的临时笔记
+ * TODO: 关于关闭虚拟路由系统的临时笔记 - 即custom模式，虚拟路由不支持关闭
  * 1. with沙箱关闭虚拟路由最好和iframe保持一致
  * 2. default-page无法使用，但是用基座的地址可以实现一样的效果
  * 3. keep-router-state功能失效，因为始终为true

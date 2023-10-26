@@ -32,11 +32,11 @@ function vite2 (props) {
     microApp.router.push({name: 'vite2', path: '/micro-app/vite2/'})
   }
 
-  function jumpToPage2 () {
+  function jumpToElementPlus () {
     microApp.router.push({name: 'vite2', path: '/micro-app/vite2/element-plus'})
   }
 
-  function jumpToPage3 () {
+  function jumpToAntDesignVue () {
     microApp.router.push({name: 'vite2', path: '/micro-app/vite2/ant-design-vue'})
   }
 
@@ -80,8 +80,8 @@ function vite2 (props) {
             向子应用发送数据
           </Button>
           <Button type="primary" onClick={jumpToHome}>控制子应用跳转首页</Button>
-          <Button type="primary" onClick={jumpToPage2}>控制子应用跳转element-plus</Button>
-          <Button type="primary" onClick={jumpToPage3}>控制子应用跳转ant-design-vue</Button>
+          <Button type="primary" onClick={jumpToElementPlus}>控制子应用跳转element-plus</Button>
+          <Button type="primary" onClick={jumpToAntDesignVue}>控制子应用跳转ant-design-vue</Button>
         </Col>
       </div>
       {
@@ -92,7 +92,8 @@ function vite2 (props) {
         url={`${config.vite2}micro-app/vite2/`}
         // url={`http://127.0.0.1:8080/micro-app/vite2/`}
         data={data}
-        // onBeforemount={() => hideLoading(false)}
+        // onCreated={() => Promise.resolve().then(() => jumpToElementPlus())}
+        // onBeforemount={() => jumpToElementPlus()}
         onMounted={handleMounted}
         onDataChange={handleDataChange}
         onAfterhidden={() => console.log('基座：keep-alive：Afterhidden 已推入后台')}
@@ -103,12 +104,13 @@ function vite2 (props) {
         // inline
         // disableSandbox
         iframe
-        keep-router-state
-        // disable-memory-router
+        // keep-router-state
         // disable-patch-request
         // keep-alive
         // default-page='/micro-app/vite2/page2'
-        baseroute='/micro-app/demo/vite2'
+        // disable-memory-router
+        // router-mode='custom'
+        // baseroute='/micro-app/demo/vite2'
       >
       </micro-app>
 

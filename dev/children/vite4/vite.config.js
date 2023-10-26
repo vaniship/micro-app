@@ -13,7 +13,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '~/': `${pathSrc}/`,
-    },
+      '@micro-zoe/micro-app':path.resolve(__dirname, '../../../lib/index.esm.js')
+    }
   },
   css: {
     preprocessorOptions: {
@@ -64,11 +65,15 @@ export default defineConfig({
         secure: false,
         changeOrigin: true,
       }
-    }
+    },
+     // Allow services to be provided for non root directories of projects
+     fs: {
+      strict: false
+    },
   },
   build: {
     outDir: 'vite4',
   },
   clearScreen: false,
-  base: `/micro-app/vite4/`,
+  base: `/micro-app/vite4/`
 })

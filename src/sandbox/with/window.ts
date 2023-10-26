@@ -18,7 +18,6 @@ import {
   throttleDeferForSetAppName,
   rawDefineProperty,
   rawHasOwnProperty,
-  logWarn,
   removeDomScope,
 } from '../../libs/utils'
 
@@ -34,7 +33,7 @@ export function patchWindow (
   microAppWindow: microAppWindowType,
   sandbox: WithSandBoxInterface,
 ): CommonEffectHook {
-  patchWindowProperty(appName, microAppWindow)
+  patchWindowProperty(microAppWindow)
   createProxyWindow(appName, microAppWindow, sandbox)
   return patchWindowEffect(microAppWindow)
 }
@@ -45,7 +44,6 @@ export function patchWindow (
  * @param microAppWindow child app microWindow
  */
 function patchWindowProperty (
-  appName: string,
   microAppWindow: microAppWindowType,
 ):void {
   const rawWindow = globalEnv.rawWindow
@@ -58,21 +56,14 @@ function patchWindowProperty (
         enumerable: true,
         writable: true,
       }
-      try {
-        /**
-         * 模拟iframe
-         */
-        rawDefineProperty(microAppWindow, eventName, {
-          enumerable,
-          configurable: true,
-          get: () => rawWindow[eventName],
-          set: writable ?? !!set
-            ? (value) => { rawWindow[eventName] = value }
-            : undefined,
-        })
-      } catch (e) {
-        logWarn(e, appName)
-      }
+      rawDefineProperty(microAppWindow, eventName, {
+        enumerable,
+        configurable: true,
+        get: () => rawWindow[eventName],
+        set: writable ?? !!set
+          ? (value) => { rawWindow[eventName] = value }
+          : undefined,
+      })
     })
 }
 
@@ -105,10 +96,6 @@ function createProxyWindow (
       return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
     },
     set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
-      /**
-       * TODO:
-       * 1、location域名相同，子应用内部跳转时的处理
-       */
       if (sandbox.adapter.escapeSetterKeyList.includes(key)) {
         Reflect.set(rawWindow, key, value)
       } else if (

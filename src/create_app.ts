@@ -80,7 +80,7 @@ export default class CreateApp implements AppInterface {
   public isPrerender: boolean
   public prefetchLevel?: number
   public fiber = false
-  public routerMode: string = DEFAULT_ROUTER_MODE
+  public routerMode: string
 
   constructor ({
     name,
@@ -93,6 +93,7 @@ export default class CreateApp implements AppInterface {
     ssrUrl,
     isPrefetch,
     prefetchLevel,
+    routerMode,
   }: CreateAppParam) {
     appInstanceMap.set(name, this)
     // init actions
@@ -100,8 +101,13 @@ export default class CreateApp implements AppInterface {
     this.url = url
     this.useSandbox = useSandbox
     this.scopecss = this.useSandbox && scopecss
-    this.inline = inline ?? false
     this.iframe = iframe ?? false
+    this.inline = inline ?? false
+    /**
+     * NOTE:
+     *  1. Navigate after micro-app created, before mount
+     */
+    this.routerMode = routerMode || DEFAULT_ROUTER_MODE
 
     // not exist when prefetch 👇
     this.container = container ?? null
@@ -220,6 +226,9 @@ export default class CreateApp implements AppInterface {
 
     this.createSandbox()
 
+    // place outside of nextAction, as nextAction may execute async
+    this.setAppState(appStates.BEFORE_MOUNT)
+
     const nextAction = () => {
       /**
        * Special scenes:
@@ -307,6 +316,11 @@ export default class CreateApp implements AppInterface {
                 try {
                   this.handleMounted(this.umdHookMount(microApp.getData(this.name, true)))
                 } catch (e) {
+                  /**
+                   * TODO:
+                   *  1. 是否应该直接抛出错误
+                   *  2. 是否应该触发error生命周期
+                   */
                   logError('An error occurred in window.mount \n', this.name, e)
                 }
               } else if (isFinished === true) {
@@ -338,7 +352,10 @@ export default class CreateApp implements AppInterface {
       if (isPromise(umdHookMountResult)) {
         umdHookMountResult
           .then(() => this.dispatchMountedEvent())
-          .catch(() => this.dispatchMountedEvent())
+          .catch((e) => {
+            logError('An error occurred in window.mount \n', this.name, e)
+            this.dispatchMountedEvent()
+          })
       } else {
         this.dispatchMountedEvent()
       }
@@ -533,10 +550,13 @@ export default class CreateApp implements AppInterface {
   // hidden app when disconnectedCallback called with keep-alive
   public hiddenKeepAliveApp (callback?: CallableFunction): void {
     this.setKeepAliveState(keepAliveStates.KEEP_ALIVE_HIDDEN)
-
     /**
-     * event should dispatch before clone node
-     * dispatch afterHidden event to micro-app
+     * afterhidden事件需要提前发送，原因如下：
+     *  1. 此时发送this.container还指向micro-app元素，而不是临时div元素
+     *  2. 沙箱执行recordAndReleaseEffect后会将appstate-change方法也清空，之后再发送子应用也接受不到了
+     *  3. 对于this.loadSourceLevel !== 2的情况，unmount是同步执行的，所以也会出现2的问题
+     * TODO: 有可能导致的问题
+     *  1. 在基座接受到afterhidden方法后立即执行unmount，彻底destroy应用时，因为unmount时同步执行，所以this.container为null后才执行cloneContainer
      */
     dispatchCustomEventToMicroApp(this, 'appstate-change', {
       appState: 'afterhidden',
@@ -649,7 +669,7 @@ export default class CreateApp implements AppInterface {
   }
 
   // set app state
-  private setAppState (state: string): void {
+  public setAppState (state: string): void {
     this.state = state
 
     // set window.__MICRO_APP_STATE__

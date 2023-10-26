@@ -21,10 +21,12 @@ import {
   CompletionPath,
   createURL,
   isPlainObject,
+  getBaseHTMLElement,
 } from './libs/utils'
 import {
   ObservedAttrName,
   lifeCycles,
+  appStates,
 } from './constants'
 import CreateApp, {
   appInstanceMap,
@@ -38,9 +40,9 @@ import {
 /**
  * define element
  * @param tagName element name
- */
+*/
 export function defineElement (tagName: string): void {
-  class MicroAppElement extends HTMLElement implements MicroAppElementType {
+  class MicroAppElement extends getBaseHTMLElement() implements MicroAppElementType {
     static get observedAttributes (): string[] {
       return ['name', 'url']
     }
@@ -135,20 +137,31 @@ export function defineElement (tagName: string): void {
         this.legalAttribute(attr, newVal) &&
         this[attr === ObservedAttrName.NAME ? 'appName' : 'appUrl'] !== newVal
       ) {
-        if (attr === ObservedAttrName.URL && !this.appUrl) {
+        if (
+          attr === ObservedAttrName.URL && (
+            !this.appUrl ||
+            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+          )
+        ) {
           newVal = formatAppURL(newVal, this.appName)
           if (!newVal) {
             return logError(`Invalid attribute url ${newVal}`, this.appName)
           }
           this.appUrl = newVal
           this.handleInitialNameAndUrl()
-        } else if (attr === ObservedAttrName.NAME && !this.appName) {
+        } else if (
+          attr === ObservedAttrName.NAME && (
+            !this.appName ||
+            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+          )
+        ) {
           const formatNewName = formatAppName(newVal)
 
           if (!formatNewName) {
             return logError(`Invalid attribute name ${newVal}`, this.appName)
           }
 
+          // TODO: 当micro-app还未插入文档中就修改name，逻辑可否再优化一下
           if (this.cacheData) {
             microApp.setData(formatNewName, this.cacheData)
             this.cacheData = null
@@ -229,7 +242,6 @@ export function defineElement (tagName: string): void {
      */
     private handleAttributeUpdate = (): void => {
       this.isWaiting = false
-      if (!this.connectStateMap.get(this.connectedCount)) return
       const formatAttrName = formatAppName(this.getAttribute('name'))
       const formatAttrUrl = formatAppURL(this.getAttribute('url'), this.appName)
       if (this.legalAttribute('name', formatAttrName) && this.legalAttribute('url', formatAttrUrl)) {
@@ -346,6 +358,7 @@ export function defineElement (tagName: string): void {
         inline: this.getDisposeResult('inline'),
         iframe: this.getDisposeResult('iframe'),
         ssrUrl: this.ssrUrl,
+        routerMode: this.getMemoryRouterMode(),
       })
 
       /**
@@ -377,7 +390,12 @@ export function defineElement (tagName: string): void {
      */
     private handleMount (app: AppInterface): void {
       app.isPrefetch = false
-      // TODO: Can defer be removed?
+      /**
+       * Fix error when navigate before app.mount by microApp.router.push(...)
+       * Issue: https://github.com/micro-zoe/micro-app/issues/908
+       */
+      app.setAppState(appStates.BEFORE_MOUNT)
+      // exec mount async, simulate the first render scene
       defer(() => this.mount(app))
     }
 

@@ -27,7 +27,6 @@ import {
   getEffectivePath,
   isArray,
   isPlainObject,
-  isUndefined,
   removeDomScope,
   throttleDeferForSetAppName,
   rawDefineProperty,
@@ -114,6 +113,8 @@ export default class WithSandBox implements WithSandBoxInterface {
     this.adapter = new Adapter()
     // get scopeProperties and escapeProperties from plugins
     this.getSpecialProperties(appName)
+    // create location, history for child app
+    this.patchRouter(appName, url, this.microAppWindow)
     // patch window of child app
     this.windowEffect = patchWindow(appName, this.microAppWindow, this)
     // patch document of child app
@@ -139,15 +140,6 @@ export default class WithSandBox implements WithSandBoxInterface {
     this.active = true
 
     /* --- memory router part --- start */
-    // create location, history for child app
-    if (isUndefined(this.microAppWindow.location)) {
-      this.setMicroAppRouter(
-        this.microAppWindow.__MICRO_APP_NAME__,
-        this.microAppWindow.__MICRO_APP_URL__,
-        this.microAppWindow,
-      )
-    }
-
     // update microLocation, attach route info to browser url
     this.initRouteState(defaultPage)
 
@@ -262,6 +254,8 @@ export default class WithSandBox implements WithSandBoxInterface {
     microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
     microAppWindow.__MICRO_APP_PRE_RENDER__ = false
     microAppWindow.__MICRO_APP_UMD_MODE__ = false
+    microAppWindow.__MICRO_APP_SANDBOX__ = this
+    microAppWindow.__MICRO_APP_SANDBOX_TYPE__ = 'with'
     microAppWindow.rawWindow = globalEnv.rawWindow
     microAppWindow.rawDocument = globalEnv.rawDocument
     microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
@@ -543,7 +537,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   }
 
   // set location & history for memory router
-  private setMicroAppRouter (appName: string, url: string, microAppWindow: microAppWindowType): void {
+  private patchRouter (appName: string, url: string, microAppWindow: microAppWindowType): void {
     const { microLocation, microHistory } = createMicroRouter(appName, url)
     rawDefineProperties(microAppWindow, {
       location: {

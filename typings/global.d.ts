@@ -202,6 +202,9 @@ declare module '@micro-app/types' {
     // app rendering error
     onerror (e: Error): void
 
+    // set app state
+    setAppState (state: string): void
+
     // get app state
     getAppState (): string
 
@@ -249,14 +252,14 @@ declare module '@micro-app/types' {
 
   // lifeCycles
   interface lifeCyclesType {
-    created(e: CustomEvent): void
-    beforemount(e: CustomEvent): void
-    mounted(e: CustomEvent): void
-    unmount(e: CustomEvent): void
-    error(e: CustomEvent): void
-    beforeshow(e: CustomEvent): void
-    aftershow(e: CustomEvent): void
-    afterhidden(e: CustomEvent): void
+    created?(e: CustomEvent): void
+    beforemount?(e: CustomEvent): void
+    mounted?(e: CustomEvent): void
+    unmount?(e: CustomEvent): void
+    error?(e: CustomEvent): void
+    beforeshow?(e: CustomEvent): void
+    aftershow?(e: CustomEvent): void
+    afterhidden?(e: CustomEvent): void
   }
 
   type AssetsChecker = (url: string) => boolean;
@@ -347,11 +350,13 @@ declare module '@micro-app/types' {
     globalAssets?: globalAssetsType,
     excludeAssetFilter?: (assetUrl: string) => boolean
     getRootElementParentNode?: (node: Node, appName: AppName) => void
+    customProxyDocumentProps?: Map<string | number | symbol, (value: unknown) => void>
   }
 
   // MicroApp config
   interface MicroAppBaseType {
     tagName: string
+    hasInit: boolean
     options: OptionsType
     preFetch(apps: prefetchParamList): void
     router: Router // eslint-disable-line

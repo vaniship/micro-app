@@ -29,6 +29,7 @@ export default class App extends React.Component {
 
   handleCreated = () => {
     console.log(`生命周期：created -- ${this.state.name}`)
+    // Promise.resolve().then(() => microApp.router.push({name: this.state.name, path: this.state.baseroute + '/page2'}))
   }
 
   beforemount = (e) => {
@@ -455,7 +456,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  // iframe
+                  iframe
                 >
                 </micro-app>
               )

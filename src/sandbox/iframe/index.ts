@@ -26,8 +26,8 @@ import {
   resetDataCenterSnapshot,
 } from '../../interact'
 import {
-  patchRoute,
-} from './route'
+  patchRouter,
+} from './router'
 import {
   router,
   initRouteStateWithURL,
@@ -83,13 +83,12 @@ export default class IframeSandbox {
     this.microAppWindow = this.iframe!.contentWindow
 
     this.patchIframe(this.microAppWindow, (resolve: CallableFunction) => {
-      // TODO: 优化代码
       // create new html to iframe
       this.createIframeTemplate(this.microAppWindow)
       // get escapeProperties from plugins
       this.getSpecialProperties(appName)
       // patch location & history of child app
-      this.proxyLocation = patchRoute(appName, url, this.microAppWindow, browserHost)
+      this.proxyLocation = patchRouter(appName, url, this.microAppWindow, browserHost)
       // patch window of child app
       this.windowEffect = patchWindow(appName, this.microAppWindow, this)
       // patch document of child app
@@ -100,9 +99,9 @@ export default class IframeSandbox {
        * create static properties
        * NOTE:
        *  1. execute as early as possible
-       *  2. run after patchRoute & createProxyWindow
+       *  2. run after patchRouter & createProxyWindow
        */
-      this.initStaticGlobalKeys(appName, url)
+      this.initStaticGlobalKeys(appName, url, this.microAppWindow)
       resolve()
     })
   }
@@ -164,7 +163,6 @@ export default class IframeSandbox {
      */
     /**
      * TODO:
-     * 做一些记录：
      * 1. iframe关闭虚拟路由系统后，default-page无法使用，推荐用户直接使用浏览器地址控制首页渲染
      *    补充：keep-router-state 也无法配置，因为keep-router-state一定为true。
      * 2. 导航拦截、current.route 可以正常使用
@@ -232,7 +230,7 @@ export default class IframeSandbox {
     }
 
     if (--IframeSandbox.activeCount === 0) {
-      // TODO: 有什么是可以放在这里的吗
+      // TODO: Is there anything to put here?
     }
 
     this.active = false
@@ -242,22 +240,27 @@ export default class IframeSandbox {
    * create static properties
    * NOTE:
    *  1. execute as early as possible
-   *  2. run after patchRoute & createProxyWindow
+   *  2. run after patchRouter & createProxyWindow
    */
-  private initStaticGlobalKeys (appName: string, url: string): void {
-    this.microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
-    this.microAppWindow.__MICRO_APP_NAME__ = appName
-    this.microAppWindow.__MICRO_APP_URL__ = url
-    this.microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
-    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
-    this.microAppWindow.__MICRO_APP_WINDOW__ = this.microAppWindow
-    this.microAppWindow.__MICRO_APP_PRE_RENDER__ = false
-    this.microAppWindow.__MICRO_APP_UMD_MODE__ = false
-    this.microAppWindow.__MICRO_APP_SANDBOX__ = this
-    this.microAppWindow.__MICRO_APP_PROXY_WINDOW__ = this.proxyWindow
-    this.microAppWindow.rawWindow = globalEnv.rawWindow
-    this.microAppWindow.rawDocument = globalEnv.rawDocument
-    this.microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
+  private initStaticGlobalKeys (
+    appName: string,
+    url: string,
+    microAppWindow: microAppWindowType,
+  ): void {
+    microAppWindow.__MICRO_APP_ENVIRONMENT__ = true
+    microAppWindow.__MICRO_APP_NAME__ = appName
+    microAppWindow.__MICRO_APP_URL__ = url
+    microAppWindow.__MICRO_APP_PUBLIC_PATH__ = getEffectivePath(url)
+    microAppWindow.__MICRO_APP_BASE_ROUTE__ = ''
+    microAppWindow.__MICRO_APP_WINDOW__ = microAppWindow
+    microAppWindow.__MICRO_APP_PRE_RENDER__ = false
+    microAppWindow.__MICRO_APP_UMD_MODE__ = false
+    microAppWindow.__MICRO_APP_PROXY_WINDOW__ = this.proxyWindow
+    microAppWindow.__MICRO_APP_SANDBOX__ = this
+    microAppWindow.__MICRO_APP_SANDBOX_TYPE__ = 'iframe'
+    microAppWindow.rawWindow = globalEnv.rawWindow
+    microAppWindow.rawDocument = globalEnv.rawDocument
+    microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
       removeDomScope,
       pureCreateElement,
       location: this.proxyLocation,
@@ -360,7 +363,12 @@ export default class IframeSandbox {
       (function iframeLocationReady () {
         setTimeout(() => {
           try {
-            if (microAppWindow.document === oldMicroDocument) {
+            /**
+             * NOTE:
+             *  1. In browser, iframe document will be recreated after iframe initial
+             *  2. In jest, iframe document is always the same
+             */
+            if (microAppWindow.document === oldMicroDocument && !__TEST__) {
               iframeLocationReady()
             } else {
               /**

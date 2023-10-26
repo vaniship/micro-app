@@ -33,7 +33,7 @@ import {
 } from '../../create_app'
 
 /**
- * TODO: 1、shadowDOM 2、重构
+ * TODO: 1、shadowDOM 2、结构优化
  *
  * patch document of child app
  * @param appName app name
@@ -65,6 +65,19 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   const rawMicroGetElementsByClassName = microRootDocument.prototype.getElementsByClassName
   const rawMicroGetElementsByTagName = microRootDocument.prototype.getElementsByTagName
   const rawMicroGetElementsByName = microRootDocument.prototype.getElementsByName
+  const rawMicroElementFromPoint = microRootDocument.prototype.elementFromPoint
+  const rawMicroCaretRangeFromPoint = microRootDocument.prototype.caretRangeFromPoint
+
+  microRootDocument.prototype.caretRangeFromPoint = function caretRangeFromPoint (
+    x: number,
+    y: number,
+  ): Range {
+    // 这里this指向document才可以获取到子应用的document实例，range才可以被成功生成
+    const element = rawMicroElementFromPoint.call(rawDocument, x, y)
+    const range = rawMicroCaretRangeFromPoint.call(rawDocument, x, y)
+    updateElementInfo(element, appName)
+    return range
+  }
 
   microRootDocument.prototype.createElement = function createElement (
     tagName: string,
@@ -148,10 +161,11 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     const _this = getDefaultRawTarget(this)
     if (
       isUniqueElement(key) ||
-      isInvalidQuerySelectorKey(key) ||
-      (!appInstanceMap.get(appName)?.inline && /^script$/i.test(key))
+      isInvalidQuerySelectorKey(key)
     ) {
       return rawMicroGetElementsByTagName.call(_this, key)
+    } else if (/^script|base$/i.test(key)) {
+      return rawMicroGetElementsByTagName.call(microDocument, key)
     }
 
     try {
@@ -187,7 +201,6 @@ function patchDocumentProperty (
   const getCommonDescriptor = (key: PropertyKey, getter: () => unknown): PropertyDescriptor => {
     const { enumerable } = Object.getOwnPropertyDescriptor(microRootDocument.prototype, key) || {
       enumerable: true,
-      writable: true,
     }
     return {
       configurable: true,
@@ -206,6 +219,8 @@ function patchDocumentProperty (
       ['forms', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'form')],
       ['images', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'img')],
       ['links', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'a')],
+      // unique keys of micro-app
+      ['microAppElement', () => appInstanceMap.get(appName)?.container],
     ]
 
     descList.forEach((desc) => {

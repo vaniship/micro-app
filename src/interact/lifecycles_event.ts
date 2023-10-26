@@ -77,5 +77,5 @@ export function dispatchCustomEventToMicroApp (
     detail,
   })
 
-  app.sandBox.microAppWindow.dispatchEvent(event)
+  app.sandBox?.microAppWindow.dispatchEvent(event)
 }
