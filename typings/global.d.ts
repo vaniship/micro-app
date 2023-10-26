@@ -108,6 +108,7 @@ declare module '@micro-app/types' {
     patchStaticElement (container: Element | ShadowRoot): void
     actionBeforeExecScripts (container: Element | ShadowRoot): void
     deleteIframeElement? (): void
+    setStaticAppState (state: string): void
   }
 
   type LinkSourceInfo = {

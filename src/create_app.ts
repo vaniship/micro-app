@@ -651,6 +651,9 @@ export default class CreateApp implements AppInterface {
   // set app state
   private setAppState (state: string): void {
     this.state = state
+
+    // set window.__MICRO_APP_STATE__
+    this.sandBox?.setStaticAppState(state)
   }
 
   // get app state
