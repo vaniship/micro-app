@@ -76,39 +76,6 @@ export function fixReactHMRConflict (app: AppInterface): void {
 }
 
 /**
- * reDefine parentNode of html
- * Scenes:
- *  1. element-ui@2/lib/utils/popper.js
- *    var parent = element.parentNode;
- *    // root is child app window
- *    if (parent === root.document) ...
- */
-export function throttleDeferForParentNode (microDocument: Document): void {
-  const html = globalEnv.rawDocument.firstElementChild
-  if (html?.parentNode === globalEnv.rawDocument) {
-    setParentNode(html, microDocument)
-    defer(() => {
-      setParentNode(html, globalEnv.rawDocument)
-    })
-  }
-}
-
-/**
- * Modify the point of parentNode
- * @param target target Node
- * @param value parentNode
- */
-export function setParentNode (target: Node, value: Document | Element): void {
-  const descriptor = Object.getOwnPropertyDescriptor(target, 'parentNode')
-  if (!descriptor || descriptor.configurable) {
-    rawDefineProperty(target, 'parentNode', {
-      value,
-      configurable: true,
-    })
-  }
-}
-
-/**
  * update dom tree of target dom
  * @param container target dom
  * @param appName app name

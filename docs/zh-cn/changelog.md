@@ -15,6 +15,8 @@
 - **New**
 
   - 🆕 新增了子应用全局变量`__MICRO_APP_STATE__`，用于标记当前应用的状态。
+  - 🆕 新增了子应用document变量`__MICRO_APP_NAME__`，用于标记document所属应用。
+  - 🆕 重写了原型方法`Node.prototype.parentNode`，用于处理特殊元素parentNode的指向问题。
 
 - **Bug Fix**
 

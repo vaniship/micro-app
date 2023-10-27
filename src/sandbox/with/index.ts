@@ -462,7 +462,7 @@ export default class WithSandBox implements WithSandBoxInterface {
         enumerable: false,
         get () {
           throttleDeferForSetAppName(appName)
-          return modifiedEval || eval
+          return modifiedEval || globalEnv.rawWindow.eval
         },
         set: (value) => {
           modifiedEval = value

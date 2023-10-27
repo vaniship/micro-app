@@ -37,9 +37,11 @@ import {
   checkExcludeUrl,
   checkIgnoreUrl,
 } from './scripts'
+import {
+  fixReactHMRConflict,
+} from '../sandbox/adapter'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
-import { fixReactHMRConflict } from '../sandbox/adapter'
 
 // Record element and map element
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
@@ -332,6 +334,7 @@ export function patchElementAndDocument (): void {
   patchDocument()
 
   const rawRootElement = globalEnv.rawRootElement
+  const rawRootNode = globalEnv.rawRootNode
 
   // prototype methods of add element👇
   rawRootElement.prototype.appendChild = function appendChild<T extends Node> (newChild: T): T {
@@ -510,32 +513,40 @@ export function patchElementAndDocument (): void {
     }
   })
 
-  /**
-   * NOTE:Abandon this way at 2023.2.28 before v1.0.0-beta.0, it will cause vue2 throw error when render again
-   */
-  // rawDefineProperty(Node.prototype, 'parentNode', {
-  //   configurable: true,
-  //   enumerable: true,
-  //   get () {
-  //     const result = globalEnv.rawParentNodeDesc.get.call(this)
-  //     /**
-  //      * If parentNode is <micro-app-body>, return rawDocument.body
-  //      * Scenes:
-  //      *  1. element-ui@2/lib/utils/vue-popper.js
-  //      *    if (this.popperElm.parentNode === document.body) ...
-  //      * WARNING:
-  //      *  Will it cause other problems ?
-  //      *  e.g. target.parentNode.remove(target)
-  //      * BUG:
-  //      *  1. vue2 umdMode, throw error when render again (<div id='app'></div> will be deleted when render again )
-  //      */
-  //     if (isMicroAppBody(result) && appInstanceMap.get(this.__MICRO_APP_NAME__)?.container) {
-  //       return document.body
-  //     }
-  //     return result
-  //   },
-  //   set: undefined,
-  // })
+  rawDefineProperty(rawRootNode.prototype, 'parentNode', {
+    configurable: true,
+    enumerable: true,
+    get () {
+      /**
+       * hijack parentNode of html
+       * Scenes:
+       *  1. element-ui@2/lib/utils/popper.js
+       *    // root is child app window, so root.document is proxyDocument or microDocument
+       *    if (element.parentNode === root.document) ...
+       */
+      const currentAppName = getCurrentAppName()
+      if (currentAppName && this === globalEnv.rawDocument.firstElementChild) {
+        const microDocument = appInstanceMap.get(currentAppName)?.sandBox?.proxyWindow?.document
+        if (microDocument) return microDocument
+      }
+      const result = globalEnv.rawParentNodeDesc.get.call(this)
+      /**
+       * If parentNode is <micro-app-body>, return rawDocument.body
+       * Scenes:
+       *  1. element-ui@2/lib/utils/vue-popper.js
+       *    if (this.popperElm.parentNode === document.body) ...
+       * WARNING:
+       *  Will it cause other problems ?
+       *  e.g. target.parentNode.remove(target)
+       * BUG:
+       *  1. vue2 umdMode, throw error when render again (<div id='app'></div> will be deleted when render again ) -- Abandon this way at 2023.2.28 before v1.0.0-beta.0, it will cause vue2 throw error when render again
+       */
+      // if (isMicroAppBody(result) && appInstanceMap.get(this.__MICRO_APP_NAME__)?.container) {
+      //   return document.body
+      // }
+      return result
+    },
+  })
 }
 
 /**
@@ -703,6 +714,7 @@ export function releasePatchElementAndDocument (): void {
   releasePatchDocument()
 
   const rawRootElement = globalEnv.rawRootElement
+  const rawRootNode = globalEnv.rawRootNode
   rawRootElement.prototype.appendChild = globalEnv.rawAppendChild
   rawRootElement.prototype.insertBefore = globalEnv.rawInsertBefore
   rawRootElement.prototype.replaceChild = globalEnv.rawReplaceChild
@@ -714,6 +726,7 @@ export function releasePatchElementAndDocument (): void {
   rawRootElement.prototype.querySelectorAll = globalEnv.rawElementQuerySelectorAll
   rawRootElement.prototype.setAttribute = globalEnv.rawSetAttribute
   rawDefineProperty(rawRootElement.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
+  rawDefineProperty(rawRootNode.prototype, 'parentNode', globalEnv.rawParentNodeDesc)
 }
 
 // Set the style of micro-app-head and micro-app-body
