@@ -76,9 +76,9 @@ function Vue2 () {
       <micro-app
         name='vue2'
         // url={`${config.vue2}micro-app/vue2/`}
-        url={umdJs}
+        url='http://storage.jd.local/launch/zeromock/umd-module.js'
         data={data}
-        componentMode
+        componentMode = "true"
         // onBeforemount={() => hideLoading(false)}
         onMounted={mounted}
         onUnmount={unmount}
