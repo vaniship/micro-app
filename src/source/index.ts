@@ -31,6 +31,7 @@ function getWrapElement (str: string): HTMLElement {
   const wrapDiv = pureCreateElement('div')
 
   wrapDiv.innerHTML = str
+
   return wrapDiv
 }
 
