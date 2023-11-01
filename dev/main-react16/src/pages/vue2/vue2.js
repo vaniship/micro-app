@@ -8,7 +8,6 @@ import microApp from '@micro-zoe/micro-app'
 import config from '../../config'
 import './vue2.less'
 import lessStyles from './module.less'
-import umdJs from './umd-module'
 
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
@@ -75,10 +74,8 @@ function Vue2 () {
       }
       <micro-app
         name='vue2'
-        // url={`${config.vue2}micro-app/vue2/`}
-        url='http://storage.jd.local/launch/zeromock/umd-module.js'
+        url={`${config.vue2}micro-app/vue2/`}
         data={data}
-        componentMode = "true"
         // onBeforemount={() => hideLoading(false)}
         onMounted={mounted}
         onUnmount={unmount}
@@ -89,7 +86,6 @@ function Vue2 () {
         // inline
         // disable-scopecss
         // disableSandbox
-        // disable-memory-router
         // clear-data
         iframe
       >

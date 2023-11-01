@@ -25,7 +25,7 @@ export class HTMLLoader implements IHTMLLoader {
     const appName = app.name
     const htmlUrl = app.ssrUrl || app.url
     const htmlPromise = app.componentMode
-      ? Promise.resolve(`<micro-app-head><script src='${htmlUrl}></script></micro-app-head><micro-app-body></micro-app-body>`)
+      ? Promise.resolve(`<micro-app-head><script src='${htmlUrl}'></script></micro-app-head><micro-app-body></micro-app-body>`)
       : fetchSource(htmlUrl, appName, { cache: 'no-cache' })
     htmlPromise.then((htmlStr: string) => {
       if (!htmlStr) {

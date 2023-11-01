@@ -31,7 +31,6 @@ function getWrapElement (str: string): HTMLElement {
   const wrapDiv = pureCreateElement('div')
 
   wrapDiv.innerHTML = str
-
   return wrapDiv
 }
 
@@ -93,7 +92,6 @@ function flatChildren (
  * @param app app
  */
 export function extractSourceDom (htmlStr: string, app: AppInterface): void {
-  // debugger
   const wrapElement = getWrapElement(htmlStr)
   const microAppHead = globalEnv.rawElementQuerySelector.call(wrapElement, 'micro-app-head')
   const microAppBody = globalEnv.rawElementQuerySelector.call(wrapElement, 'micro-app-body')

@@ -2,7 +2,7 @@ import { AppInterface } from '@micro-app/types'
 
 import { waitFor } from '../../../common/util'
 import { HTMLLoader } from '../../../../source/loader/html'
-import { MOCK_APP_URL } from '../../mocks/app'
+import { MOCK_APP_URL, MOCK_APP_URL_UMD } from '../../mocks/app'
 import { MOCK_BASIC_HTML, MOCK_APP_HTML } from '../../mocks/html'
 import { setupMockFetch } from '../../mocks/fetch'
 import microApp from '../../../../micro_app'
@@ -76,21 +76,16 @@ describe('HTMLLoader', () => {
     })
   })
 
-  test('给定一个componentMode', async () => {
-    const { htmlLoader, successCb, errorCb, onLoadError } = setup(MOCK_BASIC_HTML, true)
+  test('测试一个compomentMode', async () => {
+    const { htmlLoader, successCb } = setup(MOCK_BASIC_HTML)
     const app = {
       name: 'app-2',
-      url: MOCK_APP_URL,
-      componentMode: 'true',
-      onerror: errorCb as any,
-      onLoadError: onLoadError as any,
+      url: MOCK_APP_URL_UMD
     } as AppInterface
     htmlLoader.run(app, successCb)
 
-    const logError = jest.spyOn(console, 'error')
     await waitFor(() => {
-      expect(logError).toBeCalled()
-      expect(errorCb).not.toBeCalled()
+      expect(successCb).toBeCalledWith(MOCK_APP_HTML, app)
     })
   })
 

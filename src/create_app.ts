@@ -55,7 +55,7 @@ export interface CreateAppParam {
   isPrefetch?: boolean
   prefetchLevel?: number
   routerMode?: string
-  componentMode?: boolean
+  componentMode?: boolean //  is component Mode
 }
 
 export default class CreateApp implements AppInterface {
