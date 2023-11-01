@@ -310,7 +310,7 @@ script.setAttribute('ignore', 'true')
 - 使用方式: 
 ```html 
 <micro-app name='xx' url='xx' componentMode></micro-app>
-或 <micro-app name='xx' url='xx' ModecomponentMode = 'true'></micro-app>
+或 <micro-app name='xx' url='xx' componentMode = 'true'></micro-app>
 ```
 
 componentMode给micro-app增加加载umd.js等模块化的能力实现微组件，开启后，则加载该js资源，并进行渲染。
