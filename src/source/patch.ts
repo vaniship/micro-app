@@ -54,7 +54,7 @@ function getMappingNode (node: Node): Node {
  * @param child new node
  * @param app app
  */
-function handleNewNode (child: Node, app: AppInterface): Node {
+function handleNewNode (child: Node, app: AppInterface, isShadowEnvironment?: boolean): Node {
   if (dynamicElementInMicroAppMap.has(child)) {
     return dynamicElementInMicroAppMap.get(child)!
   } else if (isStyleElement(child)) {
@@ -62,7 +62,7 @@ function handleNewNode (child: Node, app: AppInterface): Node {
       const replaceComment = document.createComment('style element with exclude attribute ignored by micro-app')
       dynamicElementInMicroAppMap.set(child, replaceComment)
       return replaceComment
-    } else if (app.scopecss && !child.hasAttribute('ignore')) {
+    } else if (app.scopecss && !child.hasAttribute('ignore') && !isShadowEnvironment) {
       return scopedCSS(child, app)
     }
     return child
@@ -294,6 +294,7 @@ function commonElementHandler (
   newChild: Node,
   passiveChild: Node | null,
   rawMethod: Func,
+  isShadowEnvironment?: boolean | undefined,
 ) {
   const currentAppName = getCurrentAppName()
   if (
@@ -312,7 +313,7 @@ function commonElementHandler (
         app,
         rawMethod,
         parent,
-        handleNewNode(newChild, app),
+        handleNewNode(newChild, app, isShadowEnvironment),
         passiveChild && getMappingNode(passiveChild),
       )
     }
@@ -335,6 +336,11 @@ export function patchElementAndDocument (): void {
 
   // prototype methods of add element👇
   rawRootElement.prototype.appendChild = function appendChild<T extends Node> (newChild: T): T {
+    if (newChild.localName === 'style') {
+      const isShadowNode = this.getRootNode()
+      const isShadowEnvironment = isShadowNode instanceof ShadowRoot
+      return commonElementHandler(this, newChild, null, globalEnv.rawAppendChild, isShadowEnvironment)
+    }
     return commonElementHandler(this, newChild, null, globalEnv.rawAppendChild)
   }
 
