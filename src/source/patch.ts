@@ -53,6 +53,7 @@ function getMappingNode (node: Node): Node {
  * Process the new node and format the style, link and script element
  * @param child new node
  * @param app app
+ * @param isShadowEnvironment Is the element in the shadow environment
  */
 function handleNewNode (child: Node, app: AppInterface, isShadowEnvironment?: boolean): Node {
   if (dynamicElementInMicroAppMap.has(child)) {
@@ -294,7 +295,6 @@ function commonElementHandler (
   newChild: Node,
   passiveChild: Node | null,
   rawMethod: Func,
-  isShadowEnvironment?: boolean | undefined,
 ) {
   const currentAppName = getCurrentAppName()
   if (
@@ -307,6 +307,11 @@ function commonElementHandler (
   ) {
     newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
+    let isShadowEnvironment = false
+    if (newChild.localName === 'style') {
+      const isShadowNode = parent.getRootNode()
+      isShadowEnvironment = isShadowNode instanceof ShadowRoot
+    }
     if (app?.container) {
       completePathDynamic(app, newChild)
       return invokePrototypeMethod(
@@ -336,11 +341,6 @@ export function patchElementAndDocument (): void {
 
   // prototype methods of add element👇
   rawRootElement.prototype.appendChild = function appendChild<T extends Node> (newChild: T): T {
-    if (newChild.localName === 'style') {
-      const isShadowNode = this.getRootNode()
-      const isShadowEnvironment = isShadowNode instanceof ShadowRoot
-      return commonElementHandler(this, newChild, null, globalEnv.rawAppendChild, isShadowEnvironment)
-    }
     return commonElementHandler(this, newChild, null, globalEnv.rawAppendChild)
   }
 
