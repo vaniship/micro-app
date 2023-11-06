@@ -27,7 +27,6 @@
   - [Angular](zh-cn/framework/angular)
   - [Nextjs](zh-cn/framework/nextjs)
   - [Nuxtjs](zh-cn/framework/nuxtjs)
-  - [ComponentMode](zh-cn/framework/componentMode)
 
 - 其他
   - [API](zh-cn/api)

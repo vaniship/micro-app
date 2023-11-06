@@ -55,7 +55,6 @@ export interface CreateAppParam {
   isPrefetch?: boolean
   prefetchLevel?: number
   routerMode?: string
-  componentMode?: boolean //  is component Mode
 }
 
 export default class CreateApp implements AppInterface {
@@ -66,7 +65,6 @@ export default class CreateApp implements AppInterface {
   private umdHookUnmount: Func | null = null
   private preRenderEvents?: CallableFunction[] | null
   public umdMode = false
-  public componentMode = false
   public source: sourceType
   // TODO: 类型优化，加上iframe沙箱
   public sandBox: WithSandBoxInterface | IframeSandbox | null = null
@@ -96,7 +94,6 @@ export default class CreateApp implements AppInterface {
     isPrefetch,
     prefetchLevel,
     routerMode,
-    componentMode
   }: CreateAppParam) {
     appInstanceMap.set(name, this)
     // init actions
@@ -106,7 +103,6 @@ export default class CreateApp implements AppInterface {
     this.scopecss = this.useSandbox && scopecss
     this.inline = inline ?? false
     this.iframe = iframe ?? false
-    this.componentMode = componentMode ?? false
     /**
      * NOTE:
      *  1. Navigate after micro-app created, before mount
