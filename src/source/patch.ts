@@ -507,6 +507,7 @@ export function patchElementAndDocument (): void {
       const currentAppName = getCurrentAppName()
       Array.from(this.children).forEach((child) => {
         if (isElement(child) && currentAppName) {
+          // TODO: 使用updateElementInfo进行更新
           child.__MICRO_APP_NAME__ = currentAppName
         }
       })
@@ -523,7 +524,7 @@ export function patchElementAndDocument (): void {
        *  1. element-ui@2/lib/utils/popper.js
        *    // root is child app window, so root.document is proxyDocument or microDocument
        *    if (element.parentNode === root.document) ...
-       */
+      */
       const currentAppName = getCurrentAppName()
       if (currentAppName && this === globalEnv.rawDocument.firstElementChild) {
         const microDocument = appInstanceMap.get(currentAppName)?.sandBox?.proxyWindow?.document

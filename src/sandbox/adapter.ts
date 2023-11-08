@@ -6,13 +6,15 @@ import globalEnv from '../libs/global_env'
 import {
   defer,
   isNode,
-  rawDefineProperty,
   rawDefineProperties,
+  throttleDeferForSetAppName,
+  isMicroAppBody,
 } from '../libs/utils'
 import {
   appInstanceMap,
   isIframeSandbox,
 } from '../create_app'
+import microApp from '../micro_app'
 
 export default class Adapter implements SandBoxAdapter {
   constructor () {
@@ -111,7 +113,6 @@ export function updateElementInfo <T> (node: T, appName: string): T {
      *  1. 测试baseURI和ownerDocument在with沙箱中是否正确
      *    经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
      *  2. with沙箱所有node设置__MICRO_APP_NAME__都使用updateElementInfo
-     *  3. 性能: defineProperty的性能肯定不如直接设置
     */
     rawDefineProperties(node, {
       baseURI: {
@@ -126,12 +127,82 @@ export function updateElementInfo <T> (node: T, appName: string): T {
     })
 
     if (isIframeSandbox(appName)) {
-      rawDefineProperty(node, 'ownerDocument', {
-        configurable: true,
-        get: () => proxyWindow.document,
+      rawDefineProperties(node, {
+        ownerDocument: {
+          configurable: true,
+          get: () => proxyWindow.document,
+        },
       })
+      if (node instanceof globalEnv.rawWindow.Node) {
+        rawDefineProperties(node, {
+          /**
+           * HTML built-in node belongs to base app, so it needs to be handled separately for parentNode
+           * Fix error for nuxt@2.x + ElementUI@2.x
+           */
+          /**
+           * 问题：如果设置了parentNode，则vue2项目无法正常渲染或者切换路由
+           * 原因：html自带的元素并不是一定都属于基座，也有可能属于子应用的元素，此时如果设置了元素的parentNode，无论如何设置都会导致vue2渲染的异常，比如首次渲染失败、二次渲染失败、element-ui下拉框位置错误
+           * 解决思路：所以这里进行了一次判断，如果当前元素属于基座，那就重写parentNode，否则此元素一定属于子应用，那么就不需要处理，因为子应用的原型链上已经处理过。
+           * TODO: 再整理一下
+           *  1. rawDefineProperties 换成 rawDefineProperty
+           *  2. createGetterForIframeParentNode第三个参数是否需要 -- 是必须的
+           */
+          parentNode: {
+            configurable: true,
+            get: createGetterForIframeParentNode(
+              appName,
+              globalEnv.rawParentNodeDesc,
+              true,
+            )
+          }
+        })
+      }
     }
   }
 
   return node
+}
+
+/**
+ * patch iframe node parentNode
+ * Scenes:
+ *  1. iframe common node: patch Node.prototype.parentNode to hijack parentNode
+ *  2. iframe HTML built-in node: belongs to base app, we should rewrite parentNode for every built-in node
+ * NOTE:
+ *  1. HTML built-in node parentNode cannot point to raw body, otherwise Vue2 will render failed
+ * @param appName app name
+ * @param parentNode parentNode Descriptor of iframe or browser
+ * @param HTMLBuildInNode is HTML built-in node
+ */
+export function createGetterForIframeParentNode (
+  appName: string,
+  parentNodeDesc: PropertyDescriptor,
+  HTMLBuildInNode?: boolean,
+): () => ParentNode {
+  return function (this: Node) {
+    /**
+     * set current appName for hijack parentNode of html
+     * NOTE:
+     *  1. Is there a problem with setting the current appName in iframe mode
+     */
+    throttleDeferForSetAppName(appName)
+    const result: ParentNode = parentNodeDesc.get!.call(this)
+    /**
+      * If parentNode is <micro-app-body>, return rawDocument.body
+      * Scenes:
+      *  1. element-ui@2/lib/utils/vue-popper.js
+      *    if (this.popperElm.parentNode === document.body) ...
+      * WARNING:
+      *  Will it cause other problems ?
+      *  e.g. target.parentNode.remove(target)
+      */
+    if (
+      !HTMLBuildInNode &&
+      isMicroAppBody(result) &&
+      appInstanceMap.get(appName)?.container
+    ) {
+      return microApp.options.getRootElementParentNode?.(this, appName) || globalEnv.rawDocument.body
+    }
+    return result
+  }
 }
