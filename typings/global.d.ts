@@ -87,6 +87,8 @@ declare module '@micro-app/types' {
     escapeKeys: Set<PropertyKey>
     // Properties newly added to microAppWindow
     injectedKeys: Set<PropertyKey>
+    // sandbox ready state
+    sandboxReady: Promise<void>
     // proxy(microWindow)
     proxyWindow: WindowProxy
     // child window

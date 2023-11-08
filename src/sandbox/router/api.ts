@@ -155,8 +155,7 @@ function createRouterApi (): RouterApi {
          */
         if (getActiveApps({ excludeHiddenApp: true, excludePreRender: true }).includes(appName)) {
           const app = appInstanceMap.get(appName)!
-          const navigateAction = () => handleNavigate(appName, app, to, replace)
-          app.iframe ? app.sandBox.sandboxReady.then(navigateAction) : navigateAction()
+          app.sandBox.sandboxReady.then(() => handleNavigate(appName, app, to, replace))
         } else {
           logWarn('navigation failed, app does not exist or is inactive')
         }

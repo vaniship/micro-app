@@ -340,8 +340,8 @@ export default class CreateApp implements AppInterface {
       }
     }
 
-    // TODO: any替换为iframe沙箱类型
-    this.iframe ? (this.sandBox as any).sandboxReady.then(nextAction) : nextAction()
+    // TODO: 可优化？
+    this.sandBox ? this.sandBox.sandboxReady.then(nextAction) : nextAction()
   }
 
   /**
