@@ -34,3 +34,20 @@ microApp.start({
 
 > [!NOTE]
 > 1、如果跨域请求带cookie，那么`Access-Control-Allow-Origin`不能设置为`*`，必须指定域名，同时设置`Access-Control-Allow-Credentials: true`
+
+## 2、微组件
+
+一个正常的 micro-app 子应用可以这样注册：
+
+```js
+<micro-app name='my-app' url='http://localhost:3000/'></micro-app>
+```
+
+为了实现加载js文件实现微组件的能力，我们url属性将以前仅支持html地址，升级成既支持html地址，也支持js等模块化文件。用法如下：
+
+```js
+<micro-app name='xx' url='http://xxx.js'></micro-app>
+```
+
+> [!NOTE]
+> 1、微组件只是极个别场景下的解决方案（目前识别到的只有扩展点和细粒度重构），其他场景并不建议使用微组件。
