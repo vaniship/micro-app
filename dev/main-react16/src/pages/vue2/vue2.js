@@ -9,13 +9,6 @@ import config from '../../config'
 import './vue2.less'
 import lessStyles from './module.less'
 
-microApp.start({
-  preFetchApps: [
-    { name: 'my-app1', url: 'https://storage.360buyimg.com/launch/zeromock/umd-module.js', level: 3 }, // 加载资源并解析
-  ],
-})
-
-
 const antIcon = <LoadingOutlined style={{ fontSize: 30 }} spin />
 
 function Vue2 () {
@@ -28,7 +21,6 @@ function Vue2 () {
     microApp.preFetch([
       { name: 'my-app1', url: 'https://storage.360buyimg.com/launch/zeromock/umd-module.js', level: 3 }, // 加载资源并解析
     ])
-    
     hideLoading(false)
   }
 
