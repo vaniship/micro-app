@@ -77,6 +77,7 @@ export type MicroAppWindowDataType = {
   __MICRO_APP_BASE_ROUTE__: string,
   __MICRO_APP_UMD_MODE__: boolean,
   __MICRO_APP_PRE_RENDER__: boolean
+  __MICRO_APP_STATE__: string
   microApp: EventCenterForMicroApp,
   rawWindow: Window,
   rawDocument: Document,
@@ -614,5 +615,9 @@ export default class WithSandBox implements WithSandBoxInterface {
    */
   public actionBeforeExecScripts (container: Element | ShadowRoot): void {
     this.patchStaticElement(container)
+  }
+
+  public setStaticAppState (state: string): void {
+    this.microAppWindow.__MICRO_APP_STATE__ = state
   }
 }

@@ -110,6 +110,7 @@ declare module '@micro-app/types' {
     patchStaticElement (container: Element | ShadowRoot): void
     actionBeforeExecScripts (container: Element | ShadowRoot): void
     deleteIframeElement? (): void
+    setStaticAppState (state: string): void
   }
 
   type LinkSourceInfo = {
@@ -226,6 +227,9 @@ declare module '@micro-app/types' {
 
     // show app when connectedCallback with keep-alive
     showKeepAliveApp (container: HTMLElement | ShadowRoot): void
+
+    // get app lifecycle state
+    getLifeCycleState (): string
   }
 
   interface prefetchParam {
