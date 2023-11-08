@@ -83,7 +83,7 @@ function Vue2 () {
         // keep-alive
         // shadowDOM
         // destroy
-        // inline
+        inline
         // disable-scopecss
         // disableSandbox
         // disable-memory-router

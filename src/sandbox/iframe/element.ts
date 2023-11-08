@@ -12,10 +12,10 @@ import {
   isElement,
   isMicroAppBody,
   isNode,
+  throttleDeferForSetAppName,
 } from '../../libs/utils'
 import {
   updateElementInfo,
-  throttleDeferForParentNode
 } from '../adapter'
 import {
   appInstanceMap,
@@ -179,8 +179,12 @@ function patchIframeNode (
     configurable: true,
     enumerable: true,
     get () {
-      // set html.parentNode to microDocument
-      throttleDeferForParentNode(microDocument)
+      /**
+       * set current appName for hijack parentNode of html
+       * NOTE:
+       *  1. Is there a problem with setting the current appName in iframe mode
+       */
+      throttleDeferForSetAppName(appName)
       const result: ParentNode = rawParentNodeLDesc.get!.call(this)
       /**
        * If parentNode is <micro-app-body>, return rawDocument.body

@@ -91,10 +91,10 @@ const { createMicroEventSource, clearMicroEventSource } = useMicroEventSource()
 export default class WithSandBox implements WithSandBoxInterface {
   static activeCount = 0 // number of active sandbox
   private active = false
-  private windowEffect: CommonEffectHook
-  private documentEffect: CommonEffectHook
+  private windowEffect!: CommonEffectHook
+  private documentEffect!: CommonEffectHook
   private removeHistoryListener!: CallableFunction
-  public adapter: SandBoxAdapter
+  public adapter!: SandBoxAdapter
   /**
    * Scoped global Properties(Properties that can only get and set in microAppWindow, will not escape to rawWindow)
    * Fix https://github.com/micro-zoe/micro-app/issues/234
@@ -106,21 +106,25 @@ export default class WithSandBox implements WithSandBoxInterface {
   public escapeKeys = new Set<PropertyKey>()
   // Properties newly added to microAppWindow
   public injectedKeys = new Set<PropertyKey>()
+  public sandboxReady!: Promise<void>
   public proxyWindow!: proxyWindow // Proxy
   public microAppWindow = new EventTarget() as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string) {
-    this.adapter = new Adapter()
-    // get scopeProperties and escapeProperties from plugins
-    this.getSpecialProperties(appName)
-    // create location, history for child app
-    this.patchRouter(appName, url, this.microAppWindow)
-    // patch window of child app
-    this.windowEffect = patchWindow(appName, this.microAppWindow, this)
-    // patch document of child app
-    this.documentEffect = patchDocument(appName, this.microAppWindow, this)
-    // inject global properties
-    this.initStaticGlobalKeys(appName, url, this.microAppWindow)
+    this.patchWith((resolve: CallableFunction) => {
+      this.adapter = new Adapter()
+      // get scopeProperties and escapeProperties from plugins
+      this.getSpecialProperties(appName)
+      // create location, history for child app
+      this.patchRouter(appName, url, this.microAppWindow)
+      // patch window of child app
+      this.windowEffect = patchWindow(appName, this.microAppWindow, this)
+      // patch document of child app
+      this.documentEffect = patchDocument(appName, this.microAppWindow, this)
+      // inject global properties
+      this.initStaticGlobalKeys(appName, url, this.microAppWindow)
+      resolve()
+    })
   }
 
   /**
@@ -390,6 +394,10 @@ export default class WithSandBox implements WithSandBoxInterface {
     this.microAppWindow.__MICRO_APP_UMD_MODE__ = state
   }
 
+  private patchWith (cb: CallableFunction): void {
+    this.sandboxReady = new Promise<void>((resolve) => cb(resolve))
+  }
+
   // properties associated with the native window
   private setMappingPropertiesWithRawDescriptor (microAppWindow: microAppWindowType): void {
     let topValue: Window, parentValue: Window
@@ -463,7 +471,7 @@ export default class WithSandBox implements WithSandBoxInterface {
         enumerable: false,
         get () {
           throttleDeferForSetAppName(appName)
-          return modifiedEval || eval
+          return modifiedEval || globalEnv.rawWindow.eval
         },
         set: (value) => {
           modifiedEval = value

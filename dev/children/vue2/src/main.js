@@ -97,4 +97,4 @@ document.body.appendChild(newImg)
 newImg.setAttribute('width', '50px')
 
 /* ---------------------- 获取script元素 --------------------- */
-console.log('script元素', 111111111111, document.getElementsByTagName('script'), document.getElementsByTagName('base'))
+// console.log('script元素', document.getElementsByTagName('script'), document.getElementsByTagName('base'))
