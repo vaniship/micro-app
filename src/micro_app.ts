@@ -269,6 +269,20 @@ export function renderApp (options: RenderAppOptions): Promise<boolean> {
   })
 }
 
+/**
+ * get app state
+ * @param appName app.name
+ * @returns app.state
+ */
+export function getAppStatus (appName: string): string | void {
+  const app = appInstanceMap.get(formatAppName(appName))
+  if (app) {
+    return app.getLifeCycleState()
+  } else {
+    logWarn(`app ${appName} does not exist`)
+  }
+}
+
 export class MicroApp extends EventCenterForBaseApp implements MicroAppBaseType {
   tagName = 'micro-app'
   hasInit = false
@@ -281,6 +295,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppBaseType 
   getAllApps = getAllApps
   reload = reload
   renderApp = renderApp
+  getAppStatus = getAppStatus
   start (options?: OptionsType): void {
     if (!isBrowser || !window.customElements) {
       return logError('micro-app is not supported in this environment')

@@ -484,4 +484,8 @@ export default class IframeSandbox {
   public actionBeforeExecScripts (container: Element | ShadowRoot): void {
     this.patchStaticElement(container)
   }
+
+  public setStaticAppState (state: string): void {
+    this.microAppWindow.__MICRO_APP_STATE__ = state
+  }
 }

@@ -64,6 +64,7 @@ export default class CreateApp implements AppInterface {
   private umdHookMount: Func | null = null
   private umdHookUnmount: Func | null = null
   private preRenderEvents?: CallableFunction[] | null
+  private lifeCycleState: string | null = null
   public umdMode = false
   public source: sourceType
   // TODO: 类型优化，加上iframe沙箱
@@ -221,6 +222,12 @@ export default class CreateApp implements AppInterface {
       this.container = container
       // mount before prerender exec mount (loading source), set isPrerender to false
       this.isPrerender = false
+
+      // dispatch state event to micro app
+      dispatchCustomEventToMicroApp(this, 'statechange', {
+        appState: appStates.LOADING
+      })
+
       // reset app state to LOADING
       return this.setAppState(appStates.LOADING)
     }
@@ -274,11 +281,14 @@ export default class CreateApp implements AppInterface {
         this.fiber = fiber
         this.routerMode = routerMode
 
-        const dispatchBeforeMount = () => dispatchLifecyclesEvent(
-          this.container!,
-          this.name,
-          lifeCycles.BEFOREMOUNT,
-        )
+        const dispatchBeforeMount = () => {
+          this.setLifeCycleState(lifeCycles.BEFOREMOUNT)
+          dispatchLifecyclesEvent(
+            this.container!,
+            this.name,
+            lifeCycles.BEFOREMOUNT,
+          )
+        }
 
         if (this.isPrerender) {
           (this.preRenderEvents ??= []).push(dispatchBeforeMount)
@@ -287,6 +297,12 @@ export default class CreateApp implements AppInterface {
         }
 
         this.setAppState(appStates.MOUNTING)
+
+        // dispatch state event to micro app
+        dispatchCustomEventToMicroApp(this, 'statechange', {
+          appState: appStates.MOUNTING
+        })
+
         // TODO: 将所有cloneContainer中的'as Element'去掉，兼容shadowRoot的场景
         cloneContainer(this.container as Element, this.source.html as Element, !this.umdMode)
 
@@ -384,6 +400,16 @@ export default class CreateApp implements AppInterface {
         microApp.getData(this.name, true)
       )
 
+      // dispatch state event to micro app
+      dispatchCustomEventToMicroApp(this, 'statechange', {
+        appState: appStates.MOUNTED
+      })
+
+      // dispatch mounted event to micro app
+      dispatchCustomEventToMicroApp(this, 'mounted')
+
+      this.setLifeCycleState(lifeCycles.MOUNTED)
+
       // dispatch event mounted to parent
       dispatchLifecyclesEvent(
         this.container!,
@@ -434,6 +460,11 @@ export default class CreateApp implements AppInterface {
     } catch (e) {
       logError('An error occurred in window.unmount \n', this.name, e)
     }
+
+    // dispatch state event to micro app
+    dispatchCustomEventToMicroApp(this, 'statechange', {
+      appState: appStates.UNMOUNT
+    })
 
     // dispatch unmount event to micro app
     dispatchCustomEventToMicroApp(this, 'unmount')
@@ -517,6 +548,8 @@ export default class CreateApp implements AppInterface {
       clearData: clearData || destroy,
     })
 
+    this.setLifeCycleState(lifeCycles.UNMOUNT)
+
     // dispatch unmount event to base app
     dispatchLifecyclesEvent(
       this.container!,
@@ -563,6 +596,7 @@ export default class CreateApp implements AppInterface {
       appState: 'afterhidden',
     })
 
+    this.setLifeCycleState(lifeCycles.AFTERHIDDEN)
     // dispatch afterHidden event to base app
     dispatchLifecyclesEvent(
       this.container!,
@@ -632,6 +666,8 @@ export default class CreateApp implements AppInterface {
       appState: 'aftershow',
     })
 
+    this.setLifeCycleState(lifeCycles.AFTERSHOW)
+
     // dispatch afterShow event to base app
     dispatchLifecyclesEvent(
       this.container,
@@ -645,6 +681,13 @@ export default class CreateApp implements AppInterface {
    * @param e Error
    */
   public onerror (e: Error): void {
+    this.setLifeCycleState(lifeCycles.ERROR)
+
+    // dispatch state event to micro app
+    dispatchCustomEventToMicroApp(this, 'statechange', {
+      appState: appStates.LOAD_FAILED
+    })
+
     dispatchLifecyclesEvent(
       this.container!,
       this.name,
@@ -672,11 +715,24 @@ export default class CreateApp implements AppInterface {
   // set app state
   public setAppState (state: string): void {
     this.state = state
+
+    // set window.__MICRO_APP_STATE__
+    this.sandBox?.setStaticAppState(state)
   }
 
   // get app state
   public getAppState (): string {
     return this.state
+  }
+
+  // set app lifeCycleState
+  private setLifeCycleState (state: string): void {
+    this.lifeCycleState = state
+  }
+
+  // get app lifeCycleState
+  public getLifeCycleState (): string {
+    return this.lifeCycleState || ''
   }
 
   // set keep-alive state
