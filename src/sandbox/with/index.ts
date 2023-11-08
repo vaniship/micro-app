@@ -55,6 +55,7 @@ import {
   updateBrowserURLWithLocation,
   patchHistory,
   releasePatchHistory,
+  isRouterModeCustom,
 } from '../router'
 import Adapter, {
   fixBabelPolyfill6,
@@ -151,7 +152,9 @@ export default class WithSandBox implements WithSandBoxInterface {
       this.microAppWindow.__MICRO_APP_NAME__,
     )
 
-    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    if (isRouterModeCustom(this.microAppWindow.__MICRO_APP_NAME__)) {
+      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    }
     /* --- memory router part --- end */
 
     /**

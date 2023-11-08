@@ -436,7 +436,7 @@ declare module '@micro-app/types' {
     replace?: boolean
   }
 
-  type navigationMethod = (to: RouterTarget) => void
+  type navigationMethod = (to: RouterTarget) => Promise<void>
 
   interface AccurateGuard {
     [appName: string]: (to: GuardLocation, from: GuardLocation) => void
