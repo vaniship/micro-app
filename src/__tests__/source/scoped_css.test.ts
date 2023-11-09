@@ -1,5 +1,6 @@
 /* eslint-disable promise/param-names, no-extend-native */
 import { createHash } from 'crypto'
+// import fs from 'fs'
 import { commonStartEffect, releaseAllEffect, ports, setAppName } from '../common/initial'
 import { defer } from '../../libs/utils'
 import microApp from '../..'
@@ -245,6 +246,8 @@ describe('source scoped_css', () => {
 
         defer(async () => {
           const result = await fetchText(`http://127.0.0.1:${ports.scoped_css}/common/large.scoped.css`)
+          // * for debug
+          // fs.writeFileSync('./large.scoped.css', dynamicLink.textContent!, 'utf-8')
           // * md5 for prettier error log
           expect(md5(dynamicLink.textContent!)).toBe(md5(result!))
           resolve(true)
@@ -254,6 +257,7 @@ describe('source scoped_css', () => {
   })
 
   // 处理所有错误情况
+  // TODO FIXME
   test.skip('coverage of all failures', async () => {
     const microAppElement10 = document.createElement('micro-app')
     microAppElement10.setAttribute('name', 'test-app10')
@@ -440,6 +444,34 @@ describe('source scoped_css', () => {
       value: rawUserAgent,
       writable: true,
       configurable: true,
+    })
+  })
+
+  // 支持原生 CSS 嵌套（Nesting CSS）
+  test('coverage: nesting-css support', async () => {
+    const microAppElement13 = document.createElement('micro-app')
+    microAppElement13.setAttribute('name', 'test-app13')
+    microAppElement13.setAttribute('url', `http://127.0.0.1:${ports.scoped_css}/dynamic/`)
+
+    appCon.appendChild(microAppElement13)
+
+    await new Promise((resolve) => {
+      microAppElement13.addEventListener('mounted', async () => {
+        setAppName('test-app13')
+        const dynamicLink = document.createElement('style')
+        const dynamicContent = await fetchText(`http://127.0.0.1:${ports.scoped_css}/common/nesting-css.css`)
+        dynamicLink.textContent = dynamicContent
+        document.head.appendChild(dynamicLink)
+
+        defer(async () => {
+          // * for debug
+          // fs.writeFileSync('./nesting-css.scoped.css', dynamicLink.textContent!, 'utf-8')
+          const result = await fetchText(`http://127.0.0.1:${ports.scoped_css}/common/nesting-css.scoped.css`)
+          // * md5 for prettier error log
+          expect(md5(dynamicLink.textContent!)).toBe(md5(result!))
+          resolve(true)
+        })
+      }, false)
     })
   })
 })
