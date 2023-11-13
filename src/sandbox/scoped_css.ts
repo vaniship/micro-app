@@ -126,8 +126,8 @@ class CSSParser {
     return true
   }
 
-  private matchAllDeclarations (): void {
-    let cssValue = (this.commonMatch(/^(?:url\(["']?(?:[^)"'}]+)["']?\)|[^}/])*/, true) as RegExpExecArray)[0]
+  private matchAllDeclarations (nesting = 1): void {
+    let cssValue = (this.commonMatch(/^(?:url\(["']?(?:[^)"'}]+)["']?\)|[^{}/])*/, true) as RegExpExecArray)[0]
 
     if (cssValue) {
       if (
@@ -154,16 +154,31 @@ class CSSParser {
     // reset scopecssDisableNextLine
     this.scopecssDisableNextLine = false
 
-    if (!this.cssText || this.cssText.charAt(0) === '}') return
+    if (!this.cssText) return
 
-    // extract comments in declarations
-    if (this.cssText.charAt(0) === '/' && this.cssText.charAt(1) === '*') {
-      this.matchComments()
-    } else {
-      this.commonMatch(/\/+/)
+    if (this.cssText.charAt(0) === '}') {
+      if (!nesting) return
+      if (nesting > 1) {
+        this.commonMatch(/}+/)
+      }
+      return this.matchAllDeclarations(nesting - 1)
     }
 
-    return this.matchAllDeclarations()
+    // extract comments in declarations
+    if (this.cssText.charAt(0) === '/') {
+      if (this.cssText.charAt(1) === '*') {
+        this.matchComments()
+      } else {
+        this.commonMatch(/\/+/)
+      }
+    }
+
+    if (this.cssText.charAt(0) === '{') {
+      this.commonMatch(/{+\s*/)
+      nesting++
+    }
+
+    return this.matchAllDeclarations(nesting)
   }
 
   private matchAtRule (): boolean | void {
