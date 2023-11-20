@@ -7,6 +7,7 @@ import {
   defer,
   isNode,
   rawDefineProperties,
+  rawDefineProperty,
   throttleDeferForSetAppName,
   isMicroAppBody,
 } from '../libs/utils'
@@ -127,34 +128,22 @@ export function updateElementInfo <T> (node: T, appName: string): T {
     })
 
     if (isIframeSandbox(appName)) {
-      rawDefineProperties(node, {
-        ownerDocument: {
-          configurable: true,
-          get: () => proxyWindow.document,
-        },
+      rawDefineProperty(node, 'ownerDocument', {
+        configurable: true,
+        get: () => proxyWindow.document,
       })
-      if (node instanceof globalEnv.rawWindow.Node) {
-        rawDefineProperties(node, {
-          /**
-           * HTML built-in node belongs to base app, so it needs to be handled separately for parentNode
-           * Fix error for nuxt@2.x + ElementUI@2.x
-           */
-          /**
-           * 问题：如果设置了parentNode，则vue2项目无法正常渲染或者切换路由
-           * 原因：html自带的元素并不是一定都属于基座，也有可能属于子应用的元素，此时如果设置了元素的parentNode，无论如何设置都会导致vue2渲染的异常，比如首次渲染失败、二次渲染失败、element-ui下拉框位置错误
-           * 解决思路：所以这里进行了一次判断，如果当前元素属于基座，那就重写parentNode，否则此元素一定属于子应用，那么就不需要处理，因为子应用的原型链上已经处理过。
-           * TODO: 再整理一下
-           *  1. rawDefineProperties 换成 rawDefineProperty
-           *  2. createGetterForIframeParentNode第三个参数是否需要 -- 是必须的
-           */
-          parentNode: {
-            configurable: true,
-            get: createGetterForIframeParentNode(
-              appName,
-              globalEnv.rawParentNodeDesc,
-              true,
-            )
-          }
+      /**
+       * If HTML built-in node belongs to base app, it needs to be handled separately for parentNode
+       * Fix error for nuxt@2.x + ElementUI@2.x
+       */
+      if (node instanceof globalEnv.rawRootNode) {
+        rawDefineProperty(node, 'parentNode', {
+          configurable: true,
+          get: createGetterForIframeParentNode(
+            appName,
+            globalEnv.rawParentNodeDesc,
+            true,
+          )
         })
       }
     }
