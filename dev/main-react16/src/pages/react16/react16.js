@@ -213,7 +213,11 @@ export default class App extends React.Component {
   }
 
   jumpToPage2 = () => {
-    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/page2'})
+    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/page2'}).then(() => {
+      console.log('跳转成功')
+    }).catch(() => {
+      console.error('跳转失败')
+    })
   }
 
   jumpToInline = () => {
@@ -456,7 +460,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  iframe
+                  // iframe
                 >
                 </micro-app>
               )

@@ -8,6 +8,44 @@
 
 ---
 
+### 1.0.0-rc.3
+
+`2023-11-12`
+
+- **New**
+
+  - 🆕 新增方法`getAppState`，用于在基座中获取子应用的状态。
+  - 🆕 新增虚拟路由系统`push`, `replace`方法对Promise的支持。
+
+- **Bug Fix**
+
+  - 🐞 修复了在非`custom`路由模式下设置baseroute导致子应用渲染失败的问题。
+
+- **Update**
+  - 🆕 更新with沙箱运行逻辑，异步执行初始化操作，确保不同沙箱之间逻辑一致。
+  - 🚀 更新了官网文档。
+  
+
+### 1.0.0-rc.2
+
+`2023-10-30`
+
+- **New**
+
+  - 🆕 新增了子应用全局变量`__MICRO_APP_STATE__`，用于标记当前应用的状态。
+  - 🆕 新增了子应用document变量`__MICRO_APP_NAME__`，用于标记document所属应用。
+  - 🆕 重写了原型方法`Node.prototype.parentNode`，用于处理特殊元素parentNode的指向问题。
+
+- **Bug Fix**
+
+  - 🐞 修复了在iframe沙箱下循环嵌套的问题。
+  - 🐞 修复了在iframe沙箱下开启`inline`模式导致通过`getElementsByTagName`获取script元素失败的问题。
+
+- **Update**
+  - 🆕 优化了内存占用，在iframe沙箱模式下默认开启inline模式。
+  - 🚀 更新了官网文档。
+  
+
 ### 1.0.0-rc.1
 
 `2023-10-16`
@@ -28,7 +66,7 @@
 
 - **New**
 
-  - 🆕 新增了子应用全局状态`__MICRO_APP_SANDBOX_TYPE__`，用于标记当前应用的沙箱类型。
+  - 🆕 新增了子应用全局变量`__MICRO_APP_SANDBOX_TYPE__`，用于标记当前应用的沙箱类型。
 
 - **Bug Fix**
 

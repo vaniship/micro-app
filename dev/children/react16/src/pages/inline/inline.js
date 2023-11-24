@@ -35,7 +35,7 @@ function Vue2 () {
         onMounted={() => hideLoading(false)}
         // shadowDOM
         // destory
-        // inline
+        inline
         // disableScopecss
         // disableSandbox
         // iframe

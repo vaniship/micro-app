@@ -63,8 +63,7 @@ function isInlineMode (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean
     app.inline ||
     scriptInfo.appSpace[app.name].inline ||
     isTypeModule(app, scriptInfo) ||
-    isSpecialScript(app, scriptInfo) ||
-    app.iframe
+    isSpecialScript(app, scriptInfo)
   )
 }
 

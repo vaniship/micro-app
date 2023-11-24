@@ -138,52 +138,53 @@ function createRouterApi (): RouterApi {
    * @param replace use router.replace?
    */
   function createNavigationMethod (replace: boolean): navigationMethod {
-    return function (to: RouterTarget): void {
-      const appName = formatAppName(to.name)
-      if (appName && isString(to.path)) {
-        /**
-         * active apps, exclude prerender app or hidden keep-alive app
-         * NOTE:
-         *  1. prerender app or hidden keep-alive app clear and record popstate event, so we cannot control app jump through the API
-         *  2. disable memory-router
-         */
-        /**
-         * TODO: 子应用开始渲染但是还没渲染完成
-         *  1、调用跳转改如何处理
-         *  2、iframe的沙箱还没初始化时执行跳转报错，如何处理。。。
-         *  3、hidden app 是否支持跳转
-         */
-        if (getActiveApps({ excludeHiddenApp: true, excludePreRender: true }).includes(appName)) {
-          const app = appInstanceMap.get(appName)!
-          const navigateAction = () => handleNavigate(appName, app, to, replace)
-          app.iframe ? app.sandBox.sandboxReady.then(navigateAction) : navigateAction()
-        } else {
-          logWarn('navigation failed, app does not exist or is inactive')
-        }
+    return function (to: RouterTarget): Promise<void> {
+      return new Promise((resolve, reject) => {
+        const appName = formatAppName(to.name)
+        if (appName && isString(to.path)) {
+          /**
+           * active apps, exclude prerender app or hidden keep-alive app
+           * NOTE:
+           *  1. prerender app or hidden keep-alive app clear and record popstate event, so we cannot control app jump through the API
+           *  2. disable memory-router
+           */
+          /**
+           * TODO: 子应用开始渲染但是还没渲染完成
+           *  1、调用跳转改如何处理
+           *  2、iframe的沙箱还没初始化时执行跳转报错，如何处理。。。
+           *  3、hidden app 是否支持跳转
+           */
+          if (getActiveApps({ excludeHiddenApp: true, excludePreRender: true }).includes(appName)) {
+            const app = appInstanceMap.get(appName)!
+            resolve(app.sandBox.sandboxReady.then(() => handleNavigate(appName, app, to, replace)))
+          } else {
+            reject(logError('navigation failed, app does not exist or is inactive'))
+          }
 
-        // /**
-        //  * app not exit or unmounted, update browser URL with replaceState
-        //  * use base app location.origin as baseURL
-        //  * 应用不存在或已卸载，依然使用replaceState来更新浏览器地址 -- 不合理
-        //  */
-        // /**
-        //  * TODO: 应用还没渲染或已经卸载最好不要支持跳转了，我知道这是因为解决一些特殊场景，但这么做是非常反直觉的
-        //  * 并且在新版本中有多种路由模式，如果应用不存在，我们根本无法知道是哪种模式，那么这里的操作就无意义了。
-        //  */
-        // const rawLocation = globalEnv.rawWindow.location
-        // const targetLocation = createURL(to.path, rawLocation.origin)
-        // const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-        // if (getMicroPathFromURL(appName) !== targetFullPath) {
-        //   navigateWithRawHistory(
-        //     appName,
-        //     to.replace === false ? 'pushState' : 'replaceState',
-        //     targetLocation,
-        //     to.state,
-        //   )
-        // }
-      } else {
-        logError(`navigation failed, name & path are required when use router.${replace ? 'replace' : 'push'}`)
-      }
+          // /**
+          //  * app not exit or unmounted, update browser URL with replaceState
+          //  * use base app location.origin as baseURL
+          //  * 应用不存在或已卸载，依然使用replaceState来更新浏览器地址 -- 不合理
+          //  */
+          // /**
+          //  * TODO: 应用还没渲染或已经卸载最好不要支持跳转了，我知道这是因为解决一些特殊场景，但这么做是非常反直觉的
+          //  * 并且在新版本中有多种路由模式，如果应用不存在，我们根本无法知道是哪种模式，那么这里的操作就无意义了。
+          //  */
+          // const rawLocation = globalEnv.rawWindow.location
+          // const targetLocation = createURL(to.path, rawLocation.origin)
+          // const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+          // if (getMicroPathFromURL(appName) !== targetFullPath) {
+          //   navigateWithRawHistory(
+          //     appName,
+          //     to.replace === false ? 'pushState' : 'replaceState',
+          //     targetLocation,
+          //     to.state,
+          //   )
+          // }
+        } else {
+          reject(logError(`navigation failed, name & path are required when use router.${replace ? 'replace' : 'push'}`))
+        }
+      })
     }
   }
 

@@ -42,6 +42,7 @@ module.exports = {
     '<rootDir>/src/__tests__/micro_app.test.ts',
     '<rootDir>/src/__tests__/unit/utils.test.ts',
     '<rootDir>/src/__tests__/interact/index.test.ts',
+    '<rootDir>/src/__tests__/source/scoped_css.test.ts',
   ],
   globals: {
     __DEV__: true,

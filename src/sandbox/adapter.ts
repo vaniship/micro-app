@@ -6,13 +6,16 @@ import globalEnv from '../libs/global_env'
 import {
   defer,
   isNode,
-  rawDefineProperty,
   rawDefineProperties,
+  rawDefineProperty,
+  throttleDeferForSetAppName,
+  isMicroAppBody,
 } from '../libs/utils'
 import {
   appInstanceMap,
   isIframeSandbox,
 } from '../create_app'
+import microApp from '../micro_app'
 
 export default class Adapter implements SandBoxAdapter {
   constructor () {
@@ -76,39 +79,6 @@ export function fixReactHMRConflict (app: AppInterface): void {
 }
 
 /**
- * reDefine parentNode of html
- * Scenes:
- *  1. element-ui@2/lib/utils/popper.js
- *    var parent = element.parentNode;
- *    // root is child app window
- *    if (parent === root.document) ...
- */
-export function throttleDeferForParentNode (microDocument: Document): void {
-  const html = globalEnv.rawDocument.firstElementChild
-  if (html?.parentNode === globalEnv.rawDocument) {
-    setParentNode(html, microDocument)
-    defer(() => {
-      setParentNode(html, globalEnv.rawDocument)
-    })
-  }
-}
-
-/**
- * Modify the point of parentNode
- * @param target target Node
- * @param value parentNode
- */
-export function setParentNode (target: Node, value: Document | Element): void {
-  const descriptor = Object.getOwnPropertyDescriptor(target, 'parentNode')
-  if (!descriptor || descriptor.configurable) {
-    rawDefineProperty(target, 'parentNode', {
-      value,
-      configurable: true,
-    })
-  }
-}
-
-/**
  * update dom tree of target dom
  * @param container target dom
  * @param appName app name
@@ -144,7 +114,6 @@ export function updateElementInfo <T> (node: T, appName: string): T {
      *  1. 测试baseURI和ownerDocument在with沙箱中是否正确
      *    经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
      *  2. with沙箱所有node设置__MICRO_APP_NAME__都使用updateElementInfo
-     *  3. 性能: defineProperty的性能肯定不如直接设置
     */
     rawDefineProperties(node, {
       baseURI: {
@@ -163,8 +132,66 @@ export function updateElementInfo <T> (node: T, appName: string): T {
         configurable: true,
         get: () => proxyWindow.document,
       })
+      /**
+       * If HTML built-in node belongs to base app, it needs to be handled separately for parentNode
+       * Fix error for nuxt@2.x + ElementUI@2.x
+       */
+      if (node instanceof globalEnv.rawRootNode) {
+        rawDefineProperty(node, 'parentNode', {
+          configurable: true,
+          get: createGetterForIframeParentNode(
+            appName,
+            globalEnv.rawParentNodeDesc,
+            true,
+          )
+        })
+      }
     }
   }
 
   return node
+}
+
+/**
+ * patch iframe node parentNode
+ * Scenes:
+ *  1. iframe common node: patch Node.prototype.parentNode to hijack parentNode
+ *  2. iframe HTML built-in node: belongs to base app, we should rewrite parentNode for every built-in node
+ * NOTE:
+ *  1. HTML built-in node parentNode cannot point to raw body, otherwise Vue2 will render failed
+ * @param appName app name
+ * @param parentNode parentNode Descriptor of iframe or browser
+ * @param HTMLBuildInNode is HTML built-in node
+ */
+export function createGetterForIframeParentNode (
+  appName: string,
+  parentNodeDesc: PropertyDescriptor,
+  HTMLBuildInNode?: boolean,
+): () => ParentNode {
+  return function (this: Node) {
+    /**
+     * set current appName for hijack parentNode of html
+     * NOTE:
+     *  1. Is there a problem with setting the current appName in iframe mode
+     */
+    throttleDeferForSetAppName(appName)
+    const result: ParentNode = parentNodeDesc.get!.call(this)
+    /**
+      * If parentNode is <micro-app-body>, return rawDocument.body
+      * Scenes:
+      *  1. element-ui@2/lib/utils/vue-popper.js
+      *    if (this.popperElm.parentNode === document.body) ...
+      * WARNING:
+      *  Will it cause other problems ?
+      *  e.g. target.parentNode.remove(target)
+      */
+    if (
+      !HTMLBuildInNode &&
+      isMicroAppBody(result) &&
+      appInstanceMap.get(appName)?.container
+    ) {
+      return microApp.options.getRootElementParentNode?.(this, appName) || globalEnv.rawDocument.body
+    }
+    return result
+  }
 }

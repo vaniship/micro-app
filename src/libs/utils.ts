@@ -416,7 +416,7 @@ export function isSafari (): boolean {
  * Create pure elements
  */
 export function pureCreateElement<K extends keyof MicroAppElementTagNameMap> (tagName: K, options?: ElementCreationOptions): MicroAppElementTagNameMap[K] {
-  const element = document.createElement(tagName, options)
+  const element = (window.rawDocument || document).createElement(tagName, options)
   if (element.__MICRO_APP_NAME__) delete element.__MICRO_APP_NAME__
   element.__PURE_ELEMENT__ = true
   return element
@@ -650,8 +650,25 @@ export function execMicroAppGlobalHook (
   }
 }
 
+/**
+ * remove all childNode from target node
+ * @param $dom target node
+ */
 export function clearDOM ($dom: HTMLElement | ShadowRoot | Document): void {
   while ($dom?.firstChild) {
     $dom.removeChild($dom.firstChild)
   }
+}
+
+type BaseHTMLElementType = HTMLElement & {
+  new (): HTMLElement;
+  prototype: HTMLElement;
+}
+
+/**
+ * get HTMLElement from base app
+ * @returns HTMLElement
+ */
+export function getBaseHTMLElement (): BaseHTMLElementType {
+  return (window.rawWindow?.HTMLElement || window.HTMLElement) as BaseHTMLElementType
 }

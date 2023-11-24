@@ -13,11 +13,9 @@ import {
   rawDefineProperties,
 } from '../../libs/utils'
 import {
-  throttleDeferForParentNode,
-} from '../adapter'
-import {
   appInstanceMap,
 } from '../../create_app'
+import microApp from '../../micro_app'
 
 /**
  * create proxyDocument and MicroDocument, rewrite document of child app
@@ -180,21 +178,10 @@ function createProxyDocument (
     }
   }
 
-  const proxyDocument = new Proxy(rawDocument, {
-    get: (target: Document, key: PropertyKey): unknown => {
-      throttleDeferForSetAppName(appName)
-      throttleDeferForParentNode(proxyDocument)
-      if (key === 'createElement') return createElement
-      if (key === Symbol.toStringTag) return 'ProxyDocument'
-      if (key === 'defaultView') return sandbox.proxyWindow
-      if (key === 'onclick') return onClickHandler
-      if (key === 'addEventListener') return addEventListener
-      if (key === 'removeEventListener') return removeEventListener
-      if (key === 'microAppElement') return appInstanceMap.get(appName)?.container
-      return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
-    },
-    set: (target: Document, key: PropertyKey, value: unknown): boolean => {
-      if (key === 'onclick') {
+  const genProxyDocumentProps = () => {
+    // microApp framework built-in Proxy
+    const builtInProxyProps = new Map([
+      ['onclick', (value: unknown) => {
         if (isFunction(onClickHandler)) {
           rawRemoveEventListener.call(rawDocument, 'click', onClickHandler, false)
         }
@@ -203,6 +190,38 @@ function createProxyDocument (
           rawAddEventListener.call(rawDocument, 'click', value, false)
         }
         onClickHandler = value
+      }]
+    ])
+    // external custom proxy
+    const customProxyDocumentProps = microApp.options?.customProxyDocumentProps || new Map()
+    // External has higher priority than built-in
+    const mergedProxyDocumentProps = new Map([
+      ...builtInProxyProps,
+      ...customProxyDocumentProps,
+    ])
+    return mergedProxyDocumentProps
+  }
+
+  const mergedProxyDocumentProps = genProxyDocumentProps()
+
+  const proxyDocument = new Proxy(rawDocument, {
+    get: (target: Document, key: PropertyKey): unknown => {
+      throttleDeferForSetAppName(appName)
+      // TODO: 转换成数据形式，类似iframe的方式
+      if (key === 'createElement') return createElement
+      if (key === Symbol.toStringTag) return 'ProxyDocument'
+      if (key === 'defaultView') return sandbox.proxyWindow
+      if (key === 'onclick') return onClickHandler
+      if (key === 'addEventListener') return addEventListener
+      if (key === 'removeEventListener') return removeEventListener
+      if (key === 'microAppElement') return appInstanceMap.get(appName)?.container
+      if (key === '__MICRO_APP_NAME__') return appName
+      return bindFunctionToRawTarget<Document>(Reflect.get(target, key), rawDocument, 'DOCUMENT')
+    },
+    set: (target: Document, key: PropertyKey, value: unknown): boolean => {
+      if (mergedProxyDocumentProps.has(key)) {
+        const proxyCallback = mergedProxyDocumentProps.get(key)
+        proxyCallback(value)
       } else if (key !== 'microAppElement') {
         /**
          * 1. Fix TypeError: Illegal invocation when set document.title

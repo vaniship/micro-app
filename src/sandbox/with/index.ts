@@ -55,6 +55,7 @@ import {
   updateBrowserURLWithLocation,
   patchHistory,
   releasePatchHistory,
+  isRouterModeCustom,
 } from '../router'
 import Adapter, {
   fixBabelPolyfill6,
@@ -76,6 +77,7 @@ export type MicroAppWindowDataType = {
   __MICRO_APP_BASE_ROUTE__: string,
   __MICRO_APP_UMD_MODE__: boolean,
   __MICRO_APP_PRE_RENDER__: boolean
+  __MICRO_APP_STATE__: string
   microApp: EventCenterForMicroApp,
   rawWindow: Window,
   rawDocument: Document,
@@ -90,10 +92,10 @@ const { createMicroEventSource, clearMicroEventSource } = useMicroEventSource()
 export default class WithSandBox implements WithSandBoxInterface {
   static activeCount = 0 // number of active sandbox
   private active = false
-  private windowEffect: CommonEffectHook
-  private documentEffect: CommonEffectHook
+  private windowEffect!: CommonEffectHook
+  private documentEffect!: CommonEffectHook
   private removeHistoryListener!: CallableFunction
-  public adapter: SandBoxAdapter
+  public adapter!: SandBoxAdapter
   /**
    * Scoped global Properties(Properties that can only get and set in microAppWindow, will not escape to rawWindow)
    * Fix https://github.com/micro-zoe/micro-app/issues/234
@@ -105,21 +107,25 @@ export default class WithSandBox implements WithSandBoxInterface {
   public escapeKeys = new Set<PropertyKey>()
   // Properties newly added to microAppWindow
   public injectedKeys = new Set<PropertyKey>()
+  public sandboxReady!: Promise<void>
   public proxyWindow!: proxyWindow // Proxy
   public microAppWindow = new EventTarget() as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string) {
-    this.adapter = new Adapter()
-    // get scopeProperties and escapeProperties from plugins
-    this.getSpecialProperties(appName)
-    // create location, history for child app
-    this.patchRouter(appName, url, this.microAppWindow)
-    // patch window of child app
-    this.windowEffect = patchWindow(appName, this.microAppWindow, this)
-    // patch document of child app
-    this.documentEffect = patchDocument(appName, this.microAppWindow, this)
-    // inject global properties
-    this.initStaticGlobalKeys(appName, url, this.microAppWindow)
+    this.patchWith((resolve: CallableFunction) => {
+      this.adapter = new Adapter()
+      // get scopeProperties and escapeProperties from plugins
+      this.getSpecialProperties(appName)
+      // create location, history for child app
+      this.patchRouter(appName, url, this.microAppWindow)
+      // patch window of child app
+      this.windowEffect = patchWindow(appName, this.microAppWindow, this)
+      // patch document of child app
+      this.documentEffect = patchDocument(appName, this.microAppWindow, this)
+      // inject global properties
+      this.initStaticGlobalKeys(appName, url, this.microAppWindow)
+      resolve()
+    })
   }
 
   /**
@@ -147,7 +153,9 @@ export default class WithSandBox implements WithSandBoxInterface {
       this.microAppWindow.__MICRO_APP_NAME__,
     )
 
-    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    if (isRouterModeCustom(this.microAppWindow.__MICRO_APP_NAME__)) {
+      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    }
     /* --- memory router part --- end */
 
     /**
@@ -389,6 +397,10 @@ export default class WithSandBox implements WithSandBoxInterface {
     this.microAppWindow.__MICRO_APP_UMD_MODE__ = state
   }
 
+  private patchWith (cb: CallableFunction): void {
+    this.sandboxReady = new Promise<void>((resolve) => cb(resolve))
+  }
+
   // properties associated with the native window
   private setMappingPropertiesWithRawDescriptor (microAppWindow: microAppWindowType): void {
     let topValue: Window, parentValue: Window
@@ -462,7 +474,7 @@ export default class WithSandBox implements WithSandBoxInterface {
         enumerable: false,
         get () {
           throttleDeferForSetAppName(appName)
-          return modifiedEval || eval
+          return modifiedEval || globalEnv.rawWindow.eval
         },
         set: (value) => {
           modifiedEval = value
@@ -603,5 +615,9 @@ export default class WithSandBox implements WithSandBoxInterface {
    */
   public actionBeforeExecScripts (container: Element | ShadowRoot): void {
     this.patchStaticElement(container)
+  }
+
+  public setStaticAppState (state: string): void {
+    this.microAppWindow.__MICRO_APP_STATE__ = state
   }
 }

@@ -21,6 +21,7 @@ import {
   CompletionPath,
   createURL,
   isPlainObject,
+  getBaseHTMLElement,
 } from './libs/utils'
 import {
   ObservedAttrName,
@@ -39,9 +40,9 @@ import {
 /**
  * define element
  * @param tagName element name
- */
+*/
 export function defineElement (tagName: string): void {
-  class MicroAppElement extends HTMLElement implements MicroAppElementType {
+  class MicroAppElement extends getBaseHTMLElement() implements MicroAppElementType {
     static get observedAttributes (): string[] {
       return ['name', 'url']
     }

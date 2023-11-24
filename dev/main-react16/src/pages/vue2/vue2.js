@@ -86,7 +86,7 @@ function Vue2 () {
         // keep-alive
         // shadowDOM
         // destroy
-        // inline
+        inline
         // disable-scopecss
         // disableSandbox
         // clear-data

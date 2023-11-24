@@ -161,10 +161,11 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     const _this = getDefaultRawTarget(this)
     if (
       isUniqueElement(key) ||
-      isInvalidQuerySelectorKey(key) ||
-      (!appInstanceMap.get(appName)?.inline && /^script$/i.test(key))
+      isInvalidQuerySelectorKey(key)
     ) {
       return rawMicroGetElementsByTagName.call(_this, key)
+    } else if (/^script|base$/i.test(key)) {
+      return rawMicroGetElementsByTagName.call(microDocument, key)
     }
 
     try {
@@ -220,6 +221,7 @@ function patchDocumentProperty (
       ['links', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'a')],
       // unique keys of micro-app
       ['microAppElement', () => appInstanceMap.get(appName)?.container],
+      ['__MICRO_APP_NAME__', () => appName],
     ]
 
     descList.forEach((desc) => {

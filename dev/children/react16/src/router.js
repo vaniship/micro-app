@@ -9,9 +9,9 @@ const Inline = lazy(() => import(/* webpackChunkName: "inline" */ './pages/inlin
 
 function getDefaultKey () {
   const url = window.location.href
-  if (url.includes('page2')) {
+  if (url.includes('/page2')) {
     return 'page2'
-  } else if (url.includes('inline')) {
+  } else if (url.includes('/inline')) {
     return 'inline'
   }
   return 'home'

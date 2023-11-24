@@ -87,6 +87,8 @@ declare module '@micro-app/types' {
     escapeKeys: Set<PropertyKey>
     // Properties newly added to microAppWindow
     injectedKeys: Set<PropertyKey>
+    // sandbox ready state
+    sandboxReady: Promise<void>
     // proxy(microWindow)
     proxyWindow: WindowProxy
     // child window
@@ -108,6 +110,7 @@ declare module '@micro-app/types' {
     patchStaticElement (container: Element | ShadowRoot): void
     actionBeforeExecScripts (container: Element | ShadowRoot): void
     deleteIframeElement? (): void
+    setStaticAppState (state: string): void
   }
 
   type LinkSourceInfo = {
@@ -224,6 +227,9 @@ declare module '@micro-app/types' {
 
     // show app when connectedCallback with keep-alive
     showKeepAliveApp (container: HTMLElement | ShadowRoot): void
+
+    // get app lifecycle state
+    getLifeCycleState (): string
   }
 
   interface prefetchParam {
@@ -349,6 +355,7 @@ declare module '@micro-app/types' {
     globalAssets?: globalAssetsType,
     excludeAssetFilter?: (assetUrl: string) => boolean
     getRootElementParentNode?: (node: Node, appName: AppName) => void
+    customProxyDocumentProps?: Map<string | number | symbol, (value: unknown) => void>
   }
 
   // MicroApp config
@@ -433,7 +440,7 @@ declare module '@micro-app/types' {
     replace?: boolean
   }
 
-  type navigationMethod = (to: RouterTarget) => void
+  type navigationMethod = (to: RouterTarget) => Promise<void>
 
   interface AccurateGuard {
     [appName: string]: (to: GuardLocation, from: GuardLocation) => void

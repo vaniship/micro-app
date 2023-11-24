@@ -95,3 +95,6 @@ const newImg = new Image()
 newImg.src = '/micro-app/vue2/img/micro-app-logo.29137522.jpeg'
 document.body.appendChild(newImg)
 newImg.setAttribute('width', '50px')
+
+/* ---------------------- 获取script元素 --------------------- */
+// console.log('script元素', document.getElementsByTagName('script'), document.getElementsByTagName('base'))
