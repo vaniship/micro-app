@@ -53,9 +53,8 @@ function getMappingNode (node: Node): Node {
  * Process the new node and format the style, link and script element
  * @param child new node
  * @param app app
- * @param isShadowEnvironment Is the element in the shadow environment
  */
-function handleNewNode (child: Node, app: AppInterface, isShadowEnvironment?: boolean): Node {
+function handleNewNode (child: Node, app: AppInterface): Node {
   if (dynamicElementInMicroAppMap.has(child)) {
     return dynamicElementInMicroAppMap.get(child)!
   } else if (isStyleElement(child)) {
@@ -63,7 +62,7 @@ function handleNewNode (child: Node, app: AppInterface, isShadowEnvironment?: bo
       const replaceComment = document.createComment('style element with exclude attribute ignored by micro-app')
       dynamicElementInMicroAppMap.set(child, replaceComment)
       return replaceComment
-    } else if (app.scopecss && !child.hasAttribute('ignore') && !isShadowEnvironment) {
+    } else if (app.scopecss && !child.hasAttribute('ignore')) {
       return scopedCSS(child, app)
     }
     return child
@@ -307,10 +306,10 @@ function commonElementHandler (
   ) {
     newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
-    let isShadowEnvironment = false
-    if (newChild.localName === 'style') {
+    if (isStyleElement(newChild)) {
       const isShadowNode = parent.getRootNode()
-      isShadowEnvironment = isShadowNode instanceof ShadowRoot
+      const isShadowEnvironment = isShadowNode instanceof ShadowRoot
+      isShadowEnvironment && newChild.setAttribute('ignore', 'true')
     }
     if (app?.container) {
       completePathDynamic(app, newChild)
@@ -318,7 +317,7 @@ function commonElementHandler (
         app,
         rawMethod,
         parent,
-        handleNewNode(newChild, app, isShadowEnvironment),
+        handleNewNode(newChild, app),
         passiveChild && getMappingNode(passiveChild),
       )
     }
