@@ -532,6 +532,10 @@ export function runScript (
     }
   } catch (e) {
     console.error(`[micro-app from ${replaceElement ? 'runDynamicScript' : 'runScript'}] app ${app.name}: `, e, address)
+    // throw error in with sandbox to parent app
+    if (!isInlineMode(app, scriptInfo)) {
+      throw e
+    }
   }
 }
 
