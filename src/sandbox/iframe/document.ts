@@ -11,6 +11,7 @@ import {
   logWarn,
   isUniqueElement,
   isInvalidQuerySelectorKey,
+  throttleDeferForSetAppName,
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
@@ -256,7 +257,10 @@ function patchDocumentProperty (
     rawDefineProperty(microDocument, tagName, {
       enumerable: true,
       configurable: true,
-      get: () => rawDocument[tagName],
+      get: () => {
+        throttleDeferForSetAppName(appName)
+        return rawDocument[tagName]
+      },
       set: (value: unknown) => { rawDocument[tagName] = value },
     })
   })
