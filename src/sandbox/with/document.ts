@@ -256,7 +256,8 @@ function createMicroDocument (appName: string, proxyDocument: Document): Functio
   class MicroDocument {
     static [Symbol.hasInstance] (target: unknown) {
       let proto = target
-      while (proto = Object.getPrototypeOf(proto)) {
+      while (proto) {
+        proto = Object.getPrototypeOf(proto)
         if (proto === MicroDocument.prototype) {
           return true
         }
