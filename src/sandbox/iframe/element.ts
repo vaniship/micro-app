@@ -54,6 +54,7 @@ function patchIframeNode (
   const rawMicroCloneNode = microRootNode.prototype.cloneNode
   const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(microRootElement.prototype, 'innerHTML') as PropertyDescriptor
   const rawParentNodeDesc = Object.getOwnPropertyDescriptor(microRootNode.prototype, 'parentNode') as PropertyDescriptor
+  const rawOwnerDocumentDesc = Object.getOwnPropertyDescriptor(microRootNode.prototype, 'ownerDocument') as PropertyDescriptor
 
   const isPureNode = (target: unknown): boolean | void => {
     return (isScriptElement(target) || isBaseElement(target)) && target.__PURE_ELEMENT__
@@ -152,6 +153,16 @@ function patchIframeNode (
     const clonedNode = rawMicroCloneNode.call(this, deep)
     return updateElementInfo(clonedNode, appName)
   }
+
+  rawDefineProperty(microRootNode.prototype, 'ownerDocument', {
+    configurable: true,
+    enumerable: true,
+    get () {
+      return this.__PURE_ELEMENT__
+        ? rawOwnerDocumentDesc.get!.call(this)
+        : microDocument
+    },
+  })
 
   rawDefineProperty(microRootElement.prototype, 'innerHTML', {
     configurable: true,

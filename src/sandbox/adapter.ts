@@ -128,10 +128,6 @@ export function updateElementInfo <T> (node: T, appName: string): T {
     })
 
     if (isIframeSandbox(appName)) {
-      rawDefineProperty(node, 'ownerDocument', {
-        configurable: true,
-        get: () => proxyWindow.document,
-      })
       /**
        * If HTML built-in node belongs to base app, it needs to be handled separately for parentNode
        * Fix error for nuxt@2.x + ElementUI@2.x
