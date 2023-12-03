@@ -91,6 +91,7 @@ export const SCOPE_WINDOW_ON_EVENT = [
   'onload',
   'onbeforeunload',
   'onunload',
+  'onerror'
 ]
 
 // event bound to child app document
