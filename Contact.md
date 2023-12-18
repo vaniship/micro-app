@@ -2,5 +2,6 @@
 欢迎小伙伴们加入micro-app微信群交流^ ^
 
 
-![image](https://img10.360buyimg.com/imagetools/jfs/t1/114269/37/44548/108190/6572bba2F312d63c7/fd11377359343b33.jpg)
+![image](https://github.com/micro-zoe/micro-app/assets/14011130/5ee179dc-7dc1-4667-967e-f25b9dccd84e)
+
 
