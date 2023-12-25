@@ -39,7 +39,6 @@ declare global {
     __MICRO_APP_HAS_DPN__?: boolean
     data?: unknown
     rawParentNode?: ParentNode | null
-    localName?: string
   }
 
   interface HTMLStyleElement {
