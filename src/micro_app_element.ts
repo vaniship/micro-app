@@ -56,10 +56,6 @@ export function defineElement (tagName: string): void {
     public appUrl = '' // app url
     public ssrUrl = '' // html path in ssr mode
     public version = version
-    public baseApplication = true
-    public baseRoute = ''
-    public environment = true
-    public publicPath = ''
 
     // 👇 Configuration
     // name: app name
@@ -200,8 +196,6 @@ export function defineElement (tagName: string): void {
       }
 
       this.updateSsrUrl(this.appUrl)
-      this.publicPath = getEffectivePath(this.appUrl)
-      this.baseRoute = this.getBaseRouteCompatible()
       if (appInstanceMap.has(this.appName)) {
         const oldApp = appInstanceMap.get(this.appName)!
         const oldAppUrl = oldApp.ssrUrl || oldApp.url
@@ -608,6 +602,20 @@ export function defineElement (tagName: string): void {
         return this.cacheData
       }
       return null
+    }
+
+    /**
+     * get publicPath from a valid address,it can used in micro-app-devtools
+     */
+    get publicPath (): string {
+      return getEffectivePath(this.appUrl)
+    }
+
+    /**
+     * get baseRoute from attribute,it can used in micro-app-devtools
+     */
+    get baseRoute (): string {
+      return this.getBaseRouteCompatible()
     }
   }
 
