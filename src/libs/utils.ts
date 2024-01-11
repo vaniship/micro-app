@@ -10,13 +10,6 @@ import type {
 } from '@micro-app/types'
 
 export const version = '__MICRO_APP_VERSION__'
-export const baseApplication = true
-export const baseRoute = '__MICRO_APP_BASE_ROUTE__'
-export const baseUrl = '__MICRO_APP_BASE_URL__'
-export const environment = true
-export const name = '__MICRO_APP_NAME__'
-export const publicPath = '__MICRO_APP_PUBLIC_PATH__'
-export const url = '__MICRO_APP_URL__'
 
 // do not use isUndefined
 export const isBrowser = typeof window !== 'undefined'
