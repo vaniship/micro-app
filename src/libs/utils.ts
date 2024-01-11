@@ -425,37 +425,6 @@ export function pureCreateElement<K extends keyof MicroAppElementTagNameMap> (ta
   return element
 }
 
-/**
- * clone origin elements to target
- * @param origin Cloned element
- * @param target Accept cloned elements
- * @param deep deep clone or transfer dom
- */
-export function cloneContainer <T extends Element | ShadowRoot, Q extends Element | ShadowRoot> (
-  target: Q,
-  origin: T,
-  deep: boolean,
-): Q {
-  // 在基座接受到afterhidden方法后立即执行unmount，彻底destroy应用时，因为unmount时同步执行，所以this.container为null后才执行cloneContainer
-  if (origin) {
-    target.innerHTML = ''
-    if (deep) {
-      // TODO: ShadowRoot兼容，ShadowRoot不能直接使用cloneNode
-      const clonedNode = origin.cloneNode(true)
-      const fragment = document.createDocumentFragment()
-      Array.from(clonedNode.childNodes).forEach((node: Node | Element) => {
-        fragment.appendChild(node)
-      })
-      target.appendChild(fragment)
-    } else {
-      Array.from(origin.childNodes).forEach((node: Node | Element) => {
-        target.appendChild(node)
-      })
-    }
-  }
-  return target
-}
-
 // is invalid key of querySelector
 export function isInvalidQuerySelectorKey (key: string): boolean {
   if (__TEST__) return !key || /(^\d)|([^\w\d-_$])/gi.test(key)
