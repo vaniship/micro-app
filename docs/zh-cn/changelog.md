@@ -8,6 +8,25 @@
 
 ---
 
+### 1.0.0-rc.4
+
+`2024-1-12`
+
+- **New**
+
+  - 🆕 在micro-app元素上新增变量`publicPath`、`baseRoute`，用于支持chrome插件，[PR 1052](https://github.com/micro-zoe/micro-app/pull/1052) by [raoenhui](https://github.com/raoenhui)。
+  - 🆕 新增全局配置`iframeSrc`，用于设置iframe沙箱的默认src地址。
+
+- **Bug Fix**
+
+  - 🐞 修复了父应用非根目录下微应用无法正常渲染的问题，[PR 1037](https://github.com/micro-zoe/micro-app/pull/1037) by [xuhongbo](https://github.com/xuhongbo)。
+  - 🐞 修复iframe沙箱下antd `Dropdown`、`Tooltip`等组件渲染异常的问题，[PR 1015](https://github.com/micro-zoe/micro-app/pull/1015) by [keuby](https://github.com/keuby)。
+
+
+- **Update**
+  - 🚀 更新了案例。
+
+
 ### 1.0.0-rc.3
 
 `2023-12-18`

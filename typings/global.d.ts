@@ -346,6 +346,7 @@ declare module '@micro-app/types' {
     fiber?: boolean
     prefetchLevel?: number
     prefetchDelay?: number
+    iframeSrc?: string
   }
 
   interface OptionsType extends MicroAppConfig {

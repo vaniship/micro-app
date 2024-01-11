@@ -78,9 +78,9 @@ export default class IframeSandbox {
 
   constructor (appName: string, url: string) {
     const rawLocation = globalEnv.rawWindow.location
-    const browserHost = rawLocation.protocol + '//' + rawLocation.host + rawLocation.pathname
+    const browserHost = rawLocation.protocol + '//' + rawLocation.host
 
-    this.deleteIframeElement = this.createIframeElement(appName, browserHost)
+    this.deleteIframeElement = this.createIframeElement(appName, browserHost + rawLocation.pathname)
     this.microAppWindow = this.iframe!.contentWindow
 
     this.patchIframe(this.microAppWindow, (resolve: CallableFunction) => {
@@ -110,17 +110,17 @@ export default class IframeSandbox {
   /**
    * create iframe for sandbox
    * @param appName app name
-   * @param browserHost browser origin
+   * @param browserPath browser origin
    * @returns release callback
    */
   createIframeElement (
     appName: string,
-    browserHost: string,
+    browserPath: string,
   ): () => void {
     this.iframe = pureCreateElement('iframe')
 
     const iframeAttrs: Record<string, string> = {
-      src: browserHost,
+      src: microApp.options.iframeSrc || browserPath,
       style: 'display: none',
       id: appName,
     }

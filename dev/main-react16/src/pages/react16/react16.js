@@ -442,7 +442,7 @@ export default class App extends React.Component {
                   onAfterhidden={this.handleAfterhidden}
                   onDataChange={this.handleDataChange}
                   baseroute={this.state.baseroute}
-                  keep-alive
+                  // keep-alive
                   // destroy
                   // inline
                   // disableSandbox
@@ -460,7 +460,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  // iframe
+                  iframe
                 >
                 </micro-app>
               )

@@ -77,6 +77,7 @@ microApp.start({
   // getRootElementParentNode (node, appName) {
   //   return node.parentElement
   // },
+  // iframeSrc: 'http://localhost:3000/',
   lifeCycles: {
     created (e) {
       console.log('created 全局监听', 'name:', e.detail.name)
