@@ -213,6 +213,8 @@ declare module '@micro-app/types' {
     // get keep-alive state
     getKeepAliveState(): string | null
 
+    getDOMParser(): DOMParser
+
     // is app unmounted
     isUnmounted (): boolean
 
