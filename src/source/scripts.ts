@@ -63,8 +63,7 @@ function isInlineMode (app: AppInterface, scriptInfo: ScriptSourceInfo): boolean
     app.inline ||
     scriptInfo.appSpace[app.name].inline ||
     isTypeModule(app, scriptInfo) ||
-    isSpecialScript(app, scriptInfo) ||
-    app.iframe
+    isSpecialScript(app, scriptInfo)
   )
 }
 
@@ -533,6 +532,8 @@ export function runScript (
     }
   } catch (e) {
     console.error(`[micro-app from ${replaceElement ? 'runDynamicScript' : 'runScript'}] app ${app.name}: `, e, address)
+    // throw error in with sandbox to parent app
+    throw e
   }
 }
 

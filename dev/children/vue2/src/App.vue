@@ -36,7 +36,7 @@ export default {
     })
   },
   mounted () {
-    document.getElementById('test-innerHTML').innerHTML = '<span>3333333333</span>'
+    document.getElementById('test-innerHTML').innerHTML = '<span>测试innerHTML</span>'
   },
   components: {
 

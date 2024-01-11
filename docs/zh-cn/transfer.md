@@ -31,7 +31,7 @@ microApp.start({
 
 
 ###### 步骤2：开启iframe沙箱
-去除之前的两个配置项：`inline`、`disableSandbox`，然后开启iframe沙箱。
+删除之前的两个配置项：`inline`、`disableSandbox`，然后开启iframe沙箱。
 
 ```html
 <micro-app name='名称' url='地址' iframe></micro-app>

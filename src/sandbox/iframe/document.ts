@@ -11,6 +11,7 @@ import {
   logWarn,
   isUniqueElement,
   isInvalidQuerySelectorKey,
+  throttleDeferForSetAppName,
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
@@ -161,10 +162,11 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     const _this = getDefaultRawTarget(this)
     if (
       isUniqueElement(key) ||
-      isInvalidQuerySelectorKey(key) ||
-      (!appInstanceMap.get(appName)?.inline && /^script$/i.test(key))
+      isInvalidQuerySelectorKey(key)
     ) {
       return rawMicroGetElementsByTagName.call(_this, key)
+    } else if (/^script|base$/i.test(key)) {
+      return rawMicroGetElementsByTagName.call(microDocument, key)
     }
 
     try {
@@ -220,6 +222,7 @@ function patchDocumentProperty (
       ['links', () => microRootDocument.prototype.querySelectorAll.call(microDocument, 'a')],
       // unique keys of micro-app
       ['microAppElement', () => appInstanceMap.get(appName)?.container],
+      ['__MICRO_APP_NAME__', () => appName],
     ]
 
     descList.forEach((desc) => {
@@ -254,7 +257,10 @@ function patchDocumentProperty (
     rawDefineProperty(microDocument, tagName, {
       enumerable: true,
       configurable: true,
-      get: () => rawDocument[tagName],
+      get: () => {
+        throttleDeferForSetAppName(appName)
+        return rawDocument[tagName]
+      },
       set: (value: unknown) => { rawDocument[tagName] = value },
     })
   })

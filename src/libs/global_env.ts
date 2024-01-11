@@ -14,6 +14,24 @@ import {
 } from '../source/patch'
 
 declare global {
+  interface Node {
+    __MICRO_APP_NAME__?: string | null
+    __PURE_ELEMENT__?: boolean
+    __MICRO_APP_HAS_DPN__?: boolean
+    data?: unknown
+    rawParentNode?: ParentNode | null
+  }
+
+  interface HTMLStyleElement {
+    __MICRO_APP_HAS_SCOPED__?: boolean
+  }
+
+  interface HTMLElement {
+    reload(destroy?: boolean): Promise<boolean>
+    mount(app: AppInterface): void
+    unmount (destroy?: boolean, unmountcb?: CallableFunction): void
+  }
+
   interface Window {
     requestIdleCallback (
       callback: (info: RequestIdleCallbackInfo) => void,
@@ -31,24 +49,7 @@ declare global {
     Element: any,
     Node: any,
     EventTarget: any,
-  }
-
-  interface Node {
-    __MICRO_APP_NAME__?: string | null
-    __PURE_ELEMENT__?: boolean
-    __MICRO_APP_HAS_DPN__?: boolean
-    data?: unknown
-    rawParentNode?: ParentNode | null
-  }
-
-  interface HTMLStyleElement {
-    __MICRO_APP_HAS_SCOPED__?: boolean
-  }
-
-  interface HTMLElement {
-    reload(destroy?: boolean): Promise<boolean>
-    mount(app: AppInterface): void
-    unmount (destroy?: boolean, unmountcb?: CallableFunction): void
+    HTMLElement: HTMLElement,
   }
 }
 

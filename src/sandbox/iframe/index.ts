@@ -37,6 +37,7 @@ import {
   updateBrowserURLWithLocation,
   patchHistory,
   releasePatchHistory,
+  isRouterModeCustom,
 } from '../router'
 import {
   patchElementAndDocument,
@@ -177,7 +178,9 @@ export default class IframeSandbox {
       this.microAppWindow.__MICRO_APP_NAME__,
     )
 
-    this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    if (isRouterModeCustom(this.microAppWindow.__MICRO_APP_NAME__)) {
+      this.microAppWindow.__MICRO_APP_BASE_ROUTE__ = this.microAppWindow.__MICRO_APP_BASE_URL__ = baseroute
+    }
     /* --- memory router part --- end */
 
     /**
@@ -483,5 +486,9 @@ export default class IframeSandbox {
    */
   public actionBeforeExecScripts (container: Element | ShadowRoot): void {
     this.patchStaticElement(container)
+  }
+
+  public setStaticAppState (state: string): void {
+    this.microAppWindow.__MICRO_APP_STATE__ = state
   }
 }

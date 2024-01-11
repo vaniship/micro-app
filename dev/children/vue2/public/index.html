@@ -11,7 +11,17 @@
     <!-- <link rel="stylesheet" href="<%= BASE_URL %>layui/css/layui.css" />
     <script src="<%= BASE_URL %>layui/layui.js"></script> -->
     <script>
-      console.log('Vue', Vue, "Vue" in window)
+      try {
+        console.log('Vue', Vue, "Vue" in window)
+        ;eval('console.log("html自带script的eval", window)')
+      } catch (e) {
+        console.log(e)
+      }
+      // setTimeout(() => {
+      //   const dynamicScript = document.createElement('script')
+      //   dynamicScript.textContent = `eval('console.log("动态创建的script的eval", window)')`
+      //   document.body.appendChild(dynamicScript)
+      // }, 3000);
     </script>
   </head>
   <body>

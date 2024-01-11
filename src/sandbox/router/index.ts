@@ -35,6 +35,7 @@ export {
 export {
   getNoHashMicroPathFromURL,
   getRouterMode,
+  isRouterModeCustom,
 } from './core'
 export {
   patchHistory,
