@@ -14,6 +14,13 @@ import {
   formatAppName,
   formatAppURL,
   version,
+  baseApplication,
+  baseRoute,
+  baseUrl,
+  environment,
+  name,
+  publicPath,
+  url,
   logError,
   logWarn,
   isString,
@@ -21,6 +28,7 @@ import {
   CompletionPath,
   createURL,
   isPlainObject,
+  getEffectivePath,
 } from './libs/utils'
 import {
   ObservedAttrName,
@@ -54,6 +62,13 @@ export function defineElement (tagName: string): void {
     public appUrl = '' // app url
     public ssrUrl = '' // html path in ssr mode
     public version = version
+    public baseApplication = baseApplication
+    public baseRoute = baseRoute
+    public baseUrl = baseUrl
+    public environment = environment
+    public name = name
+    public publicPath = publicPath
+    public url = url
 
     // 👇 Configuration
     // name: app name
@@ -194,11 +209,21 @@ export function defineElement (tagName: string): void {
       }
 
       this.updateSsrUrl(this.appUrl)
-
+      this.publicPath = getEffectivePath(this.appUrl)
+      this.name = this.appName
+      this.url = this.appUrl
+      this.baseRoute = this.getBaseRouteCompatible()
+      this.environment = environment
       if (appInstanceMap.has(this.appName)) {
         const oldApp = appInstanceMap.get(this.appName)!
         const oldAppUrl = oldApp.ssrUrl || oldApp.url
         const targetUrl = this.ssrUrl || this.appUrl
+        this.baseApplication = baseApplication
+        this.environment = environment
+        this.publicPath = getEffectivePath(this.appUrl)
+        this.name = this.appName
+        this.url = this.appUrl
+        this.baseRoute = this.getBaseRouteCompatible()
         /**
          * NOTE:
          * 1. keep-alive don't care about ssrUrl
