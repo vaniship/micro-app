@@ -234,7 +234,7 @@ export function formatAppURL (url: string | null, appName: string | null = null)
   if (!isString(url) || !url) return ''
 
   try {
-    const { origin, pathname, search } = createURL(addProtocol(url))
+    const { origin, pathname, search } = createURL(addProtocol(url), (window.rawWindow || window).location.href)
     // If it ends with .html/.node/.php/.net/.etc, don’t need to add /
     if (/\.(\w+)$/.test(pathname)) {
       return `${origin}${pathname}${search}`

@@ -340,7 +340,6 @@ export function defineElement (tagName: string): void {
     private legalAttribute (name: string, val: AttrType): boolean {
       if (!isString(val) || !val) {
         logError(`unexpected attribute ${name}, please check again`, this.appName)
-
         return false
       }
 

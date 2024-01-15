@@ -131,8 +131,9 @@ export function updateElementInfo <T> (node: T, appName: string): T {
       /**
        * If HTML built-in node belongs to base app, it needs to be handled separately for parentNode
        * Fix error for nuxt@2.x + ElementUI@2.x
-       */
+      */
       if (node instanceof globalEnv.rawRootNode) {
+        // console.log(11111111, '这里验证一下--删掉', node)
         rawDefineProperty(node, 'parentNode', {
           configurable: true,
           get: createGetterForIframeParentNode(
