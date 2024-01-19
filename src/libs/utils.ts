@@ -161,6 +161,24 @@ export function isProxyDocument (target: unknown): target is Document {
   return toTypeString(target) === '[object ProxyDocument]'
 }
 
+export function includes (list: unknown[], element: unknown, start = 0): boolean {
+  if (!(list instanceof Array)) {
+    throw new Error('The first argument must be an array')
+  }
+
+  if (start < 0) {
+    start = list.length + start
+  }
+
+  for (let i = start; i < list.length; i++) {
+    if (list[i] === element) {
+      return true
+    }
+  }
+
+  return false
+}
+
 /**
  * format error log
  * @param msg message

@@ -14,6 +14,7 @@ import {
 } from '../../constants'
 import {
   isString,
+  includes,
   unique,
   throttleDeferForSetAppName,
   rawDefineProperty,
@@ -87,7 +88,7 @@ function createProxyWindow (
       if (
         Reflect.has(target, key) ||
         (isString(key) && /^__MICRO_APP_/.test(key)) ||
-        sandbox.scopeProperties.includes(key)
+        includes(sandbox.scopeProperties, key)
       ) {
         if (RAW_GLOBAL_TARGET.includes(key)) removeDomScope()
         return Reflect.get(target, key)
@@ -102,7 +103,7 @@ function createProxyWindow (
         // target.hasOwnProperty has been rewritten
         !rawHasOwnProperty.call(target, key) &&
         rawHasOwnProperty.call(rawWindow, key) &&
-        !sandbox.scopeProperties.includes(key)
+        !includes(sandbox.scopeProperties, key)
       ) {
         const descriptor = Object.getOwnPropertyDescriptor(rawWindow, key)
         const { configurable, enumerable, writable, set } = descriptor!
@@ -128,7 +129,7 @@ function createProxyWindow (
             !Reflect.has(rawWindow, key)
           )
         ) &&
-        !sandbox.scopeProperties.includes(key)
+        !includes(sandbox.scopeProperties, key)
       ) {
         !Reflect.has(rawWindow, key) && sandbox.escapeKeys.add(key)
         Reflect.set(rawWindow, key, value)
@@ -137,7 +138,7 @@ function createProxyWindow (
       return true
     },
     has: (target: microAppWindowType, key: PropertyKey): boolean => {
-      if (sandbox.scopeProperties.includes(key)) {
+      if (includes(sandbox.scopeProperties, key)) {
         /**
          * Some keywords, such as Vue, need to meet two conditions at the same time:
          * 1. 'Vue' in window --> false
