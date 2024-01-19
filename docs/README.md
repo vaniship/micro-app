@@ -9,7 +9,7 @@
 ![microfroentend](https://img12.360buyimg.com/imagetools/jfs/t1/16487/16/31677/95933/6523ce90F10951212/78b3cee6ce36845b.png ':size=800')
 
 ### 关于micro-app
-  `micro-app`借鉴了`WebComponent`的思想，通过`CustomElement`结合将微前端封装成一个类`WebComponent`组件,实现`js`沙箱、样式隔离、元素隔离等特性，从而实现微前端的组件化渲染。
+  `micro-app`包含`js`沙箱、样式隔离、元素隔离等特性，并借鉴了`WebComponent`的思想，通过`CustomElement`将`micro-app`封装成一个类`WebComponent`组件，从而实现了微前端的组件化渲染。
 
   ##### 概念图
   ![image](https://img10.360buyimg.com/imagetools/jfs/t1/168885/23/20790/54203/6084d445E0c9ec00e/d879637b4bb34253.png ':size=750')
