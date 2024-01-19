@@ -695,11 +695,38 @@ export default class CreateApp implements AppInterface {
     )
   }
 
-  public getDOMParser (): DOMParser {
+  /**
+   * Parse htmlString to DOM
+   * NOTE: iframe sandbox will use DOMParser of iframeWindow, with sandbox will use DOMParser of base app
+   * @param htmlString DOMString
+   * @returns parsed DOM
+   */
+  public parseHtmlString (htmlString: string): HTMLElement {
     const DOMParser = this.sandBox?.proxyWindow
       ? this.sandBox.proxyWindow.DOMParser
       : globalEnv.rawWindow.DOMParser
-    return new DOMParser()
+    return (new DOMParser()).parseFromString(htmlString, 'text/html').body
+  }
+
+  /**
+   * clone origin elements to target
+   * @param origin Cloned element
+   * @param target Accept cloned elements
+   * @param deep deep clone or transfer dom
+   */
+  private cloneContainer <T extends Element | ShadowRoot, Q extends Element | ShadowRoot> (
+    target: Q,
+    origin: T,
+    deep: boolean,
+  ): Q {
+    // 在基座接受到afterhidden方法后立即执行unmount，彻底destroy应用时，因为unmount时同步执行，所以this.container为null后才执行cloneContainer
+    if (origin) {
+      target.innerHTML = ''
+      Array.from(deep ? this.parseHtmlString(origin.innerHTML).childNodes : origin.childNodes).forEach((node) => {
+        target.appendChild(node)
+      })
+    }
+    return target
   }
 
   /**
@@ -716,34 +743,6 @@ export default class CreateApp implements AppInterface {
         this.sandBox = new WithSandBox(this.name, this.url)
       }
     }
-  }
-
-  /**
-   * clone origin elements to target
-   * @param origin Cloned element
-   * @param target Accept cloned elements
-   * @param deep deep clone or transfer dom
-   */
-  private cloneContainer <T extends Element | ShadowRoot, Q extends Element | ShadowRoot> (
-    target: Q,
-    origin: T,
-    deep: boolean,
-  ): Q {
-    // 在基座接受到afterhidden方法后立即执行unmount，彻底destroy应用时，因为unmount时同步执行，所以this.container为null后才执行cloneContainer
-    if (origin) {
-      const childNodes = deep
-        ? this.getDOMParser().parseFromString(origin.innerHTML, 'text/html').body.childNodes
-        : origin.childNodes
-
-      const fragment = document.createDocumentFragment()
-      Array.from(childNodes).forEach((node) => {
-        fragment.appendChild(node)
-      })
-
-      target.innerHTML = ''
-      target.appendChild(fragment)
-    }
-    return target
   }
 
   // set app state

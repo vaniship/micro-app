@@ -14,7 +14,7 @@
 
 - **New**
 
-  - 🆕 新增全局配置`iframeSrc`，用于设置iframe沙箱的默认src地址。
+  - 🆕 新增全局配置`iframeSrc`，用于动态设置iframe沙箱的src地址。
   - 🆕 新增micro-app元素公有变量`publicPath`、`baseRoute`，用于支持chrome插件，[PR 1052](https://github.com/micro-zoe/micro-app/pull/1052) by [raoenhui](https://github.com/raoenhui)。
 
 - **Bug Fix**
@@ -23,8 +23,8 @@
   - 🐞 修复了iframe沙箱下antd `Dropdown`、`Tooltip`等组件渲染异常的问题，[PR 1015](https://github.com/micro-zoe/micro-app/pull/1015) by [keuby](https://github.com/keuby)。
   - 🐞 修复了micro-app url属性是相对地址时没有自动补全导致子应用渲染失败的问题。
 
-
 - **Update**
+  - 🚀 优化了对于iframe沙箱`Node.parentNode`的处理方式。
   - 🚀 更新了案例。
 
 
@@ -50,8 +50,8 @@
   - 🐞 修复了子应用html自带元素`parentNode`指向异常的问题。
 
 - **Update**
-  - 🆕 更新with沙箱运行逻辑，异步执行初始化操作，确保不同沙箱之间逻辑一致。
-  - 🆕 优化了utils方法中元素判断的方式[998](https://github.com/micro-zoe/micro-app/pull/998)。
+  - 🚀 更新with沙箱运行逻辑，异步执行初始化操作，确保不同沙箱之间逻辑一致。
+  - 🚀 优化了utils方法中元素判断的方式[998](https://github.com/micro-zoe/micro-app/pull/998)。
   - 🚀 更新了案例。
   
 
@@ -71,7 +71,7 @@
   - 🐞 修复了在iframe沙箱下开启`inline`模式导致通过`getElementsByTagName`获取script元素失败的问题。
 
 - **Update**
-  - 🆕 优化了内存占用，在iframe沙箱模式下默认开启inline模式。
+  - 🚀 优化了内存占用，在iframe沙箱模式下默认开启inline模式。
   - 🚀 更新了官网文档。
   
 

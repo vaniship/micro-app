@@ -9,7 +9,7 @@ import type {
   CommonEffectHook,
   releaseGlobalEffectParams,
 } from '@micro-app/types'
-import globalEnv from '../../libs/global_env'
+import globalEnv, { CustomEventTarget } from '../../libs/global_env'
 import microApp from '../../micro_app'
 import {
   EventCenterForMicroApp,
@@ -109,7 +109,7 @@ export default class WithSandBox implements WithSandBoxInterface {
   public injectedKeys = new Set<PropertyKey>()
   public sandboxReady!: Promise<void>
   public proxyWindow!: proxyWindow // Proxy
-  public microAppWindow = new EventTarget() as MicroAppWindowType // Proxy target
+  public microAppWindow = new CustomEventTarget() as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string) {
     this.patchWith((resolve: CallableFunction) => {
