@@ -183,27 +183,3 @@ export function initGlobalEnv (): void {
 }
 
 export default globalEnv
-
-// export class CustomEventTarget implements EventTarget {
-//   addEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options?: AddEventListenerOptions | boolean): void {
-//     return globalEnv.rawAddEventListener.call(this, type, callback, options)
-//   }
-
-//   removeEventListener (type: string, callback: EventListenerOrEventListenerObject | null, options?: EventListenerOptions | boolean): void {
-//     return globalEnv.rawRemoveEventListener.call(this, type, callback, options)
-//   }
-
-//   dispatchEvent (event: Event): boolean {
-//     return globalEnv.rawDispatchEvent.call(this, event)
-//   }
-// }
-
-// export const CustomEventTarget = function CustomEventTarget () {}
-// CustomEventTarget.prototype = EventTarget.prototype
-// CustomEventTarget.prototype = new EventTarget()
-
-export class CustomEventTarget extends EventTarget {}
-
-// export class CustomEventTarget {}
-// // Object.setPrototypeOf(CustomEventTarget, EventTarget)
-// Object.setPrototypeOf(CustomEventTarget.prototype, EventTarget.prototype)

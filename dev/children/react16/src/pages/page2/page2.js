@@ -77,7 +77,7 @@ const Page2 = () => {
   };
 
   const testClick = () => {
-    console.log(444444444)
+    console.log('click from test button')
     window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }))
   }
 

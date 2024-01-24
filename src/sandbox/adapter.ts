@@ -51,6 +51,14 @@ export default class Adapter implements SandBoxAdapter {
   }
 }
 
+/**
+ * TODO:
+ *  1、将class Adapter去掉，改为CustomWindow，或者让CustomWindow继承Adapter
+ *  2、with沙箱中的常量放入CustomWindow，虽然和iframe沙箱不一致，但更合理
+ * 修改时机：在iframe沙箱支持插件后再修改
+ */
+export class CustomWindow {}
+
 // Fix conflict of babel-polyfill@6.x
 export function fixBabelPolyfill6 (): void {
   if (globalEnv.rawWindow._babelPolyfill) globalEnv.rawWindow._babelPolyfill = false
