@@ -120,6 +120,7 @@ function createProxyWindow (
 
         sandbox.injectedKeys.add(key)
       } else {
+        // all scopeProperties will add to injectedKeys, use for key in window (Proxy.has)
         if (!Reflect.has(target, key) || sandbox.scopeProperties.includes(key)) {
           sandbox.injectedKeys.add(key)
         }
@@ -152,9 +153,9 @@ function createProxyWindow (
        */
       if (sandbox.scopeProperties.includes(key)) {
         if (sandbox.injectedKeys.has(key)) {
-          return Reflect.has(target, key)
+          return Reflect.has(target, key) // true
         }
-        return !!target[key]
+        return !!target[key] // false
       }
       return Reflect.has(target, key) || Reflect.has(rawWindow, key)
     },

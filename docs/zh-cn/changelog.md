@@ -23,7 +23,9 @@
   - 🐞 修复了iframe沙箱下antd `Dropdown`、`Tooltip`等组件渲染异常的问题，[PR 1015](https://github.com/micro-zoe/micro-app/pull/1015) by [keuby](https://github.com/keuby)。
   - 🐞 修复了micro-app url属性为相对地址时没有自动补全导致子应用渲染失败的问题，[PR 1056](https://github.com/micro-zoe/micro-app/pull/1056)。
   - 🐞 修复了EventTarget在低版本浏览器中的兼容性问题，[issue 1064](https://github.com/micro-zoe/micro-app/issues/1064)，[issue 1065](https://github.com/micro-zoe/micro-app/issues/1065)。
-  - 🐞 修复了部分场景下强隔离变量`scopeProperties`通过`key in window`判断异常的问题。
+  - 🐞 修复了with沙箱在部分场景下强隔离变量`scopeProperties`通过`key in window`判断异常的问题。
+  - 🐞 修复了with沙箱在默认模式下用户自定义的强隔离变量`scopeProperties`在卸载时无法清空的问题。
+  - 🐞 修复了with沙箱子应用的`window.onpopstate`兜底到主应用导致多次执行的问题。
 
 - **Update**
   - 🚀 优化了对于iframe沙箱`Node.parentNode`的处理方式。

@@ -33,6 +33,9 @@ export class BaseSandbox implements BaseSandboxType {
     'webpackJsonp',
     'webpackHotUpdate',
     'Vue',
+    // TODO: 是否可以和constants/SCOPE_WINDOW_ON_EVENT合并
+    'onpopstate',
+    'onhashchange',
   ]
 
   // Properties that can only get and set in microAppWindow, will not escape to rawWindow
