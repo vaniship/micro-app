@@ -100,7 +100,7 @@ function createProxyWindow (
       return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
     },
     set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
-      if (sandbox.adapter.escapeSetterKeyList.includes(key)) {
+      if (sandbox.rawWindowScopeKeyList.includes(key)) {
         Reflect.set(rawWindow, key, value)
       } else if (
         // target.hasOwnProperty has been rewritten
@@ -120,7 +120,9 @@ function createProxyWindow (
 
         sandbox.injectedKeys.add(key)
       } else {
-        !Reflect.has(target, key) && sandbox.injectedKeys.add(key)
+        if (!Reflect.has(target, key) || sandbox.scopeProperties.includes(key)) {
+          sandbox.injectedKeys.add(key)
+        }
         Reflect.set(target, key, value)
       }
 
@@ -128,7 +130,8 @@ function createProxyWindow (
         (
           sandbox.escapeProperties.includes(key) ||
           (
-            sandbox.adapter.staticEscapeProperties.includes(key) &&
+            // TODO: staticEscapeProperties 合并到 escapeProperties
+            sandbox.staticEscapeProperties.includes(key) &&
             !Reflect.has(rawWindow, key)
           )
         ) &&
@@ -141,19 +144,19 @@ function createProxyWindow (
       return true
     },
     has: (target: microAppWindowType, key: PropertyKey): boolean => {
+      /**
+       * Some keywords, such as Vue, need to meet two conditions at the same time:
+       * 1. window.Vue --> undefined
+       * 2. 'Vue' in window --> false
+       * Issue https://github.com/micro-zoe/micro-app/issues/686
+       */
       if (sandbox.scopeProperties.includes(key)) {
-        /**
-         * Some keywords, such as Vue, need to meet two conditions at the same time:
-         * 1. 'Vue' in window --> false
-         * 2. Vue (top level variable) // undefined
-         * Issue https://github.com/micro-zoe/micro-app/issues/686
-         */
-        if (sandbox.adapter.staticScopeProperties.includes(key)) {
-          return !!target[key]
+        if (sandbox.injectedKeys.has(key)) {
+          return Reflect.has(target, key)
         }
-        return key in target
+        return !!target[key]
       }
-      return key in target || key in rawWindow
+      return Reflect.has(target, key) || Reflect.has(rawWindow, key)
     },
     // Object.getOwnPropertyDescriptor(window, key)
     getOwnPropertyDescriptor: (target: microAppWindowType, key: PropertyKey): PropertyDescriptor|undefined => {

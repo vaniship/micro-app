@@ -335,10 +335,11 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 /* ---------------------- 插件相关 --------------------- */
+console.assert(window.scopeKey1 === undefined, '初始化前 window.scopeKey1 应该为 undefined')
 window.scopeKey1 = 'scopeKey1'
 window.scopeKey2 = 'scopeKey2'
 window.scopeKey3 = 'scopeKey3'
-window.scopeKey4 = 'scopeKey4'
+// window.scopeKey4 = 'scopeKey4'
 window.scopeKey5 = 'scopeKey5'
 window.scopeKey6 = 'scopeKey6'
 
@@ -349,18 +350,25 @@ window.escapeKey4 = 'escapeKey4'
 window.escapeKey5 = 'escapeKey5' // should be undefined in rawWindow
 window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
 
+// scopeKeyPure1、scopeKeyPure2为绑定变量，但子应用没有重新定义
+console.assert(window.scopeKeyPure1 === undefined, 'window.scopeKeyPure1 错误')
+console.assert(('scopeKeyPure1' in window) === false , 'scopeKeyPure1 in window 应该为false')
+console.assert(window.scopeKeyPure2 === undefined, 'window.scopeKeyPure2 错误')
+console.assert(('scopeKeyPure2' in window) === false , 'scopeKeyPure2 in window 应该为false')
 
-// console.log('scopeProperties scopeKeySpe: ', scopeKeySpe)
-// console.log('scopeProperties window.scopeKeySpe: ', window.scopeKeySpe)
+// scopeKey1被重新定义，并且不会泄漏到原生window上，所以scopeKey1在rawWindow不存在
+console.assert(window.scopeKey1 === 'scopeKey1', 'window.scopeKey1 错误')
+console.assert(rawWindow.scopeKey1 === undefined, 'rawWindow.scopeKey1 错误')
+console.assert(('scopeKey1' in window) === true , 'scopeKey1 in window 应该为true')
+console.assert(('scopeKey1' in rawWindow) === false , 'scopeKey1 in rawWindow 应该为false')
 
-// console.log('scopeProperties Vue: ', Vue)
-// console.log('scopeProperties window.Vue: ', window.Vue)
+// Vue是系统默认绑定变量
+console.assert(window.Vue === undefined, 'window.Vue 应该为false')
+console.assert(('Vue' in window) === false, 'Vue in window 应该为false')
+window.Vue = '自定义Vue'
+console.assert(window.Vue === '自定义Vue', 'window.Vue 应该为自定义Vue')
 
-// window.Vue = Vue ? Vue : 'child Vue'
-
-// console.log('scopeProperties Vue: ', Vue)
-// console.log('scopeProperties window.Vue: ', window.Vue)
-
+console.assert(rawWindow.escapeKey5 === undefined, 'rawWindow.escapeKey5 结果错误')
 
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */
