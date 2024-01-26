@@ -150,10 +150,6 @@ function invokePrototypeMethod (
   passiveChild?: Node | null,
 ): any {
   const hijackParent = getHijackParent(parent, targetChild, app)
-  /**
-   * If passiveChild is not the child node, insertBefore replaceChild will have a problem, at this time, it will be degraded to appendChild
-   * E.g: document.head.insertBefore(targetChild, document.head.childNodes[0])
-   */
   if (hijackParent) {
     /**
      * If parentNode is <micro-app-body>, return rawDocument.body
@@ -194,25 +190,37 @@ function invokePrototypeMethod (
       }
     }
 
-    /**
-     * 1. If passiveChild exists, it must be insertBefore or replaceChild
-     * 2. When removeChild, targetChild may not be in microAppHead or head
-     */
-    if (passiveChild && !hijackParent.contains(passiveChild)) {
-      return globalEnv.rawAppendChild.call(hijackParent, targetChild)
-    } else if (rawMethod === globalEnv.rawRemoveChild && !hijackParent.contains(targetChild)) {
-      if (parent.contains(targetChild)) {
-        return rawMethod.call(parent, targetChild)
-      }
-      return targetChild
-    }
-
     if (
       __DEV__ &&
       isIFrameElement(targetChild) &&
       rawMethod === globalEnv.rawAppendChild
     ) {
       fixReactHMRConflict(app)
+    }
+
+    /**
+     * 1. If passiveChild exists, it must be insertBefore or replaceChild
+     * 2. When removeChild, targetChild may not be in microAppHead or head
+     * NOTE:
+     *  1. If passiveChild not in hijackParent, insertBefore replaceChild will be degraded to appendChild
+     *    E.g: document.head.replaceChild(targetChild, document.scripts[0])
+     *  2. If passiveChild not in hijackParent but in parent and method is insertBefore, try insert it into the position corresponding to hijackParent
+     *    E.g: document.head.insertBefore(targetChild, document.head.childNodes[0])
+     *    ISSUE: https://github.com/micro-zoe/micro-app/issues/1071
+     */
+    if (passiveChild && !hijackParent.contains(passiveChild)) {
+      if (rawMethod === globalEnv.rawInsertBefore && parent.contains(passiveChild)) {
+        const indexOfParent = Array.from(parent.childNodes).indexOf(passiveChild as ChildNode)
+        if (hijackParent.childNodes[indexOfParent]) {
+          return invokeRawMethod(rawMethod, hijackParent, targetChild, hijackParent.childNodes[indexOfParent])
+        }
+      }
+      return globalEnv.rawAppendChild.call(hijackParent, targetChild)
+    } else if (rawMethod === globalEnv.rawRemoveChild && !hijackParent.contains(targetChild)) {
+      if (parent.contains(targetChild)) {
+        return rawMethod.call(parent, targetChild)
+      }
+      return targetChild
     }
 
     return invokeRawMethod(rawMethod, hijackParent, targetChild, passiveChild)
@@ -615,7 +623,7 @@ function patchDocument () {
       !currentAppName ||
       !selectors ||
       isUniqueElement(selectors) ||
-      // see https://github.com/micro-zoe/micro-app/issues/56
+      // ISSUE: https://github.com/micro-zoe/micro-app/issues/56
       rawDocument !== _this
     ) {
       return globalEnv.rawQuerySelector.call(_this, selectors)
