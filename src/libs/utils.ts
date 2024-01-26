@@ -391,23 +391,30 @@ export function setCurrentAppName (appName: string | null): void {
   currentMicroAppName = appName
 }
 
-export function throttleDeferForSetAppName (appName: string) {
-  if (currentMicroAppName !== appName) {
-    setCurrentAppName(appName)
-    defer(() => {
-      setCurrentAppName(null)
-    })
-  }
-}
-
 // get the currently running app.name
 export function getCurrentAppName (): string | null {
   return currentMicroAppName
 }
 
 // Clear appName
-export function removeDomScope (): void {
+let preventSetAppName = false
+export function removeDomScope (force?: boolean): void {
   setCurrentAppName(null)
+  if (force && !preventSetAppName) {
+    preventSetAppName = true
+    defer(() => {
+      preventSetAppName = false
+    })
+  }
+}
+
+export function throttleDeferForSetAppName (appName: string) {
+  if (currentMicroAppName !== appName && !preventSetAppName) {
+    setCurrentAppName(appName)
+    defer(() => {
+      setCurrentAppName(null)
+    })
+  }
 }
 
 // is safari browser

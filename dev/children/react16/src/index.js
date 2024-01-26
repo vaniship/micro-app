@@ -340,40 +340,42 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 /* ---------------------- 插件相关 --------------------- */
-console.assert(window.scopeKey1 === undefined, '初始化前 window.scopeKey1 应该为 undefined')
-window.scopeKey1 = 'scopeKey1'
-window.scopeKey2 = 'scopeKey2'
-window.scopeKey3 = 'scopeKey3'
-// window.scopeKey4 = 'scopeKey4'
-window.scopeKey5 = 'scopeKey5'
-window.scopeKey6 = 'scopeKey6'
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  console.assert(window.scopeKey1 === undefined, '初始化前 window.scopeKey1 应该为 undefined')
+  window.scopeKey1 = 'scopeKey1'
+  window.scopeKey2 = 'scopeKey2'
+  window.scopeKey3 = 'scopeKey3'
+  // window.scopeKey4 = 'scopeKey4'
+  window.scopeKey5 = 'scopeKey5'
+  window.scopeKey6 = 'scopeKey6'
 
-window.escapeKey1 = 'escapeKey1'
-window.escapeKey2 = 'escapeKey2'
-window.escapeKey3 = 'escapeKey3'
-window.escapeKey4 = 'escapeKey4'
-window.escapeKey5 = 'escapeKey5' // should be undefined in rawWindow
-window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
+  window.escapeKey1 = 'escapeKey1'
+  window.escapeKey2 = 'escapeKey2'
+  window.escapeKey3 = 'escapeKey3'
+  window.escapeKey4 = 'escapeKey4'
+  window.escapeKey5 = 'escapeKey5' // should be undefined in rawWindow
+  window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
 
-// scopeKeyPure1、scopeKeyPure2为绑定变量，但子应用没有重新定义
-console.assert(window.scopeKeyPure1 === undefined, 'window.scopeKeyPure1 错误')
-console.assert(('scopeKeyPure1' in window) === false , 'scopeKeyPure1 in window 应该为false')
-console.assert(window.scopeKeyPure2 === undefined, 'window.scopeKeyPure2 错误')
-console.assert(('scopeKeyPure2' in window) === false , 'scopeKeyPure2 in window 应该为false')
+  // scopeKeyPure1、scopeKeyPure2为绑定变量，但子应用没有重新定义
+  console.assert(window.scopeKeyPure1 === undefined, 'window.scopeKeyPure1 错误')
+  console.assert(('scopeKeyPure1' in window) === false , 'scopeKeyPure1 in window 应该为false')
+  console.assert(window.scopeKeyPure2 === undefined, 'window.scopeKeyPure2 错误')
+  console.assert(('scopeKeyPure2' in window) === false , 'scopeKeyPure2 in window 应该为false')
 
-// scopeKey1被重新定义，并且不会泄漏到原生window上，所以scopeKey1在rawWindow不存在
-console.assert(window.scopeKey1 === 'scopeKey1', 'window.scopeKey1 错误')
-console.assert(rawWindow.scopeKey1 === undefined, 'rawWindow.scopeKey1 错误')
-console.assert(('scopeKey1' in window) === true , 'scopeKey1 in window 应该为true')
-console.assert(('scopeKey1' in rawWindow) === false , 'scopeKey1 in rawWindow 应该为false')
+  // scopeKey1被重新定义，并且不会泄漏到原生window上，所以scopeKey1在rawWindow不存在
+  console.assert(window.scopeKey1 === 'scopeKey1', 'window.scopeKey1 错误')
+  console.assert(window.rawWindow.scopeKey1 === undefined, 'rawWindow.scopeKey1 错误')
+  console.assert(('scopeKey1' in window) === true , 'scopeKey1 in window 应该为true')
+  console.assert(('scopeKey1' in rawWindow) === false , 'scopeKey1 in rawWindow 应该为false')
 
-// Vue是系统默认绑定变量
-console.assert(window.Vue === undefined, 'window.Vue 应该为false')
-console.assert(('Vue' in window) === false, 'Vue in window 应该为false')
-window.Vue = '自定义Vue'
-console.assert(window.Vue === '自定义Vue', 'window.Vue 应该为自定义Vue')
+  // Vue是系统默认绑定变量
+  console.assert(window.Vue === undefined, 'window.Vue 应该为false')
+  console.assert(('Vue' in window) === false, 'Vue in window 应该为false')
+  window.Vue = '自定义Vue'
+  console.assert(window.Vue === '自定义Vue', 'window.Vue 应该为自定义Vue')
 
-console.assert(rawWindow.escapeKey5 === undefined, 'rawWindow.escapeKey5 结果错误')
+  console.assert(rawWindow.escapeKey5 === undefined, 'rawWindow.escapeKey5 结果错误')
+}
 
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */
@@ -382,12 +384,17 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
   unBoundDom1.innerHTML = 'unBoundDom1'
   document.body.appendChild(unBoundDom1)
 
-  const createElement = document.createElement
-  const rawDocument = window.rawDocument
-  window.microApp.removeDomScope()
-  const unBoundDom2 = createElement.call(rawDocument, 'div')
+  window.microApp.removeDomScope(true)
+  const unBoundDom2 = window.document.createElement('div')
   unBoundDom2.innerHTML = 'unBoundDom2'
   document.body.appendChild(unBoundDom2)
+
+  const unBoundDom3 = window.rawDocument.createElement('div')
+  unBoundDom3.innerHTML = 'unBoundDom3'
+  document.body.appendChild(unBoundDom3)
+
+  // const dynamicSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  // document.body.appendChild(dynamicSvg)
 }
 
 

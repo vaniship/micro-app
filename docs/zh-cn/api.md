@@ -217,12 +217,23 @@ document.body.appendChild(pureDiv)
 ## removeDomScope
 **描述：**解除元素绑定，通常用于受子应用元素绑定影响，导致主应用元素错误绑定到子应用的情况
 
+**介绍：**
+```js
+/**
+ * @param force 解除元素绑定，并且一定时间内(一个微任务Promise时间)阻止再次绑定。
+ */
+function removeDomScope(force?: boolean): void
+```
+
 **使用方式：**
 ```js
 import { removeDomScope } from '@micro-zoe/micro-app'
 
-// 重置作用域
+// 解除元素绑定
 removeDomScope()
+
+// 解除元素绑定，并且一定时间内阻止再次绑定
+removeDomScope(true)
 ```
 
 
@@ -624,10 +635,21 @@ document.body.appendChild(pureDiv)
 
 **版本限制：** 0.8.2及以上版本
 
+**介绍：**
+```js
+/**
+ * @param force 解除元素绑定，并且一定时间内(一个微任务Promise时间)阻止再次绑定。
+ */
+function removeDomScope(force?: boolean): void
+```
+
 **使用方式：**
 ```js
-// 重置作用域
+// 解除元素绑定
 window.microApp.removeDomScope()
+
+// 解除元素绑定，并且一定时间内阻止再次绑定
+window.microApp.removeDomScope(true)
 ```
 
 ## rawWindow

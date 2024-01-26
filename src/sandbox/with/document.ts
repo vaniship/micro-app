@@ -69,12 +69,26 @@ function createProxyDocument (
   const {
     rawDocument,
     rawCreateElement,
+    rawCreateElementNS,
     rawAddEventListener,
     rawRemoveEventListener,
   } = globalEnv
 
-  function createElement (tagName: string, options?: ElementCreationOptions): HTMLElement {
+  function createElement (
+    tagName: string,
+    options?: ElementCreationOptions,
+  ): HTMLElement {
     const element = rawCreateElement.call(rawDocument, tagName, options)
+    element.__MICRO_APP_NAME__ = appName
+    return element
+  }
+
+  function createElementNS (
+    namespaceURI: string,
+    name: string,
+    options?: string | ElementCreationOptions,
+  ): HTMLElement {
+    const element = rawCreateElementNS.call(rawDocument, namespaceURI, name, options)
     element.__MICRO_APP_NAME__ = appName
     return element
   }
@@ -209,6 +223,7 @@ function createProxyDocument (
       throttleDeferForSetAppName(appName)
       // TODO: 转换成数据形式，类似iframe的方式
       if (key === 'createElement') return createElement
+      if (key === 'createElementNS') return createElementNS
       if (key === Symbol.toStringTag) return 'ProxyDocument'
       if (key === 'defaultView') return sandbox.proxyWindow
       if (key === 'onclick') return onClickHandler
