@@ -58,6 +58,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   const microRootDocument = microAppWindow.Document
   const microDocument = microAppWindow.document
   const rawMicroCreateElement = microRootDocument.prototype.createElement
+  const rawMicroCreateElementNS = microRootDocument.prototype.createElementNS
   const rawMicroCreateTextNode = microRootDocument.prototype.createTextNode
   const rawMicroCreateComment = microRootDocument.prototype.createComment
   const rawMicroQuerySelector = microRootDocument.prototype.querySelector
@@ -85,6 +86,15 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     options?: ElementCreationOptions,
   ): HTMLElement {
     const element = rawMicroCreateElement.call(this, tagName, options)
+    return updateElementInfo(element, appName)
+  }
+
+  microRootDocument.prototype.createElementNS = function createElementNS (
+    namespaceURI: string,
+    name: string,
+    options?: string | ElementCreationOptions,
+  ): HTMLElement {
+    const element = rawMicroCreateElementNS.call(this, namespaceURI, name, options)
     return updateElementInfo(element, appName)
   }
 

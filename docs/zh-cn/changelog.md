@@ -16,6 +16,7 @@
 
   - 🆕 新增全局配置`iframeSrc`，用于动态设置iframe沙箱的src地址。
   - 🆕 新增micro-app元素公有变量`publicPath`、`baseRoute`，用于支持chrome插件，[PR 1052](https://github.com/micro-zoe/micro-app/pull/1052) by [raoenhui](https://github.com/raoenhui)。
+  - 🆕 新增了在iframe沙箱下对`Document.prototype.createElementNS`的拦截和处理。
 
 - **Bug Fix**
 

@@ -229,6 +229,11 @@ document.head.insertAdjacentElement('afterbegin', dynamicScript3)
 // document.body.prepend(1, '2', '<div>111</div>')
 // -- 测试 Element.prototype.append -- 结束
 
+// -- 测试 Element.prototype.append -- 开始
+// const dynamicSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+// document.body.appendChild(dynamicSvg)
+// console.assert(document.body.lastChild !== dynamicSvg)
+// -- 测试 Element.prototype.append -- 结束
 
 /* ---------------------- 全局变量 --------------------- */
 // console.log('__micro_app_environment__', window.__micro_app_environment__)
