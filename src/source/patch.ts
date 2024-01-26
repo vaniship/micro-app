@@ -429,29 +429,33 @@ export function patchElementAndDocument (): void {
     return clonedNode
   }
 
-  function getQueryTarget (node: Node): Node | null {
+  /**
+   * document.body(head).querySelector(querySelectorAll) hijack to microAppBody(microAppHead).querySelector(querySelectorAll)
+   * NOTE:
+   *  1. May cause some problems!
+   *  2. Add config options?
+   */
+  function getQueryTarget (target: Node): Node | null {
     const currentAppName = getCurrentAppName()
-    if ((node === document.body || node === document.head) && currentAppName) {
+    if ((target === document.body || target === document.head) && currentAppName) {
       const app = appInstanceMap.get(currentAppName)
       if (app?.container) {
-        if (node === document.body) {
+        if (target === document.body) {
           return app.querySelector('micro-app-body')
-        } else if (node === document.head) {
+        } else if (target === document.head) {
           return app.querySelector('micro-app-head')
         }
       }
     }
-    return null
+    return target
   }
 
   rawRootElement.prototype.querySelector = function querySelector (selectors: string): Node | null {
-    const target = getQueryTarget(this) ?? this
-    return globalEnv.rawElementQuerySelector.call(target, selectors)
+    return globalEnv.rawElementQuerySelector.call(getQueryTarget(this) ?? this, selectors)
   }
 
   rawRootElement.prototype.querySelectorAll = function querySelectorAll (selectors: string): NodeListOf<Node> {
-    const target = getQueryTarget(this) ?? this
-    return globalEnv.rawElementQuerySelectorAll.call(target, selectors)
+    return globalEnv.rawElementQuerySelectorAll.call(getQueryTarget(this) ?? this, selectors)
   }
 
   // rewrite setAttribute, complete resource address

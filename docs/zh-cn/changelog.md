@@ -18,6 +18,7 @@
   - 🆕 新增micro-app元素公有变量`publicPath`、`baseRoute`，用于支持chrome插件，[PR 1052](https://github.com/micro-zoe/micro-app/pull/1052) by [raoenhui](https://github.com/raoenhui)。
   - 🆕 新增了在iframe沙箱下对`Document.prototype.createElementNS`、`Document.prototype.createDocumentFragment`的拦截和处理。
   - 🆕 新增了`removeDomScope`方法的配置项`force`，用于在一定时间内解除元素绑定，[issue 995](https://github.com/micro-zoe/micro-app/issues/995)。
+  - 🆕 新增了with沙箱对于`Document.prototype.createElementNS`的直接处理，规避可能存在的元素泄漏风险。
 
 - **Bug Fix**
 
