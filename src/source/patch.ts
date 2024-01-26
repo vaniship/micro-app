@@ -600,15 +600,16 @@ function patchDocument () {
     return markElement(element)
   }
 
-  rawRootDocument.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
-    const element = globalEnv.rawCreateDocumentFragment.call(getBindTarget(this))
-    return markElement(element)
-  }
-
+  // TODO: 放开
   // rawRootDocument.prototype.createTextNode = function createTextNode (data: string): Text {
   //   const element = globalEnv.rawCreateTextNode.call(getBindTarget(this), data)
   //   return markElement(element)
   // }
+
+  rawRootDocument.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
+    const element = globalEnv.rawCreateDocumentFragment.call(getBindTarget(this))
+    return markElement(element)
+  }
 
   rawRootDocument.prototype.createComment = function createComment (data: string): Comment {
     const element = globalEnv.rawCreateComment.call(getBindTarget(this), data)

@@ -60,6 +60,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   const rawMicroCreateElement = microRootDocument.prototype.createElement
   const rawMicroCreateElementNS = microRootDocument.prototype.createElementNS
   const rawMicroCreateTextNode = microRootDocument.prototype.createTextNode
+  const rawMicroCreateDocumentFragment = microRootDocument.prototype.createDocumentFragment
   const rawMicroCreateComment = microRootDocument.prototype.createComment
   const rawMicroQuerySelector = microRootDocument.prototype.querySelector
   const rawMicroQuerySelectorAll = microRootDocument.prototype.querySelectorAll
@@ -101,6 +102,11 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
   microRootDocument.prototype.createTextNode = function createTextNode (data: string): Text {
     const element = rawMicroCreateTextNode.call(this, data)
     return updateElementInfo<Text>(element, appName)
+  }
+
+  microRootDocument.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
+    const element = rawMicroCreateDocumentFragment.call(this)
+    return updateElementInfo(element, appName)
   }
 
   microRootDocument.prototype.createComment = function createComment (data: string): Comment {
