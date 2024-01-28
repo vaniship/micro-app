@@ -21,6 +21,7 @@
       console.log('inline module script')
     </script>
     <script id="test-id">
+      console.assert(escapeKey3 !== undefined, 'window.escapeKey3 兜底到主应用，主应用存在该值，不为undefined')
       console.log('测试script带有id时的处理逻辑')
     </script>
 

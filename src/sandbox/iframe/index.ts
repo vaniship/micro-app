@@ -68,10 +68,11 @@ export default class IframeSandbox {
   public escapeKeys = new Set<PropertyKey>()
   public deleteIframeElement: () => void
   public iframe!: HTMLIFrameElement | null
+  // Promise used to mark whether the sandbox is initialized
   public sandboxReady!: Promise<void>
+  public proxyWindow: WindowProxy & microAppWindowType
   public microAppWindow: microAppWindowType
   public proxyLocation!: MicroLocation
-  public proxyWindow: WindowProxy & microAppWindowType
   public baseElement!: HTMLBaseElement
   public microHead!: HTMLHeadElement
   public microBody!: HTMLBodyElement
@@ -244,6 +245,7 @@ export default class IframeSandbox {
    * NOTE:
    *  1. execute as early as possible
    *  2. run after patchRouter & createProxyWindow
+   * TODO: 设置为只读变量
    */
   private initStaticGlobalKeys (
     appName: string,
@@ -480,6 +482,7 @@ export default class IframeSandbox {
   }
 
   /**
+   * action before exec scripts when mount
    * Actions:
    * 1. patch static elements from html
    * @param container micro app container
