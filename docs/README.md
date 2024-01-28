@@ -9,7 +9,9 @@
 ![microfroentend](https://img12.360buyimg.com/imagetools/jfs/t1/16487/16/31677/95933/6523ce90F10951212/78b3cee6ce36845b.png ':size=800')
 
 ### 关于micro-app
-  `micro-app`包含`js`沙箱、样式隔离、元素隔离等特性，并借鉴了`WebComponent`的思想，通过`CustomElement`将`micro-app`封装成一个类`WebComponent`组件，从而实现了微前端的组件化渲染。
+  `micro-app`是由京东前端团队推出的一款微前端框架，它借鉴了WebComponent的思想，通过`js沙箱`、`样式隔离`、`元素隔离`、`路由隔离`模拟实现了ShadowDom的隔离特性，并结合CustomElement将微前端封装成一个类WebComponent组件，从而实现微前端的组件化渲染，旨在降低上手难度、提升工作效率。
+
+  `micro-app`和技术栈无关，也不和业务绑定，可以用于任何前端框架。
 
   ##### 概念图
   ![image](https://img10.360buyimg.com/imagetools/jfs/t1/168885/23/20790/54203/6084d445E0c9ec00e/d879637b4bb34253.png ':size=750')
