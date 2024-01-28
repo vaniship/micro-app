@@ -1,4 +1,4 @@
-/* eslint-disable no-new-func, indent, @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable no-new-func, indent, no-self-compare, @typescript-eslint/explicit-module-boundary-types */
 import type {
   Func,
   LocationQueryObject,
@@ -161,21 +161,24 @@ export function isProxyDocument (target: unknown): target is Document {
   return toTypeString(target) === '[object ProxyDocument]'
 }
 
-export function includes (list: unknown[], element: unknown, start = 0): boolean {
-  if (!(list instanceof Array)) {
-    throw new Error('The first argument must be an array')
+export function includes (target: unknown[], searchElement: unknown, fromIndex?: number): boolean {
+  if (target == null) {
+    throw new TypeError('includes target is null or undefined')
   }
 
-  if (start < 0) {
-    start = list.length + start
-  }
-
-  for (let i = start; i < list.length; i++) {
-    if (list[i] === element) {
+  const O = Object(target)
+  const len = parseInt(O.length, 10) || 0
+  if (len === 0) return false
+  // @ts-ignore
+  fromIndex = parseInt(fromIndex, 10) || 0
+  let i = Math.max(fromIndex >= 0 ? fromIndex : len + fromIndex, 0)
+  while (i < len) {
+    // same value or NaN !== NaN
+    if (searchElement === O[i] || (searchElement !== searchElement && O[i] !== O[i])) {
       return true
     }
+    i++
   }
-
   return false
 }
 

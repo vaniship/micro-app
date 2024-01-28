@@ -94,14 +94,14 @@ function createProxyWindow (
         (isString(key) && /^__MICRO_APP_/.test(key)) ||
         includes(sandbox.scopeProperties, key)
       ) {
-        if (RAW_GLOBAL_TARGET.includes(key)) removeDomScope()
+        if (includes(RAW_GLOBAL_TARGET, key)) removeDomScope()
         return Reflect.get(target, key)
       }
 
       return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
     },
     set: (target: microAppWindowType, key: PropertyKey, value: unknown): boolean => {
-      if (sandbox.rawWindowScopeKeyList.includes(key)) {
+      if (includes(sandbox.rawWindowScopeKeyList, key)) {
         Reflect.set(rawWindow, key, value)
       } else if (
         // target.hasOwnProperty has been rewritten
@@ -122,7 +122,7 @@ function createProxyWindow (
         sandbox.injectedKeys.add(key)
       } else {
         // all scopeProperties will add to injectedKeys, use for key in window (Proxy.has)
-        if (!Reflect.has(target, key) || sandbox.scopeProperties.includes(key)) {
+        if (!Reflect.has(target, key) || includes(sandbox.scopeProperties, key)) {
           sandbox.injectedKeys.add(key)
         }
         Reflect.set(target, key, value)
@@ -130,10 +130,10 @@ function createProxyWindow (
 
       if (
         (
-          sandbox.escapeProperties.includes(key) ||
+          includes(sandbox.escapeProperties, key) ||
           (
             // TODO: staticEscapeProperties 合并到 escapeProperties
-            sandbox.staticEscapeProperties.includes(key) &&
+            includes(sandbox.staticEscapeProperties, key) &&
             !Reflect.has(rawWindow, key)
           )
         ) &&
@@ -152,7 +152,7 @@ function createProxyWindow (
        * 2. 'Vue' in window --> false
        * Issue https://github.com/micro-zoe/micro-app/issues/686
        */
-      if (sandbox.scopeProperties.includes(key)) {
+      if (includes(sandbox.scopeProperties, key)) {
         if (sandbox.injectedKeys.has(key)) {
           return Reflect.has(target, key) // true
         }

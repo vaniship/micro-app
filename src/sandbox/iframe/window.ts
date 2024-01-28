@@ -10,6 +10,7 @@ import {
   rawDefineProperty,
   isFunction,
   logWarn,
+  includes,
 } from '../../libs/utils'
 import {
   GLOBAL_KEY_TO_WINDOW,
@@ -124,7 +125,7 @@ function createProxyWindow (
         return sandbox.proxyLocation
       }
 
-      if (GLOBAL_KEY_TO_WINDOW.includes(key.toString())) {
+      if (includes(GLOBAL_KEY_TO_WINDOW, key)) {
         return proxyWindow
       }
 
@@ -139,7 +140,7 @@ function createProxyWindow (
        *  2. window.key in module app(vite), fall into microAppWindow(iframeWindow), escapeProperties will not take effect
        *  3. if (key)... --> fall into microAppWindow(iframeWindow), escapeProperties will not take effect
        */
-      if (sandbox.escapeProperties.includes(key) && !Reflect.has(target, key)) {
+      if (includes(sandbox.escapeProperties, key) && !Reflect.has(target, key)) {
         return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
       }
 
@@ -156,7 +157,7 @@ function createProxyWindow (
 
       Reflect.set(target, key, value)
 
-      if (sandbox.escapeProperties.includes(key)) {
+      if (includes(sandbox.escapeProperties, key)) {
         !Reflect.has(rawWindow, key) && sandbox.escapeKeys.add(key)
         Reflect.set(rawWindow, key, value)
       }

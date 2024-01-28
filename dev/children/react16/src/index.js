@@ -517,3 +517,12 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 
 // --- document.querySelector(':root'), document.documentElement 和 动态设置css变量
 // console.log(`document.querySelector(':root'): `, document.querySelector(':root'), document.querySelector(':root') === document.documentElement)
+
+/* ---------------------- 测试重写Array.prototype.includes导致的死循环问题 --------------------- */
+const oldIncludes = Array.prototype.includes
+
+Array.prototype.includes = function includes (searchElement, fromIndex) {
+  console.assert(window.testRewriteIncludes === undefined)
+  console.assert('testRewriteIncludes' in window === false)
+  return oldIncludes.call(this, searchElement, fromIndex)
+}
