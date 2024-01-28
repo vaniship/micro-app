@@ -348,21 +348,14 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 /* ---------------------- 插件相关 --------------------- */
+// ----------------------- scope相关---------------------开始
 if (window.__MICRO_APP_ENVIRONMENT__) {
-  console.assert(window.scopeKey1 === undefined, '初始化前 window.scopeKey1 应该为 undefined')
   window.scopeKey1 = 'scopeKey1'
   window.scopeKey2 = 'scopeKey2'
   window.scopeKey3 = 'scopeKey3'
   // window.scopeKey4 = 'scopeKey4'
   window.scopeKey5 = 'scopeKey5'
   window.scopeKey6 = 'scopeKey6'
-
-  window.escapeKey1 = 'escapeKey1'
-  window.escapeKey2 = 'escapeKey2'
-  window.escapeKey3 = 'escapeKey3'
-  window.escapeKey4 = 'escapeKey4'
-  window.escapeKey5 = 'escapeKey5' // should be undefined in rawWindow
-  window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
 
   // scopeKeyPure1、scopeKeyPure2为绑定变量，但子应用没有重新定义
   console.assert(window.scopeKeyPure1 === undefined, 'window.scopeKeyPure1 错误')
@@ -382,9 +375,21 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
   window.Vue = '自定义Vue'
   console.assert(window.Vue === '自定义Vue', 'window.Vue 应该为自定义Vue')
 
-  console.assert(rawWindow.escapeKey5 === undefined, 'rawWindow.escapeKey5 结果错误')
-}
+  // ----------------------- scope相关---------------------结束
 
+  // ----------------------- escape相关--------------------开始
+  console.assert(window.escapeKey1 === undefined, 'window.escapeKey1 兜底到主应用，但主应用不存在，为undefined')
+  console.assert(window.escapeKey3 !== undefined, 'window.escapeKey3 兜底到主应用，主应用存在该值，不为undefined')
+  window.escapeKey1 = 'escapeKey1'
+  window.escapeKey2 = 'escapeKey2'
+  window.escapeKey3 = 'escapeKey3'
+  window.escapeKey4 = 'escapeKey4'
+  window.escapeKey5 = 'escapeKey5' // should be undefined in rawWindow
+  window.escapeKey6 = 'escapeKey6' // should be undefined in rawWindow
+
+  console.assert(rawWindow.escapeKey5 === undefined, 'rawWindow.escapeKey5 结果错误')
+  // ----------------------- escape相关--------------------结束
+}
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */
 if (window.__MICRO_APP_ENVIRONMENT__) {

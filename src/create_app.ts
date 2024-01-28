@@ -568,6 +568,7 @@ export default class CreateApp implements AppInterface {
     this.preRenderEvents = null
     this.setKeepAliveState(null)
     // in iframe sandbox & default mode, delete the sandbox & iframeElement
+    // TODO: with沙箱与iframe沙箱保持一致：with沙箱默认模式下删除 或者 iframe沙箱umd模式下保留
     if (this.iframe && !this.umdMode) this.sandBox = null
     if (destroy) this.actionsForCompletelyDestroy()
     removeDomScope()
@@ -737,11 +738,7 @@ export default class CreateApp implements AppInterface {
    */
   private createSandbox (): void {
     if (this.useSandbox && !this.sandBox) {
-      if (this.iframe) {
-        this.sandBox = new IframeSandbox(this.name, this.url)
-      } else {
-        this.sandBox = new WithSandBox(this.name, this.url)
-      }
+      this.sandBox = this.iframe ? new IframeSandbox(this.name, this.url) : new WithSandBox(this.name, this.url)
     }
   }
 

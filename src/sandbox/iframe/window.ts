@@ -109,8 +109,15 @@ function createProxyWindow (
   sandbox: IframeSandbox,
 ): void {
   const rawWindow = globalEnv.rawWindow
-  const customProperties: PropertyKey[] = []
+  const customProperties = new Set<PropertyKey>()
 
+  /**
+   * proxyWindow will only take effect in certain scenes, such as window.key
+   * e.g:
+   *  1. window.key in normal app --> fall into proxyWindow
+   *  2. window.key in module app(vite), fall into microAppWindow(iframeWindow)
+   *  3. if (key)... --> fall into microAppWindow(iframeWindow)
+   */
   const proxyWindow = new Proxy(microAppWindow, {
     get: (target: microAppWindowType, key: PropertyKey): unknown => {
       if (key === 'location') {
@@ -121,8 +128,19 @@ function createProxyWindow (
         return proxyWindow
       }
 
-      if (customProperties.includes(key)) {
+      if (customProperties.has(key)) {
         return Reflect.get(target, key)
+      }
+
+      /**
+       * Same as proxyWindow, escapeProperties will only take effect in certain scenes
+       * e.g:
+       *  1. window.key in normal app --> fall into proxyWindow, escapeProperties will effect
+       *  2. window.key in module app(vite), fall into microAppWindow(iframeWindow), escapeProperties will not take effect
+       *  3. if (key)... --> fall into microAppWindow(iframeWindow), escapeProperties will not take effect
+       */
+      if (sandbox.escapeProperties.includes(key) && !Reflect.has(target, key)) {
+        return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
       }
 
       return bindFunctionToRawTarget(Reflect.get(target, key), target)
@@ -133,7 +151,7 @@ function createProxyWindow (
       }
 
       if (!Reflect.has(target, key)) {
-        customProperties.push(key)
+        customProperties.add(key)
       }
 
       Reflect.set(target, key, value)
