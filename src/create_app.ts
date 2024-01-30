@@ -5,6 +5,7 @@ import type {
   WithSandBoxInterface,
   MountParam,
   UnmountParam,
+  OnLoadParam,
 } from '@micro-app/types'
 import { HTMLLoader } from './source/loader/html'
 import { extractSourceDom } from './source/index'
@@ -18,7 +19,6 @@ import {
   keepAliveStates,
   microGlobalEvent,
   DEFAULT_ROUTER_MODE,
-  ROUTER_MODE_CUSTOM,
 } from './constants'
 import {
   isFunction,
@@ -132,14 +132,16 @@ export default class CreateApp implements AppInterface {
 
   /**
    * When resource is loaded, mount app if it is not prefetch or unmount
+   * defaultPage disablePatchRequest routerMode baseroute is only for prerender app
    */
-  public onLoad (
-    html: HTMLElement,
-    defaultPage?: string,
-    disablePatchRequest?: boolean,
-    routerMode?: string,
-    baseroute?: string,
-  ): void {
+  public onLoad ({
+    html,
+    // below params is only for prerender app
+    defaultPage,
+    routerMode,
+    baseroute,
+    disablePatchRequest,
+  }: OnLoadParam): void {
     if (++this.loadSourceLevel === 2) {
       this.source.html = html
 
@@ -169,11 +171,11 @@ export default class CreateApp implements AppInterface {
         this.mount({
           container,
           inline: this.inline,
-          routerMode: routerMode!,
-          baseroute: baseroute || '',
           fiber: true,
           defaultPage: defaultPage || '',
           disablePatchRequest: disablePatchRequest ?? false,
+          routerMode: routerMode!,
+          baseroute: baseroute || '',
         })
       }
     }
@@ -323,6 +325,7 @@ export default class CreateApp implements AppInterface {
                * umdHookUnmount can works in default mode
                * register through window.unmount
                */
+              // TODO: 不对，这里要改，因为unmount不一定是函数
               this.umdHookUnmount = unmount as Func
               // if mount & unmount is function, the sub app is umd mode
               if (isFunction(mount) && isFunction(unmount)) {
@@ -604,7 +607,7 @@ export default class CreateApp implements AppInterface {
       lifeCycles.AFTERHIDDEN,
     )
 
-    if (this.routerMode !== ROUTER_MODE_CUSTOM) {
+    if (this.routerMode !== DEFAULT_ROUTER_MODE) {
       // called after lifeCyclesEvent
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
@@ -656,7 +659,7 @@ export default class CreateApp implements AppInterface {
      *  问题：当路由模式为custom时，keep-alive应用在重新展示，是否需要根据子应用location信息更新浏览器地址？
      *  暂时不这么做吧，因为无法确定二次展示时新旧地址是否相同，是否带有特殊信息
      */
-    if (this.routerMode !== ROUTER_MODE_CUSTOM) {
+    if (this.routerMode !== DEFAULT_ROUTER_MODE) {
       // called before lifeCyclesEvent
       this.sandBox?.setRouteInfoForKeepAliveApp()
     }

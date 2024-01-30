@@ -421,7 +421,18 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 // }, 0);
 
 
-/* ---------------------- location 跳转 --------------------- */
+/* ---------------------- location 相关 --------------------- */
+// 获取location信息
+console.log(`${__MICRO_APP_NAME__} location.href`, location.href, rawWindow.location.href)
+console.log(`${__MICRO_APP_NAME__} location.origin`, location.origin, rawWindow.location.origin)
+console.log(`${__MICRO_APP_NAME__} location.host`, location.host, rawWindow.location.host)
+console.log(`${__MICRO_APP_NAME__} location.hostname`, location.hostname, rawWindow.location.hostname)
+console.log(`${__MICRO_APP_NAME__} location.port`, location.port, rawWindow.location.port)
+console.log(`${__MICRO_APP_NAME__} location.protocol`, location.protocol, rawWindow.location.protocol)
+console.log(`${__MICRO_APP_NAME__} location.pathname`, location.pathname, rawWindow.location.pathname)
+console.log(`${__MICRO_APP_NAME__} location.hash`, location.hash, rawWindow.location.hash)
+console.log(`${__MICRO_APP_NAME__} location.search`, location.search, rawWindow.location.search)
+
 // 依次放开每个注释来，尽可能覆盖所有场景
 setTimeout(() => {
   // window.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
@@ -526,3 +537,5 @@ Array.prototype.includes = function includes (searchElement, fromIndex) {
   console.assert('testRewriteIncludes' in window === false)
   return oldIncludes.call(this, searchElement, fromIndex)
 }
+
+

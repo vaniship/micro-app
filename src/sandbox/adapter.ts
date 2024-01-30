@@ -135,6 +135,7 @@ export function updateElementInfo <T> (node: T, appName: string): T {
     rawDefineProperties(node, {
       baseURI: {
         configurable: true,
+        // if disable-memory-router or router-mode='disable', href point to base app
         get: () => proxyWindow.location.href,
       },
       __MICRO_APP_NAME__: {

@@ -173,7 +173,7 @@ export function includes (target: unknown[], searchElement: unknown, fromIndex?:
   fromIndex = parseInt(fromIndex, 10) || 0
   let i = Math.max(fromIndex >= 0 ? fromIndex : len + fromIndex, 0)
   while (i < len) {
-    // same value or NaN !== NaN
+    // NaN !== NaN
     if (searchElement === O[i] || (searchElement !== searchElement && O[i] !== O[i])) {
       return true
     }

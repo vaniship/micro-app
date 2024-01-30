@@ -152,6 +152,15 @@ declare module '@micro-app/types' {
     // hiddenRouter: boolean
   }
 
+  interface OnLoadParam {
+    html: HTMLElement,
+    // below params is only for prerender app
+    defaultPage?: string // default page of virtual router
+    routerMode?: string // virtual router mode
+    baseroute?: string // route prefix, default is ''
+    disablePatchRequest?: boolean // prevent rewrite request method of child app
+  }
+
   interface UnmountParam {
     destroy: boolean, // completely destroy, delete cache resources
     clearData: boolean // clear data of dateCenter
@@ -186,7 +195,7 @@ declare module '@micro-app/types' {
     loadSourceCode (): void
 
     // resource is loaded
-    onLoad (html: HTMLElement, defaultPage?: string, disablePatchRequest?: boolean): void
+    onLoad (onLoadParam: OnLoadParam): void
 
     // Error loading HTML
     onLoadError (e: Error): void
@@ -242,9 +251,9 @@ declare module '@micro-app/types' {
     inline?: boolean
     iframe?: boolean
     level?: number
+    // prerender only 👇
     'default-page'?: string
     'disable-patch-request'?: boolean
-    // prerender only 👇
     'router-mode'?: string
     baseroute?: string
     // prerender only 👆
@@ -379,13 +388,6 @@ declare module '@micro-app/types' {
 
     // Hooks for element attributes change
     attributeChangedCallback (a: 'name' | 'url', o: string, n: string): void
-
-    /**
-     * Get configuration
-     * Global setting is lowest priority
-     * @param name Configuration item name
-     */
-    getDisposeResult <T extends keyof OptionsType> (name: T): boolean
   }
 
   // special CallableFunction for interact
@@ -396,6 +398,7 @@ declare module '@micro-app/types' {
 
   interface MicroLocation extends Location, URL {
     fullPath: string
+    self: URL | Location
     [key: string]: any
   }
 

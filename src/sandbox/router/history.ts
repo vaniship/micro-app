@@ -33,7 +33,7 @@ import { appInstanceMap, isIframeSandbox } from '../../create_app'
  * create proxyHistory for microApp
  * MDN https://developer.mozilla.org/en-US/docs/Web/API/History
  * @param appName app name
- * @param microLocation microApp location
+ * @param microLocation microApp location(with: proxyLocation iframe: iframeWindow.location)
  */
 export function createMicroHistory (appName: string, microLocation: MicroLocation): MicroHistory {
   const rawHistory = globalEnv.rawWindow.history

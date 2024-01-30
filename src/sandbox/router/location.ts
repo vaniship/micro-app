@@ -16,6 +16,7 @@ import {
   isEffectiveApp,
   getMicroState,
   isRouterModeCustom,
+  isRouterModeDisable,
 } from './core'
 import {
   dispatchNativeEvent,
@@ -184,6 +185,18 @@ export function createMicroLocation (
   const proxyLocation = new Proxy({} as Location, {
     get: (_: Location, key: string): unknown => {
       const target = getTarget()
+
+      if (key === 'assign') return assign
+      if (key === 'replace') return replace
+      if (key === 'reload') return reload
+      if (key === 'self') return target
+      if (key === 'fullPath') return target.fullPath
+
+      if (isRouterModeDisable(appName)) {
+        return bindFunctionToRawTarget<Location>(Reflect.get(rawLocation, key), rawLocation, 'LOCATION')
+      }
+
+      // src of iframe is base app address, it needs to be replaced separately
       if (isIframe) {
         // host hostname port protocol
         if (hijackMicroLocationKeys.includes(key)) {
@@ -195,11 +208,6 @@ export function createMicroLocation (
           return target[key].replace(browserHost!, childHost!)
         }
       }
-
-      if (key === 'assign') return assign
-      if (key === 'replace') return replace
-      if (key === 'reload') return reload
-      if (key === 'self') return target
 
       return bindFunctionToRawTarget<Location>(Reflect.get(target, key), target, 'LOCATION')
     },
@@ -304,9 +312,11 @@ export function updateMicroLocation (
     const microAppWindow = appInstanceMap.get(appName)!.sandBox.microAppWindow
     microAppWindow.rawReplaceState?.call(microAppWindow.history, getMicroState(appName), '', newLocation.href)
   } else {
-    for (const key of locationKeys) {
-      microLocation.self[key] = newLocation[key]
+    let targetHref = newLocation.href
+    if (microLocation.self.origin !== newLocation.origin) {
+      targetHref = targetHref.replace(newLocation.origin, microLocation.self.origin)
     }
+    microLocation.self.href = targetHref
   }
   // update latest values of microLocation to `to`
   const to = createGuardLocation(appName, microLocation)

@@ -62,13 +62,24 @@ export enum MicroAppConfig {
 export const PREFETCH_LEVEL: number[] = [1, 2, 3]
 
 // memory router constants
+// default mode, child router info will sync to browser url
 export const DEFAULT_ROUTER_MODE = 'search'
+// render base on browser url, but location.origin location.href point to child app
 export const ROUTER_MODE_HISTORY = 'history'
-export const ROUTER_MODE_CUSTOM = 'custom'
+/**
+ * render base on browser url, and location.origin location.href point to base app
+ * equal to disable-memory-router
+ * NOTE:
+ *  1. The only difference between disable and history is location.origin (origin, href, host, hostname, port, protocol), in disable mode location.origin point to browser
+ */
+export const ROUTER_MODE_DISABLE = 'disable'
+// search mode, but child router info will not sync to browser url
+export const ROUTER_MODE_PURE = 'pure'
 export const ROUTER_MODE_LIST: string[] = [
   DEFAULT_ROUTER_MODE,
   ROUTER_MODE_HISTORY,
-  ROUTER_MODE_CUSTOM,
+  ROUTER_MODE_DISABLE,
+  ROUTER_MODE_PURE,
 ]
 
 // event bound to child app window

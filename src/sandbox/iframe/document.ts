@@ -229,6 +229,7 @@ function patchDocumentProperty (
   const createDescriptors = (): PropertyDescriptorMap => {
     const result: PropertyDescriptorMap = {}
     const descList: Array<[string, () => unknown]> = [
+      // if disable-memory-router or router-mode='disable', href point to base app
       ['documentURI', () => sandbox.proxyLocation.href],
       ['URL', () => sandbox.proxyLocation.href],
       ['documentElement', () => rawDocument.documentElement],

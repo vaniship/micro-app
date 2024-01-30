@@ -18,6 +18,7 @@ import {
   isPlainObject,
   isArray,
   defer,
+  createURL,
 } from '../../libs/utils'
 import {
   EventCenterForMicroApp,
@@ -76,8 +77,13 @@ export default class IframeSandbox {
   public baseElement!: HTMLBaseElement
   public microHead!: HTMLHeadElement
   public microBody!: HTMLBodyElement
+  // TODO: 放到 super中定义，super(appName, url)，with沙箱也需要简化
+  public appName: string
+  public url: string
 
   constructor (appName: string, url: string) {
+    this.appName = appName
+    this.url = url
     const rawLocation = globalEnv.rawWindow.location
     const browserHost = rawLocation.protocol + '//' + rawLocation.host
 
@@ -416,9 +422,10 @@ export default class IframeSandbox {
     this.microHead.appendChild(this.baseElement)
   }
 
-  // TODO: 初始化和每次跳转时都要更新base的href
+  // 初始化和每次跳转时都要更新base的href
   public updateIframeBase = (): void => {
-    this.baseElement?.setAttribute('href', this.proxyLocation.protocol + '//' + this.proxyLocation.host + this.proxyLocation.pathname)
+    // origin must be child app origin
+    this.baseElement?.setAttribute('href', createURL(this.url).origin + this.proxyLocation.pathname)
   }
 
   /**
