@@ -12,7 +12,7 @@ import { extractSourceDom } from './source/index'
 import { execScripts } from './source/scripts'
 import WithSandBox from './sandbox/with'
 import IframeSandbox from './sandbox/iframe'
-import { router } from './sandbox/router'
+import { router, isRouterModeSearch } from './sandbox/router'
 import {
   appStates,
   lifeCycles,
@@ -607,7 +607,7 @@ export default class CreateApp implements AppInterface {
       lifeCycles.AFTERHIDDEN,
     )
 
-    if (this.routerMode !== DEFAULT_ROUTER_MODE) {
+    if (isRouterModeSearch(this.name)) {
       // called after lifeCyclesEvent
       this.sandBox?.removeRouteInfoForKeepAliveApp()
     }
@@ -659,7 +659,7 @@ export default class CreateApp implements AppInterface {
      *  问题：当路由模式为custom时，keep-alive应用在重新展示，是否需要根据子应用location信息更新浏览器地址？
      *  暂时不这么做吧，因为无法确定二次展示时新旧地址是否相同，是否带有特殊信息
      */
-    if (this.routerMode !== DEFAULT_ROUTER_MODE) {
+    if (isRouterModeSearch(this.name)) {
       // called before lifeCyclesEvent
       this.sandBox?.setRouteInfoForKeepAliveApp()
     }

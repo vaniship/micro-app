@@ -463,7 +463,7 @@ setTimeout(() => {
   // console.log(111111, window.location)
 
   // window.history.scrollRestoration = 'manual'
-}, 5000);
+}, 3000);
 
 
 /* ---------------------- popstate 和 hashchange --------------------- */
@@ -530,12 +530,13 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 // console.log(`document.querySelector(':root'): `, document.querySelector(':root'), document.querySelector(':root') === document.documentElement)
 
 /* ---------------------- 测试重写Array.prototype.includes导致的死循环问题 --------------------- */
-const oldIncludes = Array.prototype.includes
+// const oldIncludes = Array.prototype.includes
 
-Array.prototype.includes = function includes (searchElement, fromIndex) {
-  console.assert(window.testRewriteIncludes === undefined)
-  console.assert('testRewriteIncludes' in window === false)
-  return oldIncludes.call(this, searchElement, fromIndex)
-}
+// Array.prototype.includes = function includes (searchElement, fromIndex) {
+//   // 这样写还会导致切换子应用失败，原因是主应用切换路由时触发includes，元素作用域绑定到子应用，导致主应用的js被拦截
+//   console.assert(window.testRewriteIncludes === undefined)
+//   console.assert('testRewriteIncludes' in window === false)
+//   return oldIncludes.call(this, searchElement, fromIndex)
+// }
 
 
