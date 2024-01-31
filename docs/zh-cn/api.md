@@ -19,6 +19,7 @@ start (options?: {
   'disable-memory-router'?: boolean, // 全局关闭虚拟路由系统，默认值false
   'keep-router-state'?: boolean, // 子应用在卸载时保留路由状态，默认值false
   'disable-patch-request'?: boolean, // 关闭子应用请求的自动补全功能，默认值false
+  'router-mode'?: string, // 设置路由模式，共四种：search、native、native-scope、pure，默认为search
   iframeSrc?: string, // 设置iframe沙箱中iframe的src地址，默认为子应用所在页面地址
   // 全局生命周期
   lifeCycles?: {
