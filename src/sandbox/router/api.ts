@@ -153,10 +153,10 @@ function createRouterApi (): RouterApi {
            *  2. disable memory-router
            */
           /**
-           * TODO: 子应用开始渲染但是还没渲染完成
-           *  1、调用跳转改如何处理
+           * TODO:
+           *  1、子应用开始渲染但是还没渲染完成，调用跳转改如何处理
            *  2、iframe的沙箱还没初始化时执行跳转报错，如何处理。。。
-           *  3、hidden app 是否支持跳转
+           *  3、hidden app、预渲染 app 是否支持跳转 --- 支持（这里还涉及子应用内部跳转的支持）
            */
           if (getActiveApps({ excludeHiddenApp: true, excludePreRender: true }).includes(appName)) {
             const app = appInstanceMap.get(appName)!

@@ -235,3 +235,14 @@ window.onclick = function () {
 // window.addEventListener('click', function (event) {
 //   console.log(`基座`, event instanceof PointerEvent, this)
 // }, false)
+
+
+/* ---------------------- 测试unhandledrejection --------------------- */
+// window.addEventListener('unhandledrejection', (event) => {
+//   console.error(`基座Promise报错监听 -- window.addEventListener(unhandledrejection): `, event)
+//   event.preventDefault()
+// })
+
+// window.onunhandledrejection = (event) => {
+//   console.error(`基座Promise报错监听 -- window.onunhandledrejection: `, event);
+// }

@@ -14,8 +14,8 @@ import {
 } from '../../libs/utils'
 import {
   GLOBAL_KEY_TO_WINDOW,
-  SCOPE_WINDOW_EVENT,
-  SCOPE_WINDOW_ON_EVENT,
+  SCOPE_WINDOW_EVENT_OF_IFRAME,
+  SCOPE_WINDOW_ON_EVENT_OF_IFRAME,
 } from '../../constants'
 import {
   escape2RawWindowKeys,
@@ -78,7 +78,7 @@ function patchWindowProperty (
         return false
       })
 
-      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
+      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT_OF_IFRAME.includes(key)
     })
     .forEach((eventName: string) => {
       const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(microAppWindow, eventName) || {
@@ -183,7 +183,7 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
 
   function getEventTarget (type: string): Window {
-    return SCOPE_WINDOW_EVENT.includes(type) ? microAppWindow : rawWindow
+    return SCOPE_WINDOW_EVENT_OF_IFRAME.includes(type) ? microAppWindow : rawWindow
   }
 
   // TODO: listener 是否需要绑定microAppWindow，否则函数中的this指向原生window
