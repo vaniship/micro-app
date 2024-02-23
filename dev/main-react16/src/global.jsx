@@ -3,13 +3,21 @@ import microApp, { unmountApp, unmountAllApps } from '@micro-zoe/micro-app'
 import config from './config'
 
 const prefetchConfig = [
+  // {
+  //   name: 'vite2',
+  //   url: `${config.vite2}micro-app/vite2`,
+  //   level: 3,
+  //   // inline: true,
+  //   // 'disable-sandbox': true,
+  //   'default-page': '/micro-app/vite2/element-plus',
+  //   iframe: true,
+  // },
   {
-    name: 'vite2',
-    url: `${config.vite2}micro-app/vite2`,
+    name: 'vite4',
+    url: `${config.vite4}micro-app/vite4/`,
     level: 3,
     // inline: true,
-    // 'disable-sandbox': true,
-    'default-page': '/micro-app/vite2/element-plus',
+    // 'default-page': '/micro-app/vite2/element-plus',
     iframe: true,
   },
   // {
