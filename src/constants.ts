@@ -95,8 +95,10 @@ const BASE_SCOPE_WINDOW_EVENT = [
   'mounted',
 ]
 
+// bind event of with sandbox
 export const SCOPE_WINDOW_EVENT_OF_WITH = BASE_SCOPE_WINDOW_EVENT
 
+// bind event of iframe sandbox
 export const SCOPE_WINDOW_EVENT_OF_IFRAME = BASE_SCOPE_WINDOW_EVENT.concat([
   'unhandledrejection',
 ])
@@ -112,8 +114,10 @@ const BASE_SCOPE_WINDOW_ON_EVENT = [
   'onerror'
 ]
 
+// bind on event of with sandbox
 export const SCOPE_WINDOW_ON_EVENT_OF_WITH = BASE_SCOPE_WINDOW_ON_EVENT
 
+// bind on event of iframe sandbox
 export const SCOPE_WINDOW_ON_EVENT_OF_IFRAME = BASE_SCOPE_WINDOW_ON_EVENT.concat([
   'onunhandledrejection',
 ])
