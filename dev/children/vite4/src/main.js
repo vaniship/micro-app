@@ -7,7 +7,8 @@ import routes from './router'
 // import 'element-plus/dist/index.css'
 // import Antd from 'ant-design-vue'
 // import 'ant-design-vue/dist/antd.css'
-
+// import ArcoVue from '@arco-design/web-vue'
+// import '@arco-design/web-vue/dist/arco.css'
 // If you want to use ElMessage, import it.
 import "element-plus/theme-chalk/src/message.scss"
 import "element-plus/theme-chalk/src/message-box.scss"
@@ -58,6 +59,7 @@ window.mount = (data) => {
   app.use(router)
   // app.use(ElementPlus)
   // app.use(Antd)
+  // app.use(ArcoVue)
   app.mount('#app')
 
   console.log('微应用vite渲染了 -- UMD模式', data);

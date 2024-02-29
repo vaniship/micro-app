@@ -83,7 +83,7 @@ export const ROUTER_MODE_LIST: string[] = [
 ]
 
 // event bound to child app window
-export const SCOPE_WINDOW_EVENT = [
+const BASE_SCOPE_WINDOW_EVENT = [
   'popstate',
   'hashchange',
   'load',
@@ -95,9 +95,17 @@ export const SCOPE_WINDOW_EVENT = [
   'mounted',
 ]
 
+// bind event of with sandbox
+export const SCOPE_WINDOW_EVENT_OF_WITH = BASE_SCOPE_WINDOW_EVENT
+
+// bind event of iframe sandbox
+export const SCOPE_WINDOW_EVENT_OF_IFRAME = BASE_SCOPE_WINDOW_EVENT.concat([
+  'unhandledrejection',
+])
+
 // on event bound to child app window
 // TODO: with和iframe处理方式不同，需修改
-export const SCOPE_WINDOW_ON_EVENT = [
+const BASE_SCOPE_WINDOW_ON_EVENT = [
   'onpopstate',
   'onhashchange',
   'onload',
@@ -105,6 +113,14 @@ export const SCOPE_WINDOW_ON_EVENT = [
   'onunload',
   'onerror'
 ]
+
+// bind on event of with sandbox
+export const SCOPE_WINDOW_ON_EVENT_OF_WITH = BASE_SCOPE_WINDOW_ON_EVENT
+
+// bind on event of iframe sandbox
+export const SCOPE_WINDOW_ON_EVENT_OF_IFRAME = BASE_SCOPE_WINDOW_ON_EVENT.concat([
+  'onunhandledrejection',
+])
 
 // event bound to child app document
 export const SCOPE_DOCUMENT_EVENT = [

@@ -423,47 +423,49 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
 /* ---------------------- location 相关 --------------------- */
 // 获取location信息
-console.log(`${__MICRO_APP_NAME__} location.href`, location.href, rawWindow.location.href)
-console.log(`${__MICRO_APP_NAME__} location.origin`, location.origin, rawWindow.location.origin)
-console.log(`${__MICRO_APP_NAME__} location.host`, location.host, rawWindow.location.host)
-console.log(`${__MICRO_APP_NAME__} location.hostname`, location.hostname, rawWindow.location.hostname)
-console.log(`${__MICRO_APP_NAME__} location.port`, location.port, rawWindow.location.port)
-console.log(`${__MICRO_APP_NAME__} location.protocol`, location.protocol, rawWindow.location.protocol)
-console.log(`${__MICRO_APP_NAME__} location.pathname`, location.pathname, rawWindow.location.pathname)
-console.log(`${__MICRO_APP_NAME__} location.hash`, location.hash, rawWindow.location.hash)
-console.log(`${__MICRO_APP_NAME__} location.search`, location.search, rawWindow.location.search)
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  console.log(`${window.__MICRO_APP_NAME__} location.href`, location.href, window.rawWindow.location.href)
+  console.log(`${window.__MICRO_APP_NAME__} location.origin`, location.origin, window.rawWindow.location.origin)
+  console.log(`${window.__MICRO_APP_NAME__} location.host`, location.host, window.rawWindow.location.host)
+  console.log(`${window.__MICRO_APP_NAME__} location.hostname`, location.hostname, window.rawWindow.location.hostname)
+  console.log(`${window.__MICRO_APP_NAME__} location.port`, location.port, window.rawWindow.location.port)
+  console.log(`${window.__MICRO_APP_NAME__} location.protocol`, location.protocol, window.rawWindow.location.protocol)
+  console.log(`${window.__MICRO_APP_NAME__} location.pathname`, location.pathname, window.rawWindow.location.pathname)
+  console.log(`${window.__MICRO_APP_NAME__} location.hash`, location.hash, window.rawWindow.location.hash)
+  console.log(`${window.__MICRO_APP_NAME__} location.search`, location.search, window.rawWindow.location.search)
 
-// 依次放开每个注释来，尽可能覆盖所有场景
-setTimeout(() => {
-  // window.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
-  // window.location.href = 'http://localhost:3001/micro-app/react16/page2' // path改变，刷新浏览器
-  // window.location.href = 'http://localhost:3001/micro-app/react16/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
-  // window.location.href = 'http://localhost:3001/micro-app/react16/page2/' // hash从有到无，刷新浏览器
-  // window.location.href = 'http://localhost:3001/micro-app/react16'
-  // window.location.href = 'http://localhost:3001/micro-app/react16/' // path相同，刷新浏览器
-  // window.location.href = 'http://localhost:3001/micro-app/react16/?a=1' // search变化，刷新浏览器
-
-
-  // window.location.pathname = '/micro-app/react16/page2' // path改变，刷新浏览器
-  // window.location.pathname = '/micro-app/react16/page2#hash1' // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
-  // window.location.pathname = '/micro-app/react16/page2?b=2'
-
-  // window.location.search = '?c=3' // search改变，刷新浏览器
-  // window.location.search = '?c=3' // search不变，刷新浏览器
-
-  // window.location.hash = '#a' // hash改变，不刷新浏览器
-  // window.location.hash = '#a' // hash不变，不刷新浏览器
+  // 依次放开每个注释来，尽可能覆盖所有场景
+  setTimeout(() => {
+    // window.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
+    // window.location.href = 'http://localhost:3001/micro-app/react16/page2' // path改变，刷新浏览器
+    // window.location.href = 'http://localhost:3001/micro-app/react16/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+    // window.location.href = 'http://localhost:3001/micro-app/react16/page2/' // hash从有到无，刷新浏览器
+    // window.location.href = 'http://localhost:3001/micro-app/react16'
+    // window.location.href = 'http://localhost:3001/micro-app/react16/' // path相同，刷新浏览器
+    // window.location.href = 'http://localhost:3001/micro-app/react16/?a=1' // search变化，刷新浏览器
 
 
-  // window.location.assign('http://localhost:3001/micro-app/react16/page2') // path改变，刷新浏览器
-  // window.location.assign('http://localhost:3001/micro-app/react16/page2#abc') // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+    // window.location.pathname = '/micro-app/react16/page2' // path改变，刷新浏览器
+    // window.location.pathname = '/micro-app/react16/page2#hash1' // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
+    // window.location.pathname = '/micro-app/react16/page2?b=2'
 
-  // window.location.replace('http://localhost:3001/micro-app/react16/page2') // 同上
-  // window.location.replace('http://localhost:3001/micro-app/react16/page2#abc') // 同上
-  // console.log(111111, window.location)
+    // window.location.search = '?c=3' // search改变，刷新浏览器
+    // window.location.search = '?c=3' // search不变，刷新浏览器
 
-  // window.history.scrollRestoration = 'manual'
-}, 3000);
+    // window.location.hash = '#a' // hash改变，不刷新浏览器
+    // window.location.hash = '#a' // hash不变，不刷新浏览器
+
+
+    // window.location.assign('http://localhost:3001/micro-app/react16/page2') // path改变，刷新浏览器
+    // window.location.assign('http://localhost:3001/micro-app/react16/page2#abc') // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+
+    // window.location.replace('http://localhost:3001/micro-app/react16/page2') // 同上
+    // window.location.replace('http://localhost:3001/micro-app/react16/page2#abc') // 同上
+    // console.log(111111, window.location)
+
+    // window.history.scrollRestoration = 'manual'
+  }, 3000);
+}
 
 
 /* ---------------------- popstate 和 hashchange --------------------- */
@@ -540,3 +542,17 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 // }
 
 
+/* ---------------------- 测试unhandledrejection --------------------- */
+// https://github.com/micro-zoe/micro-app/issues/1102
+// window.addEventListener('unhandledrejection', (event) => {
+//   console.error(`子应用Promise报错监听 -- window.addEventListener(unhandledrejection): `, event)
+//   event.preventDefault()
+// })
+
+// window.onunhandledrejection = (event) => {
+//   console.error(`子应用Promise报错监听 -- window.onunhandledrejection: `, event);
+// }
+
+// new Promise((resolve, reject) => {
+//   throw 'promise 逃逸的错误'
+// })

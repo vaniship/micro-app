@@ -8,8 +8,8 @@ import type {
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
 import {
-  SCOPE_WINDOW_EVENT,
-  SCOPE_WINDOW_ON_EVENT,
+  SCOPE_WINDOW_EVENT_OF_WITH,
+  SCOPE_WINDOW_ON_EVENT_OF_WITH,
   RAW_GLOBAL_TARGET,
 } from '../../constants'
 import {
@@ -54,7 +54,7 @@ function patchWindowProperty (
   const rawWindow = globalEnv.rawWindow
   Object.getOwnPropertyNames(rawWindow)
     .filter((key: string) => {
-      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT.includes(key)
+      return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT_OF_WITH.includes(key)
     })
     .forEach((eventName: string) => {
       const { enumerable, writable, set } = Object.getOwnPropertyDescriptor(rawWindow, eventName) || {
@@ -232,7 +232,7 @@ function patchWindowEffect (microAppWindow: microAppWindowType, appName: string)
    * @returns microAppElement/rawWindow
    */
   function getEventTarget (type: string): EventTarget {
-    if (SCOPE_WINDOW_EVENT.includes(type) && appInstanceMap.get(appName)?.container) {
+    if (SCOPE_WINDOW_EVENT_OF_WITH.includes(type) && appInstanceMap.get(appName)?.container) {
       return getRootContainer(appInstanceMap.get(appName)!.container!)
     }
     return rawWindow

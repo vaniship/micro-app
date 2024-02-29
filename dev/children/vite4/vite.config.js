@@ -4,7 +4,12 @@ import vue from '@vitejs/plugin-vue'
 // import legacy from '@vitejs/plugin-legacy'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver, AntDesignVueResolver, NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+import {
+  ElementPlusResolver,
+  AntDesignVueResolver,
+  NaiveUiResolver,
+  // ArcoResolver,
+} from 'unplugin-vue-components/resolvers'
 import ElementPlus from 'unplugin-element-plus/vite'
 import UnoCSS from 'unocss/vite'
 
@@ -33,6 +38,7 @@ export default defineConfig({
       resolvers: [
         ElementPlusResolver(),
         // AntDesignVueResolver(), // need it?
+        // ArcoResolver(),
       ],
       imports: [
         'vue',
@@ -53,6 +59,9 @@ export default defineConfig({
         }),
         AntDesignVueResolver(),
         NaiveUiResolver(),
+        // ArcoResolver({
+        //   sideEffect: true
+        // })
       ],
     }),
     ElementPlus(),
