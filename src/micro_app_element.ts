@@ -524,6 +524,7 @@ export function defineElement (tagName: string): void {
           this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)
         } else {
           // get path from browser URL
+          // TODO: 新版本路由系统要重新兼容ssr
           let targetPath = getNoHashMicroPathFromURL(this.appName, baseUrl)
           const defaultPagePath = this.getDefaultPage()
           if (!targetPath && defaultPagePath) {

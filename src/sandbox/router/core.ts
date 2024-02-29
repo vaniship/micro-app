@@ -143,6 +143,7 @@ export function setMicroPathToURL (appName: string, targetLocation: MicroLocatio
     // If hash exists and search does not exist, it is considered as a hash route
     if (hash && !search) {
       isAttach2Hash = true
+      // TODO: 这里和下面的if判断可以简化一下
       if (queryObject.hashQuery) {
         queryObject.hashQuery[formatQueryAppName(appName)] = encodedMicroPath
       } else {
