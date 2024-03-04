@@ -331,7 +331,9 @@ export default defineConfig({
     <component :is="Component" :key="route.path" />
   </transition>
 </router-view>
+```
 
+```html
 <!-- bad 😭 -->
 <router-view :key="$route.fullPath"></router-view>
 
