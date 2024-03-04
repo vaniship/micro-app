@@ -12,23 +12,23 @@ const prefetchConfig = [
   //   'default-page': '/micro-app/vite2/element-plus',
   //   iframe: true,
   // },
-  {
-    name: 'vite4',
-    url: `${config.vite4}micro-app/vite4/`,
-    level: 3,
-    // inline: true,
-    // 'default-page': '/micro-app/vite2/element-plus',
-    iframe: true,
-  },
   // {
-  //   name: 'vue2',
-  //   url: `${config.vue2}micro-app/vue2`,
-  //   // 'disable-scopecss': true,
+  //   name: 'vite4',
+  //   url: `${config.vite4}micro-app/vite4/`,
   //   level: 3,
-  //   'default-page': '/micro-app/vue2/#/page2',
-  //   // 'disable-patch-request': false,
+  //   // inline: true,
+  //   // 'default-page': '/micro-app/vite2/element-plus',
   //   iframe: true,
   // },
+  {
+    name: 'vue2',
+    url: `${config.vue2}micro-app/vue2`,
+    // 'disable-scopecss': true,
+    level: 3,
+    'default-page': '/micro-app/vue2/#/page2',
+    // 'disable-patch-request': false,
+    // iframe: true,
+  },
   // {
   //   name: 'react16',
   //   url: `${config.react16}micro-app/react16?a=1`,
@@ -58,7 +58,7 @@ const prefetchConfig = [
   // },
 ]
 
-// microApp.preFetch(prefetchConfig)
+microApp.preFetch(prefetchConfig)
 
 window['escapeKey3'] = 'escapeKey3 from base app'
 window.Vue = { tip: 'Vue from base' }

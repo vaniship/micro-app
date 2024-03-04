@@ -632,6 +632,14 @@ export default class CreateApp implements AppInterface {
 
   // show app when connectedCallback called with keep-alive
   public showKeepAliveApp (container: HTMLElement | ShadowRoot): void {
+    /**
+     * NOTE:
+     *  1. this.container must set to container(micro-app element) before exec rebuildEffectSnapshot
+     *    ISSUE: https://github.com/micro-zoe/micro-app/issues/1115
+     *  2. rebuildEffectSnapshot must exec before dispatch beforeshow event
+     */
+    const oldContainer = this.container
+    this.container = container
     this.sandBox?.rebuildEffectSnapshot()
 
     // dispatch beforeShow event to micro-app
@@ -648,9 +656,9 @@ export default class CreateApp implements AppInterface {
 
     this.setKeepAliveState(keepAliveStates.KEEP_ALIVE_SHOW)
 
-    this.container = this.cloneContainer(
-      container,
-      this.container as Element,
+    this.cloneContainer(
+      this.container,
+      oldContainer as Element,
       false,
     )
 
