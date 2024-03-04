@@ -25,9 +25,9 @@ const prefetchConfig = [
     url: `${config.vue2}micro-app/vue2`,
     // 'disable-scopecss': true,
     level: 3,
-    'default-page': '/micro-app/vue2/#/page2',
+    // 'default-page': '/micro-app/vue2/#/page2',
     // 'disable-patch-request': false,
-    // iframe: true,
+    iframe: true,
   },
   // {
   //   name: 'react16',
@@ -58,7 +58,7 @@ const prefetchConfig = [
   // },
 ]
 
-microApp.preFetch(prefetchConfig)
+// microApp.preFetch(prefetchConfig)
 
 window['escapeKey3'] = 'escapeKey3 from base app'
 window.Vue = { tip: 'Vue from base' }

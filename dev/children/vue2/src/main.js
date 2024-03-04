@@ -98,3 +98,12 @@ newImg.setAttribute('width', '50px')
 
 /* ---------------------- 获取script元素 --------------------- */
 // console.log('script元素', document.getElementsByTagName('script'), document.getElementsByTagName('base'))
+
+/* ---------------------- popstate 和 hashchange --------------------- */
+window.addEventListener('popstate', (e) => {
+  console.log('子应用 popstate', e)
+})
+
+window.addEventListener('hashchange', (e) => {
+  console.log('子应用 hashchange', e, e.newURL, e.oldURL)
+})

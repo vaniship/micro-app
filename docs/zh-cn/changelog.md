@@ -20,6 +20,7 @@
 
   - 🐞 修复了iframe沙箱下`unhandledrejection`事件失效的问题，[issue 1102](https://github.com/micro-zoe/micro-app/issues/1102)。
   - 🐞 修复了with沙箱下`keep-alive`子应用二次渲染后无法通过`microApp.router`控制跳转的问题，[issue 1115](https://github.com/micro-zoe/micro-app/issues/1115)。
+  - 🐞 修复了with沙箱下预渲染子应用路由跳转异常的问题。
 
 - **Update**
 
