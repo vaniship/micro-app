@@ -534,7 +534,7 @@ export default class CreateApp implements AppInterface {
     unmountcb,
   }: UnmountParam): void {
     if (this.umdMode && this.container && !destroy) {
-      this.cloneContainer(this.source.html, this.container, false)
+      this.cloneContainer(this.source.html, this.container as HTMLElement, false)
     }
 
     /**

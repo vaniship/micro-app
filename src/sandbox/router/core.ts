@@ -31,7 +31,7 @@ export function setMicroState (
   appName: string,
   microState: MicroState,
 ): MicroState {
-  if (isRouterModeSearch(appName)) {
+  if (isRouterModeSearch(appName) || isRouterModeCustom(appName)) {
     const rawState = globalEnv.rawWindow.history.state
     const additionalState: Record<string, any> = {
       microAppState: assign({}, rawState?.microAppState, {
@@ -48,7 +48,7 @@ export function setMicroState (
 
 // delete micro app state form origin state
 export function removeMicroState (appName: string, rawState: MicroState): MicroState {
-  if (isRouterModeSearch(appName)) {
+  if (isRouterModeSearch(appName) || isRouterModeCustom(appName)) {
     if (isPlainObject(rawState?.microAppState)) {
       if (!isUndefined(rawState.microAppState[appName])) {
         delete rawState.microAppState[appName]
@@ -68,8 +68,8 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
 export function getMicroState (appName: string): MicroState {
   const rawState = globalEnv.rawWindow.history.state
 
-  if (isRouterModeSearch(appName)) {
-    return rawState?.microAppState?.[appName] || null
+  if (isRouterModeSearch(appName) || isRouterModeCustom(appName)) {
+    return rawState?.microAppState?.[appName] || (isRouterModeCustom(appName) ? rawState : null)
   }
 
   return rawState

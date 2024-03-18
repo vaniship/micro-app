@@ -108,14 +108,18 @@ export function dispatchPopStateEventToMicroApp (
    * TODO: test
    * angular14 takes e.type as type judgment
    * when e.type is popstate-appName popstate event will be invalid
+   * Object.defineProperty(newPopStateEvent, 'type', {
+   *    value: 'popstate',
+   *    writable: true,
+   *    configurable: true,
+   *    enumerable: true,
+   * })
    */
-  // Object.defineProperty(newPopStateEvent, 'type', {
-  //   value: 'popstate',
-  //   writable: true,
-  //   configurable: true,
-  //   enumerable: true,
-  // })
-  // create PopStateEvent named popstate-appName with sub app state
+  /**
+   * create PopStateEvent named popstate-appName with sub app state
+   * TODO: feeling like there's something wrong, check carefully
+   *  In native mode, getMicroState(appName) return rawWindow.history.state when use microApp.router.push/replace or other scenes when state.microAppState[appName] is null
+   */
   const newPopStateEvent = new PopStateEvent(
     'popstate',
     { state: getMicroState(appName) }
