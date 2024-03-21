@@ -226,7 +226,7 @@ export function defineElement (tagName: string): void {
             /**
              * url is different & old app is unmounted or prefetch, create new app to replace old one
              */
-            logWarn(`the ${oldApp.isPrefetch ? 'prefetch' : 'unmounted'} app with url: ${oldAppUrl} replaced by a new app with url: ${targetUrl}`, this.appName)
+            logWarn(`the ${oldApp.isPrefetch ? 'prefetch' : 'unmounted'} app with url ${oldAppUrl} replaced by a new app with url ${targetUrl}`, this.appName)
           }
           this.handleCreateApp()
         } else {
