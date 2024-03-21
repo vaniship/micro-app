@@ -34,8 +34,8 @@ import {
   isIframeSandbox,
 } from '../../create_app'
 import {
-  hijackMicroLocationKeys,
-} from '../iframe/special_key'
+  HIJACK_LOCATION_KEYS,
+} from '../../constants'
 
 // origin is readonly, so we ignore when updateMicroLocation
 const locationKeys: ReadonlyArray<keyof MicroLocation> = ['href', 'pathname', 'search', 'hash', 'host', 'hostname', 'port', 'protocol', 'search']
@@ -193,19 +193,28 @@ export function createMicroLocation (
       if (key === 'self') return target
       if (key === 'fullPath') return target.fullPath
 
-      if (isRouterModeNative(appName)) {
-        return bindFunctionToRawTarget<Location>(Reflect.get(rawLocation, key), rawLocation, 'LOCATION')
-      }
-
-      // src of iframe is base app address, it needs to be replaced separately
-      if (isIframe) {
-        // host hostname port protocol
-        if (hijackMicroLocationKeys.includes(key)) {
+      /**
+       * Special keys: host, hostname, port, protocol, origin, href
+       * NOTE:
+       *  1. In native mode this keys point to browser, in other mode this keys point to child app origin
+       *  2. In iframe sandbox, iframe.src is base app address, so origin points to the browser by default, we need to replace it with child app origin
+       *  3. In other modes, origin points to child app
+       */
+      if (HIJACK_LOCATION_KEYS.includes(key)) {
+        if (isRouterModeNative(appName)) {
+          return rawLocation[key]
+        }
+        if (isIframe) {
           return childStaticLocation![key]
         }
+      }
 
-        if (key === 'href') {
-          // do not use target, because target may be deleted
+      if (key === 'href') {
+        if (isRouterModeNative(appName)) {
+          return target[key].replace(target.origin, rawLocation.origin)
+        }
+        if (isIframe) {
+          // target may be deleted
           return target[key].replace(browserHost!, childHost!)
         }
       }

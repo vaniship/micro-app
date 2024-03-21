@@ -162,7 +162,7 @@ function createRouterApi (): RouterApi {
             const app = appInstanceMap.get(appName)!
             resolve(app.sandBox.sandboxReady.then(() => handleNavigate(appName, app, to, replace)))
           } else {
-            reject(logError('navigation failed, app does not exist or is inactive'))
+            reject(logError('导航失败，请确保子应用渲染后再调用此方法'))
           }
 
           // /**

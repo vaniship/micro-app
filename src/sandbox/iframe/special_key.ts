@@ -29,14 +29,6 @@ export const uniqueDocumentElement = [
   'title',
 ]
 
-export const hijackMicroLocationKeys = [
-  'host',
-  'hostname',
-  'port',
-  'protocol',
-  'origin',
-]
-
 // 有shadowRoot则代理到shadowRoot否则代理到原生document上 (属性)
 export const proxy2RawDocOrShadowKeys = [
   'childElementCount',

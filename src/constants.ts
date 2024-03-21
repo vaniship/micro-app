@@ -58,6 +58,16 @@ export enum MicroAppConfig {
   FIBER = 'fiber',
 }
 
+/**
+ * global key must be static key, they can not rewrite
+ * e.g.
+ * window.Promise = newValue
+ * new Promise ==> still get old value, not newValue, because they are cached by top function
+ * NOTE:
+ * 1. Do not add fetch, XMLHttpRequest, EventSource
+ */
+export const GLOBAL_CACHED_KEY = 'window,self,globalThis,document,Document,Array,Object,String,Boolean,Math,Number,Symbol,Date,Function,Proxy,WeakMap,WeakSet,Set,Map,Reflect,Element,Node,RegExp,Error,TypeError,JSON,isNaN,parseFloat,parseInt,performance,console,decodeURI,encodeURI,decodeURIComponent,encodeURIComponent,navigator,undefined,location,history'
+
 // prefetch level
 export const PREFETCH_LEVEL: number[] = [1, 2, 3]
 
@@ -142,12 +152,10 @@ export const GLOBAL_KEY_TO_WINDOW: Array<PropertyKey> = [
 
 export const RAW_GLOBAL_TARGET: Array<PropertyKey> = ['rawWindow', 'rawDocument']
 
-/**
- * global key must be static key, they can not rewrite
- * e.g.
- * window.Promise = newValue
- * new Promise ==> still get old value, not newValue, because they are cached by top function
- * NOTE:
- * 1. Do not add fetch, XMLHttpRequest, EventSource
- */
-export const GLOBAL_CACHED_KEY = 'window,self,globalThis,document,Document,Array,Object,String,Boolean,Math,Number,Symbol,Date,Function,Proxy,WeakMap,WeakSet,Set,Map,Reflect,Element,Node,RegExp,Error,TypeError,JSON,isNaN,parseFloat,parseInt,performance,console,decodeURI,encodeURI,decodeURIComponent,encodeURIComponent,navigator,undefined,location,history'
+export const HIJACK_LOCATION_KEYS = [
+  'host',
+  'hostname',
+  'port',
+  'protocol',
+  'origin',
+]
