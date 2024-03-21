@@ -230,7 +230,7 @@ export function defineElement (tagName: string): void {
           }
           this.handleCreateApp()
         } else {
-          logError(`app name conflict, an app named: ${this.appName} with url: ${oldAppUrl} is running`)
+          logError(`app name conflict, an app named ${this.appName} with url ${oldAppUrl} is running`)
         }
       } else {
         this.handleCreateApp()
