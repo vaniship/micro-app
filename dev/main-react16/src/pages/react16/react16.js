@@ -450,8 +450,8 @@ export default class App extends React.Component {
                   // disableScopecss
                   // disable-scopecss
                   // shadowDOM
-                  disable-memory-router
-                  // router-mode='native-scope'
+                  // disable-memory-router
+                  router-mode='pure'
                   // keep-router-state
                   // default-page='/micro-app/react16/page2'
                   // hidden-router
