@@ -35,7 +35,7 @@ export {
 } from './event'
 export {
   getNoHashMicroPathFromURL,
-  getRouterMode,
+  initRouterMode,
   isRouterModeCustom,
   isRouterModeSearch,
 } from './core'
@@ -44,11 +44,6 @@ export {
   releasePatchHistory,
 } from './history'
 
-/**
- * TODO: 关于关闭虚拟路由系统的custom、history模式
- * 1. 是否需要发送popstate事件，为了减小对基座的影响，现在不发送
- * 2. 关闭后导致的vue3路由冲突问题需要在文档中明确指出(2处：在关闭虚拟路由系统的配置那里着重说明，在vue常见问题中说明)
- */
 /**
  * The router system has two operations: read and write
  * Read through location and write through history & location
@@ -101,10 +96,7 @@ export function updateBrowserURLWithLocation (
     attachRouteToBrowserURL(
       appName,
       setMicroPathToURL(appName, microLocation),
-      setMicroState(
-        appName,
-        null,
-      ),
+      setMicroState(appName, null, microLocation),
     )
   }
   // trigger guards after change browser URL
@@ -129,9 +121,7 @@ export function clearRouteStateFromURL (
       const { pathname, search, hash } = createURL(url)
       updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
     }
-    if (!isRouterModePure(appName)) {
-      removePathFromBrowser(appName)
-    }
+    removePathFromBrowser(appName)
   }
 
   clearRouterWhenUnmount(appName)
@@ -142,9 +132,11 @@ export function clearRouteStateFromURL (
  * called on sandbox.stop or hidden of keep-alive app
  */
 export function removePathFromBrowser (appName: string): void {
-  attachRouteToBrowserURL(
-    appName,
-    removeMicroPathFromURL(appName),
-    removeMicroState(appName, globalEnv.rawWindow.history.state),
-  )
+  if (!isRouterModePure(appName)) {
+    attachRouteToBrowserURL(
+      appName,
+      removeMicroPathFromURL(appName),
+      removeMicroState(appName, globalEnv.rawWindow.history.state),
+    )
+  }
 }

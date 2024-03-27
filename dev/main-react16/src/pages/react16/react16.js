@@ -23,7 +23,7 @@ export default class App extends React.Component {
     showMicroApp: true,
     testNum: 0,
     showModal: false,
-    routerMode: 'custom',
+    routerMode: 'state',
     baseroute: '/micro-app/demo/react16',
   }
 
@@ -190,18 +190,6 @@ export default class App extends React.Component {
     })
   }
 
-  changeRouterMode = () => {
-    const newMode = {
-      custom: 'search',
-      search: 'history',
-      history: 'custom',
-    }
-
-    this.setState({
-      routerMode: newMode[this.state.routerMode],
-    })
-  }
-
   changeTestNum = () => {
     this.setState({
       testNum: this.state.testNum + 1,
@@ -209,11 +197,13 @@ export default class App extends React.Component {
   }
 
   jumpToHome = () => {
-    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/'})
+    const basePath = ['native', 'native-scope'].includes(this.state.routerMode) ? this.state.baseroute : '/micro-app/react16'
+    microApp.router.push({name: this.state.name, path: basePath + '/'})
   }
 
   jumpToPage2 = () => {
-    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/page2'}).then(() => {
+    const basePath = ['native', 'native-scope'].includes(this.state.routerMode) ? this.state.baseroute : '/micro-app/react16'
+    microApp.router.push({name: this.state.name, path: basePath + '/page2'}).then(() => {
       console.log('跳转成功')
     }).catch(() => {
       console.error('跳转失败')
@@ -221,7 +211,8 @@ export default class App extends React.Component {
   }
 
   jumpToNest = () => {
-    microApp.router.push({name: this.state.name, path: this.state.baseroute + '/nest'})
+    const basePath = ['native', 'native-scope'].includes(this.state.routerMode) ? this.state.baseroute : '/micro-app/react16'
+    microApp.router.push({name: this.state.name, path: basePath + '/nest'})
   }
 
   useRouterGo = () => {
@@ -290,7 +281,6 @@ export default class App extends React.Component {
           // 'keep-router-state': true,
           // 'hidden-router': true,
           // 'disable-patch-request': true,
-          // esmodule: true,
           // fiber: true,
           // ssr: true,
           // baseroute: '/micro-app/demo/react16',
@@ -409,7 +399,6 @@ export default class App extends React.Component {
             {/* <Button type="primary" onClick={this.clearGlobalData}>清空全局数据</Button> */}
             <Button type="primary" onClick={this.changeNameUrl}>切换应用</Button>
             <Button type="primary" onClick={this.useUnmountApp}>主动卸载应用</Button>
-            <Button type="primary" onClick={this.changeRouterMode}>切换路由模式</Button>
             <Button type="primary" onClick={this.jumpToHome}>控制子应用跳转home</Button>
             <Button type="primary" onClick={this.jumpToPage2}>控制子应用跳转page2</Button>
             <Button type="primary" onClick={this.jumpToNest}>控制子应用跳转nest</Button>
@@ -451,12 +440,11 @@ export default class App extends React.Component {
                   // disable-scopecss
                   // shadowDOM
                   // disable-memory-router
-                  router-mode='pure'
+                  router-mode={this.state.routerMode}
                   // keep-router-state
                   // default-page='/micro-app/react16/page2'
                   // hidden-router
                   // disable-patch-request
-                  // esmodule
                   // fiber
                   // ssr
                   // clear-data

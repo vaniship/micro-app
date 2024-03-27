@@ -50,7 +50,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
             methodName,
             setMicroPathToURL(appName, targetLocation),
             true,
-            setMicroState(appName, rests[0]),
+            setMicroState(appName, rests[0], targetLocation),
             rests[1],
           )
         }
@@ -209,7 +209,7 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
         attachRouteToBrowserURL(
           appName,
           setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
-          setMicroState(appName, getMicroState(appName)),
+          setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location as MicroLocation),
         )
       }
     })

@@ -18,7 +18,6 @@ import {
   setMicroState,
   getMicroState,
   getMicroPathFromURL,
-  isRouterModeCustom,
   isRouterModeSearch,
   isRouterModePure,
 } from './core'
@@ -86,6 +85,7 @@ function createRouterApi (): RouterApi {
       setMicroState(
         appName,
         state ?? null,
+        targetLocation,
       ),
     )
     // clear element scope after navigate
@@ -127,7 +127,7 @@ function createRouterApi (): RouterApi {
        *  NOTE1: history和search模式采用2，这样可以解决vue3的问题，custom采用1，避免vue循环刷新的问题，这样在用户出现问题时各有解决方案。但反过来说，每种方案又分别导致另外的问题，不统一，导致复杂度增高
        *  NOTE2: 关闭虚拟路由，同时发送popstate事件还是无法解决vue3的问题(毕竟history.state理论上还是会冲突)，那么就没必要发送popstate事件了。
        */
-      if (isRouterModeCustom(appName) || isRouterModePure(appName)) {
+      if (!isRouterModeSearch(appName)) {
         updateMicroLocationWithEvent(appName, targetFullPath)
       }
     }
@@ -266,7 +266,7 @@ function createRouterApi (): RouterApi {
       attachRouteToBrowserURL(
         appName,
         setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
-        setMicroState(appName, getMicroState(appName)),
+        setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location as MicroLocation),
       )
     }
   }

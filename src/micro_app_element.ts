@@ -35,7 +35,7 @@ import CreateApp, {
 import {
   router,
   getNoHashMicroPathFromURL,
-  getRouterMode,
+  initRouterMode,
 } from './sandbox/router'
 
 /**
@@ -555,9 +555,10 @@ export function defineElement (tagName: string): void {
      * @returns router-mode
      */
     private getMemoryRouterMode () : string {
-      return getRouterMode(
+      return initRouterMode(
         this.getAttribute('router-mode'),
         // is micro-app element set disable-memory-router, like <micro-app disable-memory-router></micro-app>
+        // or <micro-app disable-memory-router='false'></micro-app>
         this.compatibleProperties('disable-memory-router') && this.compatibleDisableProperties('disable-memory-router'),
       )
     }

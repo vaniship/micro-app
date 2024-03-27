@@ -34,7 +34,7 @@ import {
   fetchSource,
 } from './source/fetch'
 import {
-  getRouterMode,
+  initRouterMode,
 } from './sandbox/router'
 
 /**
@@ -128,7 +128,7 @@ function preFetchAction (options: prefetchParam): Promise<void> {
                * 问题：
                *  1、如何确保子应用进行跳转时不影响到浏览器地址？？pure？？
                */
-              routerMode: getRouterMode(options['router-mode']),
+              routerMode: initRouterMode(options['router-mode']),
               baseroute: options.baseroute,
               disablePatchRequest: options['disable-patch-request'],
             })

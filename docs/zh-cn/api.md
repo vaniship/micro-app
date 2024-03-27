@@ -267,17 +267,19 @@ function unmountApp(appName: string, options?: unmountAppParams): Promise<boolea
 
 **使用方式：**
 ```js
+import microApp from '@micro-zoe/micro-app'
+
 // 正常流程
-unmountApp(子应用名称).then(() => console.log('卸载成功'))
+microApp.unmountApp(子应用名称).then(() => console.log('卸载成功'))
 
 // 卸载应用并清空缓存资源
-unmountApp(子应用名称, { destroy: true }).then(() => console.log('卸载成功'))
+microApp.unmountApp(子应用名称, { destroy: true }).then(() => console.log('卸载成功'))
 
 // 如果子应用是keep-alive应用，则卸载并清空状态，如果子应用不是keep-alive应用，则正常卸载
-unmountApp(子应用名称, { clearAliveState: true }).then(() => console.log('卸载成功'))
+microApp.unmountApp(子应用名称, { clearAliveState: true }).then(() => console.log('卸载成功'))
 
 // 如果destroy和clearAliveState同时为true，则clearAliveState将失效
-unmountApp(子应用名称, { destroy: true, clearAliveState: true }).then(() => console.log('卸载成功'))
+microApp.unmountApp(子应用名称, { destroy: true, clearAliveState: true }).then(() => console.log('卸载成功'))
 ```
 
 ## unmountAllApps
@@ -309,17 +311,19 @@ function unmountAllApps(options?: unmountAppParams): Promise<boolean>
 
 **使用方式：**
 ```js
+import microApp from '@micro-zoe/micro-app'
+
 // 正常流程
-unmountAllApps().then(() => console.log('卸载成功'))
+microApp.unmountAllApps().then(() => console.log('卸载成功'))
 
 // 卸载所有应用并清空缓存资源
-unmountAllApps({ destroy: true }).then(() => console.log('卸载成功'))
+microApp.unmountAllApps({ destroy: true }).then(() => console.log('卸载成功'))
 
 // 如果子应用是keep-alive应用，则卸载并清空状态，如果子应用不是keep-alive应用，则正常卸载
-unmountAllApps({ clearAliveState: true }).then(() => console.log('卸载成功'))
+microApp.unmountAllApps({ clearAliveState: true }).then(() => console.log('卸载成功'))
 
 // 如果destroy和clearAliveState同时为true，则clearAliveState将失效
-unmountAllApps({ destroy: true, clearAliveState: true }).then(() => console.log('卸载成功'))
+microApp.unmountAllApps({ destroy: true, clearAliveState: true }).then(() => console.log('卸载成功'))
 ```
 
 

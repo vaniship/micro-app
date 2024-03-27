@@ -20,6 +20,7 @@ import {
 import {
   ROUTER_MODE_LIST,
   DEFAULT_ROUTER_MODE,
+  ROUTER_MODE_STATE,
   ROUTER_MODE_NATIVE,
   ROUTER_MODE_NATIVE_SCOPE,
   ROUTER_MODE_PURE,
@@ -30,49 +31,41 @@ import microApp from '../../micro_app'
 export function setMicroState (
   appName: string,
   microState: MicroState,
+  microLocation: MicroLocation,
 ): MicroState {
-  if (isRouterModeSearch(appName) || isRouterModeCustom(appName)) {
-    const rawState = globalEnv.rawWindow.history.state
-    const additionalState: Record<string, any> = {
-      microAppState: assign({}, rawState?.microAppState, {
-        [appName]: microState
-      })
-    }
-
-    // create new state object
-    return assign({}, rawState, additionalState)
+  const rawState = globalEnv.rawWindow.history.state
+  const additionalState: Record<string, any> = {
+    microAppState: assign({}, rawState?.microAppState, {
+      [appName]: {
+        fullPath: microLocation.pathname + microLocation.search + microLocation.hash,
+        state: microState,
+        mode: getRouterMode(appName),
+      }
+    })
   }
 
-  return microState
+  // create new state object
+  return assign({}, rawState, additionalState)
 }
 
 // delete micro app state form origin state
 export function removeMicroState (appName: string, rawState: MicroState): MicroState {
-  if (isRouterModeSearch(appName) || isRouterModeCustom(appName)) {
-    if (isPlainObject(rawState?.microAppState)) {
-      if (!isUndefined(rawState.microAppState[appName])) {
-        delete rawState.microAppState[appName]
-      }
-      if (!Object.keys(rawState.microAppState).length) {
-        delete rawState.microAppState
-      }
+  if (isPlainObject(rawState?.microAppState)) {
+    if (!isUndefined(rawState.microAppState[appName])) {
+      delete rawState.microAppState[appName]
     }
-
-    return assign({}, rawState)
+    if (!Object.keys(rawState.microAppState).length) {
+      delete rawState.microAppState
+    }
   }
 
-  return rawState
+  return assign({}, rawState)
 }
 
 // get micro app state form origin state
 export function getMicroState (appName: string): MicroState {
   const rawState = globalEnv.rawWindow.history.state
-
-  if (isRouterModeSearch(appName) || isRouterModeCustom(appName)) {
-    return rawState?.microAppState?.[appName] || (isRouterModeCustom(appName) ? rawState : null)
-  }
-
-  return rawState
+  return rawState?.microAppState?.[appName]?.state || (isRouterModeCustom(appName) ? rawState : null)
 }
 
 const ENC_AD_RE = /&/g // %M1
@@ -112,13 +105,16 @@ function formatQueryAppName (appName: string) {
  * @param appName app.name
  */
 export function getMicroPathFromURL (appName: string): string | null {
-  // TODO: pure模式从state中获取地址
   if (isRouterModePure(appName)) return null
   const rawLocation = globalEnv.rawWindow.location
+  const rawState = globalEnv.rawWindow.history.state
   if (isRouterModeSearch(appName)) {
     const queryObject = getQueryObjectFromURL(rawLocation.search, rawLocation.hash)
     const microPath = queryObject.hashQuery?.[formatQueryAppName(appName)] || queryObject.searchQuery?.[formatQueryAppName(appName)]
     return isString(microPath) ? decodeMicroPath(microPath) : null
+  }
+  if (isRouterModeState(appName)) {
+    return rawState?.microAppState?.[appName]?.fullPath || null
   }
   return rawLocation.pathname + rawLocation.search + rawLocation.hash
 }
@@ -129,10 +125,11 @@ export function getMicroPathFromURL (appName: string): string | null {
  * @param targetLocation location of child app or rawLocation of window
  */
 export function setMicroPathToURL (appName: string, targetLocation: MicroLocation): HandleMicroPathResult {
-  const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+  const rawLocation = globalEnv.rawWindow.location
+  let targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
   let isAttach2Hash = false
   if (isRouterModeSearch(appName)) {
-    let { pathname, search, hash } = globalEnv.rawWindow.location
+    let { pathname, search, hash } = rawLocation
     const queryObject = getQueryObjectFromURL(search, hash)
     const encodedMicroPath = encodeMicroPath(targetFullPath)
 
@@ -170,6 +167,10 @@ export function setMicroPathToURL (appName: string, targetLocation: MicroLocatio
     }
   }
 
+  if (isRouterModeState(appName)) {
+    targetFullPath = rawLocation.pathname + rawLocation.search + rawLocation.hash
+  }
+
   return {
     fullPath: targetFullPath,
     isAttach2Hash,
@@ -179,10 +180,9 @@ export function setMicroPathToURL (appName: string, targetLocation: MicroLocatio
 /**
  * Delete child app fullPath from browser url
  * @param appName app.name
- * @param targetLocation target Location, default is rawLocation
  */
-export function removeMicroPathFromURL (appName: string, targetLocation?: MicroLocation): HandleMicroPathResult {
-  let { pathname, search, hash } = targetLocation || globalEnv.rawWindow.location
+export function removeMicroPathFromURL (appName: string): HandleMicroPathResult {
+  let { pathname, search, hash } = globalEnv.rawWindow.location
   let isAttach2Hash = false
 
   if (isRouterModeSearch(appName)) {
@@ -251,28 +251,37 @@ export function isEffectiveApp (appName: string): boolean {
   return !!(app && !app.isPrefetch)
 }
 
+/**
+ * get router mode of app
+ * NOTE: app maybe undefined
+ */
+function getRouterMode (appName: string): string | undefined {
+  return appInstanceMap.get(appName)?.routerMode
+}
+
 // router mode is search
 export function isRouterModeSearch (appName: string): boolean {
-  const app = appInstanceMap.get(appName)
-  return !!(app && app.sandBox && app.routerMode === DEFAULT_ROUTER_MODE)
+  return getRouterMode(appName) === DEFAULT_ROUTER_MODE
+}
+
+// router mode is state
+export function isRouterModeState (appName: string): boolean {
+  return getRouterMode(appName) === ROUTER_MODE_STATE
 }
 
 // router mode is history
 export function isRouterModeNative (appName: string): boolean {
-  const app = appInstanceMap.get(appName)
-  return !!(app && app.sandBox && app.routerMode === ROUTER_MODE_NATIVE)
+  return getRouterMode(appName) === ROUTER_MODE_NATIVE
 }
 
 // router mode is disable
 export function isRouterModeNativeScope (appName: string): boolean {
-  const app = appInstanceMap.get(appName)
-  return !!(app && app.sandBox && app.routerMode === ROUTER_MODE_NATIVE_SCOPE)
+  return getRouterMode(appName) === ROUTER_MODE_NATIVE_SCOPE
 }
 
 // router mode is pure
 export function isRouterModePure (appName: string): boolean {
-  const app = appInstanceMap.get(appName)
-  return !!(app && app.sandBox && app.routerMode === ROUTER_MODE_PURE)
+  return getRouterMode(appName) === ROUTER_MODE_PURE
 }
 
 /**
@@ -291,7 +300,7 @@ export function isRouterModeCustom (appName: string): boolean {
  * @param inlineDisableMemoryRouter disable-memory-router set by micro-app element or prerender
  * @returns router mode
  */
-export function getRouterMode (
+export function initRouterMode (
   mode: string | null | void,
   inlineDisableMemoryRouter?: boolean,
 ): string {
