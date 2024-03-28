@@ -1,5 +1,5 @@
 /* eslint-disable */
-// import './public-path'
+import './public-path'
 // import 'babel-polyfill'
 // import '@babel/polyfill'
 import React from 'react';
@@ -394,18 +394,22 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */
 if (window.__MICRO_APP_ENVIRONMENT__) {
-  const unBoundDom1 = window.microApp.pureCreateElement('div')
-  unBoundDom1.innerHTML = 'unBoundDom1'
-  document.body.appendChild(unBoundDom1)
+  // const unBoundDom1 = window.microApp.pureCreateElement('div')
+  // unBoundDom1.innerHTML = 'unBoundDom1'
+  // document.body.appendChild(unBoundDom1)
 
-  window.microApp.removeDomScope(true)
-  const unBoundDom2 = window.document.createElement('div')
-  unBoundDom2.innerHTML = 'unBoundDom2'
-  document.body.appendChild(unBoundDom2)
+  // /**
+  //  * !!!! 注意removeDomScope(true)是异步清空的，这里会导致一个问题
+  //  * 执行removeDomScope(true)后再执行window.mount方法，会导致子应用初始化失败
+  //  */
+  // window.microApp.removeDomScope(true)
+  // const unBoundDom2 = window.document.createElement('div')
+  // unBoundDom2.innerHTML = 'unBoundDom2'
+  // document.body.appendChild(unBoundDom2)
 
-  const unBoundDom3 = window.rawDocument.createElement('div')
-  unBoundDom3.innerHTML = 'unBoundDom3'
-  document.body.appendChild(unBoundDom3)
+  // const unBoundDom3 = window.rawDocument.createElement('div')
+  // unBoundDom3.innerHTML = 'unBoundDom3'
+  // document.body.appendChild(unBoundDom3)
 
   // const dynamicSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   // document.body.appendChild(dynamicSvg)

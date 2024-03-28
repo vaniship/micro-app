@@ -164,7 +164,7 @@ function patchIframeNode (
     configurable: true,
     enumerable: true,
     get () {
-      return this.__PURE_ELEMENT__
+      return this.__PURE_ELEMENT__ || this === microDocument
         ? rawOwnerDocumentDesc.get!.call(this)
         : microDocument
     },

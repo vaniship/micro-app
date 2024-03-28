@@ -14,7 +14,7 @@
 
 - **New**
 
-  - 🆕 新增
+  - 🆕 新增虚拟路由系统`state`模式，用于适配更多使用场景。
 
 - **Bug Fix**
 
@@ -23,10 +23,12 @@
   - 🐞 修复了with沙箱下预渲染子应用路由跳转异常的问题。
   - 🐞 修复了native路由模式下，主应用和子应用都是vue-router@4导致浏览器前进后退路由地址混乱的问题。
   - 🐞 修复了设置`disable-memory-router`后，部分场景下子应用内部跳转失败的问题，[issue 1132](https://github.com/micro-zoe/micro-app/issues/1132)。
+  - 🐞 修复了iframe沙箱下`Aliplayer`视频播放器无法正常运行的问题。
+  - 🐞 修复了`native`、`disable-memory-router`路由模式下，主应用、子应用都是vue3导致路由冲突导航异常的问题。
 
 - **Update**
 
-  - 🚀 更新了案例。
+  - 🚀 更新了路由相关文档。
 
 
 ### 1.0.0-rc.4
