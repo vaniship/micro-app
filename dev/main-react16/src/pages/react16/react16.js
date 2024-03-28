@@ -442,7 +442,7 @@ export default class App extends React.Component {
                   // disable-memory-router
                   router-mode={this.state.routerMode}
                   // keep-router-state
-                  // default-page='/micro-app/react16/page2'
+                  default-page='/micro-app/react16/page2'
                   // hidden-router
                   // disable-patch-request
                   // fiber

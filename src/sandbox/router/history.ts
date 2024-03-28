@@ -23,6 +23,7 @@ import {
   isEffectiveApp,
   isRouterModePure,
   isRouterModeSearch,
+  isRouterModeState,
 } from './core'
 import { dispatchNativeEvent } from './event'
 import { updateMicroLocation } from './location'
@@ -204,7 +205,7 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
-      if (isRouterModeSearch(appName) && !getMicroPathFromURL(appName)) {
+      if ((isRouterModeSearch(appName) || isRouterModeState(appName)) && !getMicroPathFromURL(appName)) {
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
           appName,

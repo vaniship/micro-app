@@ -37,6 +37,7 @@ let router = null
 let history = null
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
 window.mount = () => {
+  console.log(222222, window.__MICRO_APP_BASE_ROUTE__)
   history = createWebHistory(window.__MICRO_APP_BASE_ROUTE__ || '/micro-app/vue3/')
   router = createRouter({
     history,
