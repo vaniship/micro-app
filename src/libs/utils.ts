@@ -256,12 +256,12 @@ export function formatAppURL (url: string | null, appName: string | null = null)
 
   try {
     const { origin, pathname, search } = createURL(addProtocol(url), (window.rawWindow || window).location.href)
-    // If it ends with .html/.node/.php/.net/.etc, don’t need to add /
-    if (/\.(\w+)$/.test(pathname)) {
-      return `${origin}${pathname}${search}`
-    }
-    const fullPath = `${origin}${pathname}/`.replace(/\/\/$/, '/')
-    return /^https?:\/\//.test(fullPath) ? `${fullPath}${search}` : ''
+    /**
+     * keep the original url unchanged, such as .html .node .php .net .etc, search, except hash
+     * BUG FIX: Never using '/' to complete url, refer to https://github.com/micro-zoe/micro-app/issues/1147
+     */
+    const fullPath = `${origin}${pathname}${search}`
+    return /^https?:\/\//.test(fullPath) ? fullPath : ''
   } catch (e) {
     logError(e, appName)
     return ''
@@ -284,7 +284,9 @@ export function formatAppName (name: string | null): string {
 }
 
 /**
- * Get valid address, such as https://xxx/xx/xx.html to https://xxx/xx/
+ * Get valid address, such as
+ *  1. https://domain/xx/xx.html to https://domain/xx/
+ *  2. https://domain/xx to https://domain/xx/
  * @param url app.url
  */
 export function getEffectivePath (url: string): string {

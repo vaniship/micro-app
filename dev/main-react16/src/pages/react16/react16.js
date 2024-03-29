@@ -17,7 +17,7 @@ export default class App extends React.Component {
       name: '初始化数据'
     },
     name: 'react#16',
-    url: `${config.react16}micro-app/react16/?a=1`,
+    url: `${config.react16}micro-app/react16/index.html`,
     // url: 'http://127.0.0.1:8080/micro-app/react16',
     showLoading: true,
     showMicroApp: true,
@@ -442,7 +442,7 @@ export default class App extends React.Component {
                   // disable-memory-router
                   router-mode={this.state.routerMode}
                   // keep-router-state
-                  default-page='/micro-app/react16/page2'
+                  // default-page='/micro-app/react16/page2'
                   // hidden-router
                   // disable-patch-request
                   // fiber

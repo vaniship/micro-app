@@ -172,23 +172,23 @@ export function attachRouteToBrowserURL (
 }
 
 /**
- * When path is same, keep the microAppState in history.state
- * Fix bug of missing microAppState when base app is next.js or angular
+ * When path is same, keep the __MICRO_APP_STATE__ in history.state
+ * Fix bug of missing __MICRO_APP_STATE__ when base app is next.js or angular
  * @param method history.pushState/replaceState
  */
 function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): CallableFunction {
   const rawWindow = globalEnv.rawWindow
   return function (...rests: [data: any, unused: string, url?: string]): void {
     if (
-      rawWindow.history.state?.microAppState &&
-      (!isPlainObject(rests[0]) || !rests[0].microAppState) &&
+      rawWindow.history.state?.__MICRO_APP_STATE__ &&
+      (!isPlainObject(rests[0]) || !rests[0].__MICRO_APP_STATE__) &&
       (isString(rests[2]) || isURL(rests[2]))
     ) {
       const currentHref = rawWindow.location.href
       const targetLocation = createURL(rests[2], currentHref)
       if (targetLocation.href === currentHref) {
         rests[0] = assign({}, rests[0], {
-          microAppState: rawWindow.history.state.microAppState,
+          __MICRO_APP_STATE__: rawWindow.history.state.__MICRO_APP_STATE__,
         })
       }
     }
@@ -221,7 +221,7 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
 
 /**
  * rewrite history.pushState/replaceState
- * used to fix the problem that the microAppState maybe missing when mainApp navigate to same path
+ * used to fix the problem that the __MICRO_APP_STATE__ maybe missing when mainApp navigate to same path
  * e.g: when nextjs, angular receive popstate event, they will use history.replaceState to update browser url with a new state object
  */
 export function patchHistory (): void {

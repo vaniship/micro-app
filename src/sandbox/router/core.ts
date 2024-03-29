@@ -35,7 +35,7 @@ export function setMicroState (
 ): MicroState {
   const rawState = globalEnv.rawWindow.history.state
   const additionalState: Record<string, any> = {
-    microAppState: assign({}, rawState?.microAppState, {
+    __MICRO_APP_STATE__: assign({}, rawState?.__MICRO_APP_STATE__, {
       [appName]: {
         fullPath: microLocation.pathname + microLocation.search + microLocation.hash,
         state: microState,
@@ -50,12 +50,12 @@ export function setMicroState (
 
 // delete micro app state form origin state
 export function removeMicroState (appName: string, rawState: MicroState): MicroState {
-  if (isPlainObject(rawState?.microAppState)) {
-    if (!isUndefined(rawState.microAppState[appName])) {
-      delete rawState.microAppState[appName]
+  if (isPlainObject(rawState?.__MICRO_APP_STATE__)) {
+    if (!isUndefined(rawState.__MICRO_APP_STATE__[appName])) {
+      delete rawState.__MICRO_APP_STATE__[appName]
     }
-    if (!Object.keys(rawState.microAppState).length) {
-      delete rawState.microAppState
+    if (!Object.keys(rawState.__MICRO_APP_STATE__).length) {
+      delete rawState.__MICRO_APP_STATE__
     }
   }
 
@@ -65,7 +65,7 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
 // get micro app state form origin state
 export function getMicroState (appName: string): MicroState {
   const rawState = globalEnv.rawWindow.history.state
-  return rawState?.microAppState?.[appName]?.state || (isRouterModeCustom(appName) ? rawState : null)
+  return rawState?.__MICRO_APP_STATE__?.[appName]?.state || (isRouterModeCustom(appName) ? rawState : null)
 }
 
 const ENC_AD_RE = /&/g // %M1
@@ -114,7 +114,7 @@ export function getMicroPathFromURL (appName: string): string | null {
     return isString(microPath) ? decodeMicroPath(microPath) : null
   }
   if (isRouterModeState(appName)) {
-    return rawState?.microAppState?.[appName]?.fullPath || null
+    return rawState?.__MICRO_APP_STATE__?.[appName]?.fullPath || null
   }
   return rawLocation.pathname + rawLocation.search + rawLocation.hash
 }

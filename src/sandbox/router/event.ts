@@ -118,7 +118,7 @@ export function dispatchPopStateEventToMicroApp (
   /**
    * create PopStateEvent named popstate-appName with sub app state
    * TODO: feeling like there's something wrong, check carefully
-   *  In native mode, getMicroState(appName) return rawWindow.history.state when use microApp.router.push/replace or other scenes when state.microAppState[appName] is null
+   *  In native mode, getMicroState(appName) return rawWindow.history.state when use microApp.router.push/replace or other scenes when state.__MICRO_APP_STATE__[appName] is null
    */
   const newPopStateEvent = new PopStateEvent(
     'popstate',
