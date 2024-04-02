@@ -116,13 +116,13 @@ export function clearRouteStateFromURL (
   microLocation: MicroLocation,
   keepRouteState: boolean,
 ): void {
-  if (!isRouterModeCustom(appName)) {
-    if (!keepRouteState) {
-      const { pathname, search, hash } = createURL(url)
-      updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
-    }
-    removePathFromBrowser(appName)
+  // TODO: keep-router-state 功能太弱，是否可以增加优先级，或者去掉
+  if (!keepRouteState && !isRouterModeCustom(appName)) {
+    const { pathname, search, hash } = createURL(url)
+    updateMicroLocation(appName, pathname + search + hash, microLocation, 'prevent')
   }
+
+  removePathFromBrowser(appName)
 
   clearRouterWhenUnmount(appName)
 }

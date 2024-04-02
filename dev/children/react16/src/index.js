@@ -469,17 +469,17 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
     // console.log(111111, window.location)
 
     // window.history.scrollRestoration = 'manual'
-  }, 3000);
+  }, 5000);
 }
 
 
 /* ---------------------- popstate 和 hashchange --------------------- */
 window.addEventListener('popstate', (e) => {
-  console.log('子应用 popstate', e)
+  console.log(`子应用 ${window.__MICRO_APP_NAME__} popstate`, e)
 })
 
 window.addEventListener('hashchange', (e) => {
-  console.log('子应用 hashchange', e, e.newURL, e.oldURL)
+  console.log(`子应用 ${window.__MICRO_APP_NAME__} hashchange`, e, e.newURL, e.oldURL)
 })
 
 

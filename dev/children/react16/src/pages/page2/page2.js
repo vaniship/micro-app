@@ -78,7 +78,8 @@ const Page2 = () => {
 
   const testClick = () => {
     console.log('click from test button')
-    window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }))
+    // window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }))
+    window.location.href = '/micro-app/react16/page2'
   }
 
   const showDrawer = () => {

@@ -14,13 +14,16 @@ import {
 import {
   setMicroPathToURL,
   isEffectiveApp,
+  setMicroState,
   getMicroState,
   isRouterModeCustom,
   isRouterModeNative,
   isRouterModeSearch,
+  isRouterModeState,
 } from './core'
 import {
   dispatchNativeEvent,
+  updateMicroLocationWithEvent,
 } from './event'
 import {
   executeNavigationGuard,
@@ -90,13 +93,13 @@ export function createMicroLocation (
     if (targetLocation.origin === proxyLocation.origin) {
       const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
       // if disable memory-router, navigate directly through rawLocation
-      if (isRouterModeSearch(appName)) {
+      if (!isRouterModeNative(appName)) {
         /**
          * change hash with location.href will not trigger the browser reload
          * so we use pushState & reload to imitate href behavior
          * NOTE:
-         *    1. if child app only change hash, it should not trigger browser reload
-         *    2. if address is same and has hash, it should not add route stack
+         *    1. if child app only change hash, it will not reload browser
+         *    2. if address is same and has hash, it will not add route stack
          */
         if (
           targetLocation.pathname === proxyLocation.pathname &&
@@ -104,22 +107,43 @@ export function createMicroLocation (
         ) {
           let oldHref = null
           if (targetLocation.hash !== proxyLocation.hash) {
-            if (setMicroPathResult.isAttach2Hash) oldHref = rawLocation.href
-            nativeHistoryNavigate(appName, methodName, setMicroPathResult.fullPath)
+            // search mode only
+            if (setMicroPathResult.isAttach2Hash) {
+              oldHref = rawLocation.href
+            }
+            nativeHistoryNavigate(
+              appName,
+              methodName,
+              setMicroPathResult.fullPath,
+              isRouterModeState(appName) ? setMicroState(appName, null, targetLocation) : null,
+            )
           }
 
           if (targetLocation.hash) {
-            dispatchNativeEvent(appName, false, oldHref)
+            if (isRouterModeSearch(appName)) {
+              dispatchNativeEvent(appName, false, oldHref)
+            } else {
+              updateMicroLocationWithEvent(appName, targetLocation.pathname + targetLocation.search + targetLocation.hash)
+            }
           } else {
             reload()
           }
           return void 0
+        }
+
         /**
-         * when baseApp is hash router, address change of child can not reload browser
-         * so we imitate behavior of browser (reload) manually
+         * simulate behavior of browser (reload) manually
+         * NOTE:
+         *  1. when baseApp is hash router, address change of child will not reload browser(search mode only)
+         *  2. address change in state mode will simulate behavior of browser
          */
-        } else if (setMicroPathResult.isAttach2Hash) {
-          nativeHistoryNavigate(appName, methodName, setMicroPathResult.fullPath)
+        if (isRouterModeState(appName) || setMicroPathResult.isAttach2Hash) {
+          nativeHistoryNavigate(
+            appName,
+            methodName,
+            setMicroPathResult.fullPath,
+            isRouterModeState(appName) ? setMicroState(appName, null, targetLocation) : null,
+          )
           reload()
           return void 0
         }
