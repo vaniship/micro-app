@@ -18,7 +18,7 @@
 
 - **Bug Fix**
 
-  - 🐞 修复了iframe沙箱下`unhandledrejection`事件失效的问题，[issue 1102](https://github.com/micro-zoe/micro-app/issues/1102)。
+  - 🐞 修复了iframe沙箱下`unhandledrejection`事件失效的问题，[issue 1102](https://github.com/micro-zoe/micro-app/issues/1102)、[issue 1159](https://github.com/micro-zoe/micro-app/issues/1159)。
   - 🐞 修复了with沙箱下`keep-alive`子应用二次渲染后无法通过`microApp.router`控制跳转的问题，[issue 1115](https://github.com/micro-zoe/micro-app/issues/1115)。
   - 🐞 修复了with沙箱下预渲染子应用路由跳转异常的问题。
   - 🐞 修复了native路由模式下，主应用和子应用都是vue-router@4导致浏览器前进后退路由地址混乱的问题。

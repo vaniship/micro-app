@@ -233,7 +233,7 @@ import { removeDomScope } from '@micro-zoe/micro-app'
 // 解除元素绑定
 removeDomScope()
 
-// 解除元素绑定，并且一定时间内阻止再次绑定
+// 解除元素绑定，并且一定时间内阻止再次绑定(一个微任务Promise时间)
 removeDomScope(true)
 ```
 
@@ -653,7 +653,7 @@ function removeDomScope(force?: boolean): void
 // 解除元素绑定
 window.microApp.removeDomScope()
 
-// 解除元素绑定，并且一定时间内阻止再次绑定
+// 解除元素绑定，并且一定时间内阻止再次绑定(一个微任务Promise时间)
 window.microApp.removeDomScope(true)
 ```
 
