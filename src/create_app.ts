@@ -225,6 +225,7 @@ export default class CreateApp implements AppInterface {
       this.isPrerender = false
 
       // dispatch state event to micro app
+      // TODO: statechange 还是 state-change，保持一致
       dispatchCustomEventToMicroApp(this, 'statechange', {
         appState: appStates.LOADING
       })

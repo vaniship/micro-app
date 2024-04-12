@@ -674,3 +674,15 @@ type BaseHTMLElementType = HTMLElement & {
 export function getBaseHTMLElement (): BaseHTMLElementType {
   return (window.rawWindow?.HTMLElement || window.HTMLElement) as BaseHTMLElementType
 }
+
+/**
+ * Format event name
+ * In with sandbox, child event and lifeCycles bind to microAppElement, there are two events with same name - mounted unmount, it should be handled specifically to prevent conflicts
+ * Issue: https://github.com/micro-zoe/micro-app/issues/1161
+ * @param type event name
+ * @param appName app name
+ */
+const formatEventList = ['mounted', 'unmount']
+export function formatEventType (type: string, appName: string): string {
+  return formatEventList.includes(type) ? `${type}-${appName}` : type
+}
