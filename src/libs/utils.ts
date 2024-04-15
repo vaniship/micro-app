@@ -161,6 +161,14 @@ export function isProxyDocument (target: unknown): target is Document {
   return toTypeString(target) === '[object ProxyDocument]'
 }
 
+export function isTargetExtension (path: string, suffix: string): boolean {
+  try {
+    return createURL(path).pathname.split('.').pop() === suffix
+  } catch {
+    return false
+  }
+}
+
 export function includes (target: unknown[], searchElement: unknown, fromIndex?: number): boolean {
   if (target == null) {
     throw new TypeError('includes target is null or undefined')

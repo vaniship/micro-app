@@ -1,6 +1,6 @@
 import { AppInterface, plugins } from '@micro-app/types'
 import { fetchSource } from '../fetch'
-import { isFunction, isPlainObject, logError } from '../../libs/utils'
+import { isFunction, isPlainObject, logError, isTargetExtension } from '../../libs/utils'
 import microApp from '../../micro_app'
 
 export interface IHTMLLoader {
@@ -24,9 +24,7 @@ export class HTMLLoader implements IHTMLLoader {
   public run (app: AppInterface, successCb: CallableFunction): void {
     const appName = app.name
     const htmlUrl = app.ssrUrl || app.url
-
-    const isJsResource = isResourceUrl(htmlUrl)
-
+    const isJsResource = isTargetExtension(htmlUrl, 'js')
     const htmlPromise = isJsResource
       ? Promise.resolve(`<micro-app-head><script src='${htmlUrl}'></script></micro-app-head><micro-app-body></micro-app-body>`)
       : fetchSource(htmlUrl, appName, { cache: 'no-cache' })
@@ -76,15 +74,5 @@ export class HTMLLoader implements IHTMLLoader {
       }, code)
     }
     return code
-  }
-}
-
-function isResourceUrl (url: string) {
-  try {
-    const { pathname, hash } = new window.URL(url)
-    const resourcePath = pathname + hash
-    return resourcePath.includes('.js')
-  } catch {
-    return url.includes('.js')
   }
 }

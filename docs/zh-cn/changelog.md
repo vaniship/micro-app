@@ -26,6 +26,8 @@
   - 🐞 修复了iframe沙箱下`Aliplayer`视频播放器无法正常运行的问题。
   - 🐞 修复了`native`、`disable-memory-router`路由模式下，主应用、子应用都是vue3导致路由冲突导航异常的问题，[issue 1148](https://github.com/micro-zoe/micro-app/issues/1148)、[issue 1132](https://github.com/micro-zoe/micro-app/issues/1132)。
   - 🐞 修复了格式化子应用url导致部分场景下路由匹配异常的问题，[issue 1147](https://github.com/micro-zoe/micro-app/issues/1147)。
+  - 🐞 修复了with沙箱下生命周期`mounted`, `unmount`重复触发的问题，[issue 1161](https://github.com/micro-zoe/micro-app/issues/1161)。
+  - 🐞 修复了域名中包含.js导致子应用渲染失败的问题，[issue 1172](https://github.com/micro-zoe/micro-app/issues/1172)，[PR 1173](https://github.com/micro-zoe/micro-app/pull/1173) by [SepVeneto](https://github.com/SepVeneto)。
 
 - **Update**
 

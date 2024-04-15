@@ -182,7 +182,11 @@ microApp.start({
       return true
     }
     return false
-  }
+  },
+  // globalAssets: {
+  //   js: ['http://127.0.0.1:8080/a.js'], // js地址
+  //   css: ['http://127.0.0.1:8080/test.css'], // css地址
+  // }
 })
 
 // microApp.start({
