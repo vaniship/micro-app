@@ -24,7 +24,10 @@ export class HTMLLoader implements IHTMLLoader {
   public run (app: AppInterface, successCb: CallableFunction): void {
     const appName = app.name
     const htmlUrl = app.ssrUrl || app.url
-    const htmlPromise = htmlUrl.includes('.js')
+
+    const isJsResource = isResourceUrl(htmlUrl)
+
+    const htmlPromise = isJsResource
       ? Promise.resolve(`<micro-app-head><script src='${htmlUrl}'></script></micro-app-head><micro-app-body></micro-app-body>`)
       : fetchSource(htmlUrl, appName, { cache: 'no-cache' })
     htmlPromise.then((htmlStr: string) => {
@@ -73,5 +76,15 @@ export class HTMLLoader implements IHTMLLoader {
       }, code)
     }
     return code
+  }
+}
+
+function isResourceUrl (url: string) {
+  try {
+    const { pathname, hash } = new window.URL(url)
+    const resourcePath = pathname + hash
+    return resourcePath.includes('.js')
+  } catch {
+    return url.includes('.js')
   }
 }
