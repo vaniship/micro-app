@@ -468,8 +468,6 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
     // window.location.replace('http://localhost:3001/micro-app/react16/page2#abc') // 同上
 
     window.history.scrollRestoration = 'manual'
-
-    console.log(2222222222, window.history)
   }, 5000);
 }
 
