@@ -68,7 +68,12 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
   const pushState = getMicroHistoryMethod('pushState')
   const replaceState = getMicroHistoryMethod('replaceState')
 
-  if (isIframeSandbox(appName)) return { pushState, replaceState } as MicroHistory
+  if (isIframeSandbox(appName)) {
+    return {
+      pushState,
+      replaceState,
+    } as MicroHistory
+  }
 
   return new Proxy(rawHistory, {
     get (target: History, key: PropertyKey): HistoryProxyValue {
@@ -145,11 +150,7 @@ export function navigateWithNativeEvent (
     const oldHref = result.isAttach2Hash && oldFullPath !== result.fullPath ? rawLocation.href : null
     // navigate with native history method
     nativeHistoryNavigate(appName, methodName, result.fullPath, state, title)
-    /**
-     * TODO:
-     *  1. 如果所有模式统一发送popstate事件，则isRouterModeSearch(appName)要去掉
-     *  2. 如果发送事件，则会导致vue router-view :key='router.path'绑定，无限卸载应用，死循环
-     */
+    // just search mode will dispatch native event
     if (oldFullPath !== result.fullPath && isRouterModeSearch(appName)) {
       dispatchNativeEvent(appName, onlyForBrowser, oldHref)
     }

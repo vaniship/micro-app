@@ -443,7 +443,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
   setTimeout(() => {
     // window.location.href = 'https://www.baidu.com/' // origin不同，直接跳转页面
     // window.location.href = 'http://localhost:3001/micro-app/react16/page2' // path改变，刷新浏览器
-    // window.location.href = 'http://localhost:3001/micro-app/react16/page2#abc' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
+    // window.location.href = 'http://localhost:3001/micro-app/react16/page2#abc11' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
     // window.location.href = 'http://localhost:3001/micro-app/react16/page2/' // hash从有到无，刷新浏览器
     // window.location.href = 'http://localhost:3001/micro-app/react16'
     // window.location.href = 'http://localhost:3001/micro-app/react16/' // path相同，刷新浏览器
@@ -452,13 +452,13 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
     // window.location.pathname = '/micro-app/react16/page2' // path改变，刷新浏览器
     // window.location.pathname = '/micro-app/react16/page2#hash1' // 无法直接通过pathname修改hash的值，这里的写法是错误的，而且会导致浏览器刷新，需要完善一下
-    // window.location.pathname = '/micro-app/react16/page2?b=2'
+    // window.location.pathname = '/micro-app/react16/page2?b=2' // 刷新页面，但问题是多次刷新?b=2会不断拼接
 
     // window.location.search = '?c=3' // search改变，刷新浏览器
     // window.location.search = '?c=3' // search不变，刷新浏览器
 
-    // window.location.hash = '#a' // hash改变，不刷新浏览器
-    // window.location.hash = '#a' // hash不变，不刷新浏览器
+    // window.location.hash = '#a' // hash改变，不刷新浏览器，发送popstate、hashchange事件
+    // window.location.hash = '#a' // hash不变，不刷新浏览器，不发送事件
 
 
     // window.location.assign('http://localhost:3001/micro-app/react16/page2') // path改变，刷新浏览器
@@ -466,9 +466,10 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
     // window.location.replace('http://localhost:3001/micro-app/react16/page2') // 同上
     // window.location.replace('http://localhost:3001/micro-app/react16/page2#abc') // 同上
-    // console.log(111111, window.location)
 
-    // window.history.scrollRestoration = 'manual'
+    window.history.scrollRestoration = 'manual'
+
+    console.log(2222222222, window.history)
   }, 5000);
 }
 

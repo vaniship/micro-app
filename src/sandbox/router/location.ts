@@ -93,7 +93,7 @@ export function createMicroLocation (
     if (targetLocation.origin === proxyLocation.origin) {
       const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
       // if disable memory-router, navigate directly through rawLocation
-      if (!isRouterModeNative(appName)) {
+      if (!isRouterModeCustom(appName)) {
         /**
          * change hash with location.href will not trigger the browser reload
          * so we use pushState & reload to imitate href behavior
@@ -177,6 +177,7 @@ export function createMicroLocation (
         appName,
         targetLocation[key] === proxyLocation[key] ? 'replaceState' : 'pushState',
         setMicroPathToURL(appName, targetLocation).fullPath,
+        setMicroState(appName, null, targetLocation),
       )
       reload()
     }
@@ -288,7 +289,11 @@ export function createMicroLocation (
                 'pushState',
                 setMicroPathToURL(appName, targetLocation),
                 false,
+                setMicroState(appName, null, targetLocation),
               )
+              if (!isRouterModeSearch(appName)) {
+                updateMicroLocationWithEvent(appName, targetLocation.pathname + targetLocation.search + targetLocation.hash)
+              }
             }
           }
         } else {
