@@ -30,6 +30,7 @@ window.microApp.location.pathname = 'xxx'
 
 #### 2、iframe沙箱加载了主应用的资源
 
-**解决方式：**如果主应用不会作为iframe嵌入，可以在主应用head最前面插入下面js
+**解决方式：**在主应用head最前面插入下面js
 ```html
 <script>if(window.parent !== window) {window.stop()}</script>
+```

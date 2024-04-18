@@ -23,7 +23,7 @@ export default class App extends React.Component {
     showMicroApp: true,
     testNum: 0,
     showModal: false,
-    routerMode: 'state',
+    routerMode: 'pure',
     baseroute: '/micro-app/demo/react16',
   }
 
@@ -448,7 +448,7 @@ export default class App extends React.Component {
                   // fiber
                   // ssr
                   // clear-data
-                  iframe
+                  // iframe
                 >
                 </micro-app>
               )

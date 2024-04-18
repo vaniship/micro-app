@@ -445,7 +445,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
     // window.location.href = 'http://localhost:3001/micro-app/react16/page2' // path改变，刷新浏览器
     // window.location.href = 'http://localhost:3001/micro-app/react16/page2#abc11' // path不变，hash改变，不刷新浏览器，发送popstate、hashchange事件
     // window.location.href = 'http://localhost:3001/micro-app/react16/page2/' // hash从有到无，刷新浏览器
-    // window.location.href = 'http://localhost:3001/micro-app/react16'
+    // window.location.href = 'http://localhost:3001/micro-app/react16' // 跳转首页，刷新浏览器
     // window.location.href = 'http://localhost:3001/micro-app/react16/' // path相同，刷新浏览器
     // window.location.href = 'http://localhost:3001/micro-app/react16/?a=1' // search变化，刷新浏览器
 

@@ -106,7 +106,6 @@ function formatQueryAppName (appName: string) {
  * @param appName app.name
  */
 export function getMicroPathFromURL (appName: string): string | null {
-  if (isRouterModePure(appName)) return null
   const rawLocation = globalEnv.rawWindow.location
   const rawState = globalEnv.rawWindow.history.state
   if (isRouterModeSearch(appName)) {
@@ -114,7 +113,7 @@ export function getMicroPathFromURL (appName: string): string | null {
     const microPath = queryObject.hashQuery?.[formatQueryAppName(appName)] || queryObject.searchQuery?.[formatQueryAppName(appName)]
     return isString(microPath) ? decodeMicroPath(microPath) : null
   }
-  if (isRouterModeState(appName)) {
+  if (isRouterModeState(appName) || isRouterModePure(appName)) {
     return rawState?.__MICRO_APP_STATE__?.[appName]?.fullPath || null
   }
   return rawLocation.pathname + rawLocation.search + rawLocation.hash
@@ -168,7 +167,7 @@ export function setMicroPathToURL (appName: string, targetLocation: MicroLocatio
     }
   }
 
-  if (isRouterModeState(appName)) {
+  if (isRouterModeState(appName) || isRouterModePure(appName)) {
     targetFullPath = rawLocation.pathname + rawLocation.search + rawLocation.hash
   }
 
