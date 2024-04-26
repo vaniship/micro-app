@@ -31,14 +31,14 @@ import microApp from '../../micro_app'
 export function setMicroState (
   appName: string,
   microState: MicroState,
-  microLocation: MicroLocation,
+  targetLocation: MicroLocation,
 ): MicroState {
   // TODO: 验证native模式下修改state nextjs路由是否正常
   const rawState = globalEnv.rawWindow.history.state
   const additionalState: Record<string, any> = {
     __MICRO_APP_STATE__: assign({}, rawState?.__MICRO_APP_STATE__, {
       [appName]: {
-        fullPath: microLocation.pathname + microLocation.search + microLocation.hash,
+        fullPath: targetLocation.pathname + targetLocation.search + targetLocation.hash,
         state: microState,
         mode: getRouterMode(appName),
       }
@@ -66,6 +66,7 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
 // get micro app state form origin state
 export function getMicroState (appName: string): MicroState {
   const rawState = globalEnv.rawWindow.history.state
+  // rawState?.__MICRO_APP_STATE__?.[appName]?.state || (isRouterModeCustom(appName) ? rawState : null)
   return rawState?.__MICRO_APP_STATE__?.[appName]?.state || (isRouterModeCustom(appName) ? rawState : null)
 }
 
@@ -113,10 +114,22 @@ export function getMicroPathFromURL (appName: string): string | null {
     const microPath = queryObject.hashQuery?.[formatQueryAppName(appName)] || queryObject.searchQuery?.[formatQueryAppName(appName)]
     return isString(microPath) ? decodeMicroPath(microPath) : null
   }
-  if (isRouterModeState(appName) || isRouterModePure(appName)) {
-    return rawState?.__MICRO_APP_STATE__?.[appName]?.fullPath || null
-  }
-  return rawLocation.pathname + rawLocation.search + rawLocation.hash
+  /**
+   * Get fullPath from __MICRO_APP_STATE__
+   * NOTE:
+   *  1. state mode: all base on __MICRO_APP_STATE__
+   *  2. pure mode: navigate by location.xxx may contain one-time information in __MICRO_APP_STATE__
+   *  3. native/scope mode: vue-router@4 will exec replaceState base on state before pushState, like:
+   *    history.replaceState(
+   *      assign({}, history.state, {...}),
+   *      title,
+   *      history.state.current, <---
+   *    )
+   *    when base app jump to another page from child page, it will replace child path with base app path
+   *   e.g: base-home --> child-home --> child-about(will replace with child-home before jump to base-home) --> base-home, when go back, it will back to child-home not child-about
+   *   So we take the fullPath as the standard
+   */
+  return rawState?.__MICRO_APP_STATE__?.[appName]?.fullPath || (isRouterModeCustom(appName) ? rawLocation.pathname + rawLocation.search + rawLocation.hash : null)
 }
 
 /**

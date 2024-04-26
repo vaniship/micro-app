@@ -29,7 +29,7 @@
   - 🐞 修复了with沙箱下生命周期`mounted`, `unmount`重复触发的问题，[issue 1161](https://github.com/micro-zoe/micro-app/issues/1161)。
   - 🐞 修复了域名中包含.js导致子应用渲染失败的问题，[issue 1172](https://github.com/micro-zoe/micro-app/issues/1172)，[PR 1173](https://github.com/micro-zoe/micro-app/pull/1173) by [SepVeneto](https://github.com/SepVeneto)。
   - 🐞 修复了iframe沙箱下子应用设置`history.scrollRestoration`不生效的问题。
-  - 🐞 修复了虚拟路由系统pure模式下，通过location进行跳转表现异常的问题，[issue 1135](https://github.com/micro-zoe/micro-app/issues/1135)
+  - 🐞 修复了虚拟路由系统pure模式下，通过location进行跳转表现异常的问题，[issue 1135](https://github.com/micro-zoe/micro-app/issues/1135)。
 
 - **Update**
 

@@ -47,7 +47,21 @@ export function addHistoryListener (appName: string): CallableFunction {
       }).includes(appName) &&
       !e.onlyForBrowser
     ) {
+      /**
+       * TODO: vue-router@4 navigate async when receive popstateEvent, but child may respond to popstateEvent immediately(vue2, react), so when go back throw browser child will not unmount sync, and will respond to popstateEvent before base app, this will cause some problems
+       * __MICRO_APP_BASE_ROUTE__不可控，用户设置的值是随机的且不一定使用，用它作为判断依据太过危险
+      */
+      // const microAppWindow = appInstanceMap.get(appName)!.sandBox!.microAppWindow
+      // const rawLocation = globalEnv.rawWindow.location
+      // if (
+      //   !isRouterModeCustom(appName) ||
+      //   !microAppWindow.__MICRO_APP_BASE_ROUTE__ ||
+      //   // 主history、子hash，主、子都是hash如何处理
+      //   microAppWindow.__MICRO_APP_BASE_ROUTE__.includes('#') ||
+      //   `${rawLocation.pathname}/`.startsWith(('/' + microAppWindow.__MICRO_APP_BASE_ROUTE__).replace(/^\/+/, '/'))
+      // ) {
       updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+      // }
     }
   }
 
