@@ -75,7 +75,7 @@ microApp.start({
   // 'disable-patch-request': true,
   // 'keep-router-state': true,
   // 'hidden-router': true,
-  // 'router-mode': 'custom',
+  // 'router-mode': 'state',
   // esmodule: true,
   // ssr: true,
   // preFetchApps: prefetchConfig,
@@ -87,29 +87,29 @@ microApp.start({
   // },
   // iframeSrc: 'http://localhost:3000/',
   lifeCycles: {
-    created (e) {
-      console.log('created 全局监听', 'name:', e.detail.name)
+    created (e, appName) {
+      console.log(`子应用${appName}被创建 -- 全局监听`)
     },
-    beforemount (e) {
-      console.log('beforemount 全局监听', 'name:', e.detail.name)
+    beforemount (e, appName) {
+      console.log(`子应用${appName}即将渲染 -- 全局监听`)
     },
-    mounted (e) {
-      console.log('mounted 全局监听', 'name:', e.detail.name)
+    mounted (e, appName) {
+      console.log(`子应用${appName}已经渲染完成 -- 全局监听`)
     },
-    unmount (e) {
-      console.log('unmount 全局监听', 'name:', e.detail.name)
+    unmount (e, appName) {
+      console.log(`子应用${appName}已经卸载 -- 全局监听`)
     },
-    error (e) {
-      console.log('error 全局监听', 'name:', e.detail.name)
+    error (e, appName) {
+      console.log(`子应用${appName}加载出错 -- 全局监听`)
     },
-    beforeshow (e) {
-      console.log('beforeshow 全局监听', 'name:', e.detail.name)
+    beforeshow (e, appName) {
+      console.log(`子应用${appName} beforeshow -- 全局监听`)
     },
-    aftershow (e) {
-      console.log('aftershow 全局监听', 'name:', e.detail.name)
+    aftershow (e, appName) {
+      console.log(`子应用${appName} aftershow -- 全局监听`)
     },
-    afterhidden (e) {
-      console.log('afterhidden 全局监听', 'name:', e.detail.name)
+    afterhidden (e, appName) {
+      console.log(`子应用${appName} afterhidden -- 全局监听`)
     },
   },
   plugins: {

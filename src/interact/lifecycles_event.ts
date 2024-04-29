@@ -63,7 +63,7 @@ export default function dispatchLifecyclesEvent (
   formatEventInfo(event, element)
   // global hooks
   if (isFunction(microApp.options.lifeCycles?.[lifecycleName])) {
-    microApp.options.lifeCycles![lifecycleName]!(event)
+    microApp.options.lifeCycles![lifecycleName]!(event, appName)
   }
 
   element.dispatchEvent(event)

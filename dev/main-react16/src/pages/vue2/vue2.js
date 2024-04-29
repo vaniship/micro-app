@@ -91,7 +91,7 @@ function Vue2 () {
         // disableSandbox
         // clear-data
         // iframe
-        router-mode='pure'
+        router-mode='native'
       >
       </micro-app>
     </div>
