@@ -1,4 +1,4 @@
-native模式是指放开路由隔离，主应用和子应用同时基于浏览器路由进行渲染，共用同一套location和history，拥有更好的用户体验，但更容易导致主应用和子应用的路由冲突，具体原理参考[关于native模式的原理解析](/zh-cn/native-mode?id=关于native模式的原理解析)。
+native模式是指放开路由隔离，主应用和子应用同时基于浏览器路由进行渲染，共用同一套location和history，它拥有更好的用户体验，但更容易导致主应用和子应用的路由冲突，具体原理参考[关于native模式的原理解析](/zh-cn/native-mode?id=关于native模式的原理解析)。
 
 native模式需要更加复杂的路由配置，主应用和子应用的路由都要进行一些改造。
 
@@ -43,49 +43,119 @@ const routes = [
 ```
 
 
-**示例**
+### 示例
 
-**React**
+#### 主应用
 
 <!-- tabs:start -->
 
-#### ** 主应用 **
+#### ** react16 **
 
 ```js
 // router.js
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
-import ChildPage from './child-page'
+import MyPage from './my-page'
 
-export default function AppRoute () {
+export function App () {
   return (
     <BrowserRouter>
       <Switch>
-        // 非严格匹配，/child/* 都指向ChildPage组件
-        // /child 就是分配给子应用的基础路由baseroute
+        // 设置动态路由，/child/one、child/two，以及所有/child开头的路由都指向MyPage组件
         <Route path='/child'>
-          <ChildPage />
+          <MyPage />
         </Route>
       </Switch>
     </BrowserRouter>
   )
 }
+```
 
-// child-page.js
-export function ChildPage () {
+```js
+// my-page.js
+export function MyPage () {
   return (
     <div>
-      <h1>子应用</h1>
-      <micro-app name='child-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
+      {/* 设置子应用基础路由baseroute为'/child'，与上述路由path的值保持一致 */}
+      <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
     </div>
   )
 }
 ```
 
-#### ** 子应用 **
+#### ** react18 **
+
+```js
+// router.js
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import MyPage from './my-page'
+
+export function App () {
+  return (
+    <BrowserRouter>
+      <Routes>
+        // 设置动态路由，/child/one、child/two，以及所有/child开头的路由都指向MyPage组件
+        <Route path='/child/*' element={<MyPage />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+```
+
+```js
+// my-page.js
+export function MyPage () {
+  return (
+    <div>
+      {/* 设置子应用基础路由baseroute为'/child'，而不是'/child/*' */}
+      <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
+    </div>
+  )
+}
+```
+
+#### ** vue2 **
+
+```js
+// router.js
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import MyPage from './my-page.vue'
+
+Vue.use(VueRouter)
+
+const routes = [
+  {
+    // 设置动态路由，/child/one、child/two，以及所有/child开头的路由都指向MyPage组件
+    path: '/child/*',  // vue-router@4.x path的写法为：'/child/:page*'
+    name: 'child',
+    component: MyPage,
+  },
+]
+
+export default routes
+```
+
+```html
+// my-page.vue
+<template>
+  <div>
+    <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
+  </div>
+</template>
+```
+
+<!-- tabs:end -->
+
+#### 子应用
+
+<!-- tabs:start -->
+
+
+#### ** react16 **
 ```js
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
 
-export default function AppRoute () {
+export default function App () {
   return (
     // 👇 设置基础路由，子应用可以通过window.__MICRO_APP_BASE_ROUTE__获取主应用下发的baseroute，如果没有设置baseroute属性，则此值默认为空字符串
     <BrowserRouter basename={window.__MICRO_APP_BASE_ROUTE__ || '/'}>
@@ -94,43 +164,8 @@ export default function AppRoute () {
   )
 }
 ```
-<!-- tabs:end -->
 
-**Vue**
-
-<!-- tabs:start -->
-
-#### ** 主应用 **
-
-```js
-// router.js
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import ChildPage from './child-page.vue'
-
-Vue.use(VueRouter)
-
-const routes = [
-  {
-    // /child/* 都指向ChildPage组件
-    path: '/child/*',  // vue-router@4.x path的写法为：'/child/:page*'
-    name: 'child',
-    component: ChildPage,
-  },
-]
-
-export default routes
-
-// child-page.vue
-<template>
-  <div>
-    <h1>子应用</h1>
-    <micro-app name='child-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
-  </div>
-</template>
-```
-
-#### ** 子应用 **
+#### ** vue2 **
 ```js
 import Vue from 'vue'
 import VueRouter from 'vue-router'
@@ -142,15 +177,10 @@ const router = new VueRouter({
   routes,
 })
 
-let app = new Vue({
-  router,
-  render: h => h(App),
-}).$mount('#app')
+...
 ```
 <!-- tabs:end -->
 
-> [!TIP]
-> vue-router@4.x设置base的方式请查看 https://next.router.vuejs.org/
 
 ### 关于native模式的原理解析
 **原理：**子应用根据浏览器地址渲染对应的页面，而不是micro-app的url属性
