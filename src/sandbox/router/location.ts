@@ -14,13 +14,16 @@ import {
 import {
   setMicroPathToURL,
   isEffectiveApp,
+  setMicroState,
   getMicroState,
   isRouterModeCustom,
   isRouterModeNative,
   isRouterModeSearch,
+  isRouterModePure,
 } from './core'
 import {
   dispatchNativeEvent,
+  updateMicroLocationWithEvent,
 } from './event'
 import {
   executeNavigationGuard,
@@ -34,8 +37,8 @@ import {
   isIframeSandbox,
 } from '../../create_app'
 import {
-  hijackMicroLocationKeys,
-} from '../iframe/special_key'
+  HIJACK_LOCATION_KEYS,
+} from '../../constants'
 
 // origin is readonly, so we ignore when updateMicroLocation
 const locationKeys: ReadonlyArray<keyof MicroLocation> = ['href', 'pathname', 'search', 'hash', 'host', 'hostname', 'port', 'protocol', 'search']
@@ -90,39 +93,59 @@ export function createMicroLocation (
     if (targetLocation.origin === proxyLocation.origin) {
       const setMicroPathResult = setMicroPathToURL(appName, targetLocation)
       // if disable memory-router, navigate directly through rawLocation
-      if (isRouterModeSearch(appName)) {
+      if (!isRouterModeCustom(appName)) {
+        methodName = isRouterModePure(appName) ? 'replaceState' : methodName
         /**
          * change hash with location.href will not trigger the browser reload
          * so we use pushState & reload to imitate href behavior
          * NOTE:
-         *    1. if child app only change hash, it should not trigger browser reload
-         *    2. if address is same and has hash, it should not add route stack
+         *    1. if child app only change hash, it will not reload browser
+         *    2. if address is same and has hash, it will not add route stack
          */
         if (
           targetLocation.pathname === proxyLocation.pathname &&
           targetLocation.search === proxyLocation.search
         ) {
           let oldHref = null
-          if (targetLocation.hash !== proxyLocation.hash) {
-            if (setMicroPathResult.isAttach2Hash) oldHref = rawLocation.href
-            nativeHistoryNavigate(appName, methodName, setMicroPathResult.fullPath)
+          // NOTE: if pathname & search is same, it should record router info to history.state in pure mode
+          if (targetLocation.hash !== proxyLocation.hash || isRouterModePure(appName)) {
+            // search mode only
+            if (setMicroPathResult.isAttach2Hash) {
+              oldHref = rawLocation.href
+            }
+            // if router mode is pure and targetLocation.hash exist, it will not call nativeHistoryNavigate
+            if (!isRouterModePure(appName) || !targetLocation.hash) {
+              nativeHistoryNavigate(
+                appName,
+                methodName,
+                setMicroPathResult.fullPath,
+                !isRouterModeSearch(appName) ? setMicroState(appName, null, targetLocation) : null,
+              )
+            }
           }
 
           if (targetLocation.hash) {
-            dispatchNativeEvent(appName, false, oldHref)
+            if (isRouterModeSearch(appName)) {
+              dispatchNativeEvent(appName, false, oldHref)
+            } else {
+              updateMicroLocationWithEvent(appName, targetLocation.pathname + targetLocation.search + targetLocation.hash)
+            }
           } else {
             reload()
           }
           return void 0
-        /**
-         * when baseApp is hash router, address change of child can not reload browser
-         * so we imitate behavior of browser (reload) manually
-         */
-        } else if (setMicroPathResult.isAttach2Hash) {
-          nativeHistoryNavigate(appName, methodName, setMicroPathResult.fullPath)
-          reload()
-          return void 0
         }
+
+        // when pathname or search change, simulate behavior of browser (reload) manually
+        // TODO: state模式下pushState会带上上一个页面的state，会不会有问题，尤其是vue3，应不应该将主应用的state设置为null
+        nativeHistoryNavigate(
+          appName,
+          methodName,
+          setMicroPathResult.fullPath,
+          !isRouterModeSearch(appName) ? setMicroState(appName, null, targetLocation) : null,
+        )
+        reload()
+        return void 0
       }
 
       return setMicroPathResult.fullPath
@@ -151,8 +174,13 @@ export function createMicroLocation (
        */
       nativeHistoryNavigate(
         appName,
-        targetLocation[key] === proxyLocation[key] ? 'replaceState' : 'pushState',
+        (
+          targetLocation[key] === proxyLocation[key] || isRouterModePure(appName)
+        )
+          ? 'replaceState'
+          : 'pushState',
         setMicroPathToURL(appName, targetLocation).fullPath,
+        !isRouterModeSearch(appName) ? setMicroState(appName, null, targetLocation) : null,
       )
       reload()
     }
@@ -193,19 +221,28 @@ export function createMicroLocation (
       if (key === 'self') return target
       if (key === 'fullPath') return target.fullPath
 
-      if (isRouterModeNative(appName)) {
-        return bindFunctionToRawTarget<Location>(Reflect.get(rawLocation, key), rawLocation, 'LOCATION')
-      }
-
-      // src of iframe is base app address, it needs to be replaced separately
-      if (isIframe) {
-        // host hostname port protocol
-        if (hijackMicroLocationKeys.includes(key)) {
+      /**
+       * Special keys: host, hostname, port, protocol, origin, href
+       * NOTE:
+       *  1. In native mode this keys point to browser, in other mode this keys point to child app origin
+       *  2. In iframe sandbox, iframe.src is base app address, so origin points to the browser by default, we need to replace it with child app origin
+       *  3. In other modes, origin points to child app
+       */
+      if (HIJACK_LOCATION_KEYS.includes(key)) {
+        if (isRouterModeNative(appName)) {
+          return rawLocation[key]
+        }
+        if (isIframe) {
           return childStaticLocation![key]
         }
+      }
 
-        if (key === 'href') {
-          // do not use target, because target may be deleted
+      if (key === 'href') {
+        if (isRouterModeNative(appName)) {
+          return target[key].replace(target.origin, rawLocation.origin)
+        }
+        if (isIframe) {
+          // target may be deleted
           return target[key].replace(browserHost!, childHost!)
         }
       }
@@ -250,12 +287,18 @@ export function createMicroLocation (
             const targetLocation = createURL(targetPath, url)
             // The same hash will not trigger popStateEvent
             if (targetLocation.hash !== proxyLocation.hash) {
-              navigateWithNativeEvent(
-                appName,
-                'pushState',
-                setMicroPathToURL(appName, targetLocation),
-                false,
-              )
+              if (!isRouterModePure(appName)) {
+                navigateWithNativeEvent(
+                  appName,
+                  'pushState',
+                  setMicroPathToURL(appName, targetLocation),
+                  false,
+                  setMicroState(appName, null, targetLocation),
+                )
+              }
+              if (!isRouterModeSearch(appName)) {
+                updateMicroLocationWithEvent(appName, targetLocation.pathname + targetLocation.search + targetLocation.hash)
+              }
             }
           }
         } else {

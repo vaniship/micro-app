@@ -161,6 +161,14 @@ export function isProxyDocument (target: unknown): target is Document {
   return toTypeString(target) === '[object ProxyDocument]'
 }
 
+export function isTargetExtension (path: string, suffix: string): boolean {
+  try {
+    return createURL(path).pathname.split('.').pop() === suffix
+  } catch {
+    return false
+  }
+}
+
 export function includes (target: unknown[], searchElement: unknown, fromIndex?: number): boolean {
   if (target == null) {
     throw new TypeError('includes target is null or undefined')
@@ -256,12 +264,12 @@ export function formatAppURL (url: string | null, appName: string | null = null)
 
   try {
     const { origin, pathname, search } = createURL(addProtocol(url), (window.rawWindow || window).location.href)
-    // If it ends with .html/.node/.php/.net/.etc, don’t need to add /
-    if (/\.(\w+)$/.test(pathname)) {
-      return `${origin}${pathname}${search}`
-    }
-    const fullPath = `${origin}${pathname}/`.replace(/\/\/$/, '/')
-    return /^https?:\/\//.test(fullPath) ? `${fullPath}${search}` : ''
+    /**
+     * keep the original url unchanged, such as .html .node .php .net .etc, search, except hash
+     * BUG FIX: Never using '/' to complete url, refer to https://github.com/micro-zoe/micro-app/issues/1147
+     */
+    const fullPath = `${origin}${pathname}${search}`
+    return /^https?:\/\//.test(fullPath) ? fullPath : ''
   } catch (e) {
     logError(e, appName)
     return ''
@@ -284,7 +292,9 @@ export function formatAppName (name: string | null): string {
 }
 
 /**
- * Get valid address, such as https://xxx/xx/xx.html to https://xxx/xx/
+ * Get valid address, such as
+ *  1. https://domain/xx/xx.html to https://domain/xx/
+ *  2. https://domain/xx to https://domain/xx/
  * @param url app.url
  */
 export function getEffectivePath (url: string): string {
@@ -690,4 +700,16 @@ export function instanceOf<T extends new (...args: unknown[]) => unknown>(
     proto = Object.getPrototypeOf(proto)
   }
   return false
+}
+
+/**
+ * Format event name
+ * In with sandbox, child event and lifeCycles bind to microAppElement, there are two events with same name - mounted unmount, it should be handled specifically to prevent conflicts
+ * Issue: https://github.com/micro-zoe/micro-app/issues/1161
+ * @param type event name
+ * @param appName app name
+ */
+const formatEventList = ['mounted', 'unmount']
+export function formatEventType (type: string, appName: string): string {
+  return formatEventList.includes(type) ? `${type}-${appName}` : type
 }

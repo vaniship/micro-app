@@ -35,7 +35,7 @@ import CreateApp, {
 import {
   router,
   getNoHashMicroPathFromURL,
-  getRouterMode,
+  initRouterMode,
 } from './sandbox/router'
 
 /**
@@ -226,11 +226,11 @@ export function defineElement (tagName: string): void {
             /**
              * url is different & old app is unmounted or prefetch, create new app to replace old one
              */
-            logWarn(`the ${oldApp.isPrefetch ? 'prefetch' : 'unmounted'} app with url: ${oldAppUrl} replaced by a new app with url: ${targetUrl}`, this.appName)
+            logWarn(`the ${oldApp.isPrefetch ? 'prefetch' : 'unmounted'} app with url ${oldAppUrl} replaced by a new app with url ${targetUrl}`, this.appName)
           }
           this.handleCreateApp()
         } else {
-          logError(`app name conflict, an app named: ${this.appName} with url: ${oldAppUrl} is running`)
+          logError(`app name conflict, an app named ${this.appName} with url ${oldAppUrl} is running`)
         }
       } else {
         this.handleCreateApp()
@@ -524,6 +524,7 @@ export function defineElement (tagName: string): void {
           this.ssrUrl = CompletionPath(rawLocation.pathname + rawLocation.search, baseUrl)
         } else {
           // get path from browser URL
+          // TODO: 新版本路由系统要重新兼容ssr
           let targetPath = getNoHashMicroPathFromURL(this.appName, baseUrl)
           const defaultPagePath = this.getDefaultPage()
           if (!targetPath && defaultPagePath) {
@@ -554,9 +555,10 @@ export function defineElement (tagName: string): void {
      * @returns router-mode
      */
     private getMemoryRouterMode () : string {
-      return getRouterMode(
+      return initRouterMode(
         this.getAttribute('router-mode'),
         // is micro-app element set disable-memory-router, like <micro-app disable-memory-router></micro-app>
+        // or <micro-app disable-memory-router='false'></micro-app>
         this.compatibleProperties('disable-memory-router') && this.compatibleDisableProperties('disable-memory-router'),
       )
     }

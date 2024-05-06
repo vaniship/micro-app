@@ -2,12 +2,12 @@
 
 ### 主应用
 
-1、安装依赖
+**1、安装依赖**
 ```bash
 npm i @micro-zoe/micro-app --save
 ```
 
-2、初始化`micro-app`
+**2、初始化`micro-app`**
 ```js
 // index.js
 import microApp from '@micro-zoe/micro-app'
@@ -15,14 +15,16 @@ import microApp from '@micro-zoe/micro-app'
 microApp.start()
 ```
 
-3、嵌入子应用
+**3、嵌入子应用**
+
+micro-app会注册一个自定义元素`<micro-app>`用于加载子应用，它可以像iframe元素一样使用
+
 <!-- tabs:start -->
 #### ** React **
 ```js
 export function MyPage () {
   return (
     <div>
-      <h1>子应用👇</h1>
       // name：应用名称, url：应用地址
       <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
     </div>
@@ -34,7 +36,6 @@ export function MyPage () {
 ```html
 <template>
   <div>
-    <h1>子应用👇</h1>
     <!-- name：应用名称, url：应用地址 -->
     <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
   </div>
