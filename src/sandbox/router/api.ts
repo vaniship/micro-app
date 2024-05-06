@@ -18,9 +18,9 @@ import {
   setMicroState,
   getMicroState,
   getMicroPathFromURL,
-  isRouterModeCustom,
   isRouterModeSearch,
   isRouterModePure,
+  isRouterModeState,
 } from './core'
 import {
   logError,
@@ -86,6 +86,7 @@ function createRouterApi (): RouterApi {
       setMicroState(
         appName,
         state ?? null,
+        targetLocation,
       ),
     )
     // clear element scope after navigate
@@ -111,23 +112,13 @@ function createRouterApi (): RouterApi {
     const currentFullPath = microLocation.pathname + microLocation.search + microLocation.hash
     const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
     if (currentFullPath !== targetFullPath || getMicroPathFromURL(appName) !== targetFullPath) {
+      // pure mode will not call history.pushState/replaceState
       if (!isRouterModePure(appName)) {
         const methodName = (replace && to.replace !== false) || to.replace === true ? 'replaceState' : 'pushState'
         navigateWithRawHistory(appName, methodName, targetLocation, to.state)
       }
-      /**
-       * TODO:
-       *  1. 关闭虚拟路由的跳转地址不同：baseRoute + 子应用地址，文档中要说明
-       *  2. 关闭虚拟路由时跳转方式不同：1、基座跳转但不发送popstate事件 2、控制子应用更新location，内部发送popstate事件。
-       *  核心思路：减小对基座的影响(子应用跳转不向基座发送popstate事件，其他操作一致)，但这是必要的吗，只是多了一个触发popstate的操作
-       *  路由优化方案有两种：
-       *    1、减少对基座的影响，主要是解决vue循环刷新的问题
-       *    2、全局发送popstate事件，解决主、子都是vue3的冲突问题
-       *  两者选一个吧，如果选2，则下面这两行代码可以去掉
-       *  NOTE1: history和search模式采用2，这样可以解决vue3的问题，custom采用1，避免vue循环刷新的问题，这样在用户出现问题时各有解决方案。但反过来说，每种方案又分别导致另外的问题，不统一，导致复杂度增高
-       *  NOTE2: 关闭虚拟路由，同时发送popstate事件还是无法解决vue3的问题(毕竟history.state理论上还是会冲突)，那么就没必要发送popstate事件了。
-       */
-      if (isRouterModeCustom(appName) || isRouterModePure(appName)) {
+      // only search mode will dispatch PopStateEvent to browser
+      if (!isRouterModeSearch(appName)) {
         updateMicroLocationWithEvent(appName, targetFullPath)
       }
     }
@@ -162,18 +153,9 @@ function createRouterApi (): RouterApi {
             const app = appInstanceMap.get(appName)!
             resolve(app.sandBox.sandboxReady.then(() => handleNavigate(appName, app, to, replace)))
           } else {
-            reject(logError('navigation failed, app does not exist or is inactive'))
+            reject(logError('导航失败，请确保子应用渲染后再调用此方法'))
           }
 
-          // /**
-          //  * app not exit or unmounted, update browser URL with replaceState
-          //  * use base app location.origin as baseURL
-          //  * 应用不存在或已卸载，依然使用replaceState来更新浏览器地址 -- 不合理
-          //  */
-          // /**
-          //  * TODO: 应用还没渲染或已经卸载最好不要支持跳转了，我知道这是因为解决一些特殊场景，但这么做是非常反直觉的
-          //  * 并且在新版本中有多种路由模式，如果应用不存在，我们根本无法知道是哪种模式，那么这里的操作就无意义了。
-          //  */
           // const rawLocation = globalEnv.rawWindow.location
           // const targetLocation = createURL(to.path, rawLocation.origin)
           // const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
@@ -261,12 +243,12 @@ function createRouterApi (): RouterApi {
    * 3. router mode is custom
    */
   function commonHandlerForAttachToURL (appName: string): void {
-    if (isRouterModeSearch(appName)) {
+    if (isRouterModeSearch(appName) || isRouterModeState(appName)) {
       const app = appInstanceMap.get(appName)!
       attachRouteToBrowserURL(
         appName,
         setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
-        setMicroState(appName, getMicroState(appName)),
+        setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location as MicroLocation),
       )
     }
   }

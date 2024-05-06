@@ -12,6 +12,7 @@ import {
 import {
   assign,
   createURL,
+  rawDefineProperties,
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 
@@ -21,6 +22,7 @@ export function patchRouter (
   microAppWindow: microAppWindowType,
   browserHost: string,
 ): MicroLocation {
+  const rawHistory = globalEnv.rawWindow.history
   const childStaticLocation = createURL(url)
   const childHost = childStaticLocation.protocol + '//' + childStaticLocation.host
   const childFullPath = childStaticLocation.pathname + childStaticLocation.search + childStaticLocation.hash
@@ -28,14 +30,28 @@ export function patchRouter (
   // rewrite microAppWindow.history
   const rawLocation = globalEnv.rawWindow.location
   const microHistory = microAppWindow.history
+  // save history.replaceState, it will be used in updateMicroLocation
   microAppWindow.rawReplaceState = microHistory.replaceState
-  assign(microHistory, {
-    ...createMicroHistory(appName, microAppWindow.location),
+  // rewrite microAppWindow.history
+  assign(microHistory, createMicroHistory(appName, microAppWindow.location), {
     go (delta?: number) {
       return delta != null && +delta
         ? microHistory.go(delta)
         : rawLocation.reload()
-    },
+    }
+  })
+  // scrollRestoration proxy to rawHistory
+  rawDefineProperties(microHistory, {
+    scrollRestoration: {
+      configurable: true,
+      enumerable: true,
+      get () {
+        return rawHistory.scrollRestoration
+      },
+      set (value: string) {
+        rawHistory.scrollRestoration = value
+      }
+    }
   })
 
   /**

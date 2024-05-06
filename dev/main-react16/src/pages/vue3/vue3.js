@@ -47,6 +47,7 @@ function Vue3 () {
         // disableScopecss
         // keep-alive
         keep-router-state
+        router-mode='state'
         // inline
         // destroy
         // disableSandbox

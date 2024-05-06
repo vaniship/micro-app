@@ -29,12 +29,13 @@ import {
   promiseRequestIdle,
   isNumber,
   assign,
+  isTargetExtension,
 } from './libs/utils'
 import {
   fetchSource,
 } from './source/fetch'
 import {
-  getRouterMode,
+  initRouterMode,
 } from './sandbox/router'
 
 /**
@@ -128,7 +129,7 @@ function preFetchAction (options: prefetchParam): Promise<void> {
                * 问题：
                *  1、如何确保子应用进行跳转时不影响到浏览器地址？？pure？？
                */
-              routerMode: getRouterMode(options['router-mode']),
+              routerMode: initRouterMode(options['router-mode']),
               baseroute: options.baseroute,
               disablePatchRequest: options['disable-patch-request'],
             })
@@ -166,7 +167,7 @@ export function getGlobalAssets (assets: globalAssetsType): void {
 // TODO: requestIdleCallback for every file
 function fetchGlobalResources (resources: string[] | void, suffix: string, sourceHandler: SourceCenterType['link'] | SourceCenterType['script']) {
   if (isArray(resources)) {
-    const effectiveResource = resources!.filter((path) => isString(path) && path.includes(`.${suffix}`) && !sourceHandler.hasInfo(path))
+    const effectiveResource = resources!.filter((path) => isString(path) && isTargetExtension(path, suffix) && !sourceHandler.hasInfo(path))
 
     const fetchResourcePromise = effectiveResource.map((path) => fetchSource(path))
 

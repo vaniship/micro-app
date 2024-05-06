@@ -225,6 +225,7 @@ export default class CreateApp implements AppInterface {
       this.isPrerender = false
 
       // dispatch state event to micro app
+      // TODO: statechange 还是 state-change，保持一致
       dispatchCustomEventToMicroApp(this, 'statechange', {
         appState: appStates.LOADING
       })
@@ -254,6 +255,14 @@ export default class CreateApp implements AppInterface {
         this.container.hasAttribute('prerender')
       ) {
         /**
+         * current this.container is <div prerender='true'></div>
+         * set this.container to <micro-app></micro-app>
+         * NOTE:
+         *  1. must exec before this.sandBox.rebuildEffectSnapshot
+         *  2. must exec before this.preRenderEvents?.forEach((cb) => cb())
+         */
+        this.container = this.cloneContainer(container, this.container, false)
+        /**
          * rebuild effect event of window, document, data center
          * explain:
          * 1. rebuild before exec mount, do nothing
@@ -261,14 +270,6 @@ export default class CreateApp implements AppInterface {
          * 3. rebuild after js exec end, normal recovery effect event
          */
         this.sandBox?.rebuildEffectSnapshot()
-        // current this.container is <div prerender='true'></div>
-        this.cloneContainer(container as Element, this.container as Element, false)
-        /**
-         * set this.container to <micro-app></micro-app>
-         * NOTE:
-         * must exec before this.preRenderEvents?.forEach((cb) => cb())
-         */
-        this.container = container
         this.preRenderEvents?.forEach((cb) => cb())
         // reset isPrerender config
         this.isPrerender = false
@@ -305,7 +306,7 @@ export default class CreateApp implements AppInterface {
         })
 
         // TODO: 将所有cloneContainer中的'as Element'去掉，兼容shadowRoot的场景
-        this.cloneContainer(this.container as Element, this.source.html as Element, !this.umdMode)
+        this.cloneContainer(this.container, this.source.html, !this.umdMode)
 
         this.sandBox?.start({
           umdMode: this.umdMode,
@@ -534,7 +535,7 @@ export default class CreateApp implements AppInterface {
     unmountcb,
   }: UnmountParam): void {
     if (this.umdMode && this.container && !destroy) {
-      this.cloneContainer(this.source.html as Element, this.container, false)
+      this.cloneContainer(this.source.html, this.container as HTMLElement, false)
     }
 
     /**
@@ -620,7 +621,7 @@ export default class CreateApp implements AppInterface {
     } else {
       this.container = this.cloneContainer(
         pureCreateElement('div'),
-        this.container as Element,
+        this.container,
         false,
       )
 
@@ -632,6 +633,14 @@ export default class CreateApp implements AppInterface {
 
   // show app when connectedCallback called with keep-alive
   public showKeepAliveApp (container: HTMLElement | ShadowRoot): void {
+    /**
+     * NOTE:
+     *  1. this.container must set to container(micro-app element) before exec rebuildEffectSnapshot
+     *    ISSUE: https://github.com/micro-zoe/micro-app/issues/1115
+     *  2. rebuildEffectSnapshot must exec before dispatch beforeshow event
+     */
+    const oldContainer = this.container
+    this.container = container
     this.sandBox?.rebuildEffectSnapshot()
 
     // dispatch beforeShow event to micro-app
@@ -648,9 +657,9 @@ export default class CreateApp implements AppInterface {
 
     this.setKeepAliveState(keepAliveStates.KEEP_ALIVE_SHOW)
 
-    this.container = this.cloneContainer(
-      container,
-      this.container as Element,
+    this.cloneContainer(
+      this.container,
+      oldContainer,
       false,
     )
 
@@ -718,13 +727,13 @@ export default class CreateApp implements AppInterface {
    * @param target Accept cloned elements
    * @param deep deep clone or transfer dom
    */
-  private cloneContainer <T extends Element | ShadowRoot, Q extends Element | ShadowRoot> (
-    target: Q,
+  private cloneContainer <T extends HTMLElement | ShadowRoot | null> (
+    target: T,
     origin: T,
     deep: boolean,
-  ): Q {
+  ): T {
     // 在基座接受到afterhidden方法后立即执行unmount，彻底destroy应用时，因为unmount时同步执行，所以this.container为null后才执行cloneContainer
-    if (origin) {
+    if (origin && target) {
       target.innerHTML = ''
       Array.from(deep ? this.parseHtmlString(origin.innerHTML).childNodes : origin.childNodes).forEach((node) => {
         target.appendChild(node)

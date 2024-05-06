@@ -47,7 +47,21 @@ export function addHistoryListener (appName: string): CallableFunction {
       }).includes(appName) &&
       !e.onlyForBrowser
     ) {
+      /**
+       * TODO: vue-router@4 navigate async when receive popstateEvent, but child may respond to popstateEvent immediately(vue2, react), so when go back throw browser child will not unmount sync, and will respond to popstateEvent before base app, this will cause some problems
+       * __MICRO_APP_BASE_ROUTE__不可控，用户设置的值是随机的且不一定使用，用它作为判断依据太过危险
+      */
+      // const microAppWindow = appInstanceMap.get(appName)!.sandBox!.microAppWindow
+      // const rawLocation = globalEnv.rawWindow.location
+      // if (
+      //   !isRouterModeCustom(appName) ||
+      //   !microAppWindow.__MICRO_APP_BASE_ROUTE__ ||
+      //   // 主history、子hash，主、子都是hash如何处理
+      //   microAppWindow.__MICRO_APP_BASE_ROUTE__.includes('#') ||
+      //   `${rawLocation.pathname}/`.startsWith(('/' + microAppWindow.__MICRO_APP_BASE_ROUTE__).replace(/^\/+/, '/'))
+      // ) {
       updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+      // }
     }
   }
 
@@ -108,14 +122,18 @@ export function dispatchPopStateEventToMicroApp (
    * TODO: test
    * angular14 takes e.type as type judgment
    * when e.type is popstate-appName popstate event will be invalid
+   * Object.defineProperty(newPopStateEvent, 'type', {
+   *    value: 'popstate',
+   *    writable: true,
+   *    configurable: true,
+   *    enumerable: true,
+   * })
    */
-  // Object.defineProperty(newPopStateEvent, 'type', {
-  //   value: 'popstate',
-  //   writable: true,
-  //   configurable: true,
-  //   enumerable: true,
-  // })
-  // create PopStateEvent named popstate-appName with sub app state
+  /**
+   * create PopStateEvent named popstate-appName with sub app state
+   * TODO: feeling like there's something wrong, check carefully
+   *  In native mode, getMicroState(appName) return rawWindow.history.state when use microApp.router.push/replace or other scenes when state.__MICRO_APP_STATE__[appName] is null
+   */
   const newPopStateEvent = new PopStateEvent(
     'popstate',
     { state: getMicroState(appName) }
