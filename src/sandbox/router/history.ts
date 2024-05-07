@@ -72,6 +72,9 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
     return {
       pushState,
       replaceState,
+      go (delta?: number) {
+        return rawHistory.go(delta)
+      }
     } as MicroHistory
   }
 

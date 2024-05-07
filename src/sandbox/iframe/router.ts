@@ -28,18 +28,11 @@ export function patchRouter (
   const childFullPath = childStaticLocation.pathname + childStaticLocation.search + childStaticLocation.hash
 
   // rewrite microAppWindow.history
-  const rawLocation = globalEnv.rawWindow.location
   const microHistory = microAppWindow.history
   // save history.replaceState, it will be used in updateMicroLocation
   microAppWindow.rawReplaceState = microHistory.replaceState
   // rewrite microAppWindow.history
-  assign(microHistory, createMicroHistory(appName, microAppWindow.location), {
-    go (delta?: number) {
-      return delta != null && +delta
-        ? microHistory.go(delta)
-        : rawLocation.reload()
-    }
-  })
+  assign(microHistory, createMicroHistory(appName, microAppWindow.location))
   // scrollRestoration proxy to rawHistory
   rawDefineProperties(microHistory, {
     scrollRestoration: {

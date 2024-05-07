@@ -23,7 +23,7 @@ export default class App extends React.Component {
     showMicroApp: true,
     testNum: 0,
     showModal: false,
-    routerMode: 'state',
+    routerMode: 'native',
     baseroute: '/micro-app/demo/react16',
   }
 
@@ -440,7 +440,7 @@ export default class App extends React.Component {
                   // disable-scopecss
                   // shadowDOM
                   // disable-memory-router
-                  // router-mode={this.state.routerMode}
+                  router-mode={this.state.routerMode}
                   // keep-router-state
                   // default-page='/micro-app/react16/page2'
                   // hidden-router
