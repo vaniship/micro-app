@@ -12,16 +12,7 @@
 ## 2、子应用一定要支持跨域吗？
 是的！
 
-如果是开发环境，可以在webpack-dev-server中设置headers支持跨域。
-```js
-devServer: {
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-  },
-},
-```
-
-如果是线上环境，可以通过[配置nginx](https://segmentfault.com/a/1190000012550346)支持跨域。
+micro-app从主应用通过fetch加载子应用的静态资源，由于主应用与子应用的域名不一定相同，所以子应用必须支持跨域。
 
 ## 3、兼容性如何
 micro-app依赖于CustomElements和Proxy两个较新的API。

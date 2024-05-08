@@ -1,6 +1,6 @@
-native模式是指放开路由隔离，主应用和子应用同时基于浏览器路由进行渲染，共用同一套location和history，它拥有更好的用户体验，但更容易导致主应用和子应用的路由冲突，具体原理参考[关于native模式的原理解析](/zh-cn/native-mode?id=关于native模式的原理解析)。
+不同于其它路由模式通过search参数或history.state进行路由隔离，native模式是指放开路由隔离，主应用和子应用同时基于浏览器地址进行渲染，也都会直接修改浏览器地址，它拥有更好的用户体验，但也更容易导致主应用和子应用的路由冲突，所以需要更加复杂的路由配置，主应用和子应用的路由都要进行一些改造。
 
-native模式需要更加复杂的路由配置，主应用和子应用的路由都要进行一些改造。
+实际上主应用和子应用的路由即同时基于浏览器地址进行渲染，又相互独立，通过路由配置让两个独立的路由系统共存，具体原理参考[关于native模式的原理解析](/zh-cn/native-mode?id=关于native模式的原理解析)。
 
 ### 路由类型约束
 native模式下主、子应用需要遵循以下约束：
@@ -94,7 +94,10 @@ export function App () {
     <BrowserRouter>
       <Routes>
         // 设置动态路由，/child/one、child/two，以及所有/child开头的路由都指向MyPage组件
-        <Route path='/child/*' element={<MyPage />} />
+        <Route 
+          path='/child/*' 
+          element={<MyPage />}
+        />
       </Routes>
     </BrowserRouter>
   )
@@ -126,7 +129,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     // 设置动态路由，/child/one、child/two，以及所有/child开头的路由都指向MyPage组件
-    path: '/child/*',  // vue-router@4.x path的写法为：'/child/:page*'
+    path: '/child/*',
     name: 'child',
     component: MyPage,
   },
@@ -138,9 +141,7 @@ export default routes
 ```html
 // my-page.vue
 <template>
-  <div>
-    <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
-  </div>
+  <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
 </template>
 ```
 
@@ -183,7 +184,13 @@ const router = new VueRouter({
 
 
 ### 关于native模式的原理解析
-**原理：**子应用根据浏览器地址渲染对应的页面，而不是micro-app的url属性
+主应用和子应用的路由系统既相互独立又同时基于浏览器地址进行渲染。
+
+相互独立：是指主应用和子应用是基于各自前端框架生成的路由系统，自身的路由变化不会直接影响对方，一方跳转到新的地址后，另外一方不会自动响应浏览器变化（除非刷新浏览器或者主动发送`PopStateEvent`事件）。
+
+同时基于浏览器地址进行渲染：是指同一个浏览器地址，同时满足主应用和子应用的路由匹配，渲染自身页面。
+
+**注意：**子应用基于浏览器地址进行渲染，而不是micro-app的url属性
 
 ##### 例1:
 

@@ -18,11 +18,8 @@ microApp.start()
 #### 3、嵌入子应用
 ```html
 <template>
-  <div>
-    <h1>子应用👇</h1>
-    <!-- name：应用名称, url：应用地址 -->
-    <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
-  </div>
+  <!-- name：应用名称, url：应用地址 -->
+  <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
 </template>
 ```
 

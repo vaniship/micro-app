@@ -14,6 +14,8 @@ import {
   isURL,
   assign,
   removeDomScope,
+  // defer,
+  requestIdleCallback,
 } from '../../libs/utils'
 import {
   setMicroPathToURL,
@@ -24,8 +26,12 @@ import {
   isRouterModePure,
   isRouterModeSearch,
   isRouterModeState,
+  isRouterModeCustom,
 } from './core'
-import { dispatchNativeEvent } from './event'
+import {
+  dispatchNativeEvent,
+  updateMicroLocationWithEvent,
+} from './event'
 import { updateMicroLocation } from './location'
 import bindFunctionToRawTarget from '../bind_function'
 import { getActiveApps } from '../../micro_app'
@@ -217,7 +223,37 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
           setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location as MicroLocation),
         )
       }
+
+      /**
+       * dispatch popStateEvent & fullPath to childApp after navigate by native history
+       * TODO: 功能是方便了，bug也增加了
+       * 最关键的是执行到这里时，子应用有没有卸载 -- 大部分情况下，history.pushState 都是先执行，micro-app后卸载
+       */
+      if (isRouterModeCustom(appName) || isRouterModeSearch(appName)) {
+        // defer(() => {
+        //   // alert(getMicroPathFromURL(appName))
+        //   getActiveApps({
+        //     excludeHiddenApp: true,
+        //     excludePreRender: true,
+        //   }).forEach(appName => {
+        //     // console.log(33333, appName)
+        //     updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+        //   })
+        // })
+
+        requestIdleCallback(() => {
+          // alert(getMicroPathFromURL(appName))
+          getActiveApps({
+            excludeHiddenApp: true,
+            excludePreRender: true,
+          }).forEach(appName => {
+            // console.log(444444, appName)
+            updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+          })
+        })
+      }
     })
+
     // fix bug for nest app
     removeDomScope()
   }

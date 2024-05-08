@@ -17,7 +17,7 @@ microApp.start()
 
 **3、嵌入子应用**
 
-micro-app会注册一个自定义元素`<micro-app>`用于加载子应用，它可以像iframe元素一样使用
+micro-app通过自定义元素`<micro-app>`加载子应用，它可以像iframe元素一样使用
 
 <!-- tabs:start -->
 #### ** React **
@@ -35,24 +35,58 @@ export function MyPage () {
 #### ** Vue **
 ```html
 <template>
-  <div>
-    <!-- name：应用名称, url：应用地址 -->
-    <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
-  </div>
+  <!-- name：应用名称, url：应用地址 -->
+  <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
 </template>
 ```
 <!-- tabs:end -->
 
 ### 子应用
 
-1、在webpack-dev-server的headers中设置跨域支持。
+micro-app从主应用通过fetch加载子应用的静态资源，由于主应用与子应用的域名不一定相同，所以子应用需要支持跨域。
+
+子应用设置方式如下：
+
+<!-- tabs:start -->
+#### ** webpack **
 ```js
 devServer: {
   headers: {
     'Access-Control-Allow-Origin': '*',
   }
-},
+}
 ```
+
+#### ** vite **
+```js
+export default defineConfig({
+  server: {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    }
+  }
+})
+```
+
+#### ** nginx **
+```js
+# location根据实际情况调整
+location / {
+    add_header 'Access-Control-Allow-Origin' '*';
+    # 其它配置...
+}
+```
+
+#### ** nodejs **
+以express为例，手动配置中间件
+```js
+app.all('*', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  // 其它配置
+})
+```
+<!-- tabs:end -->
+
 
 完成以上步骤即完成微前端的接入。
 
@@ -61,5 +95,3 @@ devServer: {
 > 1、name：必传参数，必须以字母开头，且不可以带特殊符号(中划线、下划线除外)
 >
 > 2、url：必传参数，必须指向子应用的index.html，如：http://localhost:3000/ 或 http://localhost:3000/index.html
->
-> 3、子应用必须支持跨域，跨域配置参考[这里](/zh-cn/questions?id=_2、子应用静态资源一定要支持跨域吗？)
