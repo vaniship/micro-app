@@ -300,8 +300,7 @@ export function formatAppName (name: string | null): string {
 export function getEffectivePath (url: string): string {
   const { origin, pathname } = createURL(url)
   if (/\.(\w+)$/.test(pathname)) {
-    const fullPath = `${origin}${pathname}`
-    const pathArr = fullPath.split('/')
+    const pathArr = `${origin}${pathname}`.split('/')
     pathArr.pop()
     return pathArr.join('/') + '/'
   }

@@ -14,8 +14,6 @@ import {
   isURL,
   assign,
   removeDomScope,
-  // defer,
-  requestIdleCallback,
 } from '../../libs/utils'
 import {
   setMicroPathToURL,
@@ -26,11 +24,9 @@ import {
   isRouterModePure,
   isRouterModeSearch,
   isRouterModeState,
-  isRouterModeCustom,
 } from './core'
 import {
   dispatchNativeEvent,
-  updateMicroLocationWithEvent,
 } from './event'
 import { updateMicroLocation } from './location'
 import bindFunctionToRawTarget from '../bind_function'
@@ -215,6 +211,7 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
+      // TODO: 大部分情况下，history.pushState 都是先执行，micro-app后卸载，所以会产生一种情况：跳转到新地址后，search模式会在url上添加参数，卸载后再将参数删除，所以会导致浏览器地址闪烁，是否需要去掉这个功能
       if ((isRouterModeSearch(appName) || isRouterModeState(appName)) && !getMicroPathFromURL(appName)) {
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
@@ -224,34 +221,15 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
         )
       }
 
+      // if (isRouterModeCustom(appName) || isRouterModeSearch(appName)) {
       /**
-       * dispatch popStateEvent & fullPath to childApp after navigate by native history
-       * TODO: 功能是方便了，bug也增加了
-       * 最关键的是执行到这里时，子应用有没有卸载 -- 大部分情况下，history.pushState 都是先执行，micro-app后卸载
-       */
-      if (isRouterModeCustom(appName) || isRouterModeSearch(appName)) {
-        // defer(() => {
-        //   // alert(getMicroPathFromURL(appName))
-        //   getActiveApps({
-        //     excludeHiddenApp: true,
-        //     excludePreRender: true,
-        //   }).forEach(appName => {
-        //     // console.log(33333, appName)
-        //     updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
-        //   })
-        // })
+         * history.pushState/replaceState后主动触发子应用响应
+         * 问题：Promise太快卸载时出问题、setTimeout太慢keep-alive二次渲染后出问题
+         *  1、history.pushState/replaceState执行后，子应用以异步的形式被主应用卸载，Promise响应时子应用还，导致子应用跳转404后者浏览器url被子应用修改，产生异常
+         *  2、keep-alive应用二次渲染时，由于setTimeout响应过慢，子应用在渲染后才接受到popstate事件，响应新的url，从而导致状态丢失
+         */
 
-        requestIdleCallback(() => {
-          // alert(getMicroPathFromURL(appName))
-          getActiveApps({
-            excludeHiddenApp: true,
-            excludePreRender: true,
-          }).forEach(appName => {
-            // console.log(444444, appName)
-            updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
-          })
-        })
-      }
+      // }
     })
 
     // fix bug for nest app

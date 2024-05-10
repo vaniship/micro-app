@@ -29,12 +29,13 @@ import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 #### 4、在页面中嵌入子应用
 
+通过注册的自定义元素`<micro-app>`加载子应用
+
 ```html
 <!-- app/my-page/my-page.component.html -->
 <div>
-  <h1>子应用</h1>
   <!-- name：应用名称, url：应用地址 -->
-    <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
+  <micro-app name='my-app' url='http://localhost:3000/'></micro-app>
 </div>
 ```
 

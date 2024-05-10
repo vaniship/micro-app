@@ -666,7 +666,7 @@ export default class CreateApp implements AppInterface {
     /**
      * TODO:
      *  问题：当路由模式为custom时，keep-alive应用在重新展示，是否需要根据子应用location信息更新浏览器地址？
-     *  暂时不这么做吧，因为无法确定二次展示时新旧地址是否相同，是否带有特殊信息
+     *  暂时不这么做，因为无法确定二次展示时新旧地址是否相同，是否带有特殊信息
      */
     if (isRouterModeSearch(this.name)) {
       // called before lifeCyclesEvent

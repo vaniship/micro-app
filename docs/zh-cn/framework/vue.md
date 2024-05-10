@@ -16,6 +16,9 @@ microApp.start()
 ```
 
 #### 3、嵌入子应用
+
+通过注册的自定义元素`<micro-app>`加载子应用
+
 ```html
 <template>
   <!-- name：应用名称, url：应用地址 -->

@@ -17,7 +17,7 @@ microApp.start()
 
 **3、嵌入子应用**
 
-micro-app通过自定义元素`<micro-app>`加载子应用，它可以像iframe元素一样使用
+micro-app通过自定义元素`<micro-app>`加载子应用，使用方式像iframe一样简洁
 
 <!-- tabs:start -->
 #### ** React **
