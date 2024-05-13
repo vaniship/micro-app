@@ -14,11 +14,12 @@
 
 - **Bug Fix**
 
-  - 🐞 修复了iframe沙箱下history.go传入的是非0数字时iframe被重置导致异常的问题，[PR 1112](https://github.com/micro-zoe/micro-app/pull/1112) by [keuby](https://github.com/keuby)。
+  - 🐞 修复 iframe沙箱下history.go传入的是非0数字时iframe被重置导致异常的问题，[PR 1112](https://github.com/micro-zoe/micro-app/pull/1112) by [keuby](https://github.com/keuby)。
+  - 🐞 修复 类型声明jsx.IntrinsicElements导致vue-ts部分元素lint异常的问题。
 
 - **Update**
 
-  - 🚀 优化了沙箱架构设计。
+  - 🚀 优化 沙箱架构设计。
 
 
 ### 1.0.0-rc.5
