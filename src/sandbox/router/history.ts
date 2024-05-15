@@ -14,6 +14,8 @@ import {
   isURL,
   assign,
   removeDomScope,
+  isUndefined,
+  isNull,
 } from '../../libs/utils'
 import {
   setMicroPathToURL,
@@ -44,26 +46,23 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
   function getMicroHistoryMethod (methodName: string): CallableFunction {
     return function (...rests: any[]): void {
       // TODO: 测试iframe的URL兼容isURL的情况
-      if (isString(rests[2]) || isURL(rests[2])) {
-        const targetLocation = createURL(rests[2], microLocation.href)
-        const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-        if (!isRouterModePure(appName)) {
-          navigateWithNativeEvent(
-            appName,
-            methodName,
-            setMicroPathToURL(appName, targetLocation),
-            true,
-            setMicroState(appName, rests[0], targetLocation),
-            rests[1],
-          )
-        }
-        if (targetFullPath !== microLocation.fullPath) {
-          updateMicroLocation(appName, targetFullPath, microLocation)
-        }
-        appInstanceMap.get(appName)?.sandBox.updateIframeBase?.()
-      } else {
-        nativeHistoryNavigate(appName, methodName, rests[2], rests[0], rests[1])
+      rests[2] = isUndefined(rests[2]) || isNull(rests[2]) ? '' : '' + rests[2]
+      const targetLocation = createURL(rests[2], microLocation.href)
+      const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+      if (!isRouterModePure(appName)) {
+        navigateWithNativeEvent(
+          appName,
+          methodName,
+          setMicroPathToURL(appName, targetLocation),
+          true,
+          setMicroState(appName, rests[0], targetLocation),
+          rests[1],
+        )
       }
+      if (targetFullPath !== microLocation.fullPath) {
+        updateMicroLocation(appName, targetFullPath, microLocation)
+      }
+      appInstanceMap.get(appName)?.sandBox.updateIframeBase?.()
     }
   }
 
@@ -227,6 +226,8 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
          * 问题：Promise太快卸载时出问题、setTimeout太慢keep-alive二次渲染后出问题
          *  1、history.pushState/replaceState执行后，子应用以异步的形式被主应用卸载，Promise响应时子应用还，导致子应用跳转404后者浏览器url被子应用修改，产生异常
          *  2、keep-alive应用二次渲染时，由于setTimeout响应过慢，子应用在渲染后才接受到popstate事件，响应新的url，从而导致状态丢失
+         *  3、同一个页面多个子应用，修改地址响应
+         *  4、vue3跳转前会执行一次replace，有没有影响？
          */
 
       // }

@@ -560,3 +560,7 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 // new Promise((resolve, reject) => {
 //   throw 'promise 逃逸的错误'
 // })
+
+setTimeout(() => {
+  console.log(4444444, document.microAppElement.offsetHeight)
+}, 1000);

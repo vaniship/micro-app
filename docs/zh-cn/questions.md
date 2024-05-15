@@ -159,7 +159,7 @@ microApp.start({
 
 ## 11、Vue主应用接入微前端时循环刷新（页面闪烁）
 
-**解决方式：**将主应用router-view或者包含微前端的上层组件中`:key="route.fullPath"`改为`:key="route.path"`或者`:key="route.name"`
+**解决方式：**将主应用中`<router-view>`或包含`<micro-app>`元素的上层组件中`:key="route.fullPath"`或者`:key="route.path"`改为`:key="route.name"`
 
 **例如：**
 
@@ -193,3 +193,8 @@ microApp.start({
 ```html
 <script>if(window.parent !== window) {window.stop()}</script>
 ```
+
+## 13、子应用script元素被注释、消失
+默认情况下，子应用的js会被提取并在后台运行，script元素原位置会留下注释：`<!--script with src='xxx' extract by micro-app-->`
+
+如果想要保留script元素，可以开启inline模式，配置方式参考：[inline](/zh-cn/configure?id=inline)
