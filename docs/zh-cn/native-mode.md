@@ -53,6 +53,7 @@ const routes = [
 
 #### ** react16 **
 
+**1、设置路由：**react-router版本为4.x或5.x
 ```js
 // router.js
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
@@ -72,12 +73,13 @@ export function App () {
 }
 ```
 
+**2、嵌入子应用：**
 ```js
 // my-page.js
 export function MyPage () {
   return (
     <div>
-      {/* 设置子应用基础路由baseroute为'/child'，与上述路由path的值保持一致 */}
+      {/* 设置子应用基础路由baseroute为'/child' */}
       <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
     </div>
   )
@@ -86,6 +88,7 @@ export function MyPage () {
 
 #### ** react18 **
 
+**1、设置路由：**react-router版本为6.x
 ```js
 // router.js
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -106,6 +109,7 @@ export function App () {
 }
 ```
 
+**2、嵌入子应用：**
 ```js
 // my-page.js
 export function MyPage () {
@@ -120,6 +124,7 @@ export function MyPage () {
 
 #### ** vue2 **
 
+**1、设置路由：**
 ```js
 // router.js
 import Vue from 'vue'
@@ -135,11 +140,13 @@ const routes = [
     name: 'child',
     component: MyPage,
   },
+  // 其它配置...
 ]
 
 export default routes
 ```
 
+**2、嵌入子应用：**
 ```html
 // my-page.vue
 <template>
@@ -150,13 +157,10 @@ export default routes
 
 #### ** vue3 **
 
+**1、设置路由：**
 ```js
 // router.js
-import Vue from 'vue'
-import VueRouter from 'vue-router'
 import MyPage from './my-page.vue'
-
-Vue.use(VueRouter)
 
 const routes = [
   {
@@ -165,14 +169,17 @@ const routes = [
     name: 'child',
     component: MyPage,
   },
+  // 其它配置...
 ]
 
 export default routes
 ```
 
+**2、嵌入子应用：**
 ```html
 // my-page.vue
 <template>
+  <!-- 设置子应用基础路由baseroute为'/child'，而不是'/child/:page*' -->
   <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
 </template>
 ```

@@ -429,15 +429,15 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 /* ---------------------- location 相关 --------------------- */
 // 获取location信息
 if (window.__MICRO_APP_ENVIRONMENT__) {
-  console.log(`${window.__MICRO_APP_NAME__} location.href`, location.href, window.rawWindow.location.href)
-  console.log(`${window.__MICRO_APP_NAME__} location.origin`, location.origin, window.rawWindow.location.origin)
-  console.log(`${window.__MICRO_APP_NAME__} location.host`, location.host, window.rawWindow.location.host)
-  console.log(`${window.__MICRO_APP_NAME__} location.hostname`, location.hostname, window.rawWindow.location.hostname)
-  console.log(`${window.__MICRO_APP_NAME__} location.port`, location.port, window.rawWindow.location.port)
-  console.log(`${window.__MICRO_APP_NAME__} location.protocol`, location.protocol, window.rawWindow.location.protocol)
-  console.log(`${window.__MICRO_APP_NAME__} location.pathname`, location.pathname, window.rawWindow.location.pathname)
-  console.log(`${window.__MICRO_APP_NAME__} location.hash`, location.hash, window.rawWindow.location.hash)
-  console.log(`${window.__MICRO_APP_NAME__} location.search`, location.search, window.rawWindow.location.search)
+  // console.log(`${window.__MICRO_APP_NAME__} location.href`, location.href, window.rawWindow.location.href)
+  // console.log(`${window.__MICRO_APP_NAME__} location.origin`, location.origin, window.rawWindow.location.origin)
+  // console.log(`${window.__MICRO_APP_NAME__} location.host`, location.host, window.rawWindow.location.host)
+  // console.log(`${window.__MICRO_APP_NAME__} location.hostname`, location.hostname, window.rawWindow.location.hostname)
+  // console.log(`${window.__MICRO_APP_NAME__} location.port`, location.port, window.rawWindow.location.port)
+  // console.log(`${window.__MICRO_APP_NAME__} location.protocol`, location.protocol, window.rawWindow.location.protocol)
+  // console.log(`${window.__MICRO_APP_NAME__} location.pathname`, location.pathname, window.rawWindow.location.pathname)
+  // console.log(`${window.__MICRO_APP_NAME__} location.hash`, location.hash, window.rawWindow.location.hash)
+  // console.log(`${window.__MICRO_APP_NAME__} location.search`, location.search, window.rawWindow.location.search)
 
   // 依次放开每个注释来，尽可能覆盖所有场景
   setTimeout(() => {
@@ -561,6 +561,7 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 //   throw 'promise 逃逸的错误'
 // })
 
-setTimeout(() => {
-  console.log(4444444, document.microAppElement.offsetHeight)
-}, 1000);
+console.log(111111, new Function("return window")())
+console.log(222222, Function("return window")())
+console.log(3333333, (0, eval)('window'))
+console.log(4444444, window.rawWindow)

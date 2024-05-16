@@ -26,6 +26,8 @@ window.microApp.location.host
 window.microApp.location.origin
 window.microApp.location.href = 'xxx'
 window.microApp.location.pathname = 'xxx'
+window.microApp.location.reload()
+...
 ```
 
 #### 2、iframe沙箱加载了主应用的资源

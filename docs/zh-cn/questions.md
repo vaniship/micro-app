@@ -42,30 +42,46 @@ micro-app依赖于CustomElements和Proxy两个较新的API。
   - 2、(0, eval)('window')
   - 3、window.rawWindow
 
-## 7、错误信息：xxx undefined
-
+## 7、子应用抛出错误信息：xxx 未定义
 **包括：**
 - `xxx is not defined`
 - `xxx is not a function`
 - `Cannot read properties of undefined`
 
+**常见场景：**
+  - 1、webpack DllPlugin 拆分的独立文件
+  - 2、通过script引入的第三方js文件
+
 **原因：**
 
-在微前端的沙箱环境中，顶层变量不会泄漏为全局变量。
+在沙箱环境中，顶层变量不会泄漏为全局变量。
 
-例如在正常情况下，通过 var name 或 function name () {} 定义的顶层变量会泄漏为全局变量，通过window.name或name就可以全局访问。
-
-但是在沙箱环境下这些顶层变量无法泄漏为全局变量，window.name或name为undefined，导致出现问题。
+例如：在正常情况下，通过 var name 或 function name () {} 定义的顶层变量会泄漏为全局变量，通过window.name或name就可以全局访问，但是在沙箱环境下这些顶层变量无法泄漏为全局变量，window.name或name的值为undefined，导致出现问题。
 
 **解决方式**：
 
-*方式一：手动修改*
+##### 方式一：修改webpack配置
+
+子应用webpack的[output.library.type](https://webpack.docschina.org/configuration/output/#outputlibrarytype)设置为`window`，这种方式适合DllPlugin拆分的独立文件。
+```js
+// webpack.dll.config.js
+module.exports = {
+  // ...
+  output: {
+    library: {
+      type: 'window',
+    },
+  },
+}
+```
+##### 方式二：手动修改
 
 将 var name 或 function name () {} 修改为 window.name = xx
 
-*方式二：通过插件系统修改子应用代码*
+##### 方式三：通过插件系统修改子应用代码
 
-比如常见的加载webpack打包的dll文件失败的问题，因为dll文件的内容和js地址相对固定，可以直接进行全局查找和修改。
+通过插件系统，将 var name 或 function name () {} 修改为 window.name = xx，不同项目的代码形式并不统一，根据实际情况调整。
+
 ```js
 microApp.start({
   plugins: {
@@ -73,7 +89,8 @@ microApp.start({
       应用名称: [{
         loader(code, url) {
           if (url === 'xxx.js') {
-            code = code.replace('var xx_dll=', 'window.xx_dll=')
+            // 根据实际情况调整
+            code = code.replace('var xxx=', 'window.xxx=')
           }
           return code
         }
@@ -198,3 +215,39 @@ microApp.start({
 默认情况下，子应用的js会被提取并在后台运行，script元素原位置会留下注释：`<!--script with src='xxx' extract by micro-app-->`
 
 如果想要保留script元素，可以开启inline模式，配置方式参考：[inline](/zh-cn/configure?id=inline)
+
+
+## 14、子应用使用`Module Federation`模块联邦时报错
+**原因：**同上述`常见问题7`相同，都是由于在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+
+**解决方式：**将`ModuleFederationPlugin`插件中`library.type`设置为`window`。
+
+```js
+new ModuleFederationPlugin({
+  // ...
+  name: "app1",
+  library: { 
+    type: "window", 
+    name: "app1",
+  },
+})
+```
+
+## 15、子应用`DllPlugin`拆分的文件加载失败
+
+**原因：**参考`常见问题7`，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+
+**解决方式：**修改子应用webpack dll配置
+
+子应用webpack dll配置文件中[output.library.type](https://webpack.docschina.org/configuration/output/#outputlibrarytype)设置为`window`。
+```js
+// webpack.dll.config.js
+module.exports = {
+  // ...
+  output: {
+    library: {
+      type: 'window',
+    },
+  },
+}
+```

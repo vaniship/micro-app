@@ -7,6 +7,7 @@ import type {
   HandleMicroPathResult,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
+import bindFunctionToRawTarget from '../bind_function'
 import {
   isString,
   createURL,
@@ -30,10 +31,16 @@ import {
 import {
   dispatchNativeEvent,
 } from './event'
-import { updateMicroLocation } from './location'
-import bindFunctionToRawTarget from '../bind_function'
-import { getActiveApps } from '../../micro_app'
-import { appInstanceMap, isIframeSandbox } from '../../create_app'
+import {
+  updateMicroLocation,
+} from './location'
+import {
+  getActiveApps,
+} from '../../micro_app'
+import {
+  appInstanceMap,
+  isIframeSandbox,
+} from '../../create_app'
 
 /**
  * create proxyHistory for microApp
