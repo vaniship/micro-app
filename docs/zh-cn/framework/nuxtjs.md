@@ -123,7 +123,7 @@ app.listen(port, host, () => {
 
 ```js
 // nuxt.config.js
-const basePath = '基础路由' // 默认为 '/'
+const basePath = '基础路径' // 默认为 '/'
 // 静态资源路径前缀
 const assetPrefix = process.env.NODE_ENV === 'production' ? `线上域名${basePath}` : `http://localhost:${process.env.PORT || 3000}${basePath}`
 
@@ -132,7 +132,7 @@ module.exports = {
   env: {
     assetPrefix,
   },
-  // 设置基础路由
+  // 设置基础路径
   router: {
     base: basePath,
   },

@@ -132,12 +132,12 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 
 
 ## baseroute
-- Desc: `设置子应用的基础路由`
+- Desc: `设置子应用的基础路径`
 - Type: `string`
 - Default: `''`
 - 使用方式: `<micro-app name='xx' url='xx' baseroute='/my-page/'></micro-app>`
 
-在微前端环境下，子应用可以从window.__MICRO_APP_BASE_ROUTE__上获取baseroute的值，用于设置基础路由。
+在微前端环境下，子应用可以从window.__MICRO_APP_BASE_ROUTE__上获取baseroute的值，用于设置基础路径。
 
 只有路由模式是native或native-scope我们才需要设置baseroute，详情参考[虚拟路由系统](/zh-cn/router)。
 

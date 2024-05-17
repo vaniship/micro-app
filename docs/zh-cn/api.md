@@ -384,7 +384,7 @@ interface RenderAppOptions {
   'keep-alive'?: boolean, // 开启keep-alive模式，可选
   destroy?: boolean, // 卸载时强制删除缓存资源，可选
   fiber?: boolean, // 开启fiber模式，可选
-  baseroute?: string, // 设置子应用的基础路由，可选
+  baseroute?: string, // 设置子应用路由系统的基础路径，可选
   ssr?: boolean, // 开启ssr模式，可选
   // shadowDOM?: boolean, // 开启shadowDOM，可选
   data?: Object, // 传递给子应用的数据，可选

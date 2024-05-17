@@ -6,7 +6,7 @@
 ### 注意事项
 
 #### 1、子应用如何获取到真实window、document
-子应用通过：window.rawWindow、window.rawDocument 可以获取真实的window、document
+子应用通过：`window.rawWindow`、`window.rawDocument` 可以获取真实的window、document
 
 #### 2、子应用抛出错误信息：xxx 未定义
 **包括：**
@@ -67,7 +67,7 @@ microApp.start({
 })
 ```
 
-#### 3、子应用使用Module Federation模块联邦时报错
+#### 3、子应用使用`Module Federation`模块联邦时报错
 原因同上述[注意事项2](/zh-cn/sandbox)相同，都是由于在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
 
 **解决方式：**将`ModuleFederationPlugin`插件中`library.type`设置为`window`。
@@ -83,7 +83,27 @@ new ModuleFederationPlugin({
 })
 ```
 
-#### 4、基座如何对子应用 document 的一些属性进行自定义代理扩展
+#### 4、子应用`DllPlugin`拆分的文件加载失败
+
+**原因：**参考上述[注意事项2](/zh-cn/sandbox)，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+
+**解决方式：**修改子应用webpack dll配置
+
+子应用webpack dll配置文件中[output.library.type](https://webpack.docschina.org/configuration/output/#outputlibrarytype)设置为`window`。
+```js
+// webpack.dll.config.js
+module.exports = {
+  // ...
+  output: {
+    library: {
+      type: 'window',
+    },
+  },
+}
+```
+
+
+#### 5、基座如何对子应用 document 的一些属性进行自定义代理扩展
 
 **场景：**
 

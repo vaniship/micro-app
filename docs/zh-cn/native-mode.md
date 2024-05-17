@@ -4,48 +4,24 @@
 
 实际上主应用和子应用的路由即同时基于浏览器地址进行渲染，又相互独立，我们通过路由配置让两个独立的路由系统实现共存，具体原理参考[关于native模式的原理解析](/zh-cn/native-mode?id=关于native模式的原理解析)。
 
-### 路由类型约束
-native模式下主、子应用需要遵循以下约束：
-- 1、主应用是hash路由，子应用也必须是hash路由
-- 2、主应用是history路由，子应用可以是hash或history路由
+**约束限制：**native模式有以下限制
+- 1、主应用是history路由，子应用可以是history或hash路由
+- 2、主应用是hash路由，子应用也必须是hash路由
 
-### 基础路由
-**作用：**
+### 基础路径
+基础路径即vue-router的[base](https://router.vuejs.org/zh/api/interfaces/RouterHistory.html#Properties-base)、react-router的[basename](https://reactrouter.com/en/main/router-components/browser-router#basename)，通常与应用托管在服务器的文件夹地址一致，但在微前端环境下子应用的基础路径要根据主应用的地址动态设置，指定子应用运行的路径范围。
 
-通常主应用和子应用各有一套路由系统，为了防止冲突，主应用需要分配一个路由给子应用，称之为基础路由，子应用可以在这个路由下渲染，但不能超出这个路由的范围，这就是基础路由的作用。
+由于主应用和子应用各有一套路由系统，为了防止冲突，主应用需要分配一个基础路径给子应用，子应用在这个路径下渲染，且不能超出这个路径的范围，实现主应用和子应用的并行渲染。
 
-**使用方式**
+例如：如果子应用运行在主应用的 `/app/` 路径下，那么子应用的基础路径应设置为 `'/app/'`。
 
-主应用中通过设置 `<micro-app>`的`baseroute`属性下发，子应用通过`window.__MICRO_APP_BASE_ROUTE__`获取此值并设置基础路由。
+#### 使用方式：
 
-**注意点：**
-- 1、如果主应用是history路由，子应用是hash路由，不需要设置基础路由baseroute
-- 2、如果子应用只有一个页面，没有使用`react-router`，`vue-router`之类，也不需要设置基础路由baseroute
-- 3、vue-router在hash模式下无法通过base设置基础路由，需要创建一个空的路由页面，将其它路由作为它的children，具体设置如下：
+主应用通过`baseroute`下发基础路径的值，子应用通过`window.__MICRO_APP_BASE_ROUTE__`获取此值并设置基础路径。
 
-```js
-import RootApp from './root-app.vue'
-
-const routes = [
-    {
-      path: window.__MICRO_APP_BASE_ROUTE__ || '/',
-      component: RootApp,
-      children: [
-        // 其他的路由都写到这里
-      ],
-    },
-]
-```
-
-`root-app.vue`内容如下：
-```html
-<template>
-  <router-view />
-</template>
-```
-
-
-### 示例
+**注意：**
+  - 1、如果主应用是history路由，子应用是hash路由，此时不需要设置基础路径，以下设置可以忽略。
+  - 2、`baseroute`是子应用所在页面的绝对地址，获取方式：主应用跳转子应用所在页面，查看`location.pathname`的值并设置为`baseroute`。
 
 #### 主应用
 
@@ -79,7 +55,10 @@ export function App () {
 export function MyPage () {
   return (
     <div>
-      {/* 设置子应用基础路由baseroute为'/child' */}
+      {/* 
+        1、设置子应用基础路径baseroute为'/child' 
+        2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
+      */}
       <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
     </div>
   )
@@ -115,7 +94,10 @@ export function App () {
 export function MyPage () {
   return (
     <div>
-      {/* 设置子应用基础路由baseroute为'/child'，而不是'/child/*' */}
+      {/* 
+        1、设置子应用基础路径baseroute为'/child' 
+        2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
+      */}
       <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
     </div>
   )
@@ -150,7 +132,10 @@ export default routes
 ```html
 // my-page.vue
 <template>
-  <!-- 设置子应用基础路由baseroute为'/child'，而不是'/child/*' -->
+  <!-- 
+    1、设置子应用基础路径baseroute为'/child'
+    2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
+   -->
   <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
 </template>
 ```
@@ -179,7 +164,10 @@ export default routes
 ```html
 // my-page.vue
 <template>
-  <!-- 设置子应用基础路由baseroute为'/child'，而不是'/child/:page*' -->
+  <!-- 
+    1、设置子应用基础路径baseroute为'/child'
+    2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
+   -->
   <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
 </template>
 ```
@@ -192,34 +180,96 @@ export default routes
 
 
 #### ** react16 **
+
+**设置基础路径：**
 ```js
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
 
 export default function App () {
   return (
-    // 👇 设置基础路由，子应用可以通过window.__MICRO_APP_BASE_ROUTE__获取主应用下发的baseroute，如果没有设置baseroute属性，则此值默认为空字符串
+    // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
     <BrowserRouter basename={window.__MICRO_APP_BASE_ROUTE__ || '/'}>
-      ...
+      // ...
     </BrowserRouter>
   )
 }
 ```
 
+#### ** react18 **
+
+**设置基础路径：**
+```js
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+
+export default function App () {
+  return (
+    // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
+    <BrowserRouter basename={window.__MICRO_APP_BASE_ROUTE__ || '/'}>
+      // ...
+    </BrowserRouter>
+  )
+}
+```
+
+
 #### ** vue2 **
+
+**设置基础路径：**
 ```js
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import routes from './router'
 
 const router = new VueRouter({
-  // 👇 设置基础路由，子应用可以通过window.__MICRO_APP_BASE_ROUTE__获取主应用下发的baseroute，如果没有设置baseroute属性，则此值默认为空字符串
+  mode: 'history',
+  // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
   base: window.__MICRO_APP_BASE_ROUTE__ || '/',
   routes,
 })
+```
 
-...
+#### ** vue3 **
+
+**设置基础路径：**
+```js
+import { createRouter, createWebHistory } from 'vue-router'
+import routes from './router'
+
+const router = createRouter({
+  // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
+  history: createWebHistory(window.__MICRO_APP_BASE_ROUTE__ || '/'),
+  routes,
+})
 ```
 <!-- tabs:end -->
+
+
+#### 注意事项：
+- 1、如果主应用是history路由，子应用是hash路由，不需要设置基础路径baseroute
+- 2、如果子应用只有一个页面，没有使用`react-router`，`vue-router`之类，也不需要设置基础路径baseroute
+- 3、`vue@2.x`在hash模式下无法通过base设置基础路径，需要创建一个空的路由页面，将其它路由作为它的children，具体设置如下：
+
+```js
+import RootApp from './root-app.vue'
+
+const routes = [
+    {
+      path: window.__MICRO_APP_BASE_ROUTE__ || '/',
+      component: RootApp,
+      children: [
+        // 其他的路由都写到这里
+      ],
+    },
+]
+```
+
+`root-app.vue`内容如下：
+```html
+<template>
+  <router-view />
+</template>
+```
+
 
 
 ### 关于native模式的原理解析
@@ -261,7 +311,7 @@ const router = new VueRouter({
 
 micro-app配置如下：
 ```html
-<!-- 子应用通过baseroute设置基础路由/my-page -->
+<!-- 子应用通过baseroute设置基础路径/my-page -->
 <micro-app url='http://子应用域名/index.html' baseroute='/my-page'></micro-app>
 ```
 
@@ -275,7 +325,7 @@ micro-app配置如下：
 原理：主应用匹配到`#/my-page`路径并渲染`my-app`页面，因为`my-app`页面中嵌入了子应用，此时子应用开始加载并渲染，子应用在渲染时会匹配到`#/my-page/page1`并渲染`page1`页面。
 
 ```html
-<!-- 子应用通过baseroute设置基础路由/my-page -->
+<!-- 子应用通过baseroute设置基础路径/my-page -->
 <micro-app url='http://子应用域名/index.html' baseroute='/my-page'></micro-app>
 ```
 

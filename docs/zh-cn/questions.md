@@ -36,11 +36,8 @@ micro-app依赖于CustomElements和Proxy两个较新的API。
 
 如果你使用的是`ant-design`等组件库，一般会提供添加前缀进行样式隔离的功能。
 
-## 6、子应用在沙箱环境中如何获取到外部真实window？
-  目前有3种方式在子应用中获取外部真实window
-  - 1、new Function("return window")() 或 Function("return window")()
-  - 2、(0, eval)('window')
-  - 3、window.rawWindow
+## 6、子应用如何获取到真实window、document
+子应用通过：`window.rawWindow`、`window.rawDocument` 可以获取真实的window、document
 
 ## 7、子应用抛出错误信息：xxx 未定义
 **包括：**
@@ -227,7 +224,7 @@ new ModuleFederationPlugin({
   // ...
   name: "app1",
   library: { 
-    type: "window", 
+    type: "window",
     name: "app1",
   },
 })
