@@ -53,7 +53,7 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
   function getMicroHistoryMethod (methodName: string): CallableFunction {
     return function (...rests: any[]): void {
       // TODO: 测试iframe的URL兼容isURL的情况
-      rests[2] = isUndefined(rests[2]) || isNull(rests[2]) ? '' : '' + rests[2]
+      rests[2] = isUndefined(rests[2]) || isNull(rests[2]) || ('' + rests[2] === '') ? microLocation.href : '' + rests[2]
       const targetLocation = createURL(rests[2], microLocation.href)
       const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
       if (!isRouterModePure(appName)) {
