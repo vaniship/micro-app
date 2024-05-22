@@ -286,7 +286,7 @@ export default class CreateApp implements AppInterface {
         const dispatchBeforeMount = () => {
           this.setLifeCycleState(lifeCycles.BEFOREMOUNT)
           dispatchLifecyclesEvent(
-            this.container!,
+            this.container,
             this.name,
             lifeCycles.BEFOREMOUNT,
           )
@@ -305,7 +305,7 @@ export default class CreateApp implements AppInterface {
           appState: appStates.MOUNTING
         })
 
-        // TODO: 将所有cloneContainer中的'as Element'去掉，兼容shadowRoot的场景
+        // TODO: 兼容shadowRoot的场景
         this.cloneContainer(this.container, this.source.html, !this.umdMode)
 
         this.sandBox?.start({
@@ -359,8 +359,15 @@ export default class CreateApp implements AppInterface {
       }
     }
 
+    /**
+     * Initialization of sandbox is async, especially iframe sandbox are macro tasks
+     * when child apps switch quickly, we need to pay attention to the following points:
+     * NOTE:
+     *  1. unmount app before exec nextAction
+     *  2. remount app of note 1
+     */
     // TODO: 可优化？
-    this.sandBox ? this.sandBox.sandboxReady.then(nextAction) : nextAction()
+    this.sandBox ? this.sandBox.sandboxReady.then(() => !this.isUnmounted() && nextAction()) : nextAction()
   }
 
   /**
@@ -415,7 +422,7 @@ export default class CreateApp implements AppInterface {
 
       // dispatch event mounted to parent
       dispatchLifecyclesEvent(
-        this.container!,
+        this.container,
         this.name,
         lifeCycles.MOUNTED,
       )
@@ -458,6 +465,7 @@ export default class CreateApp implements AppInterface {
 
     let umdHookUnmountResult: unknown = null
     try {
+      // TODO: 去除umdHookUnmountResult，umdHookUnmount支持异步的意义不大，且会造成unmount变成异步操作，增加出问题概率
       // call umd unmount hook before the sandbox is cleared
       umdHookUnmountResult = this.umdHookUnmount?.(microApp.getData(this.name, true))
     } catch (e) {
@@ -555,7 +563,7 @@ export default class CreateApp implements AppInterface {
 
     // dispatch unmount event to base app
     dispatchLifecyclesEvent(
-      this.container!,
+      this.container,
       this.name,
       lifeCycles.UNMOUNT,
     )
@@ -566,11 +574,15 @@ export default class CreateApp implements AppInterface {
   }
 
   private clearOptions (destroy: boolean): void {
-    this.container!.innerHTML = ''
-    this.container = null
     this.isPrerender = false
     this.preRenderEvents = null
     this.setKeepAliveState(null)
+    if (this.container) {
+      this.container.innerHTML = ''
+      this.container = null
+    } else {
+      this.sandBox?.deleteIframeElement?.()
+    }
     // in iframe sandbox & default mode, delete the sandbox & iframeElement
     // TODO: with沙箱与iframe沙箱保持一致：with沙箱默认模式下删除 或者 iframe沙箱umd模式下保留
     if (this.iframe && !this.umdMode) this.sandBox = null
@@ -603,7 +615,7 @@ export default class CreateApp implements AppInterface {
     this.setLifeCycleState(lifeCycles.AFTERHIDDEN)
     // dispatch afterHidden event to base app
     dispatchLifecyclesEvent(
-      this.container!,
+      this.container,
       this.name,
       lifeCycles.AFTERHIDDEN,
     )
@@ -701,7 +713,7 @@ export default class CreateApp implements AppInterface {
     })
 
     dispatchLifecyclesEvent(
-      this.container!,
+      this.container,
       this.name,
       lifeCycles.ERROR,
       e,

@@ -313,30 +313,19 @@ export default defineConfig({
 
 #### 2、虚拟路由系统为search模式时主应用循环刷新
 
-**解决方式：**将router-view或者包含微前端的上层组件中`:key="route.fullPath"`改为`:key="route.path"`或者`:key="route.name"`
+**原因：**由于将路由地址设置为key，当路由变化时Vue会重新渲染组件
+
+**解决方式：**将主应用中`<router-view>`或包含`<micro-app>`元素的上层组件中`:key="route.fullPath"`或者`:key="route.path"`改为`:key="route.name"`
 
 **例如：**
 
 ```html
 <!-- bad 😭 -->
-<router-view v-slot="{ Component, route }">
-  <transition name="fade">
-    <component :is="Component" :key="route.fullPath" />
-  </transition>
-</router-view>
-
-<!-- good 😊 -->
-<router-view v-slot="{ Component, route }">
-  <transition name="fade">
-    <component :is="Component" :key="route.path" />
-  </transition>
-</router-view>
-```
-
-```html
-<!-- bad 😭 -->
 <router-view :key="$route.fullPath"></router-view>
 
-<!-- good 😊 -->
+<!-- bad 😭 -->
 <router-view :key="$route.path"></router-view>
+
+<!-- good 😊 -->
+<router-view :key="$route.name"></router-view>
 ```
