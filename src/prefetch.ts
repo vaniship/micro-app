@@ -69,7 +69,7 @@ export default function preFetch (apps: prefetchParamList, delay?: number): void
 
     /**
      * TODO: remove setTimeout
-     * Is there a better way?
+     * 如果要保留setTimeout，则需要考虑清空定时器的情况
      */
     setTimeout(() => {
       // releasePrefetchEffect()

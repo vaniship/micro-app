@@ -22,7 +22,7 @@ const prefetchConfig = [
   // },
   {
     name: 'vue2',
-    url: `${config.vue2}micro-app/vue2`,
+    url: `${config.vue2}micro-app/vue2/`,
     // 'disable-scopecss': true,
     level: 3,
     // 'default-page': '/micro-app/vue2/#/page2',

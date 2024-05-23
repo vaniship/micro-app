@@ -560,8 +560,3 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 // new Promise((resolve, reject) => {
 //   throw 'promise 逃逸的错误'
 // })
-
-console.log(111111, new Function("return window")())
-console.log(222222, Function("return window")())
-console.log(3333333, (0, eval)('window'))
-console.log(4444444, window.rawWindow)

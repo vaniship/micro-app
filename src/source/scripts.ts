@@ -524,7 +524,7 @@ export function runScript (
        */
       if (!replaceElement) {
         // TEST IGNORE
-        const parent = app.iframe ? app.sandBox!.microBody : app.querySelector('micro-app-body')
+        const parent = app.iframe ? app.sandBox?.microBody : app.querySelector('micro-app-body')
         parent?.appendChild(scriptElement)
       }
     } else {

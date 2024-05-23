@@ -169,15 +169,6 @@ export default class IframeSandbox {
      *  1. iframe router and browser router are separated, we should update iframe router manually
      *  2. withSandbox location is browser location when disable memory-router, so no need to do anything
      */
-    /**
-     * TODO:
-     * 1. iframe关闭虚拟路由系统后，default-page无法使用，推荐用户直接使用浏览器地址控制首页渲染
-     *    补充：keep-router-state 也无法配置，因为keep-router-state一定为true。
-     * 2. 导航拦截、current.route 可以正常使用
-     * 3. 可以正常控制子应用跳转，方式还是自上而下(也可以是子应用内部跳转，这种方式更好一点，减小对基座的影响，不会导致vue的循环刷新)
-     * 4. 关闭虚拟路由以后会对应 route-mode='custom' 模式，包括with沙箱也会这么做
-     * 5. 关闭虚拟路由是指尽可能模拟没有虚拟路由的情况，子应用直接获取浏览器location和history，控制浏览器跳转
-     */
     this.initRouteState(defaultPage)
 
     // unique listener of popstate event for child app
@@ -214,7 +205,9 @@ export default class IframeSandbox {
     destroy,
     clearData,
   }: SandBoxStopParams): void {
+    // sandbox.stop may exec before sandbox.start, e.g: iframe sandbox + default mode + remount
     if (!this.active) return
+
     this.recordAndReleaseEffect({ clearData }, !umdMode || destroy)
 
     /* --- memory router part --- start */
@@ -240,7 +233,7 @@ export default class IframeSandbox {
     }
 
     if (--IframeSandbox.activeCount === 0) {
-      // TODO: Is there anything to put here?
+      // TODO: Is there anything to do?
     }
 
     this.active = false
