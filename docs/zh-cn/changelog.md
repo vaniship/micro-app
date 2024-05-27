@@ -17,7 +17,7 @@
   - 🐞 修复 iframe沙箱下history.go传入的是非0数字时iframe被重置导致异常的问题，[PR 1112](https://github.com/micro-zoe/micro-app/pull/1112) by [keuby](https://github.com/keuby)。
   - 🐞 修复 类型声明jsx.IntrinsicElements导致vue-ts部分元素lint异常的问题。
   - 🐞 修复 state路由模式下子应用为vue3时刷新浏览器路由状态丢失的问题。
-  - 🐞 修复 iframe沙箱下迅速频繁切换子应用时渲染异常的问题。
+  - 🐞 修复 iframe沙箱在默认模式下二次渲染时初始化沙箱过程中卸载子应用导致异常的问题。
   - 🐞 修复 当子应用的`window.unmount`非空且不为函数时卸载子应用报错的问题。
   - 🐞 修复 当子应用在开启预渲染后，加载资源过程中被卸载表现异常的问题。
   - 🐞 修复 fiber子应用在初始化过程中被卸载导致渲染异常的问题。
