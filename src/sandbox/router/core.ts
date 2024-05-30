@@ -66,8 +66,7 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
 // get micro app state form origin state
 export function getMicroState (appName: string): MicroState {
   const rawState = globalEnv.rawWindow.history.state
-  // rawState?.__MICRO_APP_STATE__?.[appName]?.state || (isRouterModeCustom(appName) ? rawState : null)
-  return rawState?.__MICRO_APP_STATE__?.[appName]?.state || (isRouterModeCustom(appName) ? rawState : null)
+  return rawState?.__MICRO_APP_STATE__?.[appName]?.state || null
 }
 
 const ENC_AD_RE = /&/g // %M1
@@ -133,7 +132,6 @@ export function getMicroPathFromURL (appName: string): string | null {
   // if (isRouterModeCustom(appName)) {
   //   return rawLocation.pathname + rawLocation.search + rawLocation.hash
   // }
-  // console.log('getMicroPathFromURL: state.__MICRO_APP_STATE__', rawState?.__MICRO_APP_STATE__)
   // return rawState?.__MICRO_APP_STATE__?.[appName]?.fullPath || null
   return rawState?.__MICRO_APP_STATE__?.[appName]?.fullPath || (isRouterModeCustom(appName) ? rawLocation.pathname + rawLocation.search + rawLocation.hash : null)
 }

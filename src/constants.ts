@@ -106,12 +106,12 @@ const BASE_SCOPE_WINDOW_EVENT = [
   'popstate',
   'hashchange',
   'load',
-  'beforeunload',
   'unload',
   'unmount',
   'appstate-change',
   'statechange',
   'mounted',
+  // 'beforeunload', // remove at 2024.5.30 by cangdu
 ]
 
 // bind event of with sandbox
@@ -128,9 +128,9 @@ const BASE_SCOPE_WINDOW_ON_EVENT = [
   'onpopstate',
   'onhashchange',
   'onload',
-  'onbeforeunload',
   'onunload',
   'onerror'
+  // 'onbeforeunload', // remove at 2024.5.30 by cangdu
 ]
 
 // bind on event of with sandbox
