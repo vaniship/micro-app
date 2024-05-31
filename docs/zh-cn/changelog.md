@@ -21,6 +21,8 @@
   - 🐞 修复 当子应用的`window.unmount`非空且不为函数时卸载子应用报错的问题。
   - 🐞 修复 当子应用在开启预渲染后，加载资源过程中被卸载表现异常的问题。
   - 🐞 修复 fiber子应用在初始化过程中被卸载导致渲染异常的问题。
+  - 🐞 修复 主应用和子应用都是vue-router@4.x时，跳转子应用后点击返回按钮浏览器地址错误的问题，[issue 1234](https://github.com/micro-zoe/micro-app/issues/1234)。
+  - 🐞 修复 子应用beforeunload事件无法正常挂载的问题，[issue 1233](https://github.com/micro-zoe/micro-app/issues/1233)。
 
 - **Update**
 

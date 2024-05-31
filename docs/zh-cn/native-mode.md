@@ -19,9 +19,7 @@
 
 主应用通过`baseroute`下发基础路径的值，子应用通过`window.__MICRO_APP_BASE_ROUTE__`获取此值并设置基础路径。
 
-**注意：**
-  - 1、如果主应用是history路由，子应用是hash路由，此时不需要设置基础路径，以下设置可以忽略。
-  - 2、
+**前言：**如果主应用是history路由，子应用是hash路由，不需要设置基础路径，以下设置可以忽略。
 
 #### 主应用
 
@@ -213,62 +211,99 @@ export default function App () {
 
 
 #### ** vue2 **
-
 **设置基础路径：**
+
+<!-- tabs:start -->
+
+#### **history路由**
 ```js
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import routes from './router'
 
 const router = new VueRouter({
   mode: 'history',
   // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
   base: window.__MICRO_APP_BASE_ROUTE__ || '/',
-  routes,
+  // 其它配置...
 })
 ```
 
-#### ** vue3 **
+#### **hash路由**
+前言：如果主应用是history路由，子应用是hash路由，忽略下面配置
 
-**设置基础路径：**
-```js
-import { createRouter, createWebHistory } from 'vue-router'
-import routes from './router'
+vue2在hash模式下无法通过[base](https://v3.router.vuejs.org/zh/api/#base)设置基础路径，需要通过一个空的路由页面包裹实现，具体设置如下：
 
-const router = createRouter({
-  // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
-  history: createWebHistory(window.__MICRO_APP_BASE_ROUTE__ || '/'),
-  routes,
-})
-```
-<!-- tabs:end -->
-
-
-#### 注意事项：
-- 1、如果主应用是history路由，子应用是hash路由，不需要设置基础路径baseroute
-- 2、如果子应用只有一个页面，没有使用`react-router`，`vue-router`之类，也不需要设置基础路径baseroute
-- 3、`vue@2.x`在hash模式下无法通过base设置基础路径，需要创建一个空的路由页面，将其它路由作为它的children，具体设置如下：
-
-```js
-import RootApp from './root-app.vue'
-
-const routes = [
-    {
-      path: window.__MICRO_APP_BASE_ROUTE__ || '/',
-      component: RootApp,
-      children: [
-        // 其他的路由都写到这里
-      ],
-    },
-]
-```
-
-`root-app.vue`内容如下：
+1、创建`root-app.vue`文件，内容如下：
 ```html
 <template>
   <router-view />
 </template>
 ```
+
+2、将`root-app.vue`设置为基础页面，将其它路由作为它的children，children配置中的path要改为相对地址
+```js
+import RootApp from './root-app.vue'
+
+const routes = [
+  {
+    // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
+    path: window.__MICRO_APP_BASE_ROUTE__ || '/',
+    component: RootApp,
+    children: [
+      // 其它路由都写到这里，且path要改为相对地址
+    ],
+  },
+]
+```
+
+3、跳转时补全路由地址
+
+由于将`root-app.vue`设置为基础页面，跳转时要用window.__MICRO_APP_BASE_ROUTE__补全地址
+```js
+this.$router.push(window.__MICRO_APP_BASE_ROUTE__ + path)
+```
+```html
+<router-link :to="window.__MICRO_APP_BASE_ROUTE__ + path"></router-link>
+```
+
+<!-- tabs:end -->
+
+
+#### ** vue3 **
+
+**设置基础路径：**
+<!-- tabs:start -->
+
+#### **history路由**
+
+```js
+import { createRouter, createWebHistory } from 'vue-router'
+
+const router = createRouter({
+  // 设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
+  history: createWebHistory(window.__MICRO_APP_BASE_ROUTE__ || '/'),
+  // 其它配置...
+})
+```
+
+#### **hash路由**
+如果主应用是history路由，子应用是hash路由，忽略下面配置
+
+```js
+import { createRouter, createWebHashHistory } from 'vue-router'
+
+const router = createRouter({
+  /**
+   * 1、设置基础路径，window.__MICRO_APP_BASE_ROUTE__为主应用下发的baseroute，默认为空字符串
+   * 2、vue3中hash模式的base需要以'#'开头，这里我们手动用'#'补全
+   */
+  history: createWebHashHistory(window.__MICRO_APP_BASE_ROUTE__ ? `/#${window.__MICRO_APP_BASE_ROUTE__}` : '/'),
+  // 其它配置...
+})
+```
+<!-- tabs:end -->
+
+<!-- tabs:end -->
 
 
 

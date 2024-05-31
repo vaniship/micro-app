@@ -335,7 +335,7 @@ baseRouter.主应用路由的方法(...)
  * @param {string} path 必填，子应用除域名外的全量地址(也可以带上域名)
  * @param {boolean} replace 可选，是否使用replace模式，不新增堆栈记录，默认为false
  */
-router.push({ name: '子应用名称', path: '页面地址', replace: 是否使用replace模式 })
+window.microApp.router.push({ name: '子应用名称', path: '页面地址', replace: 是否使用replace模式 })
 ```
 
 **示例：**
@@ -365,7 +365,7 @@ window.microApp.router.push({name: 'my-app', path: '/page1', replace: true })
  * @param {string} path 必填，子应用除域名外的全量地址(也可以带上域名)
  * @param {boolean} replace 可选，是否使用replace模式，默认为true
  */
-router.replace({ name: '子应用名称', path: '页面地址', replace: 是否使用replace模式 })
+window.microApp.router.replace({ name: '子应用名称', path: '页面地址', replace: 是否使用replace模式 })
 ```
 
 **示例：**
@@ -393,7 +393,7 @@ window.microApp.router.replace({name: 'my-app', path: '/page1', replace: false }
 /**
  * @param {number} n 前进或后退多少步
  */
-router.go(n)
+window.microApp.router.go(n)
 ```
 
 **示例：**
@@ -407,10 +407,7 @@ window.microApp.router.go(3)
 
 
 ### router.back
-**介绍：**它的功能和window.history.back()一致，表示在历史堆栈中后退一步。
-```js
-router.back()
-```
+**介绍：**它的功能和window.history.back一致，表示在历史堆栈中后退一步。
 
 **示例：**
 ```js
@@ -420,10 +417,7 @@ window.microApp.router.back()
 
 
 ### router.forward
-**介绍：**它的功能和window.history.forward()一致，表示在历史堆栈中前进一步。
-```js
-router.forward()
-```
+**介绍：**它的功能和window.history.forward一致，表示在历史堆栈中前进一步。
 
 **示例：**
 ```js
