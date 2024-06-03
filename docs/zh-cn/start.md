@@ -15,7 +15,7 @@ import microApp from '@micro-zoe/micro-app'
 microApp.start()
 ```
 
-**3、嵌入子应用**
+**3、加载子应用**
 
 micro-app通过自定义元素`<micro-app>`加载子应用，使用方式像iframe一样简洁
 

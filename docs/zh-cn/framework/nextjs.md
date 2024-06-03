@@ -27,7 +27,7 @@ function MyApp({ Component, pageProps }) {
 export default MyApp
 ```
 
-#### 3、在页面中嵌入子应用
+#### 3、在页面中加载子应用
 因为micro-app只能运行在浏览器环境，所以在`useEffect`中通过变量控制子应用显示。
 
 ```js

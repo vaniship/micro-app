@@ -27,7 +27,7 @@ import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 })
 ```
 
-#### 4、在页面中嵌入子应用
+#### 4、在页面中加载子应用
 
 通过注册的自定义元素`<micro-app>`加载子应用
 

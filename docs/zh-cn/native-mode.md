@@ -4,22 +4,21 @@
 
 实际上主应用和子应用的路由即同时基于浏览器地址进行渲染，又相互独立，我们通过路由配置让两个独立的路由系统实现共存，具体原理参考[关于native模式的原理解析](/zh-cn/native-mode?id=关于native模式的原理解析)。
 
-**约束限制：**native模式有以下限制
-- 1、主应用是history路由，子应用可以是history或hash路由
-- 2、主应用是hash路由，子应用也必须是hash路由
-
 ### 基础路径
-基础路径即vue-router的[base](https://router.vuejs.org/zh/api/interfaces/RouterHistory.html#Properties-base)、react-router的[basename](https://reactrouter.com/en/main/router-components/browser-router#basename)，通常与应用托管在服务器的文件夹地址一致，但在微前端环境下子应用的基础路径要根据主应用的地址动态设置，指定子应用运行的路径范围。
+基础路径即vue-router的[base](https://router.vuejs.org/zh/api/interfaces/RouterHistory.html#Properties-base)、react-router的[basename](https://reactrouter.com/en/main/router-components/browser-router#basename)，通常与应用托管在服务器的文件夹地址一致，但在微前端下子应用基础路径的设置有所不同，需要根据主应用的地址动态设置。
 
 由于主应用和子应用各有一套路由系统，为了防止冲突，主应用需要分配一个基础路径给子应用，子应用在这个路径下渲染，且不能超出这个路径的范围，实现主应用和子应用的并行渲染。
 
 例如：如果子应用运行在主应用的 `/app/` 路径下，那么子应用的基础路径应设置为 `'/app/'`。
 
-#### 使用方式：
+**注意：**
+  - 1、如果主应用是history路由，子应用是hash路由，主、子不需要做任何修改，以下设置可以忽略。
+  - 2、如果主应用是hash路由，子应用也必须是hash路由，否则无法正常渲染。
+  - 3、如果主、子同时是history路由或同时是hash路由，则按照下面的方式设置基础路径。
+
+#### 设置基础路径：
 
 主应用通过`baseroute`下发基础路径的值，子应用通过`window.__MICRO_APP_BASE_ROUTE__`获取此值并设置基础路径。
-
-**前言：**如果主应用是history路由，子应用是hash路由，不需要设置基础路径，以下设置可以忽略。
 
 #### 主应用
 
@@ -47,7 +46,7 @@ export function App () {
 }
 ```
 
-**2、嵌入子应用：**
+**2、设置baseroute：**
 ```js
 // my-page.js
 export function MyPage () {
@@ -86,7 +85,7 @@ export function App () {
 }
 ```
 
-**2、嵌入子应用：**
+**2、设置baseroute：**
 ```js
 // my-page.js
 export function MyPage () {
@@ -126,7 +125,7 @@ const routes = [
 export default routes
 ```
 
-**2、嵌入子应用：**
+**2、设置baseroute：**
 ```html
 // my-page.vue
 <template>
@@ -158,7 +157,7 @@ const routes = [
 export default routes
 ```
 
-**2、嵌入子应用：**
+**2、设置baseroute：**
 ```html
 // my-page.vue
 <template>
@@ -175,8 +174,6 @@ export default routes
 #### 子应用
 
 <!-- tabs:start -->
-
-
 #### ** react16 **
 
 **设置基础路径：**
@@ -229,9 +226,7 @@ const router = new VueRouter({
 ```
 
 #### **hash路由**
-前言：如果主应用是history路由，子应用是hash路由，忽略下面配置
-
-vue2在hash模式下无法通过[base](https://v3.router.vuejs.org/zh/api/#base)设置基础路径，需要通过一个空的路由页面包裹实现，具体设置如下：
+vue2在hash模式下无法通过[base](https://v3.router.vuejs.org/zh/api/#base)设置基础路径，需要通过一个空的路由页面包裹实现，具体方式如下：
 
 1、创建`root-app.vue`文件，内容如下：
 ```html
@@ -258,7 +253,7 @@ const routes = [
 
 3、跳转时补全路由地址
 
-由于将`root-app.vue`设置为基础页面，跳转时要用window.__MICRO_APP_BASE_ROUTE__补全地址
+由于将`root-app.vue`设置为基础页面，跳转时要用window.__MICRO_APP_BASE_ROUTE__补全地址，例如：
 ```js
 this.$router.push(window.__MICRO_APP_BASE_ROUTE__ + path)
 ```
@@ -287,7 +282,6 @@ const router = createRouter({
 ```
 
 #### **hash路由**
-如果主应用是history路由，子应用是hash路由，忽略下面配置
 
 ```js
 import { createRouter, createWebHashHistory } from 'vue-router'
@@ -338,7 +332,7 @@ const router = createRouter({
 
 ##### 例2:
 
-场景：主应用是history路由，子应用也是history路由，我们要跳转主应用的`my-app`页面，`my-app`页面中嵌入子应用，我们要展现子应用的`page1`页面。
+场景：主应用是history路由，子应用也是history路由，我们要跳转主应用的`my-app`页面，`my-app`页面中嵌入了子应用，我们要展现子应用的`page1`页面。
 
 那么浏览器地址应该为：`http://主应用域名/my-page/page1`，我们在主应用中跳转的参数为：`router.push('/my-page/page1')`
 
@@ -353,7 +347,7 @@ micro-app配置如下：
 
 ##### 例3:
 
-场景：主应用是hash路由，子应用也是hash路由，我们要跳转主应用的`my-app`页面，`my-app`页面中嵌入子应用，我们要展现子应用的`page1`页面。
+场景：主应用是hash路由，子应用也是hash路由，我们要跳转主应用的`my-app`页面，`my-app`页面中嵌入了子应用，我们要展现子应用的`page1`页面。
 
 那么浏览器地址应该为：`http://主应用域名/#/my-page/page1`，我们在主应用中跳转的参数为：`router.push('/my-page/page1')`
 
@@ -366,7 +360,7 @@ micro-app配置如下：
 
 ##### 例4:
 
-场景：主应用是history路由，子应用是hash路由，我们要跳转主应用的`my-app`页面，页面中嵌入子应用，我们要展现子应用的`page1`页面。
+场景：主应用是history路由，子应用是hash路由，我们要跳转主应用的`my-app`页面，页面中嵌入了子应用，我们要展现子应用的`page1`页面。
 
 那么浏览器地址应该为：`http://主应用域名/my-page/#/page1`，我们在主应用中跳转`my-app`页面的参数为：`router.push('/my-page/#/page1')`
 

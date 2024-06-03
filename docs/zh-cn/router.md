@@ -3,7 +3,7 @@ MicroApp通过拦截浏览器路由事件以及自定义的location、history，
 虚拟路由系统还提供了丰富的功能，帮助用户提升开发效率和使用体验。
 
 ## 路由模式
-虚拟路由系统分为四种模式：`search`、`native`、`native-scope`、`pure`
+虚拟路由系统分为五种模式：`search`、`native`、`native-scope`、`pure`、`state`，每种模式的表现和功能都不一样。
 
 <!-- tabs:start -->
 #### ** search模式 **
