@@ -60,7 +60,10 @@ export function addHistoryListener (appName: string): CallableFunction {
       //   microAppWindow.__MICRO_APP_BASE_ROUTE__.includes('#') ||
       //   `${rawLocation.pathname}/`.startsWith(('/' + microAppWindow.__MICRO_APP_BASE_ROUTE__).replace(/^\/+/, '/'))
       // ) {
-      updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+      // updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+      setTimeout(() => {
+        updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+      }, 100)
       // }
     }
   }

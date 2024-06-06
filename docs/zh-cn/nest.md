@@ -1,16 +1,19 @@
-`micro-app`支持多层嵌套，即子应用可以嵌入其它子应用，但为了防止标签名冲突，子应用中需要做一些修改。
+`micro-app`支持多层嵌套，即子应用可以嵌入其它子应用，但为了防止标签名冲突，中间层应用需要自定义`tagName`。
 
-在`子应用`中设置`tagName`：
+例如：A嵌套B，B嵌套C，则需要在B中做出如下修改：
 
 ```js
+import microApp from '@micro-zoe/micro-app';
+
 microApp.start({
-  tagName: 'micro-app-xxx', // 标签名称必须以 `micro-app-` 开头
+  // 必须以`micro-app-`开头的小写字母，例如：micro-app-b、micro-app-child-b
+  tagName: 'micro-app-xxx', 
 })
 ```
 
-在子应用中使用新定义的标签进行渲染，如：
+在B中使用新定义的标签加载C：
 ```html
-<micro-app-xxx name='xx' url='xx'></micro-app-xxx>
+<micro-app-xxx name='...' url='...'></micro-app-xxx>
 ```
 
 > [!WARNING]

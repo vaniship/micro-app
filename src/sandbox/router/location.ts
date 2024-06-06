@@ -344,14 +344,14 @@ export function autoTriggerNavigationGuard (appName: string, microLocation: Micr
  */
 export function updateMicroLocation (
   appName: string,
-  path: string,
+  targetFullPath: string,
   microLocation: MicroLocation,
   type?: string,
 ): void {
   // record old values of microLocation to `from`
   const from = createGuardLocation(appName, microLocation)
   // if is iframeSandbox, microLocation muse be rawLocation of iframe, not proxyLocation
-  const newLocation = createURL(path, microLocation.href)
+  const newLocation = createURL(targetFullPath, microLocation.href)
   if (isIframeSandbox(appName)) {
     const microAppWindow = appInstanceMap.get(appName)!.sandBox.microAppWindow
     microAppWindow.rawReplaceState?.call(microAppWindow.history, getMicroState(appName), '', newLocation.href)
@@ -362,9 +362,26 @@ export function updateMicroLocation (
     }
     microLocation.self.href = targetHref
   }
+
+  /**
+   * native模式从state中取值，而浏览器地址的修改无法控制，很可能出现浏览器地址和__MICRO_APP_STATE__不一致的情况
+   * 尤其是在初始化和前进后退时，由于vue-router4会主动修改url地址，倒是上述情况经常出现
+   * 为了结局这个问题，在子应用初始化和响应popstate事件后，判断__MICRO_APP_STATE__和浏览器地址是否一致，如果不一致，则将浏览器地址更新为__MICRO_APP_STATE__的地址
+   * 说明：
+   *  1、如果__MICRO_APP_STATE__和url不一样，那么更新url的操作是对的，否则会产生url和渲染页面不一致的问题，开发者会更加困惑
+   *  2、当native模式有多个子应用同时存在，其中一个修改url地址，另外一个并不会改变__MICRO_APP_STATE__，刷新就产生问题，不一致，第二是根据谁更新url？
+   */
+  const rawLocation = globalEnv.rawWindow.location
+  if (
+    isRouterModeCustom(appName) &&
+    (targetFullPath !== rawLocation.pathname + rawLocation.search + rawLocation.hash) &&
+    type !== 'prevent'
+  ) {
+    nativeHistoryNavigate(appName, 'replaceState', targetFullPath, globalEnv.rawWindow.history.state)
+  }
+
   // update latest values of microLocation to `to`
   const to = createGuardLocation(appName, microLocation)
-
   // The hook called only when fullPath changed
   if (type === 'auto' || (from.fullPath !== to.fullPath && type !== 'prevent')) {
     executeNavigationGuard(appName, to, from)

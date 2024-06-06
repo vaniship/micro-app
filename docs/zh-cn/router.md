@@ -2,7 +2,7 @@ MicroApp通过拦截浏览器路由事件以及自定义的location、history，
 
 虚拟路由系统还提供了丰富的功能，帮助用户提升开发效率和使用体验。
 
-## 路由模式
+## 路由模式 :id=router-mode
 虚拟路由系统分为五种模式：`search`、`native`、`native-scope`、`pure`、`state`，每种模式的表现和功能都不一样。
 
 <!-- tabs:start -->
@@ -27,27 +27,10 @@ microApp.start({
 })
 ```
 
-**注意：拟路虚由在Vue主应用中部分场景下会导致子应用频繁卸载和渲染**
-
-**原因：**由于将路由地址设置为key，当路由变化时Vue会重新渲染组件
-
-**解决方式：**将主应用中`<router-view>`或包含`<micro-app>`元素的上层组件中`:key="route.fullPath"`或者`:key="route.path"`改为`:key="route.name"`
-
-**例如：**
-
-```html
-<!-- bad 😭 -->
-<router-view :key="$route.fullPath"></router-view>
-
-<!-- bad 😭 -->
-<router-view :key="$route.path"></router-view>
-
-<!-- good 😊 -->
-<router-view :key="$route.name"></router-view>
-```
+**常见问题：**主应用为Vue时，嵌入子应用后页面循环刷新，解决方式参考[Vue常见问题-2](/zh-cn/framework/vue?id=question-2)
 
 #### ** native模式 **
-native模式是指放开路由隔离，子应用和主应用共同基于浏览器路由进行渲染，它拥有更加直观和友好的路由体验，但更容易导致主应用和子应用的路由冲突，且需要更加复杂的路由配置，详情参考[native-mode](/zh-cn/native-mode)
+native模式是指放开路由隔离，子应用和主应用共同基于浏览器路由进行渲染，它拥有更加直观和友好的路由体验，但配置方式更加复杂，详情参考[native-mode](/zh-cn/native-mode)
 
 **切换方式：**
 
@@ -64,6 +47,7 @@ microApp.start({
   'router-mode': 'native', // 所有子应用都设置为native模式
 })
 ```
+**常见问题：**主应用为Vue时，路由跳转后子应用频繁卸载和渲染，解决方式参考[Vue常见问题-2](/zh-cn/framework/vue?id=question-2)
 
 #### ** native-scope模式 **
 native-scope模式的功能和用法和native模式一样，唯一不同点在于native-scope模式下子应用的域名指向自身而非主应用。
@@ -83,6 +67,8 @@ microApp.start({
   'router-mode': 'native-scope', // 所有子应用都设置为native-scope模式
 })
 ```
+
+**常见问题：**主应用为Vue时，路由跳转后子应用频繁卸载和渲染，解决方式参考[Vue常见问题-2](/zh-cn/framework/vue?id=question-2)
 
 #### ** pure模式 **
 pure模式是指子应用独立于浏览器进行渲染，即不修改浏览器地址，也不增加路由堆栈，pure模式下的子应用更像是一个组件。
@@ -104,7 +90,7 @@ microApp.start({
 ```
 
 #### ** state模式 **
-state模式是指基于浏览器history.state进行渲染的路由模式，在不修改浏览器地址的情况下模拟各种路由行为，相比其它路由模式更加简洁优雅。
+state模式是指基于浏览器history.state进行渲染的路由模式，在不修改浏览器地址的情况下模拟路由行为，相比其它路由模式更加简洁优雅。
 
 state模式的表现和iframe类似，但却没有iframe存在的问题。
 
@@ -127,7 +113,7 @@ microApp.start({
 <!-- tabs:end -->
 
 
-## 配置项
+## 配置项 :id=configuration
 #### 1、关闭虚拟路由系统
 实际上虚拟路由系统是无法关闭的，这里的配置只是为了向下兼容旧版本，它的表现和native路由模式一致。
 
@@ -176,7 +162,7 @@ microApp.start({
 
 
 
-## 导航
+## 导航 :id=navigation
 通过虚拟路由系统，我们可以方便的进行跨应用的跳转，如：
 1. 主应用控制子应用跳转
 2. 子应用控制主应用跳转
@@ -428,7 +414,7 @@ window.microApp.router.forward()
 
 
 
-## 设置默认页面
+## 设置默认页面 :id=default-page
 
 子应用默认渲染首页，但可以通过设置`defaultPage`渲染指定的默认页面。
 
@@ -509,7 +495,7 @@ const defaultPage = router.getDefaultPage('my-app')
 
 
 
-## 导航守卫
+## 导航守卫 :id=router-guards
 导航守卫用于监听子应用的路由变化，类似于vue-router的全局守卫，不同点是MicroApp的导航守卫无法取消跳转。
 
 #### 全局前置守卫
@@ -597,7 +583,7 @@ const cancelCallback = microApp.router.afterEach((to, from, appName) => {
 cancelCallback()
 ```
 
-## 获取路由信息
+## 获取路由信息 :id=information
 **介绍：**获取子应用的路由信息，返回值与子应用的location相同
 ```js
 /**
@@ -627,7 +613,7 @@ const routeInfo = window.microApp.router.current.get('my-app')
 <!-- tabs:end -->
 
 
-## 编解码
+## 编解码 :id=code
 **介绍：**子应用同步到浏览器的路由信息是经过特殊编码的(encodeURIComponent + 特殊字符转译)，如果用户想要编码或解码子应用的路由信息，可以使用编解码的API。
 
 ![alt](https://img12.360buyimg.com/imagetools/jfs/t1/204018/30/36539/9736/6523add2F41753832/31f5ad7e48ea6570.png ':size=700')
@@ -672,7 +658,7 @@ const encodeResult = window.microApp.router.decode('%2Fpage1%2F')
 ```
 <!-- tabs:end -->
 
-## 同步路由信息
+## 同步路由信息 :id=attach-router
 在一些特殊情况下，主应用的跳转会导致浏览器地址上子应用信息丢失，此时可以主动调用方法，将子应用的路由信息同步到浏览器地址上。
 
 **介绍：**主动将子应用的路由信息同步到浏览器地址上

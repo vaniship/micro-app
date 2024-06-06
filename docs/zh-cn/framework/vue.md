@@ -1,6 +1,6 @@
 本篇以`Vue 2、3`作为案例介绍vue的接入方式。
 
-## 作为主应用
+## 作为主应用 :id=main
 
 #### 1、安装依赖
 ```bash
@@ -32,9 +32,9 @@ microApp.start()
 > 2、url：必传参数，必须指向子应用的index.html，如：http://localhost:3000/ 或 http://localhost:3000/index.html
 
 
-## 作为子应用
+## 作为子应用 :id=child
 
-#### 1、设置跨域支持
+#### 1、设置跨域支持 :id=allow-origin
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ vite默认开启跨域支持，不需要额外配置。
 <!-- tabs:end -->
 
 
-#### 2、注册卸载函数
+#### 2、注册卸载函数 :id=unmount
 子应用卸载时会自动执行`window.unmount`，在此可以进行卸载相关操作。
 
 <!-- tabs:start -->
@@ -90,7 +90,7 @@ window.unmount = () => {
 ### 可选设置
 以下配置是针对子应用的，它们是可选的，建议根据实际情况选择设置。
 
-#### 1、开启umd模式，优化内存和性能
+#### 1、开启umd模式，优化内存和性能 :id=umd
 MicroApp支持两种渲染微前端的模式，默认模式和umd模式。
 
 - **默认模式：**子应用在初次渲染和后续渲染时会顺序执行所有js，以保证多次渲染的一致性。
@@ -171,7 +171,7 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 <!-- tabs:end -->
 
 
-#### 2、设置 webpack.jsonpFunction
+#### 2、设置 webpack.jsonpFunction :id=webpackJsonpFunction
 如果微前端正常运行，则可以忽略这一步。
 
 如果子应用资源加载混乱导致渲染失败，可以尝试设置`jsonpFunction`来解决，因为相同的`jsonpFunction`名称会导致资源污染。
@@ -221,7 +221,7 @@ module.exports = {
 <!-- tabs:end -->
 
 
-#### 3、设置 publicPath
+#### 3、设置 publicPath :id=public-path
 如果子应用出现静态资源地址404(js、css、图片)，建议设置`publicPath`来尝试解决这个问题。
 
 `publicPath`是webpack提供的功能，所以vite应用是不支持的，它可以补全静态资源的地址，详情参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
@@ -241,7 +241,7 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 import './public-path'
 ```
 
-#### 4、切换到iframe沙箱
+#### 4、切换到iframe沙箱 :id=iframe
 MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
@@ -249,7 +249,7 @@ MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 
 ## 常见问题
-#### 1、主应用中抛出警告，micro-app未定义
+#### 1、主应用中抛出警告，micro-app未定义 :id=question-1
 
 **报错信息：**
   - vue2: `[Vue warn]: Unknown custom element: <micro-app>`
@@ -311,13 +311,11 @@ export default defineConfig({
 ```
 <!-- tabs:end -->
 
-#### 2、虚拟路由系统为search模式时主应用循环刷新
+#### 2、嵌入子应用或跳转时子应用频繁卸载和渲染 :id=question-2
 
-**原因：**由于将路由地址设置为key，当路由变化时Vue会重新渲染组件
+**原因：**如果将`route.fullPath`或`route.path`设置为key，那么当路由变化时Vue会重新渲染组件，导致`<micro-app>`元素被频繁卸载和渲染。
 
-**解决方式：**将主应用中`<router-view>`或包含`<micro-app>`元素的上层组件中`:key="route.fullPath"`或者`:key="route.path"`改为`:key="route.name"`
-
-**例如：**
+**解决方式：**将主应用中`<router-view>`或包含`<micro-app>`元素的上层组件中`:key="route.fullPath"`或`:key="route.path"`改为`:key="route.name"`
 
 ```html
 <!-- bad 😭 -->
@@ -328,4 +326,23 @@ export default defineConfig({
 
 <!-- good 😊 -->
 <router-view :key="$route.name"></router-view>
+```
+
+**例如：**
+```html
+将：
+<router-view v-slot="{ Component, route }">
+  <transition name="fade">
+    <!------------------------- 👇 -->
+    <component :is="Component" :key="route.path" />
+  </transition>
+</router-view>
+
+修改为：
+<router-view v-slot="{ Component, route }">
+  <transition name="fade">
+    <!------------------------- 👇 -->
+    <component :is="Component" :key="route.name" />
+  </transition>
+</router-view>
 ```
