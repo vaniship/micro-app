@@ -3,7 +3,7 @@ MicroApp通过拦截浏览器路由事件以及自定义的location、history，
 虚拟路由系统还提供了丰富的功能，帮助用户提升开发效率和使用体验。
 
 ## 路由模式 :id=router-mode
-虚拟路由系统分为五种模式：`search`、`native`、`native-scope`、`pure`、`state`，每种模式的表现和功能都不一样。
+虚拟路由系统的模式有：`search`、`native`、`native-scope`、`pure`、`state`，每种模式对应不同的表现和功能，以满足尽可能多的项目需求，通过配置`router-mode`可以切换到不同的路由模式。
 
 <!-- tabs:start -->
 #### ** search模式 **
@@ -13,12 +13,14 @@ search是默认模式，通常不需要特意设置，search模式下子应用�
 
 **切换方式：**
 
-设置单个子应用：
+- 设置单个子应用：
+
 ```html
-<!-- 单个子应用设置为search模式 -->
 <micro-app name='xx' url='xx' router-mode='search'></micro-app>
 ```
-全局设置：
+
+- 全局设置：
+
 ```js
 import microApp from '@micro-zoe/micro-app'
 
@@ -27,19 +29,21 @@ microApp.start({
 })
 ```
 
-**常见问题：**主应用为Vue时，嵌入子应用后页面循环刷新，解决方式参考[Vue常见问题-2](/zh-cn/framework/vue?id=question-2)
+**常见问题：**主应用为Vue时，嵌入子应用后页面循环刷新（页面闪烁），解决方式参考[Vue常见问题-2](/zh-cn/framework/vue?id=question-2)
 
 #### ** native模式 **
 native模式是指放开路由隔离，子应用和主应用共同基于浏览器路由进行渲染，它拥有更加直观和友好的路由体验，但配置方式更加复杂，详情参考[native-mode](/zh-cn/native-mode)
 
 **切换方式：**
 
-设置单个子应用：
+- 设置单个子应用：
+
 ```html
-<!-- 单个子应用设置为native模式 -->
 <micro-app name='xx' url='xx' router-mode='native'></micro-app>
 ```
-全局设置：
+
+- 全局设置：
+
 ```js
 import microApp from '@micro-zoe/micro-app'
 
@@ -54,12 +58,14 @@ native-scope模式的功能和用法和native模式一样，唯一不同点在�
 
 **切换方式：**
 
-设置单个子应用：
+- 设置单个子应用：
+
 ```html
-<!-- 单个子应用设置为native-scope模式 -->
 <micro-app name='xx' url='xx' router-mode='native-scope'></micro-app>
 ```
-全局设置：
+
+- 全局设置：
+
 ```js
 import microApp from '@micro-zoe/micro-app'
 
@@ -75,12 +81,14 @@ pure模式是指子应用独立于浏览器进行渲染，即不修改浏览器�
 
 **切换方式：**
 
-设置单个子应用：
+- 设置单个子应用：
+
 ```html
-<!-- 单个子应用设置为pure模式 -->
 <micro-app name='xx' url='xx' router-mode='pure'></micro-app>
 ```
-全局设置：
+
+- 全局设置：
+
 ```js
 import microApp from '@micro-zoe/micro-app'
 
@@ -96,12 +104,14 @@ state模式的表现和iframe类似，但却没有iframe存在的问题。
 
 **切换方式：**
 
-设置单个子应用：
+- 设置单个子应用：
+
 ```html
-<!-- 单个子应用设置为state模式 -->
 <micro-app name='xx' url='xx' router-mode='state'></micro-app>
 ```
-全局设置：
+
+- 全局设置：
+
 ```js
 import microApp from '@micro-zoe/micro-app'
 

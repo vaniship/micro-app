@@ -224,7 +224,7 @@ module.exports = {
 #### 3、设置 publicPath :id=public-path
 如果子应用出现静态资源地址404(js、css、图片)，建议设置`publicPath`来尝试解决这个问题。
 
-`publicPath`是webpack提供的功能，所以vite应用是不支持的，它可以补全静态资源的地址，详情参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
+`publicPath`是webpack提供的功能，vite应用是不支持的，它可以补全静态资源的地址，详情参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
 
 **步骤1:** 在子应用src目录下创建名称为`public-path.js`的文件，并添加如下内容
 ```js
@@ -246,6 +246,9 @@ MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
 
+```html
+<micro-app name='xxx' url='xxx' iframe></micro-app>
+```
 
 
 ## 常见问题
@@ -311,7 +314,7 @@ export default defineConfig({
 ```
 <!-- tabs:end -->
 
-#### 2、嵌入子应用或跳转时子应用频繁卸载和渲染 :id=question-2
+#### 2、Vue主应用加载子应用或跳转时子应用频繁卸载和渲染 :id=question-2
 
 **原因：**如果将`route.fullPath`或`route.path`设置为key，那么当路由变化时Vue会重新渲染组件，导致`<micro-app>`元素被频繁卸载和渲染。
 

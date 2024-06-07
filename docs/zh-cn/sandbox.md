@@ -1,14 +1,14 @@
 ### 沙箱介绍
 沙箱通过自定义的window、document拦截子应用的JS操作，实现一个相对独立的运行空间，避免全局变量污染，让每个子应用都拥有一个相对纯净的运行环境。
 
-`micro-app`有两种沙箱模式：with沙箱和iframe沙箱，它们覆盖不同的使用场景且可以随意切换，默认情况下使用with沙箱，如果无法正常运行可以切换到iframe沙箱，比如[vite](/zh-cn/framework/vite)。
+`micro-app`有两种沙箱模式：with沙箱和iframe沙箱，它们覆盖不同的使用场景且可以随意切换，默认情况下使用with沙箱，如果无法正常运行可以切换到iframe沙箱。
 
 ### 注意事项
 
-#### 1、子应用如何获取到真实window、document
+#### 1、子应用如何获取到真实window、document :id=rawWindow
 子应用通过：`window.rawWindow`、`window.rawDocument` 可以获取真实的window、document
 
-#### 2、子应用抛出错误信息：xxx 未定义
+#### 2、子应用抛出错误信息：xxx 未定义 :id=undefined
 **包括：**
 - `xxx is not defined`
 - `xxx is not a function`
@@ -67,8 +67,8 @@ microApp.start({
 })
 ```
 
-#### 3、子应用使用`Module Federation`模块联邦时报错
-原因同上述[注意事项2](/zh-cn/sandbox)相同，都是由于在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+#### 3、子应用使用`Module Federation`模块联邦时报错 :id=module-federation
+**原因：**与上述[注意事项2](/zh-cn/sandbox?id=undefined)相同，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
 
 **解决方式：**将`ModuleFederationPlugin`插件中`library.type`设置为`window`。
 
@@ -83,9 +83,9 @@ new ModuleFederationPlugin({
 })
 ```
 
-#### 4、子应用`DllPlugin`拆分的文件加载失败
+#### 4、子应用`DllPlugin`拆分的文件加载失败 :id=DllPlugin
 
-**原因：**参考上述[注意事项2](/zh-cn/sandbox)，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+**原因：**与上述[注意事项2](/zh-cn/sandbox?id=undefined)相同，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
 
 **解决方式：**修改子应用webpack dll配置
 
@@ -102,8 +102,38 @@ module.exports = {
 }
 ```
 
+#### 5、iframe沙箱加载了主应用的资源 :id=iframe-source
 
-#### 5、基座如何对子应用 document 的一些属性进行自定义代理扩展
+**原因：**由于iframe的src必须指向主应用域名，导致沙箱在初始化时有几率加载主应用的静态资源。
+
+**解决方式：**
+
+**方案一：**在主应用创建一个空的empty.html文件，将iframe的src指向它
+
+- 步骤1：在静态资源文件夹中创建一个空的empty.html文件
+```
+静态资源文件夹：即vue、react项目的public文件夹，angular项目的assets文件夹，不同项目可能会不同，根据实际情况调整。
+```
+
+- 步骤2：设置iframeSrc，指向empty.html文件
+```js
+microApp.start({
+    iframeSrc: 'http://主应用域名/基础路径(如果有)/empty.html',
+})
+```
+如果是多层嵌套，中间层的iframeSrc也要指向最外层主应用的empty.html
+
+
+**方案二：**使用window.stop()阻止脚本执行
+
+- 在主应用head最前面插入下面js：
+```html
+<script>if(window.parent !== window) {window.stop()}</script>
+```
+window.stop虽然可以阻止脚本执行，但对于已经发送的js请求无法撤回，所以network中会看到canceled请求，但不影响正常功能，如果无法接受推荐使用方案一。
+
+
+#### 6、基座如何对子应用 document 的一些属性进行自定义代理扩展 :id=custom-document
 
 **场景：**
 

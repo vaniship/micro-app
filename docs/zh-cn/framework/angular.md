@@ -183,7 +183,7 @@ module.exports = {
 #### 3、设置 publicPath
 如果子应用出现静态资源地址404(js、css、图片)，建议设置`publicPath`来尝试解决这个问题。
 
-`publicPath`是webpack提供的功能，所以vite应用是不支持的，它可以补全静态资源的地址，详情参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
+`publicPath`是webpack提供的功能，vite应用是不支持的，它可以补全静态资源的地址，详情参考webpack文档 [publicPath](https://webpack.docschina.org/guides/public-path/#on-the-fly)
 
 **步骤1:** 在子应用src目录下创建名称为`public-path.ts`的文件，并添加如下内容
 ```js
@@ -204,6 +204,10 @@ import './public-path'
 MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
+
+```html
+<micro-app name='xxx' url='xxx' iframe></micro-app>
+```
 
 
 ## 常见问题

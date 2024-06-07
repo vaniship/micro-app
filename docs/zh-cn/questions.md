@@ -40,65 +40,10 @@ micro-app依赖于CustomElements和Proxy两个较新的API。
 子应用通过：`window.rawWindow`、`window.rawDocument` 可以获取真实的window、document
 
 ## 7、子应用抛出错误信息：xxx 未定义 :id=7
-**包括：**
-- `xxx is not defined`
-- `xxx is not a function`
-- `Cannot read properties of undefined`
-
-**常见场景：**
-  - 1、webpack DllPlugin 拆分的独立文件
-  - 2、通过script引入的第三方js文件
-
-**原因：**
-
-在沙箱环境中，顶层变量不会泄漏为全局变量。
-
-例如：在正常情况下，通过 var name 或 function name () {} 定义的顶层变量会泄漏为全局变量，通过window.name或name就可以全局访问，但是在沙箱环境下这些顶层变量无法泄漏为全局变量，window.name或name的值为undefined，导致出现问题。
-
-**解决方式**：
-
-##### 方式一：修改webpack配置
-
-子应用webpack的[output.library.type](https://webpack.docschina.org/configuration/output/#outputlibrarytype)设置为`window`，这种方式适合DllPlugin拆分的独立文件。
-```js
-// webpack.dll.config.js
-module.exports = {
-  // ...
-  output: {
-    library: {
-      type: 'window',
-    },
-  },
-}
-```
-##### 方式二：手动修改
-
-将 var name 或 function name () {} 修改为 window.name = xx
-
-##### 方式三：通过插件系统修改子应用代码
-
-通过插件系统，将 var name 或 function name () {} 修改为 window.name = xx，不同项目的代码形式并不统一，根据实际情况调整。
-
-```js
-microApp.start({
-  plugins: {
-    modules: {
-      应用名称: [{
-        loader(code, url) {
-          if (url === 'xxx.js') {
-            // 根据实际情况调整
-            code = code.replace('var xxx=', 'window.xxx=')
-          }
-          return code
-        }
-      }]
-    }
-  }
-})
-```
+参考[JS沙箱常见问题-2](/zh-cn/sandbox?id=undefined)
 
 ## 8、jsonp请求如何处理？ :id=8
-  参考[ignore](/zh-cn/configure?id=ignore忽略元素)
+参考[ignore](/zh-cn/configure?id=ignore忽略元素)
 
 
 ## 9、子应用通过a标签下载文件失败 :id=9
@@ -171,80 +116,19 @@ microApp.start({
 + <i className="iconfont1 right"></i>
 ```
 
-## 11、Vue主应用接入微前端时循环刷新（页面闪烁） :id=11
-
-**解决方式：**将主应用中`<router-view>`或包含`<micro-app>`元素的上层组件中`:key="route.fullPath"`或者`:key="route.path"`改为`:key="route.name"`
-
-**例如：**
-
-```html
-<!-- bad 😭 -->
-<router-view v-slot="{ Component, route }">
-  <transition name="fade">
-    <component :is="Component" :key="route.fullPath" />
-  </transition>
-</router-view>
-
-<!-- good 😊 -->
-<router-view v-slot="{ Component, route }">
-  <transition name="fade">
-    <component :is="Component" :key="route.path" />
-  </transition>
-</router-view>
-```
-
-```html
-<!-- bad 😭 -->
-<router-view :key="$route.fullPath"></router-view>
-
-<!-- good 😊 -->
-<router-view :key="$route.path"></router-view>
-```
-
-## 12、iframe沙箱加载了主应用的资源 :id=12
-
-**解决方式：**如果主应用不会作为iframe嵌入，可以在主应用head最前面插入下面js
-```html
-<script>if(window.parent !== window) {window.stop()}</script>
-```
-
-## 13、子应用script元素被注释、消失 :id=13
+## 11、子应用script元素被注释、消失 :id=11
 默认情况下，子应用的js会被提取并在后台运行，script元素原位置会留下注释：`<!--script with src='xxx' extract by micro-app-->`
 
 如果想要保留script元素，可以开启inline模式，配置方式参考：[inline](/zh-cn/configure?id=inline)
 
+## 12、Vue主应用接入微前端时循环刷新（页面闪烁） :id=12
+参考[Vue常见问题-2](/zh-cn/framework/vue?id=question-2)
 
-## 14、子应用使用`Module Federation`模块联邦时报错 :id=14
-**原因：**同上述`常见问题7`相同，都是由于在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+## 13、子应用使用`Module Federation`模块联邦时报错 :id=13
+参考[JS沙箱常见问题-3](/zh-cn/sandbox?id=module-federation)
 
-**解决方式：**将`ModuleFederationPlugin`插件中`library.type`设置为`window`。
+## 14、子应用`DllPlugin`拆分的文件加载失败 :id=14
+参考[JS沙箱常见问题-4](/zh-cn/sandbox?id=dllplugin)
 
-```js
-new ModuleFederationPlugin({
-  // ...
-  name: "app1",
-  library: { 
-    type: "window",
-    name: "app1",
-  },
-})
-```
-
-## 15、子应用`DllPlugin`拆分的文件加载失败 :id=15
-
-**原因：**参考`常见问题7`，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
-
-**解决方式：**修改子应用webpack dll配置
-
-子应用webpack dll配置文件中[output.library.type](https://webpack.docschina.org/configuration/output/#outputlibrarytype)设置为`window`。
-```js
-// webpack.dll.config.js
-module.exports = {
-  // ...
-  output: {
-    library: {
-      type: 'window',
-    },
-  },
-}
-```
+## 15、iframe沙箱加载了主应用的资源 :id=15
+参考[JS沙箱常见问题-5](/zh-cn/sandbox?id=iframe-source)

@@ -26,7 +26,9 @@
 
 #### ** react16 **
 
-**1、设置路由：**react-router版本为4.x或5.x
+**1、设置路由：**history路由和hash路由的配置方式一样，这里不做区分
+
+限制：react-router版本为4.x或5.x
 ```js
 // router.js
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
@@ -52,10 +54,7 @@ export function App () {
 export function MyPage () {
   return (
     <div>
-      {/* 
-        1、设置子应用基础路径baseroute为'/child' 
-        2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
-      */}
+      {/* 如果主应用也有基础路径，那么 baseroute = 主应用基础路径 + '/child' */}
       <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
     </div>
   )
@@ -64,7 +63,9 @@ export function MyPage () {
 
 #### ** react18 **
 
-**1、设置路由：**react-router版本为6.x
+**1、设置路由：**history路由和hash路由的配置方式一样，这里不做区分
+
+限制：react-router版本为6.x
 ```js
 // router.js
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
@@ -91,10 +92,7 @@ export function App () {
 export function MyPage () {
   return (
     <div>
-      {/* 
-        1、设置子应用基础路径baseroute为'/child' 
-        2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
-      */}
+      {/* 如果主应用也有基础路径，那么 baseroute = 主应用基础路径 + '/child' */}
       <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
     </div>
   )
@@ -103,7 +101,7 @@ export function MyPage () {
 
 #### ** vue2 **
 
-**1、设置路由：**
+**1、设置路由：**history路由和hash路由的配置方式一样，这里不做区分
 ```js
 // router.js
 import Vue from 'vue'
@@ -129,17 +127,14 @@ export default routes
 ```html
 // my-page.vue
 <template>
-  <!-- 
-    1、设置子应用基础路径baseroute为'/child'
-    2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
-   -->
+  <!-- 如果主应用也有基础路径，那么 baseroute = 主应用基础路径 + '/child' -->
   <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
 </template>
 ```
 
 #### ** vue3 **
 
-**1、设置路由：**
+**1、设置路由：**history路由和hash路由的配置方式一样，这里不做区分
 ```js
 // router.js
 import MyPage from './my-page.vue'
@@ -161,10 +156,7 @@ export default routes
 ```html
 // my-page.vue
 <template>
-  <!-- 
-    1、设置子应用基础路径baseroute为'/child'
-    2、如果主应用也有基础路径，则baseroute应设置为：主应用基础路径 + '/child' 
-   -->
+  <!-- 如果主应用也有基础路径，那么 baseroute = 主应用基础路径 + '/child' -->
   <micro-app name='my-app' url='http://localhost:3000/' baseroute='/child'></micro-app>
 </template>
 ```
@@ -176,7 +168,7 @@ export default routes
 <!-- tabs:start -->
 #### ** react16 **
 
-**设置基础路径：**
+**设置基础路径：**history路由和hash路由的配置方式一样，这里不做区分
 ```js
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
 
@@ -192,7 +184,7 @@ export default function App () {
 
 #### ** react18 **
 
-**设置基础路径：**
+**设置基础路径：**history路由和hash路由的配置方式一样，这里不做区分
 ```js
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 

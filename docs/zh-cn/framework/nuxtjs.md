@@ -177,6 +177,9 @@ MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
 
+```html
+<micro-app name='xxx' url='xxx' iframe></micro-app>
+```
 
 
 ## 常见问题

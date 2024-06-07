@@ -128,7 +128,7 @@ keep-alive的优先级小于[destroy](/zh-cn/configure?id=destroy)，当两者�
 - Default: `search`
 - 使用方式: `<micro-app name='xx' url='xx' router-mode='search/native/native-scope/pure'></micro-app>`
 
-路由分为四种模式：`search`、`native`、`native-scope`、`pure`，每种模式对应不同的功能，以满足尽可能多的项目需求，详情参考[虚拟路由系统](/zh-cn/router)。
+路由模式分为：`search`、`native`、`native-scope`、`pure`、`state`，每种模式对应不同的功能，以满足尽可能多的项目需求，详情参考[虚拟路由系统](/zh-cn/router)。
 
 
 ## baseroute
@@ -212,7 +212,7 @@ shadowDOM具有更强的样式隔离能力，开启后，`<micro-app>`标签会�
 但shadowDOM在React框架及一些UI库中的兼容不是很好，经常会出现一些不可预料的问题，除非你很清楚它会带来的问题并有信心解决，否则不建议使用。 -->
 
 
-## 全局配置
+## 全局配置 :id=global
 全局配置会影响每一个子应用，请小心使用！
 
 **使用方式**
@@ -254,18 +254,7 @@ microApp.start({
 ```
 
 ## 其它配置
-### global
-当多个子应用使用相同的js或css资源，在link、script设置`global`属性会将文件提取为公共文件，共享给其它应用。
-
-设置`global`属性后文件第一次加载会放入公共缓存，其它子应用加载相同的资源时直接从缓存中读取内容，从而提升渲染速度。
-
-**使用方式**
-```html
-<link rel="stylesheet" href="xx.css" global>
-<script src="xx.js" global></script>
-```
-
-### globalAssets
+### globalAssets :id=globalAssets
 globalAssets用于设置全局共享资源，它和预加载的思路相同，在浏览器空闲时加载资源并放入缓存，提高渲染效率。
 
 当子应用加载相同地址的js或css资源时，会直接从缓存中提取数据，从而提升渲染速度。
@@ -283,7 +272,7 @@ microApp.start({
 })
 ```
 
-### exclude(过滤元素)
+### exclude(过滤元素) :id=exclude
 当子应用不需要加载某个js或css，可以通过在link、script、style设置exclude属性，当micro-app遇到带有exclude属性的元素会进行删除。
 
 **使用方式**
@@ -293,7 +282,7 @@ microApp.start({
 <style exclude></style>
 ```
 
-### ignore(忽略元素)
+### ignore(忽略元素) :id=ignore
 当link、script、style元素具有ignore属性，micro-app不会处理它，元素将原封不动进行渲染。
 
 使用场景例如：jsonp
