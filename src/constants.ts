@@ -51,7 +51,6 @@ export enum MicroAppConfig {
   DISABLE_MEMORY_ROUTER = 'disable-memory-router',
   DISABLE_PATCH_REQUEST = 'disable-patch-request',
   KEEP_ROUTER_STATE = 'keep-router-state',
-  HIDDEN_ROUTER = 'hidden-router',
   KEEP_ALIVE = 'keep-alive',
   CLEAR_DATA ='clear-data',
   SSR = 'ssr',

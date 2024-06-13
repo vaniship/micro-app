@@ -22,6 +22,7 @@ import {
 import {
   removeDomScope,
   isFunction,
+  macro,
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 
@@ -61,9 +62,9 @@ export function addHistoryListener (appName: string): CallableFunction {
       //   `${rawLocation.pathname}/`.startsWith(('/' + microAppWindow.__MICRO_APP_BASE_ROUTE__).replace(/^\/+/, '/'))
       // ) {
       // updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
-      setTimeout(() => {
+      macro(() => {
         updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
-      }, 100)
+      }, 600)
       // }
     }
   }

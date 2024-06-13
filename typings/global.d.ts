@@ -339,10 +339,10 @@ declare module '@micro-app/types' {
     'disable-memory-router'?: boolean
     'disable-patch-request'?: boolean
     'keep-router-state'?: boolean
-    'hidden-router'?: boolean
     'keep-alive'?: boolean
     'clear-data'?: boolean
     'router-mode'?: string
+    'router-event-delay'?: number | Function,
     iframe?: boolean
     ssr?: boolean
     fiber?: boolean
