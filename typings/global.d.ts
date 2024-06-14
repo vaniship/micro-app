@@ -342,7 +342,7 @@ declare module '@micro-app/types' {
     'keep-alive'?: boolean
     'clear-data'?: boolean
     'router-mode'?: string
-    'router-event-delay'?: number | Function,
+    'router-event-delay'?: number | ((appName: string) => number),
     iframe?: boolean
     ssr?: boolean
     fiber?: boolean

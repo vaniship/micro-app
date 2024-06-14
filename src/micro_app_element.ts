@@ -587,6 +587,23 @@ export function defineElement (tagName: string): void {
     }
 
     /**
+     * get delay time of router event
+     * @returns delay time
+     */
+    public getRouterEventDelay (): number {
+      let delay = parseInt(this.getAttribute('router-event-delay') as string)
+      if (isNaN(delay)) {
+        delay = parseInt((isFunction(microApp.options['router-event-delay']) ? microApp.options['router-event-delay'](this.appName) : microApp.options['router-event-delay']) as unknown as string)
+      }
+      /**
+       * 描述一下：
+       * 主：react18 子vue3、react16
+       * 步骤：跳转vue3，跳转react16，刷新页面，点击返回，主应用接受到事件异步卸载，导致子应用重置了url，delay为100无事，为0则不行，卸载间隔大概50ms，怀疑是按需加载的问题
+       */
+      return !isNaN(delay) ? delay : 100
+    }
+
+    /**
      * Data from the base application
      */
     set data (value: Record<PropertyKey, unknown> | null) {

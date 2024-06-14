@@ -27,8 +27,9 @@ declare global {
   }
 
   interface HTMLElement {
-    reload(destroy?: boolean): Promise<boolean>
-    mount(app: AppInterface): void
+    reload (destroy?: boolean): Promise<boolean>
+    getRouterEventDelay (): number
+    mount (app: AppInterface): void
     unmount (destroy?: boolean, unmountcb?: CallableFunction): void
   }
 

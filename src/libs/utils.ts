@@ -240,8 +240,8 @@ export function defer (fn: Func, ...args: unknown[]): void {
  * @param fn callback
  * @param args params
  */
-export function macro (fn: Func, timeout = 0, ...args: unknown[]): void {
-  setTimeout(fn.bind(null, ...args), timeout)
+export function macro (fn: Func, delay = 0, ...args: unknown[]): void {
+  setTimeout(fn.bind(null, ...args), delay)
 }
 
 /**
