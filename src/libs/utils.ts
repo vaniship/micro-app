@@ -7,6 +7,7 @@ import type {
   AttrsType,
   fiberTasks,
   MicroAppElementTagNameMap,
+  MicroAppElementInterface,
 } from '@micro-app/types'
 
 export const version = '__MICRO_APP_VERSION__'
@@ -488,12 +489,13 @@ export function isUniqueElement (key: string): boolean {
   )
 }
 
+export type RootContainer = HTMLElement & MicroAppElementInterface
 /**
  * get micro-app element
  * @param target app container
  */
-export function getRootContainer (target: HTMLElement | ShadowRoot): HTMLElement {
-  return (isShadowRoot(target) ? (target as ShadowRoot).host : target) as HTMLElement
+export function getRootContainer (target: HTMLElement | ShadowRoot): RootContainer {
+  return (isShadowRoot(target) ? (target as ShadowRoot).host : target) as RootContainer
 }
 
 /**

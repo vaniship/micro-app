@@ -104,6 +104,8 @@ module.exports = {
 
 #### 5、iframe沙箱加载了主应用的资源 :id=iframe-source
 
+![iframe-source](https://img12.360buyimg.com/imagetools/jfs/t1/233529/17/19491/20911/667027a9F8cfada1e/7cf9213644e14b24.png ':size=700')
+
 **原因：**由于iframe的src必须指向主应用域名，导致沙箱在初始化时有几率加载主应用的静态资源。
 
 **解决方式：**

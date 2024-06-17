@@ -1,7 +1,7 @@
 /* eslint-disable no-new */
 import type {
   AttrType,
-  MicroAppElementType,
+  MicroAppElementInterface,
   AppInterface,
   OptionsType,
   NormalKey,
@@ -43,7 +43,7 @@ import {
  * @param tagName element name
 */
 export function defineElement (tagName: string): void {
-  class MicroAppElement extends getBaseHTMLElement() implements MicroAppElementType {
+  class MicroAppElement extends getBaseHTMLElement() implements MicroAppElementInterface {
     static get observedAttributes (): string[] {
       return ['name', 'url']
     }
@@ -597,10 +597,25 @@ export function defineElement (tagName: string): void {
       }
       /**
        * 描述一下：
-       * 主：react18 子vue3、react16
+       * 主：所有框架 子：vue3、react16
        * 步骤：跳转vue3，跳转react16，刷新页面，点击返回，主应用接受到事件异步卸载，导致子应用重置了url，delay为100无事，为0则不行，卸载间隔大概50ms，怀疑是按需加载的问题
+       * 总结：确实是按需加载的问题，而且是以下一个页面按需加载时间来确定的。从主应用pageA跳转pageB，刷新浏览器，点击浏览器返回，如果pageA是按需加载，则react接受到popstate事件后异步处理，等待下一个页面加载完成才真正卸载pageB，这个时间就更不好确定了，要延迟多久？
+       * 异步卸载：
+       *  1、按需加载时组件卸载的准确时机：从pageA跳转page2
+       *    react16：顺序执行，先卸载上一个页面，然后才开始加载下一个页面静态资源并渲染
+       *    react18：先加载下一个页面的静态资源，加载完成后执行代码，创建元素但不插入文档，此时再卸载上一个页面，卸载完成后将已经创建的元素插入文档。
+       *    vue2：先加载下一个页面的静态资源，加载完成之后执行代码创建元素并且插入文档中，之后同步卸载上一个页面。
+       *    vue3：先加载下一个页面的静态资源，加载完成之后即卸载上一个页面，卸载完成后渲染下一个页面。
+       *          和react18、vue2不同的是没有做的那么极端，资源加载完成就卸载上一个页面了，没有进一步先初始化下一个页面的元素。
+       *          所以即便没有transition，vue3的页面卸载也可能是异步的
+       *  2、react16、vue3有会因为path和base不匹配强行修改url地址，导致点击浏览器返回时浏览器地址不对。异步卸载本身没问题，但结合这个有问题了。所以还是state模式最好，就算是异步也不会有问题，search模式会有先添加search字符串然后删除的问题，其它问题不大，只有native问题最大，主要解决的也就是native模式的问题。
+       *
+       * 总结：
+       *  1、但整体逻辑是一样的，跳转下一个按需加载页面，会先加载资源，资源加载完成再卸载上一个页面，也就是异步卸载
+       *  2、非按需加载，所有操作都是同步，没有异步问题
+       *  3、每个框架的表现都不一样，其它框架angular和next、nuxt表现都可能不一样，但总体来说是一定的：卸载可能是异步的，并且异步的时间是不确定的，这一点最重要。那么delay的默认值应该是多少呢？？？？？？
        */
-      return !isNaN(delay) ? delay : 100
+      return !isNaN(delay) ? delay : 0
     }
 
     /**

@@ -1,5 +1,4 @@
 import type {
-  AppInterface,
   RequestIdleCallbackInfo,
   RequestIdleCallbackOptions,
 } from '@micro-app/types'
@@ -24,13 +23,6 @@ declare global {
 
   interface HTMLStyleElement {
     __MICRO_APP_HAS_SCOPED__?: boolean
-  }
-
-  interface HTMLElement {
-    reload (destroy?: boolean): Promise<boolean>
-    getRouterEventDelay (): number
-    mount (app: AppInterface): void
-    unmount (destroy?: boolean, unmountcb?: CallableFunction): void
   }
 
   interface Window {

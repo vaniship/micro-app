@@ -24,9 +24,9 @@
   - 🐞 修复 主应用和子应用都是vue-router@4.x时，跳转子应用后点击返回按钮浏览器地址错误的问题，[issue 1234](https://github.com/micro-zoe/micro-app/issues/1234)。
   - 🐞 修复 子应用beforeunload事件无法正常挂载的问题，[issue 1233](https://github.com/micro-zoe/micro-app/issues/1233)。
   - 🐞 修复 当官网文档页面内容含有tab时，跳转或刷新后标题锚点定为不准确的问题。
+  - 🐞 修复 火狐浏览器下子应用`favicon.ico`将主应用图标替换的问题。
 
 - **Update**
-
   - 🚀 优化 沙箱架构设计。
   - 🚀 优化 子应用卸载行为逻辑。
   - 🚀 优化 路由相关文档。

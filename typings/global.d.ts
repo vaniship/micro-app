@@ -169,7 +169,7 @@ declare module '@micro-app/types' {
   }
 
   // app instance
-  interface AppInterface extends Pick<ParentNode, 'querySelector' | 'querySelectorAll'> {
+  interface AppInterface extends Pick<Element, 'querySelector' | 'querySelectorAll'> {
     source: sourceType // source list
     // TODO: 去掉any
     sandBox: WithSandBoxInterface | null | any // sandbox
@@ -373,18 +373,25 @@ declare module '@micro-app/types' {
     start(options?: OptionsType): void
   }
 
-  interface MicroAppElementType {
+  interface MicroAppElementInterface {
     appName: AttrType // app name
     appUrl: AttrType // app url
-
     // Hooks for element append to documents
     connectedCallback (): void
-
     // Hooks for element delete from documents
     disconnectedCallback (): void
-
     // Hooks for element attributes change
     attributeChangedCallback (a: 'name' | 'url', o: string, n: string): void
+    // public mount action for micro_app_element & create_app
+    mount (app: AppInterface): void
+    // unmount app
+    unmount (destroy?: boolean, unmountcb?: CallableFunction): void
+    // Re render app from the command line
+    reload (destroy?: boolean): Promise<boolean>
+    // get delay time of router event
+    getRouterEventDelay (): number
+    // rewrite micro-app.setAttribute, process attr data
+    setAttribute (key: string, value: any): void
   }
 
   // special CallableFunction for interact
