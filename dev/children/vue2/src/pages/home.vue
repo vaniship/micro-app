@@ -32,6 +32,12 @@
       </transition-group>
     </draggable>
     <button @click="testWindowOpen">测试window.open</button>
+    <!-- <micro-app-vue
+      name='test-react16'
+      url='http://localhost:3001/micro-app/react16/'
+      :data="data"
+      iframe
+    ></micro-app-vue> -->
   </div>
 </template>
 
@@ -55,7 +61,8 @@ export default {
         {people:'cn',id:2,name:'www.baidu.com'},
         {people:'cn',id:3,name:'www.taobao.com'},
         {people:'us',id:4,name:'www.google.com'}
-      ]
+      ],
+      data: {a: 1111}
     }
   },
   created () {

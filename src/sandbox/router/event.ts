@@ -53,6 +53,7 @@ export function addHistoryListener (appName: string): CallableFunction {
        * main app maybe navigate async when receive popstateEvent, but child may respond to popstateEvent immediately(vue2, react), so when go back throw browser child will not unmount sync, and will respond to popstateEvent before base app, this will cause some problems
       */
       // updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+      // 这里加一个判断，如果是native或者search模式才启用延迟，state、pure不需要这样做
       const container = appInstanceMap.get(appName)?.container
       macro(
         () => updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName)),
@@ -80,27 +81,29 @@ export function updateMicroLocationWithEvent (
   appName: string,
   targetFullPath: string | null,
 ): void {
-  const app = appInstanceMap.get(appName)!
-  const proxyWindow = app.sandBox!.proxyWindow
-  const microAppWindow = app.sandBox!.microAppWindow
-  let isHashChange = false
-  // for hashChangeEvent
-  const oldHref = proxyWindow.location.href
-  // Do not attach micro state to url when targetFullPath is empty
-  if (targetFullPath) {
-    const oldHash = proxyWindow.location.hash
-    updateMicroLocation(appName, targetFullPath, microAppWindow.location as MicroLocation)
-    isHashChange = proxyWindow.location.hash !== oldHash
+  const app = appInstanceMap.get(appName)
+  if (app?.sandBox) {
+    const proxyWindow = app.sandBox.proxyWindow
+    const microAppWindow = app.sandBox.microAppWindow
+    let isHashChange = false
+    // for hashChangeEvent
+    const oldHref = proxyWindow.location.href
+    // Do not attach micro state to url when targetFullPath is empty
+    if (targetFullPath) {
+      const oldHash = proxyWindow.location.hash
+      updateMicroLocation(appName, targetFullPath, microAppWindow.location as MicroLocation)
+      isHashChange = proxyWindow.location.hash !== oldHash
+    }
+
+    // dispatch formatted popStateEvent to child
+    dispatchPopStateEventToMicroApp(appName, proxyWindow, microAppWindow)
+
+    // dispatch formatted hashChangeEvent to child when hash change
+    if (isHashChange) dispatchHashChangeEventToMicroApp(appName, proxyWindow, microAppWindow, oldHref)
+
+    // clear element scope before trigger event of next app
+    removeDomScope()
   }
-
-  // dispatch formatted popStateEvent to child
-  dispatchPopStateEventToMicroApp(appName, proxyWindow, microAppWindow)
-
-  // dispatch formatted hashChangeEvent to child when hash change
-  if (isHashChange) dispatchHashChangeEventToMicroApp(appName, proxyWindow, microAppWindow, oldHref)
-
-  // clear element scope before trigger event of next app
-  removeDomScope()
 }
 
 /**

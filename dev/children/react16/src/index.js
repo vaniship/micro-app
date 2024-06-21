@@ -8,19 +8,21 @@ import './ant-custom.css'; // 自定义antd class前缀
 import './index.css';
 import Router from './router';
 import { Modal, notification, ConfigProvider } from 'antd';
-import subMicroApp from '@micro-zoe/micro-app';
+import microApp from '@micro-zoe/micro-app';
 // import './flexible';
 // import '@alifd/next/dist/next.css';
 // import { atan2 } from 'mathjs' // 卡死
 
 // 循环内嵌
-subMicroApp.start({
-  tagName: 'micro-app-sub'
+microApp.start({
+  tagName: 'micro-app-react16'
 })
 
 ConfigProvider.config({
   prefixCls: 'react16',
 })
+
+console.log('react16 通过 window.microApp.getData 获取的初始化数据：', window.microApp.getData())
 
 // 数据监听
 window.microApp?.addDataListener((data) => {

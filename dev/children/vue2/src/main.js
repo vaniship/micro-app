@@ -7,9 +7,18 @@ import 'element-ui/lib/theme-chalk/index.css'
 import './my-font/iconfont.css'
 import './my-font/iconfont.js' // 引入不同类型iconfont
 import App from './App.vue'
+import microApp from '@micro-zoe/micro-app';
 
 Vue.config.productionTip = false
 Vue.use(ElementUI)
+Vue.config.ignoredElements = [
+  'micro-app-vue',
+]
+
+// 循环嵌套
+microApp.start({
+  tagName: 'micro-app-vue'
+})
 
 window.microApp?.addDataListener((data) => {
   console.log('顶层监听函数 addDataListener', data)

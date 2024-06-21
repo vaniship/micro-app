@@ -22,7 +22,6 @@ import {
   createURL,
   isPlainObject,
   getEffectivePath,
-  getBaseHTMLElement,
 } from './libs/utils'
 import {
   ObservedAttrName,
@@ -43,7 +42,7 @@ import {
  * @param tagName element name
 */
 export function defineElement (tagName: string): void {
-  class MicroAppElement extends getBaseHTMLElement() implements MicroAppElementInterface {
+  class MicroAppElement extends HTMLElement implements MicroAppElementInterface {
     static get observedAttributes (): string[] {
       return ['name', 'url']
     }
@@ -596,7 +595,7 @@ export function defineElement (tagName: string): void {
         delay = parseInt((isFunction(microApp.options['router-event-delay']) ? microApp.options['router-event-delay'](this.appName) : microApp.options['router-event-delay']) as unknown as string)
       }
       /**
-       * 描述一下：
+       * 描述：
        * 主：所有框架 子：vue3、react16
        * 步骤：跳转vue3，跳转react16，刷新页面，点击返回，主应用接受到事件异步卸载，导致子应用重置了url，delay为100无事，为0则不行，卸载间隔大概50ms，怀疑是按需加载的问题
        * 总结：确实是按需加载的问题，而且是以下一个页面按需加载时间来确定的。从主应用pageA跳转pageB，刷新浏览器，点击浏览器返回，如果pageA是按需加载，则react接受到popstate事件后异步处理，等待下一个页面加载完成才真正卸载pageB，这个时间就更不好确定了，要延迟多久？
@@ -612,8 +611,20 @@ export function defineElement (tagName: string): void {
        *
        * 总结：
        *  1、但整体逻辑是一样的，跳转下一个按需加载页面，会先加载资源，资源加载完成再卸载上一个页面，也就是异步卸载
+       *    但最难的是下一个页面什么时候加载完成是不知道的，文件大小、网速都可能会影响，100ms完全不够用，网络延迟都可能不止100ms，线上项目尤其是一些陈年旧项目，文件大小都是非常夸张的
        *  2、非按需加载，所有操作都是同步，没有异步问题
        *  3、每个框架的表现都不一样，其它框架angular和next、nuxt表现都可能不一样，但总体来说是一定的：卸载可能是异步的，并且异步的时间是不确定的，这一点最重要。那么delay的默认值应该是多少呢？？？？？？
+       *
+       * 2024.6.19 19:45
+       *  1、看来delay解决不了问题，因为时间根本无法掌握，这里也不删了，留着吧，但用处也不大了
+       *  2、用url配合baseroute判断也是不行的，因为地址根本无法预测和掌握
+       * 目前看来有两种不太完善的思路：将native模式state或search化
+       *  1、强行依赖于 __MICRO_APP_STATE__，如果检测到没有，就不响应popstate事件 --- 这个不太好
+       *     问题：如果是用户主动pushState并发送popstate，主动控制micro-app跳转呢，这样不就失败了吗
+       *        要不要在pushState加一层判断呢，如果有活动的应用将state带过去？也不行因为micro-app会强行修改url地址
+       *
+       *  2、像search模式一样，不阻止子应用修改url地址，但是在卸载子应用后将地址复原
+       *     问题：如果子应用在当前页面正常卸载，没有前进后退，也没有主动pushState并发送popstate，复原的地址就不对了
        */
       return !isNaN(delay) ? delay : 0
     }
@@ -656,5 +667,5 @@ export function defineElement (tagName: string): void {
     }
   }
 
-  globalEnv.rawWindow.customElements.define(tagName, MicroAppElement)
+  window.customElements.define(tagName, MicroAppElement)
 }

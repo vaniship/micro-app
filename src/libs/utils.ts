@@ -680,19 +680,6 @@ export function clearDOM ($dom: HTMLElement | ShadowRoot | Document): void {
   }
 }
 
-type BaseHTMLElementType = HTMLElement & {
-  new (): HTMLElement;
-  prototype: HTMLElement;
-}
-
-/**
- * get HTMLElement from base app
- * @returns HTMLElement
- */
-export function getBaseHTMLElement (): BaseHTMLElementType {
-  return (window.rawWindow?.HTMLElement || window.HTMLElement) as BaseHTMLElementType
-}
-
 export function instanceOf<T extends new (...args: unknown[]) => unknown>(
   instance: unknown,
   constructor: T,

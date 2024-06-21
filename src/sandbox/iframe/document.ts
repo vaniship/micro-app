@@ -275,6 +275,7 @@ function patchDocumentProperty (
       enumerable: true,
       configurable: true,
       get: () => {
+        // TODO: 去掉 throttleDeferForSetAppName
         throttleDeferForSetAppName(appName)
         return rawDocument[tagName]
       },

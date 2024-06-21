@@ -131,6 +131,7 @@ export function updateElementInfo <T> (node: T, appName: string): T {
      *  1. 测试baseURI和ownerDocument在with沙箱中是否正确
      *    经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
      *  2. with沙箱所有node设置__MICRO_APP_NAME__都使用updateElementInfo
+     *  3. iframe沙箱是否可以放入原型链
     */
     rawDefineProperties(node, {
       baseURI: {

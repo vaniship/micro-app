@@ -460,20 +460,23 @@ export function patchElementAndDocument (): void {
 
   // rewrite setAttribute, complete resource address
   rawRootElement.prototype.setAttribute = function setAttribute (key: string, value: any): void {
-    const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()
-    if (
-      appName &&
-      appInstanceMap.has(appName) &&
-      (
-        ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
-        (key === 'href' && /^link$/i.test(this.tagName))
-      )
-    ) {
-      const app = appInstanceMap.get(appName)
-      value = CompletionPath(value, app!.url)
+    if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
+      this.setAttribute(key, value)
+    } else {
+      const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()
+      if (
+        appName &&
+        appInstanceMap.has(appName) &&
+        (
+          ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
+          (key === 'href' && /^link$/i.test(this.tagName))
+        )
+      ) {
+        const app = appInstanceMap.get(appName)
+        value = CompletionPath(value, app!.url)
+      }
+      globalEnv.rawSetAttribute.call(this, key, value)
     }
-
-    globalEnv.rawSetAttribute.call(this, key, value)
   }
 
   /**

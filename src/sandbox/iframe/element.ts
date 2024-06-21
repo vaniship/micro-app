@@ -196,6 +196,7 @@ function patchIframeNode (
        * NOTE:
        *  1. Is there a problem with setting the current appName in iframe mode
        */
+      // TODO: 去掉 throttleDeferForSetAppName
       throttleDeferForSetAppName(appName)
       const result: ParentNode = rawParentNodeDesc.get!.call(this)
       /**
@@ -235,14 +236,17 @@ function patchIframeAttribute (url: string, microAppWindow: microAppWindowType):
   const rawMicroSetAttribute = microRootElement.prototype.setAttribute
 
   microRootElement.prototype.setAttribute = function setAttribute (key: string, value: any): void {
-    if (
-      ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
-      (key === 'href' && /^link$/i.test(this.tagName))
-    ) {
-      value = CompletionPath(value, url)
+    if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
+      this.setAttribute(key, value)
+    } else {
+      if (
+        ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
+        (key === 'href' && /^link$/i.test(this.tagName))
+      ) {
+        value = CompletionPath(value, url)
+      }
+      rawMicroSetAttribute.call(this, key, value)
     }
-
-    rawMicroSetAttribute.call(this, key, value)
   }
 
   const protoAttrList: Array<[HTMLElement, string]> = [
