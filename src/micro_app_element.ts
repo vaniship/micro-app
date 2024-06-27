@@ -613,18 +613,55 @@ export function defineElement (tagName: string): void {
        *  1、但整体逻辑是一样的，跳转下一个按需加载页面，会先加载资源，资源加载完成再卸载上一个页面，也就是异步卸载
        *    但最难的是下一个页面什么时候加载完成是不知道的，文件大小、网速都可能会影响，100ms完全不够用，网络延迟都可能不止100ms，线上项目尤其是一些陈年旧项目，文件大小都是非常夸张的
        *  2、非按需加载，所有操作都是同步，没有异步问题
-       *  3、每个框架的表现都不一样，其它框架angular和next、nuxt表现都可能不一样，但总体来说是一定的：卸载可能是异步的，并且异步的时间是不确定的，这一点最重要。那么delay的默认值应该是多少呢？？？？？？
+       *  3、每个框架的表现都不一样，其它框架angular和next、nuxt表现都可能不一样，但总体来说是一定的：卸载可能是异步的，并且时间不确定，这一点最重要。那么delay的默认值应该是多少呢？？？？？？
        *
        * 2024.6.19 19:45
        *  1、看来delay解决不了问题，因为时间根本无法掌握，这里也不删了，留着吧，但用处也不大了
        *  2、用url配合baseroute判断也是不行的，因为地址根本无法预测和掌握
        * 目前看来有两种不太完善的思路：将native模式state或search化
-       *  1、强行依赖于 __MICRO_APP_STATE__，如果检测到没有，就不响应popstate事件 --- 这个不太好
-       *     问题：如果是用户主动pushState并发送popstate，主动控制micro-app跳转呢，这样不就失败了吗
-       *        要不要在pushState加一层判断呢，如果有活动的应用将state带过去？也不行因为micro-app会强行修改url地址
+       *  1、强行依赖于 __MICRO_APP_STATE__，如果检测到没有，就不响应popstate事件
+       *     原因：最直接的原因就是popstate事件，如果主应用只是pushState，内部跳转，不会有问题，最直接的原因就是子应用接受到了popstate事件后修改了url地址
+       *     思路：pushState/replaceState时如果有活动的native模式的子应用则将其__MICRO_APP_STATE__带过去，但是要将fullPath字段删除(防止刷新时强行修改url地址)，当子应用接受到popstate事件，通过history.state判断，如果有__MICRO_APP_STATE__则接收，否则不做处理
+       *     原则：原则上只处理前进后退，其它场景暂时不做处理，毕竟场景太少，如果出了问题，告知用户换其它模式
+       *     前进后退的特点是：没有任何痕迹就修改url地址，然后发送一个popstate事件，类似这样的特点的跳转并不少，要尽量排除掉
+       *
+       *     注意：修改地址无法三种方式：history、location、前进后退、a标签
+       *        1、react16 hash模式通过location.hash=xxx跳转（主、子），要不要响应popstate事件？
+       *          子：和2一致，肯定是要响应的，自身内部的跳转要和单独运行时一致
+       *          主：与3一个道理
+       *
+       *        2、子应用location跳转也有修改url地址并且发送popstate事件，此时要不要响应？
+       *          要，但不需要特殊处理，因为location跳转的state必定为null，popstate事件会向下发送的
+       *
+       *        3、用户直接通过浏览器修改url地址，比如带有hash，或者location.hash=xxx，页面不刷新但是__MICRO_APP_STATE__丢失，要不要响应？ -- 这个最难处理，因为它和前进后退的行为一样
+       *          例如：1、主应用如果是hash路由，是会响应的，那么同样作为hash的子应用要不要响应？？
+       *               2、用户在页面 http://localhost:5173/#/，通过其它地方复制地址 http://localhost:5173/#/page3，到浏览器，此时不会刷新，也只是发送popstate事件
+       *
+       *
+       *          或许可以用history.state=null来判断？因为无论是vue3还是react16，懒加载页面肯定不是首页，所以history.state大概率不为null，所以判断结果为：
+       *            if(history.state===null || history.state?__MICRO_APP_STATE__[appName]) {
+       *                发送popstate事件，否则不发送 // 感觉到最后就是为了解决vue3的问题
+       *            }
+       *          好像不行，因为react16hash路由也没有history.state，history模式有，毕竟hash模式是通过location.hash=xx跳转的，没有history.state也是正常的，那react16 hash路由懒加载不就是无解的吗，正常跳转都是修改url发送popstate，并且可以确认hash路由跳转时是先修改url地址，发送popstate事件，然后再卸载组件 -- 那就只能说主应用是react16 hash路由时不能使用native模式，用state模式吧 ------ 这里用micro-app-demo再验证一下
+       *
+       *
+       *        4、主应用通过pushState配合popstate控制跳转懒加载页面，效果和点击前进后退是一样的，要不要响应，如果响应了，就一定会出问题。
+       *           此场景理论上不多吧，应用跳转一般都用框架自身的方法，除非有第三方重写了history方法，每次跳转时都会发送popstate事件，那就没办法了，换state模式吧
+       *           而且旧版本中有一些通过这些方式控制子应用跳转的，如果禁止了，代码就会出错
+       *
+       *        5、history.back/go/forward 也会发送popstate事件
+       *            它们和前进后退是一样的处理逻辑，因为功能是一样的
+       *
+       *        6、<a href="#/base/xxx"> <a href="/base/xxx">
+       *
+       *        7、如果前端框架监听到popState事件后始终调用replaceState，那就无解了
+       *
        *
        *  2、像search模式一样，不阻止子应用修改url地址，但是在卸载子应用后将地址复原
-       *     问题：如果子应用在当前页面正常卸载，没有前进后退，也没有主动pushState并发送popstate，复原的地址就不对了
+       *     问题：
+       *        1、如果子应用在当前页面正常卸载，没有前进后退，也没有主动pushState并发送popstate，复原的地址就不对了
+       *        2、因为子应用先响应popstate事件，再在卸载掉时候复原地址，那么在子应用响应popstate事件时就有可能先兜底到子应用的404页面，然后再卸载
+       *     总结：实行起来太麻烦，无法准确控制。子应用卸载后还原之前的地址，那么旧地址就需要保存，但问题是子应用内部也可能会频繁跳转，旧地址无法准确记录
        */
       return !isNaN(delay) ? delay : 0
     }

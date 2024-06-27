@@ -15,6 +15,7 @@ import {
   getMicroPathFromURL,
   getMicroState,
   isEffectiveApp,
+  isRouterModeCustom,
 } from './core'
 import {
   updateMicroLocation,
@@ -52,13 +53,26 @@ export function addHistoryListener (appName: string): CallableFunction {
       /**
        * main app maybe navigate async when receive popstateEvent, but child may respond to popstateEvent immediately(vue2, react), so when go back throw browser child will not unmount sync, and will respond to popstateEvent before base app, this will cause some problems
       */
-      // updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
-      // 这里加一个判断，如果是native或者search模式才启用延迟，state、pure不需要这样做
-      const container = appInstanceMap.get(appName)?.container
-      macro(
-        () => updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName)),
-        (container && getRootContainer(container))?.getRouterEventDelay() ?? 0
-      )
+      /**
+       * NOTE:
+       *  1. browser back/forward
+       *  2. location.hash/search/pathname = xxx
+       *  3. <a href="/#/xxx">, <a href="/xxx">
+       *  4. history.back/go/forward
+       *  5. history.pushState/replaceState
+       */
+      // 1、其它模式要不要也过滤关键在于history.state存在时__MICRO_APP_STATE__有没有可能不存在
+      // 如果history.state存在而__MICRO_APP_STATE__不存在在非native模式下存在，那就不能过滤，比如pure模式？
+      // 不对啊，location.hash=xxx，确实会导致state为null，可以框架接受到popstate事件后就重新写入state了，所以这种方式不准确 -- 误会，框架重写写入state也是靠history.replaceState，所以没事
+      if (!isRouterModeCustom(appName) || !history.state || getMicroState(appName)) {
+        // updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
+        // 这里加一个判断，如果是native或者search模式才启用延迟，state、pure不需要这样做
+        const container = appInstanceMap.get(appName)?.container
+        macro(
+          () => updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName)),
+          (container && getRootContainer(container))?.getRouterEventDelay() ?? 0
+        )
+      }
     }
   }
 

@@ -30,16 +30,16 @@ import microApp from '../../micro_app'
 // set micro app state to origin state
 export function setMicroState (
   appName: string,
-  microState: MicroState,
-  targetLocation: MicroLocation,
+  microState?: MicroState,
+  targetLocation?: MicroLocation,
 ): MicroState {
   // TODO: 验证native模式下修改state nextjs路由是否正常
   const rawState = globalEnv.rawWindow.history.state
   const additionalState: Record<string, any> = {
     __MICRO_APP_STATE__: assign({}, rawState?.__MICRO_APP_STATE__, {
       [appName]: {
-        fullPath: targetLocation.pathname + targetLocation.search + targetLocation.hash,
-        state: microState,
+        fullPath: targetLocation ? targetLocation.pathname + targetLocation.search + targetLocation.hash : null,
+        state: microState ?? null,
         mode: getRouterMode(appName),
       }
     })
