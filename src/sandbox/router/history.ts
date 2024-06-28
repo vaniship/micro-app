@@ -22,6 +22,7 @@ import {
   setMicroPathToURL,
   setMicroState,
   getMicroState,
+  getMicroRouterInfoState,
   getMicroPathFromURL,
   isEffectiveApp,
   isRouterModePure,
@@ -223,12 +224,12 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
           appName,
-          setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
-          setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location as MicroLocation),
+          setMicroPathToURL(appName, app.sandBox.proxyWindow.location),
+          setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location),
         )
       }
 
-      if (isRouterModeCustom(appName) && !rawWindow.history.state?.__MICRO_APP_STATE__?.[appName]) {
+      if (isRouterModeCustom(appName) && !getMicroRouterInfoState(appName)) {
         nativeHistoryNavigate(
           appName,
           'replaceState',

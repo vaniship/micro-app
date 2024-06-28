@@ -14,6 +14,7 @@ import {
 import {
   getMicroPathFromURL,
   getMicroState,
+  getMicroRouterInfoState,
   isEffectiveApp,
   isRouterModeCustom,
 } from './core'
@@ -51,22 +52,21 @@ export function addHistoryListener (appName: string): CallableFunction {
       !e.onlyForBrowser
     ) {
       /**
-       * main app maybe navigate async when receive popstateEvent, but child may respond to popstateEvent immediately(vue2, react), so when go back throw browser child will not unmount sync, and will respond to popstateEvent before base app, this will cause some problems
-      */
-      /**
-       * NOTE:
+       * base app may respond to popstateEvent async(lazy load page & browser back/forward), but child app will respond to popstateEvent immediately(vue2, react), this will cause some problems
+       * 2 solutions:
+       *  1. child app respond to popstateEvent async -- router-event-delay
+       *  2. child app will not respond to popstateEvent in some scenarios (history.state===null || history.state?__MICRO_APP_STATE__[appName])
+       * NOTE 1:
        *  1. browser back/forward
        *  2. location.hash/search/pathname = xxx
        *  3. <a href="/#/xxx">, <a href="/xxx">
        *  4. history.back/go/forward
        *  5. history.pushState/replaceState
+       *
+       * NOTE2:
+       *  react16 hash mode navigate by location.hash = xxx, history.state is always null, but react16 respond to popstateEvent sync
        */
-      // 1、其它模式要不要也过滤关键在于history.state存在时__MICRO_APP_STATE__有没有可能不存在
-      // 如果history.state存在而__MICRO_APP_STATE__不存在在非native模式下存在，那就不能过滤，比如pure模式？
-      // 不对啊，location.hash=xxx，确实会导致state为null，可以框架接受到popstate事件后就重新写入state了，所以这种方式不准确 -- 误会，框架重写写入state也是靠history.replaceState，所以没事
-      if (!isRouterModeCustom(appName) || !history.state || getMicroState(appName)) {
-        // updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName))
-        // 这里加一个判断，如果是native或者search模式才启用延迟，state、pure不需要这样做
+      if (!isRouterModeCustom(appName) || !history.state || getMicroRouterInfoState(appName)) {
         const container = appInstanceMap.get(appName)?.container
         macro(
           () => updateMicroLocationWithEvent(appName, getMicroPathFromURL(appName)),

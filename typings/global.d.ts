@@ -408,6 +408,11 @@ declare module '@micro-app/types' {
 
   type MicroHistory = ProxyHandler<History>
   type MicroState = any
+  interface MicroRouterInfoState {
+    fullPath: string | null,
+    state: MicroState,
+    mode: string,
+  }
   type HistoryProxyValue =
     Pick<
     History,

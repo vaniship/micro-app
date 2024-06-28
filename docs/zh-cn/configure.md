@@ -43,15 +43,6 @@ MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 开启inline模式后，script元素会被保留，方便查看和调试代码，但会稍微损耗性能，建议只在开发环境中使用。
 
 
-## destroy
-- Desc: `卸载时强制删除缓存资源`
-- Default: `false`
-- 使用方式: `<micro-app name='xx' url='xx' destroy></micro-app>`
-
-默认情况下，子应用被卸载后不会删除缓存的静态资源和数据，以便在重新渲染时获得更好的性能。
-
-开启destroy，子应用在卸载后会清空缓存资源和数据，当重新渲染时将和初次渲染的行为保持一致。
-
 ## clear-data
 - Desc: `卸载时清空数据通讯中的缓存数据`
 - Default: `false`
@@ -62,6 +53,17 @@ MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 子应用卸载时会同时清空主应用发送给当前子应用，和当前子应用发送给主应用的数据。
 
 [destroy](/zh-cn/configure?id=destroy)也有同样的效果。
+
+## destroy
+- Desc: `卸载时删除缓存资源`
+- Default: `false`
+- 使用方式: `<micro-app name='xx' url='xx' destroy></micro-app>`
+
+默认情况下，子应用被卸载后不会删除缓存的静态资源和沙箱数据，以便在重新渲染时获得更好的性能。
+
+开启destroy，子应用在卸载后会清空缓存的静态资源和沙箱数据。
+
+但destroy只适合一次性渲染的子应用，由于子应用每次初始化都可能会增加一些无法释放的内存，如果频繁渲染和卸载，设置destroy反而会增加内存消耗，请谨慎使用。
 
 
 ## disable-scopecss

@@ -1,6 +1,7 @@
 import type {
   MicroLocation,
   MicroState,
+  MicroRouterInfoState,
   LocationQuery,
   HandleMicroPathResult,
 } from '@micro-app/types'
@@ -35,14 +36,14 @@ export function setMicroState (
 ): MicroState {
   // TODO: 验证native模式下修改state nextjs路由是否正常
   const rawState = globalEnv.rawWindow.history.state
-  const additionalState: Record<string, any> = {
+  const additionalState: Record<'__MICRO_APP_STATE__', Record<string, MicroRouterInfoState>> = {
     __MICRO_APP_STATE__: assign({}, rawState?.__MICRO_APP_STATE__, {
       [appName]: {
         fullPath: targetLocation ? targetLocation.pathname + targetLocation.search + targetLocation.hash : null,
         state: microState ?? null,
         mode: getRouterMode(appName),
       }
-    })
+    }),
   }
 
   // create new state object
@@ -67,6 +68,12 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
 export function getMicroState (appName: string): MicroState {
   const rawState = globalEnv.rawWindow.history.state
   return rawState?.__MICRO_APP_STATE__?.[appName]?.state || null
+}
+
+// get micro app router info state form origin state
+export function getMicroRouterInfoState (appName: string): MicroRouterInfoState | null {
+  const rawState = globalEnv.rawWindow.history.state
+  return rawState?.__MICRO_APP_STATE__?.[appName] || null
 }
 
 const ENC_AD_RE = /&/g // %M1
