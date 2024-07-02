@@ -127,9 +127,10 @@ export default class IframeSandbox {
     this.iframe = pureCreateElement('iframe')
 
     const iframeAttrs: Record<string, string> = {
+      id: appName,
       src: microApp.options.iframeSrc || browserPath,
       style: 'display: none',
-      id: appName,
+      env: 'micro-app',
     }
 
     Object.keys(iframeAttrs).forEach((key) => this.iframe!.setAttribute(key, iframeAttrs[key]))

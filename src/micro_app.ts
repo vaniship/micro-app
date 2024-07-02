@@ -24,7 +24,7 @@ import {
   isFunction,
 } from './libs/utils'
 import { EventCenterForBaseApp } from './interact'
-import globalEnv, { initGlobalEnv } from './libs/global_env'
+import { initGlobalEnv } from './libs/global_env'
 import { appInstanceMap } from './create_app'
 import { lifeCycles } from './constants'
 import { router } from './sandbox/router'
@@ -307,7 +307,7 @@ export class MicroApp extends EventCenterForBaseApp implements MicroAppBaseType 
 
     initGlobalEnv()
 
-    if (globalEnv.rawWindow.customElements.get(this.tagName)) {
+    if (window.customElements.get(this.tagName)) {
       return logWarn(`element ${this.tagName} is already defined`)
     }
 

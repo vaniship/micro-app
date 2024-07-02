@@ -41,11 +41,17 @@ export function MyPage () {
 ```
 <!-- tabs:end -->
 
+> [!NOTE]
+> 1、name：必传参数，必须以字母开头，且不可以带特殊符号(中划线、下划线除外)
+>
+> 2、url：必传参数，必须指向子应用的index.html，如：http://localhost:3000/ 或 http://localhost:3000/index.html
+
+
 ### 子应用
 
 micro-app从主应用通过fetch加载子应用的静态资源，由于主应用与子应用的域名不一定相同，所以子应用需要支持跨域。
 
-子应用设置方式如下：
+子应用设置跨域方式如下：
 
 <!-- tabs:start -->
 #### ** webpack **
@@ -88,10 +94,4 @@ app.all('*', (req, res, next) => {
 <!-- tabs:end -->
 
 
-完成以上步骤即完成微前端的接入。
-
-
-> [!NOTE]
-> 1、name：必传参数，必须以字母开头，且不可以带特殊符号(中划线、下划线除外)
->
-> 2、url：必传参数，必须指向子应用的index.html，如：http://localhost:3000/ 或 http://localhost:3000/index.html
+完成以上步骤即完成微前端的接入，更详细的接入步骤和注意事项请参考[手把手](/zh-cn/framework/introduce)。

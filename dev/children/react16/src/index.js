@@ -73,6 +73,7 @@ window.addEventListener('appstate-change', function (e) {
 // // 注册unmount函数，卸载时会自动执行
 // window.unmount = () => {
 //   ReactDOM.unmountComponentAtNode(document.getElementById('root'));
+//   // window.microApp.
 //   console.log('微应用react16卸载了 -- 默认模式');
 // }
 
@@ -126,10 +127,10 @@ window.onunmount = () => {
 //   // console.log(this)
 // }, false)
 
-// document.onclick = function () {
-//   console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
-//   // console.log(this)
-// }
+document.onclick = function () {
+  console.log(`子应用${window.__MICRO_APP_NAME__}内部的document.onclick绑定`)
+  // console.log(this)
+}
 
 // window.addEventListener('click', function () {
 //   console.log(`子应用${window.__MICRO_APP_NAME__}内部的window.addEventListener绑定`)
@@ -375,8 +376,8 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
   // Vue是系统默认绑定变量
   console.assert(window.Vue === undefined, 'window.Vue 应该为false')
   console.assert(('Vue' in window) === false, 'Vue in window 应该为false')
-  window.Vue = '自定义Vue'
-  console.assert(window.Vue === '自定义Vue', 'window.Vue 应该为自定义Vue')
+  window.Vue = '子应用内部自定义Vue'
+  console.assert(window.Vue === '子应用内部自定义Vue', 'window.Vue 应该为子应用内部自定义Vue')
 
   // ----------------------- scope相关---------------------结束
 

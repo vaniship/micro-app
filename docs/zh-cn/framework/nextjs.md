@@ -1,6 +1,6 @@
 本篇以`nextjs 11`作为案例介绍nextjs的接入方式，其它版本nextjs接入方式会在后续补充，如果你在使用时出现问题，请在github上提issue告知我们。
 
-## 作为主应用
+## 作为主应用 :id=main
 
 #### 1、安装依赖
 ```bash
@@ -60,9 +60,9 @@ export default MyPage
 > 2、url：必传参数，必须指向子应用的index.html，如：http://localhost:3000/ 或 http://localhost:3000/index.html
 
 
-## 作为子应用
+## 作为子应用 :id=child
 
-#### 1、在主应用中添加ssr配置
+#### 1、在主应用中添加ssr配置 :id=ssr
 当子应用是ssr应用时，主应用需要在micro-app元素上添加ssr属性，此时micro-app会根据ssr模式加载子应用。
 
 ```html
@@ -70,7 +70,7 @@ export default MyPage
 ```
 
 
-#### 2、设置跨域支持
+#### 2、设置跨域支持 :id=Access-Control-Allow-Origin
 通过自定义服务设置跨域访问，详情参考 [custom-server](https://nextjs.org/docs/advanced-features/custom-server)
 
 **步骤1、在根目录创建`server.js`**
@@ -113,7 +113,7 @@ app.prepare().then(() => {
 }
 ```
 
-#### 3、设置`assetPrefix` 和 `publicRuntimeConfig`
+#### 3、设置`assetPrefix` 和 `publicRuntimeConfig` :id=assetPrefix
 在`next.config.js`中设置`assetPrefix`，为静态资源添加路径前缀，避免子应用的静态资源使用相对地址时加载失败的情况。
 
 ```js
@@ -153,7 +153,7 @@ export default Page
 ```
 
 
-#### 4、监听卸载
+#### 4、监听卸载 :id=unmount
 子应用被卸载时会接受到一个名为`unmount`的事件，在此可以进行卸载相关操作。
 
 ```js
@@ -166,7 +166,7 @@ window.addEventListener('unmount', function () {
 > [!NOTE]
 > nextjs默认支持css module功能，如果你使用了此功能，建议关闭样式隔离以提升性能：`<micro-app name='xx' url='xx' disableScopecss></micro-app>`
 
-#### 5、切换到iframe沙箱
+#### 5、切换到iframe沙箱 :id=iframe
 MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 默认开启with沙箱，如果with沙箱无法正常运行，可以尝试切换到iframe沙箱。
@@ -177,23 +177,23 @@ MicroApp有两种沙箱方案：`with沙箱`和`iframe沙箱`。
 
 
 ## 常见问题
-#### 1、使用`next/image`组件加载图片失败
+#### 1、使用`next/image`组件加载图片失败 :id=question-1
   
 **解决方式：**
 
 在部分nextjs版本中(如：nextjs 11)，使用`next/image`组件无法正确引入图片，此时推荐使用img元素代替。
 
-#### 2、无法预加载ssr子应用
+#### 2、无法预加载ssr子应用 :id=question-2
 
 **原因：**因为ssr应用每个路由地址加载的html、js、css等静态资源都不同，所以无法对ssr子应用使用预加载。
 
-#### 3、控制台报错`Cannot read properties of null (reading 'tagName')`
+#### 3、控制台报错`Cannot read properties of null (reading 'tagName')` :id=question-3
 
 **原因：**当主应用和子应用都是nextjs应用时，`next/head`组件冲突。
 
 **解决方式：**去掉子应用中`next/head`组件。
 
-#### 4、webpack.jsonpFunction冲突，导致加载子应用失败
+#### 4、webpack.jsonpFunction冲突，导致加载子应用失败 :id=question-4
 **原因：**当主应用和子应用都是官方脚手架创建的项目，容易造成webpack.jsonpFunction冲突。
 
 **解决方式：**修改子应用的webpack配置。

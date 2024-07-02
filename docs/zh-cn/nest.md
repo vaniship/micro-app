@@ -6,7 +6,7 @@
 import microApp from '@micro-zoe/micro-app';
 
 microApp.start({
-  // 必须以`micro-app-`开头的小写字母，例如：micro-app-b、micro-app-child-b
+  // 必须是以`micro-app-`开头的小写字母，例如：micro-app-b、micro-app-b-c
   tagName: 'micro-app-xxx', 
 })
 ```

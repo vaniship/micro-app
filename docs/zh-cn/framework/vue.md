@@ -34,7 +34,7 @@ microApp.start()
 
 ## 作为子应用 :id=child
 
-#### 1、设置跨域支持 :id=allow-origin
+#### 1、设置跨域支持 :id=Access-Control-Allow-Origin
 
 <!-- tabs:start -->
 
@@ -87,7 +87,7 @@ window.unmount = () => {
 
 完成以上步骤微前端即可正常渲染。
 
-### 可选设置
+### 可选设置 :id=options
 以下配置是针对子应用的，它们是可选的，建议根据实际情况选择设置。
 
 #### 1、开启umd模式，优化内存和性能 :id=umd
@@ -133,7 +133,7 @@ if (!window.__MICRO_APP_ENVIRONMENT__) {
 ```js
 // main.js
 import { createApp } from 'vue'
-import * as VueRouter from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import routes from './router'
 import App from './App.vue'
 
@@ -142,8 +142,8 @@ let router = null
 let history = null
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
 window.mount = () => {
-  history = VueRouter.createWebHistory()
-  router = VueRouter.createRouter({
+  history = createWebHistory()
+  router = createRouter({
     history,
     routes,
   })
