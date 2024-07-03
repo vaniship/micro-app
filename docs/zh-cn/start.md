@@ -94,4 +94,4 @@ app.all('*', (req, res, next) => {
 <!-- tabs:end -->
 
 
-完成以上步骤即完成微前端的接入，更详细的接入步骤和注意事项请参考[手把手](/zh-cn/framework/introduce)。
+完成以上步骤即完成微前端的接入，更详细的接入步骤请参考[手把手](/zh-cn/framework/introduce)。

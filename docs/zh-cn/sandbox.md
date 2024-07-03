@@ -1,14 +1,37 @@
-### 沙箱介绍
-沙箱通过自定义的window、document拦截子应用的JS操作，实现一个相对独立的运行空间，避免全局变量污染，让每个子应用都拥有一个相对纯净的运行环境。
+JS沙箱通过自定义的window、document拦截子应用的JS操作，实现一个相对独立的运行空间，避免全局变量污染，让每个子应用都拥有一个相对纯净的运行环境。
 
 `micro-app`有两种沙箱模式：with沙箱和iframe沙箱，它们覆盖不同的使用场景且可以随意切换，默认情况下使用with沙箱，如果无法正常运行可以切换到iframe沙箱。
 
-### 注意事项
+## 知识点
 
 #### 1、子应用如何获取到真实window、document :id=rawWindow
-子应用通过：`window.rawWindow`、`window.rawDocument` 可以获取真实的window、document
 
-#### 2、子应用抛出错误信息：xxx 未定义 :id=undefined
+子应用通过：`window.rawWindow`、`window.rawDocument` 可以获取真实的window、document（即最外层主应用的window和document）。
+<!-- 
+#### 2、对子应用 document 的属性进行自定义代理拦截 :id=custom-document
+
+微前端环境下，MicroApp代理了document的大部分操作，如事件监听、元素的增删改查，也有一部分属性会兜底到原生document上，如document.body、document.head、document.title。
+
+但有时我们希望对某些特定的属性进行自定义代理拦截，进行一些特殊操作，这时需要使用`customProxyDocumentProps`。
+
+例如：子应用通过 `document.title = 'xxx'` 意外改变了主应用的站点标题。
+
+**解决方式**：
+
+*通过 customProxyDocumentProps 对 document 的属性进行自定义代理扩展*
+
+通过给title设置一个空函数，来忽略 document.title 执行
+```js
+microApp.start({
+  customProxyDocumentProps: new Map([
+    ['title', (value) => {}]
+  ]),
+})
+``` -->
+
+## 常见问题
+
+### 1、子应用抛出错误信息：xxx 未定义 :id=undefined
 **包括：**
 - `xxx is not defined`
 - `xxx is not a function`
@@ -67,8 +90,8 @@ microApp.start({
 })
 ```
 
-#### 3、子应用使用`Module Federation`模块联邦时报错 :id=module-federation
-**原因：**与上述[注意事项2](/zh-cn/sandbox?id=undefined)相同，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+### 2、子应用使用`Module Federation`模块联邦时报错 :id=module-federation
+**原因：**与上述[常见问题1](/zh-cn/sandbox?id=undefined)相同，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
 
 **解决方式：**将`ModuleFederationPlugin`插件中`library.type`设置为`window`。
 
@@ -83,9 +106,9 @@ new ModuleFederationPlugin({
 })
 ```
 
-#### 4、子应用`DllPlugin`拆分的文件加载失败 :id=DllPlugin
+### 3、子应用`DllPlugin`拆分的文件加载失败 :id=DllPlugin
 
-**原因：**与上述[注意事项2](/zh-cn/sandbox?id=undefined)相同，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
+**原因：**与上述[常见问题1](/zh-cn/sandbox?id=undefined)相同，在沙箱环境中，顶层变量不会泄漏为全局变量导致的。
 
 **解决方式：**修改子应用webpack dll配置
 
@@ -102,7 +125,7 @@ module.exports = {
 }
 ```
 
-#### 5、iframe沙箱加载了主应用的资源 :id=iframe-source
+### 4、iframe沙箱加载了主应用的资源 :id=iframe-source
 
 ![iframe-source](https://img12.360buyimg.com/imagetools/jfs/t1/233529/17/19491/20911/667027a9F8cfada1e/7cf9213644e14b24.png ':size=700')
 
@@ -135,22 +158,15 @@ microApp.start({
 window.stop虽然可以阻止脚本执行，但对于已经发送的js请求无法撤回，所以network中会看到canceled请求，但不影响正常功能，如果无法接受推荐使用方案一。
 
 
-#### 6、基座如何对子应用 document 的一些属性进行自定义代理扩展 :id=custom-document
+### 5、内存优化 :id=memory
+为了优化性能，沙箱在子应用初始化时会缓存静态资源和数据，在子应用卸载后不会自动清除，以提升二次渲染速度，这是正常现象。
 
-**场景：**
+初始化时占用的内存是一次性的，不会一直增长。
 
-微前端模式下，通常由基座负责设置站点标题，不希望受到子应用的干扰。   
-但是因为 microApp 对 documet 的代理处理过程，并没有处理 document.title，所以子应用中可能通过 `document.title = 'xxx'` 意外改变了基座的站点标题。   
+如果在切换子应用时内存一直增长，造成内存泄漏风险，需要进行以下操作：
+  
+- 1、将子应用切换到umd模式，切换方式参考[umd模式](/zh-cn/umd)
+- 2、不要设置[destroy](/zh-cn/configure?id=destroy)属性
+- 3、保证name和url一一对应
 
-**解决方式**：
-
-*通过 customProxyDocumentProps 对 document 的属性进行自定义代理扩展*
-
-通过给title设置一个空函数，来忽略 document.title 执行
-```js
-microApp.start({
-  customProxyDocumentProps: new Map([
-    ['title', (value) => {}]
-  ]),
-})
-```
+做到以上几点基本上不会有内存泄漏问题，如果问题依然存在，可以试着切换到[iframe](/zh-cn/configure?id=iframe)沙箱。

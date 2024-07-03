@@ -14,9 +14,10 @@
   - [数据通信](zh-cn/data)
   - [资源系统](zh-cn/static-source)
   - [预加载](zh-cn/prefetch)
-  - [插件系统](zh-cn/plugins)
-  - [多层嵌套](zh-cn/nest)
+  - [umd模式](zh-cn/umd)
   - [keep-alive](zh-cn/keep-alive)
+  - [多层嵌套](zh-cn/nest)
+  - [插件系统](zh-cn/plugins)
   - [高级功能](zh-cn/advanced)
 
 - 手把手

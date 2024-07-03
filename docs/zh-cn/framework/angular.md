@@ -97,51 +97,7 @@ window.unmount = () => {
 以下配置是针对子应用的，它们是可选的，建议根据实际情况选择设置。
 
 #### 1、开启umd模式，优化内存和性能 :id=umd
-MicroApp支持两种渲染微前端的模式，默认模式和umd模式。
-
-- **默认模式：**子应用在初次渲染和后续渲染时会顺序执行所有js，以保证多次渲染的一致性。
-- **umd模式：**子应用暴露出`mount`、`unmount`方法，此时只在初次渲染时执行所有js，后续渲染只会执行这两个方法，在多次渲染时具有更好的性能和内存表现。
-
-如果子应用渲染和卸载不频繁，那么使用默认模式即可，如果子应用渲染和卸载非常频繁建议使用umd模式。
-
-```js
-// main.ts
-import { NgModuleRef  } from '@angular/core';
-import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { AppModule } from './app/app.module';
-
-declare global {
-  interface Window {
-    microApp: any
-    mount: CallableFunction
-    unmount: CallableFunction
-    __MICRO_APP_ENVIRONMENT__: string
-  }
-}
-
-let app: void | NgModuleRef<AppModule>
-// 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
-window.mount = () => {
-  platformBrowserDynamic()
-    .bootstrapModule(AppModule)
-    .then((res: NgModuleRef<AppModule>) => {
-      app = res
-    })
-    .catch(err => console.error(err))
-}
-
-// 👇 将卸载操作放入 unmount 函数，就是上面步骤2中的卸载函数
-window.unmount = () => {
-  // angular在部分场景下执行destroy时会删除根元素app-root，导致在此渲染时报错，此时可删除app.destroy()来避免这个问题
-  app && app.destroy();
-  app = undefined;
-}
-
-// 如果不在微前端环境，则直接执行mount渲染
-if (!window.__MICRO_APP_ENVIRONMENT__) {
-  window.mount();
-}
-```
+详情参考[umd模式](/zh-cn/umd)章节。
 
 
 #### 2、设置 webpack.jsonpFunction :id=webpackJsonpFunction

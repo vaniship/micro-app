@@ -40,7 +40,7 @@ micro-app依赖于CustomElements和Proxy两个较新的API。
 子应用通过：`window.rawWindow`、`window.rawDocument` 可以获取真实的window、document
 
 ## 7、子应用抛出错误信息：xxx 未定义 :id=7
-参考[JS沙箱常见问题-2](/zh-cn/sandbox?id=undefined)
+参考[JS沙箱常见问题-1](/zh-cn/sandbox?id=undefined)
 
 ## 8、jsonp请求如何处理？ :id=8
 参考[ignore](/zh-cn/configure?id=ignore忽略元素)
@@ -125,10 +125,13 @@ micro-app依赖于CustomElements和Proxy两个较新的API。
 参考[Vue常见问题-2](/zh-cn/framework/vue?id=question-2)
 
 ## 13、子应用使用`Module Federation`模块联邦时报错 :id=13
-参考[JS沙箱常见问题-3](/zh-cn/sandbox?id=module-federation)
+参考[JS沙箱常见问题-2](/zh-cn/sandbox?id=module-federation)
 
 ## 14、子应用`DllPlugin`拆分的文件加载失败 :id=14
-参考[JS沙箱常见问题-4](/zh-cn/sandbox?id=dllplugin)
+参考[JS沙箱常见问题-3](/zh-cn/sandbox?id=dllplugin)
 
 ## 15、iframe沙箱加载了主应用的资源 :id=15
-参考[JS沙箱常见问题-5](/zh-cn/sandbox?id=iframe-source)
+参考[JS沙箱常见问题-4](/zh-cn/sandbox?id=iframe-source)
+
+## 16、内存泄漏 :id=16
+参考[JS沙箱常见问题-5](/zh-cn/sandbox?id=memory)

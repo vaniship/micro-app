@@ -260,6 +260,7 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
     microAppWindow.microApp = assign(new EventCenterForMicroApp(appName), {
       removeDomScope,
       pureCreateElement,
+      location: microAppWindow.location,
       router,
     })
   }
