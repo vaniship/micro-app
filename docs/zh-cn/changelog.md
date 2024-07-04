@@ -27,6 +27,7 @@
   - 🐞 修复 火狐浏览器下子应用`favicon.ico`将主应用图标替换的问题，[issue 1262](https://github.com/micro-zoe/micro-app/issues/1262)。
   - 🐞 修复 循环嵌套时，中间层子应用为iframe沙箱时通过data属性传递初始化数据失败的问题。
   - 🐞 修复 native路由模式下vue3按需加载页面在部分场景下点击浏览器前进后退按钮时浏览器地址错误。
+  - 🐞 修复 svg中图片路径无法自动补全的问题，[issue 1222](https://github.com/micro-zoe/micro-app/issues/1222)。
 
 - **Update**
   - 🚀 优化 沙箱架构设计。

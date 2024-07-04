@@ -241,7 +241,7 @@ function patchIframeAttribute (url: string, microAppWindow: microAppWindowType):
     } else {
       if (
         ((key === 'src' || key === 'srcset') && /^(img|script)$/i.test(this.tagName)) ||
-        (key === 'href' && /^link$/i.test(this.tagName))
+        (key === 'href' && /^(link|image)$/i.test(this.tagName))
       ) {
         value = CompletionPath(value, url)
       }
@@ -253,6 +253,7 @@ function patchIframeAttribute (url: string, microAppWindow: microAppWindowType):
     [microAppWindow.HTMLImageElement.prototype, 'src'],
     [microAppWindow.HTMLScriptElement.prototype, 'src'],
     [microAppWindow.HTMLLinkElement.prototype, 'href'],
+    [microAppWindow.SVGImageElement.prototype, 'href'],
   ]
 
   /**
