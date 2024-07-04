@@ -39,6 +39,7 @@ import {
 } from './scripts'
 import {
   fixReactHMRConflict,
+  updateElementInfo,
 } from '../sandbox/adapter'
 import microApp from '../micro_app'
 import globalEnv from '../libs/global_env'
@@ -314,8 +315,8 @@ function commonElementHandler (
       currentAppName
     )
   ) {
-    newChild.__MICRO_APP_NAME__ = newChild.__MICRO_APP_NAME__ || currentAppName!
-    const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__)
+    updateElementInfo(newChild, currentAppName)
+    const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__!)
     if (isStyleElement(newChild)) {
       const isShadowNode = parent.getRootNode()
       const isShadowEnvironment = isShadowNode instanceof ShadowRoot
@@ -422,13 +423,6 @@ export function patchElementAndDocument (): void {
     return globalEnv.rawInsertAdjacentElement.call(this, where, element)
   }
 
-  // patch cloneNode
-  rawRootElement.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
-    const clonedNode = globalEnv.rawCloneNode.call(this, deep)
-    this.__MICRO_APP_NAME__ && (clonedNode.__MICRO_APP_NAME__ = this.__MICRO_APP_NAME__)
-    return clonedNode
-  }
-
   /**
    * document.body(head).querySelector(querySelectorAll) hijack to microAppBody(microAppHead).querySelector(querySelectorAll)
    * NOTE:
@@ -506,7 +500,7 @@ export function patchElementAndDocument (): void {
   //       return get?.call(this)
   //     },
   //     set: function (value) {
-  //       const currentAppName = getCurrentAppName()
+  //       const currentAppName = this.__MICRO_APP_NAME__ || getCurrentAppName()
   //       if (currentAppName && appInstanceMap.has(currentAppName)) {
   //         const app = appInstanceMap.get(currentAppName)
   //         value = CompletionPath(value, app!.url)
@@ -515,24 +509,6 @@ export function patchElementAndDocument (): void {
   //     },
   //   })
   // })
-
-  rawDefineProperty(rawRootElement.prototype, 'innerHTML', {
-    configurable: true,
-    enumerable: true,
-    get () {
-      return globalEnv.rawInnerHTMLDesc.get.call(this)
-    },
-    set (code: string) {
-      globalEnv.rawInnerHTMLDesc.set.call(this, code)
-      const currentAppName = getCurrentAppName()
-      Array.from(this.children).forEach((child) => {
-        if (isElement(child) && currentAppName) {
-          // TODO: 使用updateElementInfo进行更新
-          child.__MICRO_APP_NAME__ = currentAppName
-        }
-      })
-    }
-  })
 
   rawDefineProperty(rawRootNode.prototype, 'parentNode', {
     configurable: true,
@@ -545,6 +521,7 @@ export function patchElementAndDocument (): void {
        *    // root is child app window, so root.document is proxyDocument or microDocument
        *    if (element.parentNode === root.document) ...
       */
+      // TODO: iframe的 throttleDeferForSetAppName 应该就是为了这个吧
       const currentAppName = getCurrentAppName()
       if (currentAppName && this === globalEnv.rawDocument.firstElementChild) {
         const microDocument = appInstanceMap.get(currentAppName)?.sandBox?.proxyWindow?.document
@@ -568,6 +545,29 @@ export function patchElementAndDocument (): void {
       return result
     },
   })
+
+  rawDefineProperty(rawRootElement.prototype, 'innerHTML', {
+    configurable: true,
+    enumerable: true,
+    get () {
+      return globalEnv.rawInnerHTMLDesc.get.call(this)
+    },
+    set (code: string) {
+      globalEnv.rawInnerHTMLDesc.set.call(this, code)
+      const currentAppName = this.__MICRO_APP_NAME__ || getCurrentAppName()
+      Array.from(this.children).forEach((child) => {
+        if (isElement(child) && currentAppName) {
+          updateElementInfo(child, currentAppName)
+        }
+      })
+    }
+  })
+
+  // patch cloneNode
+  rawRootElement.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
+    const clonedNode = globalEnv.rawCloneNode.call(this, deep)
+    return updateElementInfo(clonedNode, this.__MICRO_APP_NAME__)
+  }
 }
 
 /**
@@ -575,9 +575,7 @@ export function patchElementAndDocument (): void {
  * @param element new element
  */
 function markElement <T extends Node> (element: T): T {
-  const currentAppName = getCurrentAppName()
-  if (currentAppName) element.__MICRO_APP_NAME__ = currentAppName
-  return element
+  return updateElementInfo(element, getCurrentAppName())
 }
 
 // methods of document
@@ -658,7 +656,7 @@ function patchDocument () {
   rawRootDocument.prototype.querySelector = querySelector
   rawRootDocument.prototype.querySelectorAll = querySelectorAll
 
-  rawRootDocument.prototype.getElementById = function getElementById (key: string): HTMLElement | null {
+  rawRootDocument.prototype.getElementById = function getElementById (this: Document, key: string): HTMLElement | null {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementById.call(_this, key)
@@ -671,7 +669,7 @@ function patchDocument () {
     }
   }
 
-  rawRootDocument.prototype.getElementsByClassName = function getElementsByClassName (key: string): HTMLCollectionOf<Element> {
+  rawRootDocument.prototype.getElementsByClassName = function getElementsByClassName (this: Document, key: string): HTMLCollectionOf<Element> {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementsByClassName.call(_this, key)
@@ -684,7 +682,7 @@ function patchDocument () {
     }
   }
 
-  rawRootDocument.prototype.getElementsByTagName = function getElementsByTagName (key: string): HTMLCollectionOf<Element> {
+  rawRootDocument.prototype.getElementsByTagName = function getElementsByTagName (this: Document, key: string): HTMLCollectionOf<Element> {
     const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
@@ -703,7 +701,7 @@ function patchDocument () {
     }
   }
 
-  rawRootDocument.prototype.getElementsByName = function getElementsByName (key: string): NodeListOf<HTMLElement> {
+  rawRootDocument.prototype.getElementsByName = function getElementsByName (this: Document, key: string): NodeListOf<HTMLElement> {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementsByName.call(_this, key)

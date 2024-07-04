@@ -85,10 +85,10 @@ function patchWindowProperty (
           rawDefineProperty(microAppWindow[key], Symbol.hasInstance, {
             configurable: true,
             enumerable: false,
-            value: (instance: unknown) => {
-              return instance instanceof rawWindow[key]
+            value: (target: unknown) => {
+              return target instanceof rawWindow[key]
                 ? true
-                : instanceOf(instance, microAppWindow[key])
+                : instanceOf(target, microAppWindow[key])
             },
           })
           return true

@@ -479,7 +479,7 @@ export default class IframeSandbox {
    * @param container micro app container
    */
   public patchStaticElement (container: Element | ShadowRoot): void {
-    patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
+    patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__, true)
   }
 
   /**

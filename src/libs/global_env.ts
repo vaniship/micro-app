@@ -11,6 +11,9 @@ import {
 import {
   rejectMicroAppStyle,
 } from '../source/patch'
+import {
+  updateElementInfo,
+} from '../sandbox/adapter'
 
 declare global {
   interface Node {
@@ -92,12 +95,10 @@ export function initGlobalEnv (): void {
     const rawGetElementsByTagName = rawRootDocument.prototype.getElementsByTagName
     const rawGetElementsByName = rawRootDocument.prototype.getElementsByName
 
+    // TODO: 优化，将ImageProxy移出去
     const ImageProxy = new Proxy(Image, {
       construct (Target, args): HTMLImageElement {
-        const elementImage = new Target(...args)
-        const currentAppName = getCurrentAppName()
-        if (currentAppName) elementImage.__MICRO_APP_NAME__ = currentAppName
-        return elementImage
+        return updateElementInfo(new Target(...args), getCurrentAppName())
       },
     })
 

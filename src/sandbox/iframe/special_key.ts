@@ -50,11 +50,11 @@ export const proxy2RawDocOrShadowKeys = [
   'firstElementChild',
   'firstChild',
   'lastElementChild',
-  'activeElement', // not for Element, but for document/shadowRoot
-  'fullscreenElement', // not for Element, but for document/shadowRoot
-  'pictureInPictureElement', // not for Element, but for document/shadowRoot
-  'pointerLockElement', // not for Element, but for document/shadowRoot
-  'styleSheets', // not for Element, but for document/shadowRoot
+  'activeElement', // not for Element, just for document/shadowRoot
+  'fullscreenElement', // not for Element, just for document/shadowRoot
+  'pictureInPictureElement', // not for Element, just for document/shadowRoot
+  'pointerLockElement', // not for Element, just for document/shadowRoot
+  'styleSheets', // not for Element, just for document/shadowRoot
 ]
 
 // 有shadowRoot则代理到shadowRoot否则代理到原生document上 (方法)
@@ -62,11 +62,11 @@ export const proxy2RawDocOrShadowMethods = [
   'append',
   'contains',
   'replaceChildren',
-  'createRange', // not for Element, but for document/shadowRoot
-  'getSelection', // not for Element, but for document/shadowRoot
-  'elementFromPoint', // not for Element, but for document/shadowRoot
-  'elementsFromPoint', // not for Element, but for document/shadowRoot
-  'getAnimations', // not for Element, but for document/shadowRoot
+  'createRange', // not for Element, just for document/shadowRoot
+  'getSelection', // not for Element, just for document/shadowRoot
+  'elementFromPoint', // not for Element, just for document/shadowRoot
+  'elementsFromPoint', // not for Element, just for document/shadowRoot
+  'getAnimations', // not for Element, just for document/shadowRoot
 ]
 
 // 直接代理到原生document上 (属性)

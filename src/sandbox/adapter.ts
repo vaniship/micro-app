@@ -7,10 +7,14 @@ import {
   defer,
   isNode,
   rawDefineProperties,
+  throttleDeferForSetAppName,
+  isMicroAppBody,
 } from '../libs/utils'
 import {
   appInstanceMap,
+  isIframeSandbox,
 } from '../create_app'
+import microApp from '../micro_app'
 
 export class BaseSandbox implements BaseSandboxType {
   constructor () {
@@ -99,16 +103,21 @@ export function fixReactHMRConflict (app: AppInterface): void {
  * update dom tree of target dom
  * @param container target dom
  * @param appName app name
+ * @param isStaticElement is HTML built-in element
  */
-export function patchElementTree (container: Element | ShadowRoot, appName: string): void {
+export function patchElementTree (
+  container: Element | ShadowRoot,
+  appName: string,
+  isStaticElement?: boolean,
+): void {
   const children = Array.from(container.children)
 
   children.length && children.forEach((child) => {
-    patchElementTree(child, appName)
+    patchElementTree(child, appName, isStaticElement)
   })
 
   for (const child of children) {
-    updateElementInfo(child, appName)
+    updateElementInfo(child, appName, isStaticElement)
   }
 }
 
@@ -116,36 +125,115 @@ export function patchElementTree (container: Element | ShadowRoot, appName: stri
  * rewrite baseURI, ownerDocument, __MICRO_APP_NAME__ of target node
  * @param node target node
  * @param appName app name
+ * @param isStaticElement is HTML built-in element
  * @returns target node
  */
-export function updateElementInfo <T> (node: T, appName: string): T {
-  const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
+export function updateElementInfo <T> (
+  node: T,
+  appName: string | null,
+  isStaticElement?: boolean,
+): T {
   if (
+    appName &&
     isNode(node) &&
     !node.__MICRO_APP_NAME__ &&
-    !node.__PURE_ELEMENT__ &&
-    proxyWindow
+    !node.__PURE_ELEMENT__
   ) {
     /**
      * TODO:
      *  1. 测试baseURI和ownerDocument在with沙箱中是否正确
      *    经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
      *  2. with沙箱所有node设置__MICRO_APP_NAME__都使用updateElementInfo
-     *  3. iframe沙箱是否可以放入原型链
     */
     rawDefineProperties(node, {
-      baseURI: {
-        configurable: true,
-        // if disable-memory-router or router-mode='disable', href point to base app
-        get: () => proxyWindow.location.href,
-      },
       __MICRO_APP_NAME__: {
         configurable: true,
+        enumerable: true,
         writable: true,
         value: appName,
       },
     })
+
+    /**
+     * In FireFox, iframe element will convert to browser Element Instance after insert to document
+     *
+     * Performance:
+     *  iframe element.__proto__ === browser HTMLElement.prototype // Chrome: false, FireFox: true
+     *  iframe element.__proto__ === iframe HTMLElement.prototype // Chrome: true, FireFox: false
+     *
+     * NOTE:
+     *  1. Node.prototype.baseURI
+     *  2. Node.prototype.ownerDocument
+     *  3. Node.prototype.parentNode
+     *  4. Node.prototype.cloneNode
+     *  5. Element.prototype.innerHTML
+     *  6. Image
+     */
+    if (isIframeSandbox(appName)) {
+      const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
+      if (proxyWindow) {
+        rawDefineProperties(node, {
+          baseURI: {
+            configurable: true,
+            enumerable: true,
+            get: () => proxyWindow.location.href,
+          },
+          ownerDocument: {
+            configurable: true,
+            enumerable: true,
+            get: () => node !== proxyWindow.document ? proxyWindow.document : null,
+          },
+          parentNode: getIframeParentNodeDesc(
+            appName,
+            globalEnv.rawParentNodeDesc,
+            isStaticElement,
+          )
+        })
+      }
+    }
   }
 
   return node
+}
+
+/**
+ * get Descriptor of Node.prototype.parentNode for iframe
+ * @param appName app name
+ * @param parentNode parentNode Descriptor of iframe or browser
+ * @param isStaticElement is HTML built-in element
+ */
+export function getIframeParentNodeDesc (
+  appName: string,
+  parentNodeDesc: PropertyDescriptor,
+  isStaticElement?: boolean,
+): PropertyDescriptor {
+  return {
+    configurable: true,
+    enumerable: true,
+    get (this: Node) {
+      /**
+       * set current appName for hijack parentNode of html
+       * NOTE:
+       *  1. Is there a problem with setting the current appName in iframe mode
+       */
+      // TODO: 去掉 throttleDeferForSetAppName
+      throttleDeferForSetAppName(appName)
+      const result: ParentNode = parentNodeDesc.get?.call(this)
+      /**
+       * If parentNode is <micro-app-body>, return rawDocument.body
+       * Scenes:
+       *  1. element-ui@2/lib/utils/vue-popper.js
+       *    if (this.popperElm.parentNode === document.body) ...
+       * e.g.:
+       *  1. element-ui@2.x el-dropdown
+       * WARNING:
+       *  Will it cause other problems ?
+       *  e.g. target.parentNode.remove(target)
+       */
+      if (!isStaticElement && isMicroAppBody(result) && appInstanceMap.get(appName)?.container) {
+        return microApp.options.getRootElementParentNode?.(this, appName) || globalEnv.rawDocument.body
+      }
+      return result
+    }
+  }
 }
