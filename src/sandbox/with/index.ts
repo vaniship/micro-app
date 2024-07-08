@@ -587,7 +587,7 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
    * @param container micro app container
    */
   public patchStaticElement (container: Element | ShadowRoot): void {
-    patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__, true)
+    patchElementTree(container, this.microAppWindow.__MICRO_APP_NAME__)
   }
 
   /**

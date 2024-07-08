@@ -103,36 +103,27 @@ export function fixReactHMRConflict (app: AppInterface): void {
  * update dom tree of target dom
  * @param container target dom
  * @param appName app name
- * @param isStaticElement is HTML built-in element
  */
 export function patchElementTree (
-  container: Element | ShadowRoot,
+  container: Node,
   appName: string,
-  isStaticElement?: boolean,
 ): void {
-  const children = Array.from(container.children)
+  const children = Array.from(container.childNodes)
 
   children.length && children.forEach((child) => {
-    patchElementTree(child, appName, isStaticElement)
+    patchElementTree(child, appName)
   })
 
-  for (const child of children) {
-    updateElementInfo(child, appName, isStaticElement)
-  }
+  updateElementInfo(container, appName)
 }
 
 /**
  * rewrite baseURI, ownerDocument, __MICRO_APP_NAME__ of target node
  * @param node target node
  * @param appName app name
- * @param isStaticElement is HTML built-in element
  * @returns target node
  */
-export function updateElementInfo <T> (
-  node: T,
-  appName: string | null,
-  isStaticElement?: boolean,
-): T {
+export function updateElementInfo <T> (node: T, appName: string | null): T {
   if (
     appName &&
     isNode(node) &&
@@ -143,7 +134,6 @@ export function updateElementInfo <T> (
      * TODO:
      *  1. 测试baseURI和ownerDocument在with沙箱中是否正确
      *    经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
-     *  2. with沙箱所有node设置__MICRO_APP_NAME__都使用updateElementInfo
     */
     rawDefineProperties(node, {
       __MICRO_APP_NAME__: {
@@ -186,7 +176,6 @@ export function updateElementInfo <T> (
           parentNode: getIframeParentNodeDesc(
             appName,
             globalEnv.rawParentNodeDesc,
-            isStaticElement,
           )
         })
       }
@@ -200,12 +189,10 @@ export function updateElementInfo <T> (
  * get Descriptor of Node.prototype.parentNode for iframe
  * @param appName app name
  * @param parentNode parentNode Descriptor of iframe or browser
- * @param isStaticElement is HTML built-in element
  */
 export function getIframeParentNodeDesc (
   appName: string,
   parentNodeDesc: PropertyDescriptor,
-  isStaticElement?: boolean,
 ): PropertyDescriptor {
   return {
     configurable: true,
@@ -230,7 +217,7 @@ export function getIframeParentNodeDesc (
        *  Will it cause other problems ?
        *  e.g. target.parentNode.remove(target)
        */
-      if (!isStaticElement && isMicroAppBody(result) && appInstanceMap.get(appName)?.container) {
+      if (isMicroAppBody(result) && appInstanceMap.get(appName)?.container) {
         return microApp.options.getRootElementParentNode?.(this, appName) || globalEnv.rawDocument.body
       }
       return result
