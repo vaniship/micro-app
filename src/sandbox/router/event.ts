@@ -64,7 +64,8 @@ export function addHistoryListener (appName: string): CallableFunction {
        *  5. history.pushState/replaceState
        *
        * NOTE2:
-       *  react16 hash mode navigate by location.hash = xxx, history.state is always null, but react16 respond to popstateEvent sync
+       *  1、react16 hash mode navigate by location.hash = xxx, history.state is always null, but react16 respond to popstateEvent sync
+       *  2、multiple child apps may has problems
        */
       if (!isRouterModeCustom(appName) || !history.state || getMicroRouterInfoState(appName)) {
         const container = appInstanceMap.get(appName)?.container

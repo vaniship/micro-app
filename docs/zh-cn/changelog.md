@@ -15,6 +15,7 @@
 - **Bug Fix**
 
   - 🐞 修复 iframe沙箱下history.go传入的是非0数字时iframe被重置导致异常的问题，[PR 1112](https://github.com/micro-zoe/micro-app/pull/1112) by [keuby](https://github.com/keuby)。
+  - 🐞 修复 iframe沙箱下子应用事件类型判断异常的问题，[issue 975](https://github.com/micro-zoe/micro-app/issues/975)，[issue 1120](https://github.com/micro-zoe/micro-app/issues/1120)，[PR 985](https://github.com/micro-zoe/micro-app/pull/985) by [keuby](https://github.com/keuby)。
   - 🐞 修复 类型声明jsx.IntrinsicElements导致vue-ts部分元素lint异常的问题。
   - 🐞 修复 state路由模式下子应用为vue3时刷新浏览器路由状态丢失的问题。
   - 🐞 修复 iframe沙箱在默认模式下二次渲染时初始化沙箱过程中卸载子应用导致异常的问题。
@@ -29,7 +30,7 @@
   - 🐞 修复 svg中图片路径无法自动补全的问题，[issue 1222](https://github.com/micro-zoe/micro-app/issues/1222)。
   - 🐞 修复 Firefox浏览器下子应用`favicon.ico`将主应用图标替换的问题，[issue 1262](https://github.com/micro-zoe/micro-app/issues/1262)。
   - 🐞 修复 Firefox浏览器下子应用元素的`ownerDocument`指向异常导致React16子应用渲染失败的问题。
-  - 🐞 修复 Firefox浏览器下子应用元素的原型链被重置导致子应用渲染异常的的问题，[1089](https://github.com/micro-zoe/micro-app/issues/1089)、[913](https://github.com/micro-zoe/micro-app/issues/913)，[PR 985](https://github.com/micro-zoe/micro-app/pull/985) by [keuby](https://github.com/keuby)。
+  - 🐞 修复 Firefox浏览器下子应用元素的原型链被重置导致子应用渲染异常的的问题，[1089](https://github.com/micro-zoe/micro-app/issues/1089)、[913](https://github.com/micro-zoe/micro-app/issues/913)。
 
 - **Update**
   - 🚀 优化 沙箱架构设计。

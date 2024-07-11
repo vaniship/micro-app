@@ -14,6 +14,7 @@ import {
   isUndefined,
   isPlainObject,
   createURL,
+  isEmptyObject,
 } from '../../libs/utils'
 import {
   appInstanceMap,
@@ -61,7 +62,7 @@ export function removeMicroState (appName: string, rawState: MicroState): MicroS
     }
   }
 
-  return assign({}, rawState)
+  return !isEmptyObject(rawState) ? assign({}, rawState) : null
 }
 
 // get micro app state form origin state

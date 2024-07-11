@@ -710,3 +710,11 @@ const formatEventList = ['mounted', 'unmount']
 export function formatEventType (type: string, appName: string): string {
   return formatEventList.includes(type) ? `${type}-${appName}` : type
 }
+
+/**
+ * Is the object empty
+ * target maybe number, string, array ...
+ */
+export function isEmptyObject (target: unknown): boolean {
+  return isPlainObject(target) ? !Object.keys(target).length : true
+}
