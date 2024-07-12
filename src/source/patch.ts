@@ -515,14 +515,14 @@ export function patchElementAndDocument (): void {
     enumerable: true,
     get () {
       /**
-       * hijack parentNode of html
+       * hijack parentNode of html for with sandbox
        * Scenes:
        *  1. element-ui@2/lib/utils/popper.js
        *    // root is child app window, so root.document is proxyDocument or microDocument
        *    if (element.parentNode === root.document) ...
       */
-      // TODO: iframe的 throttleDeferForSetAppName 应该就是为了这个吧
       const currentAppName = getCurrentAppName()
+      // if this is html element and currentAppName exists, html.parentNode will return proxyDocument
       if (currentAppName && this === globalEnv.rawDocument.firstElementChild) {
         const microDocument = appInstanceMap.get(currentAppName)?.sandBox?.proxyWindow?.document
         if (microDocument) return microDocument
