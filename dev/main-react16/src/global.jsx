@@ -250,3 +250,8 @@ window.onclick = function () {
 // window.onunhandledrejection = (event) => {
 //   console.error(`基座Promise报错监听 -- window.onunhandledrejection: `, event);
 // }
+
+/* ---------------------- 测试message, postMessage --------------------- */
+// window.addEventListener('message', function(event) {
+//   console.log('基座监听的message事件', event.data, event)
+// })

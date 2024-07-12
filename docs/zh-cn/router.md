@@ -430,8 +430,8 @@ window.microApp.router.forward()
 
 **注意事项：**
 - 1、defaultPage只在初始化渲染时有效，控制子应用跳转请参考[导航](/zh-cn/router?id=导航)
-- 2、defaultPage必须是子应用页面的绝对地址，为了防止设置错误，建议单独打开子应用，跳转目标页面，复制粘贴浏览器地址，包括hash和search，将此值设置为`defaultPage`，也可以去掉域名，简化代码
-- 3、由于`native`、`native-scope`模式是基于浏览器进行渲染，通过浏览器url控制子应用渲染的页面，`defaultPage`在这两种模式下无效
+- 2、defaultPage必须是子应用页面的绝对地址，为了防止出错，建议单独打开子应用，跳转目标页面，复制粘贴浏览器地址，包括hash和search，将此值设置为`defaultPage`，也可以去掉域名，简化代码
+- 3、由于`native`、`native-scope`模式是基于浏览器进行渲染，`defaultPage`在这两种模式下无效，通过浏览器url控制子应用默认页面即可。
 
 
 #### 使用方式

@@ -201,6 +201,12 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
 
   function getEventTarget (type: string): Window {
+    /**
+     * TODO: SCOPE_WINDOW_EVENT_OF_IFRAME的事件非常少，有可能导致问题
+     *  1、一些未知的需要绑定到iframe的事件被错误的绑定到原生window上
+     *  2、dispatchEvent目前没有重写，如果发送事件是无法同时触及microWindow和原生window的
+     *  3、postMessage是否需要重写(目前看不需要)
+     */
     return SCOPE_WINDOW_EVENT_OF_IFRAME.includes(type) ? microAppWindow : rawWindow
   }
 
@@ -231,6 +237,10 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
     }
     rawRemoveEventListener.call(getEventTarget(type), type, listener, options)
   }
+
+  // microAppWindow.dispatchEvent = function (event: Event): boolean {
+  //   return globalEnv.rawDispatchEvent.call(getEventTarget(event?.type), event)
+  // }
 
   const reset = (): void => {
     sstEventListenerMap.clear()

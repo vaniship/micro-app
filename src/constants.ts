@@ -119,6 +119,7 @@ export const SCOPE_WINDOW_EVENT_OF_WITH = BASE_SCOPE_WINDOW_EVENT
 // bind event of iframe sandbox
 export const SCOPE_WINDOW_EVENT_OF_IFRAME = BASE_SCOPE_WINDOW_EVENT.concat([
   'unhandledrejection',
+  'message'
 ])
 
 // on event bound to child app window

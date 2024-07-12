@@ -12,6 +12,7 @@ import microApp from '@micro-zoe/micro-app';
 // import './flexible';
 // import '@alifd/next/dist/next.css';
 // import { atan2 } from 'mathjs' // 卡死
+// import './setImmediate.js'
 
 // 循环内嵌
 microApp.start({
@@ -22,7 +23,11 @@ ConfigProvider.config({
   prefixCls: 'react16',
 })
 
-console.log('react16 通过 window.microApp.getData 获取的初始化数据：', window.microApp.getData())
+console.log('react16 通过 window.microApp.getData 获取的初始化数据：', window.microApp?.getData())
+
+// window.setImmediate(function () {
+//   alert(11111111)
+// })
 
 // 数据监听
 window.microApp?.addDataListener((data) => {
