@@ -285,7 +285,7 @@ function patchDocumentProperty (
 }
 
 function patchDocumentEffect (appName: string, microAppWindow: microAppWindowType): CommonEffectHook {
-  const { rawDocument, rawAddEventListener, rawRemoveEventListener } = globalEnv
+  const { rawDocument, rawAddEventListener, rawRemoveEventListener, rawDispatchEvent } = globalEnv
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
   let onClickHandler: unknown = null
@@ -324,6 +324,10 @@ function patchDocumentEffect (appName: string, microAppWindow: microAppWindowTyp
     }
     const handler = listener?.__MICRO_APP_BOUND_FUNCTION__ || listener
     rawRemoveEventListener.call(getEventTarget(type, this), type, handler, options)
+  }
+
+  microRootDocument.prototype.dispatchEvent = function (event: Event): boolean {
+    return rawDispatchEvent.call(getEventTarget(event?.type, this), event)
   }
 
   // 重新定义microRootDocument.prototype 上的on开头方法

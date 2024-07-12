@@ -196,7 +196,7 @@ function createProxyWindow (
 }
 
 function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHook {
-  const { rawWindow, rawAddEventListener, rawRemoveEventListener } = globalEnv
+  const { rawWindow, rawAddEventListener, rawRemoveEventListener, rawDispatchEvent } = globalEnv
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
 
@@ -238,9 +238,9 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
     rawRemoveEventListener.call(getEventTarget(type), type, listener, options)
   }
 
-  // microAppWindow.dispatchEvent = function (event: Event): boolean {
-  //   return globalEnv.rawDispatchEvent.call(getEventTarget(event?.type), event)
-  // }
+  microAppWindow.dispatchEvent = function (event: Event): boolean {
+    return rawDispatchEvent.call(getEventTarget(event?.type), event)
+  }
 
   const reset = (): void => {
     sstEventListenerMap.clear()

@@ -32,6 +32,7 @@
   - 🐞 修复 Firefox浏览器下子应用元素的`ownerDocument`指向异常导致React16子应用渲染失败的问题。
   - 🐞 修复 Firefox浏览器下子应用元素的原型链被重置导致子应用渲染异常的的问题，[1089](https://github.com/micro-zoe/micro-app/issues/1089)、[913](https://github.com/micro-zoe/micro-app/issues/913)。
   - 🐞 修复 iframe沙箱下`message`事件无法被触发的问题。
+  - 🐞 修复 iframe沙箱下window和document通过`dispatchEvent`主动发送某些特殊事件时无法正常触发事件的问题。
 
 - **Update**
   - 🚀 优化 沙箱架构设计。

@@ -5,7 +5,6 @@ export const escape2RawWindowKeys = [
   // 'DOMParser',
   'ResizeObserver',
   'IntersectionObserver',
-  // 'dispatchEvent',
 ]
 
 export const escape2RawWindowRegExpKeys = [
@@ -99,5 +98,4 @@ export const proxy2RawDocumentMethods = [
   'getElementsByTagNameNS',
   'hasFocus',
   'prepend',
-  // 'dispatchEvent',
 ]
