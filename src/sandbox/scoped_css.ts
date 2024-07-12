@@ -159,7 +159,7 @@ class CSSParser {
     if (this.cssText.charAt(0) === '}') {
       if (!nesting) return
       if (nesting > 1) {
-        this.commonMatch(/}+/)
+        this.commonMatch(/}+\s*/)
       }
       return this.matchAllDeclarations(nesting - 1)
     }
