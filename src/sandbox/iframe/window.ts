@@ -204,8 +204,6 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
     /**
      * TODO: SCOPE_WINDOW_EVENT_OF_IFRAME的事件非常少，有可能导致问题
      *  1、一些未知的需要绑定到iframe的事件被错误的绑定到原生window上
-     *  2、dispatchEvent目前没有重写，如果发送事件是无法同时触及microWindow和原生window的
-     *  3、postMessage是否需要重写(目前看不需要)
      */
     return SCOPE_WINDOW_EVENT_OF_IFRAME.includes(type) ? microAppWindow : rawWindow
   }

@@ -453,7 +453,7 @@ export default class App extends React.Component {
                 </micro-app>
               )
             }
-            {/* <iframe src={this.state.url} onLoad={this.mounted} width='700' height='700'></iframe> */}
+            {/* <iframe src={this.state.url} onLoad={this.mounted} width='600' height='700'></iframe> */}
             <Modal
               visible={this.state.showModal}
               maskClosable={true}

@@ -1,8 +1,9 @@
 export const escape2RawWindowKeys = [
   'getComputedStyle',
+  // FIX ISSUE: https://github.com/micro-zoe/micro-app/issues/1292
+  'DOMParser',
   'visualViewport',
   'matchMedia',
-  // 'DOMParser',
   'ResizeObserver',
   'IntersectionObserver',
 ]
@@ -34,6 +35,7 @@ export const hijackMicroLocationKeys = [
   'origin',
 ]
 
+// hijack InstanceOf of iframe class
 export const hijackInstanceOfWindowRegExpKeys = [
   /^((HTML|SVG)\w*|MathML)?Element$/,
   /^(Node|Text|Attr|Comment|EventTarget|CharacterData|NamedNodeMap|ShadowRoot)$/,
@@ -42,7 +44,7 @@ export const hijackInstanceOfWindowRegExpKeys = [
   /^DataTransfer/
 ]
 
-// 有shadowRoot则代理到shadowRoot否则代理到原生document上 (属性)
+// proxy to shadowRoot or rawDocument (property)
 export const proxy2RawDocOrShadowKeys = [
   'childElementCount',
   'children',
@@ -56,7 +58,7 @@ export const proxy2RawDocOrShadowKeys = [
   'styleSheets', // not for Element, just for document/shadowRoot
 ]
 
-// 有shadowRoot则代理到shadowRoot否则代理到原生document上 (方法)
+// proxy to shadowRoot or rawDocument (method)
 export const proxy2RawDocOrShadowMethods = [
   'append',
   'contains',
@@ -68,7 +70,7 @@ export const proxy2RawDocOrShadowMethods = [
   'getAnimations', // not for Element, just for document/shadowRoot
 ]
 
-// 直接代理到原生document上 (属性)
+// proxy to rawDocument (property)
 export const proxy2RawDocumentKeys = [
   'characterSet',
   'compatMode',
@@ -89,7 +91,7 @@ export const proxy2RawDocumentKeys = [
   'fonts',
 ]
 
-// 直接代理到原生document上 (方法)
+// proxy to rawDocument (method)
 export const proxy2RawDocumentMethods = [
   'execCommand',
   'createRange',
