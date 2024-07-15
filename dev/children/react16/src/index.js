@@ -402,25 +402,26 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */
 if (window.__MICRO_APP_ENVIRONMENT__) {
-  // const unBoundDom1 = window.microApp.pureCreateElement('div')
-  // unBoundDom1.innerHTML = 'unBoundDom1'
-  // document.body.appendChild(unBoundDom1)
+  // pureCreateElement创建的元素无法拦截，插入到主应用body中
+  const unBoundDom1 = window.microApp.pureCreateElement('div')
+  unBoundDom1.innerHTML = 'unBoundDom1'
+  document.body.appendChild(unBoundDom1)
 
-  // /**
-  //  * !!!! 注意removeDomScope(true)是异步清空的，这里会导致一个问题
-  //  * 执行removeDomScope(true)后再执行window.mount方法，会导致子应用初始化失败
-  //  */
-  // window.microApp.removeDomScope(true)
-  // const unBoundDom2 = window.document.createElement('div')
-  // unBoundDom2.innerHTML = 'unBoundDom2'
-  // document.body.appendChild(unBoundDom2)
+  // 解除元素绑定，unBoundDom2插入到主应用body中
+  window.microApp.removeDomScope(true) // 解除元素绑定
+  const unBoundDom2 = window.document.createElement('div')
+  unBoundDom2.innerHTML = 'unBoundDom2'
+  document.body.appendChild(unBoundDom2)
+  window.microApp.removeDomScope(false) // 恢复元素绑定
 
-  // const unBoundDom3 = window.rawDocument.createElement('div')
-  // unBoundDom3.innerHTML = 'unBoundDom3'
-  // document.body.appendChild(unBoundDom3)
+  // 元素绑定已经恢复，unBoundDom3插入到子应用 micro-app-body中
+  const unBoundDom3 = window.rawDocument.createElement('div')
+  unBoundDom3.innerHTML = 'unBoundDom3'
+  document.body.appendChild(unBoundDom3)
 
-  // const dynamicSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  // document.body.appendChild(dynamicSvg)
+  // 插入子应用 micro-app-body中
+  const dynamicSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  document.body.appendChild(dynamicSvg)
 }
 
 
@@ -568,3 +569,9 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 // new Promise((resolve, reject) => {
 //   throw 'promise 逃逸的错误'
 // })
+
+/* ---------------------- 测试iframe document.body/head/title --------------------- */
+setTimeout(() => {
+  console.log(1111111, document.body.querySelector('#root')) // 获取子应用root元素
+  console.log(222222222, document.head.querySelector('script')) // 获取子应用head的第一个元素
+}, 5000);

@@ -36,6 +36,7 @@
   - 🐞 修复 iframe沙箱下`DOMParser`解析失败导致`AntV X6`, `docx-preview`等库运行异常的问题[1292](https://github.com/micro-zoe/micro-app/issues/1292)。
 
 - **Update**
+  - 🚀 优化 `removeDomScope`方法，支持解除元素绑定的开关操作。
   - 🚀 优化 沙箱架构设计。
   - 🚀 优化 子应用卸载行为逻辑。
   - 🚀 优化 路由相关文档。

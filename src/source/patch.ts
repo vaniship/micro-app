@@ -745,8 +745,8 @@ export function releasePatchElementAndDocument (): void {
   rawRootElement.prototype.querySelector = globalEnv.rawElementQuerySelector
   rawRootElement.prototype.querySelectorAll = globalEnv.rawElementQuerySelectorAll
   rawRootElement.prototype.setAttribute = globalEnv.rawSetAttribute
-  rawDefineProperty(rawRootElement.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
   rawDefineProperty(rawRootNode.prototype, 'parentNode', globalEnv.rawParentNodeDesc)
+  rawDefineProperty(rawRootElement.prototype, 'innerHTML', globalEnv.rawInnerHTMLDesc)
 }
 
 // Set the style of micro-app-head and micro-app-body

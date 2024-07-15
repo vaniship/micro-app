@@ -436,20 +436,35 @@ export function getCurrentAppName (): string | null {
   return currentMicroAppName
 }
 
-// Clear appName
-let preventSetAppName = false
+// prevent set app name
+let preventSetState = false
+export function getPreventSetState (): boolean {
+  return preventSetState
+}
+
+/**
+ * prevent set appName
+ * usage:
+ * removeDomScope(true)
+ * -----> element scope point to base app <-----
+ * removeDomScope(false)
+ */
 export function removeDomScope (force?: boolean): void {
-  setCurrentAppName(null)
-  if (force && !preventSetAppName) {
-    preventSetAppName = true
-    defer(() => {
-      preventSetAppName = false
-    })
+  if (force !== false) {
+    setCurrentAppName(null)
+    if (force && !preventSetState) {
+      preventSetState = true
+      defer(() => {
+        preventSetState = false
+      })
+    }
+  } else {
+    preventSetState = false
   }
 }
 
-export function throttleDeferForSetAppName (appName: string) {
-  if (currentMicroAppName !== appName && !preventSetAppName) {
+export function throttleDeferForSetAppName (appName: string): void {
+  if (currentMicroAppName !== appName && !getPreventSetState()) {
     setCurrentAppName(appName)
     defer(() => {
       setCurrentAppName(null)
