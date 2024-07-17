@@ -401,28 +401,28 @@ if (window.__MICRO_APP_ENVIRONMENT__) {
 }
 
 /* ---------------------- pureCreateElement & removeDomScope --------------------- */
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  // pureCreateElement创建的元素无法拦截，插入到主应用body中
-  const unBoundDom1 = window.microApp.pureCreateElement('div')
-  unBoundDom1.innerHTML = 'unBoundDom1'
-  document.body.appendChild(unBoundDom1)
+// if (window.__MICRO_APP_ENVIRONMENT__) {
+//   // pureCreateElement创建的元素无法拦截，插入到主应用body中
+//   const unBoundDom1 = window.microApp.pureCreateElement('div')
+//   unBoundDom1.innerHTML = 'unBoundDom1'
+//   document.body.appendChild(unBoundDom1)
 
-  // 解除元素绑定，unBoundDom2插入到主应用body中
-  window.microApp.removeDomScope(true) // 解除元素绑定
-  const unBoundDom2 = window.document.createElement('div')
-  unBoundDom2.innerHTML = 'unBoundDom2'
-  document.body.appendChild(unBoundDom2)
-  window.microApp.removeDomScope(false) // 恢复元素绑定
+//   // 解除元素绑定，unBoundDom2插入到主应用body中
+//   window.microApp.removeDomScope(true) // 解除元素绑定
+//   const unBoundDom2 = window.document.createElement('div')
+//   unBoundDom2.innerHTML = 'unBoundDom2'
+//   document.body.appendChild(unBoundDom2)
+//   window.microApp.removeDomScope(false) // 恢复元素绑定
 
-  // 元素绑定已经恢复，unBoundDom3插入到子应用 micro-app-body中
-  const unBoundDom3 = window.rawDocument.createElement('div')
-  unBoundDom3.innerHTML = 'unBoundDom3'
-  document.body.appendChild(unBoundDom3)
+//   // 元素绑定已经恢复，unBoundDom3插入到子应用 micro-app-body中
+//   const unBoundDom3 = window.rawDocument.createElement('div')
+//   unBoundDom3.innerHTML = 'unBoundDom3'
+//   document.body.appendChild(unBoundDom3)
 
-  // 插入子应用 micro-app-body中
-  const dynamicSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  document.body.appendChild(dynamicSvg)
-}
+//   // 插入子应用 micro-app-body中
+//   const dynamicSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+//   document.body.appendChild(dynamicSvg)
+// }
 
 
 /* ---------------------- 获取原生window 和 document --------------------- */
@@ -570,8 +570,38 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 //   throw 'promise 逃逸的错误'
 // })
 
-/* ---------------------- 测试iframe document.body/head/title --------------------- */
+/* ---------------------- 测试iframe document.body/head 获取元素 --------------------- */
 setTimeout(() => {
-  console.log(1111111, document.body.querySelector('#root')) // 获取子应用root元素
-  console.log(222222222, document.head.querySelector('script')) // 获取子应用head的第一个元素
-}, 5000);
+  // 场景1 querySelector: 不设置appName导致查询元素无法被拦截到子应用内部
+  console.log('获取子应用root元素 -- document.body', document.body.querySelector('#root'))
+  // console.log('获取子应用root元素 -- document.querySelector', document.querySelector('body').querySelector('#root'))
+  console.log('获取子应用body中第一个script元素', document.body.querySelector('script'))
+  console.log('获取子应用head中第一个script元素', document.head.querySelector('script'))
+
+  // 场景2 querySelectorAll: 不设置appName导致查询元素无法被拦截到子应用内部
+  console.log('获取子应用所有root元素 -- document.body.querySelectorAll', document.body.querySelectorAll('#root'))
+  // console.log('获取子应用root元素 -- document.querySelectorAll', document.querySelector('body').querySelectorAll('#root'))
+  console.log('获取子应用body中所有script元素', document.body.querySelectorAll('script'))
+  console.log('获取子应用head中所有script元素', document.head.querySelectorAll('script'))
+
+
+
+  // 场景2：设置appName导致基座元素插入子应用
+  const rawWindow = window.rawWindow
+  window.abc // with获取rawWindow会主动弱清空一次绑定，用这里重新触发
+  // window.microApp.removeDomScope(true)
+  rawWindow.testIframeBody() // 调用主应用方法插入元素
+  // window.microApp.removeDomScope(false)
+}, 1000);
+
+// Fragment 问题
+setTimeout(() => {
+  console.log(22222222)
+  const a = document.createDocumentFragment()
+  const b = document.createElement('script')
+  b.src = 'http://127.0.0.1:8080/js/test.js'
+  a.appendChild(b)
+  // a.append(b)
+  // Element.prototype.appendChild.call(a, b)
+  document.body.appendChild(a)
+}, 2000);

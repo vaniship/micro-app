@@ -193,9 +193,10 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
      *  1. Node.prototype.baseURI
      *  2. Node.prototype.ownerDocument
      *  3. Node.prototype.parentNode
-     *  4. Node.prototype.cloneNode
-     *  5. Element.prototype.innerHTML
-     *  6. Image
+     *  4. Node.prototype.getRootNode
+     *  5. Node.prototype.cloneNode
+     *  6. Element.prototype.innerHTML
+     *  7. Image
      */
     if (isIframeSandbox(appName)) {
       const proxyWindow = appInstanceMap.get(appName)?.sandBox?.proxyWindow
@@ -214,8 +215,15 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
           parentNode: getIframeParentNodeDesc(
             appName,
             globalEnv.rawParentNodeDesc,
-
-          )
+          ),
+          getRootNode: {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: function getRootNode (): Node {
+              return proxyWindow.document
+            }
+          },
         })
       }
     }

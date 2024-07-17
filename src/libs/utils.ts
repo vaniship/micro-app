@@ -157,6 +157,10 @@ export function isMicroAppBody (target: unknown): target is HTMLElement {
   return isElement(target) && target.tagName.toUpperCase() === 'MICRO-APP-BODY'
 }
 
+export function isMicroAppHead (target: unknown): target is HTMLElement {
+  return isElement(target) && target.tagName.toUpperCase() === 'MICRO-APP-HEAD'
+}
+
 // is ProxyDocument
 export function isProxyDocument (target: unknown): target is Document {
   return toTypeString(target) === '[object ProxyDocument]'
@@ -426,14 +430,42 @@ export function promiseRequestIdle (callback: CallableFunction): Promise<void> {
 /**
  * Record the currently running app.name
  */
-let currentMicroAppName: string | null = null
+let currentAppName: string | null = null
 export function setCurrentAppName (appName: string | null): void {
-  currentMicroAppName = appName
+  currentAppName = appName
 }
 
 // get the currently running app.name
 export function getCurrentAppName (): string | null {
-  return currentMicroAppName
+  return currentAppName
+}
+
+export function throttleDeferForSetAppName (appName: string): void {
+  if (currentAppName !== appName && !getPreventSetState()) {
+    setCurrentAppName(appName)
+    defer(() => {
+      setCurrentAppName(null)
+    })
+  }
+}
+
+// only for iframe document.body(head).querySelector(querySelectorAll)
+let iframeCurrentAppName: string | null = null
+export function setIframeCurrentAppName (appName: string | null) {
+  iframeCurrentAppName = appName
+}
+
+export function getIframeCurrentAppName (): string | null {
+  return iframeCurrentAppName
+}
+
+export function throttleDeferForIframeAppName (appName: string): void {
+  if (iframeCurrentAppName !== appName && !getPreventSetState()) {
+    setIframeCurrentAppName(appName)
+    defer(() => {
+      setIframeCurrentAppName(null)
+    })
+  }
 }
 
 // prevent set app name
@@ -452,6 +484,7 @@ export function getPreventSetState (): boolean {
 export function removeDomScope (force?: boolean): void {
   if (force !== false) {
     setCurrentAppName(null)
+    setIframeCurrentAppName(null)
     if (force && !preventSetState) {
       preventSetState = true
       defer(() => {
@@ -460,15 +493,6 @@ export function removeDomScope (force?: boolean): void {
     }
   } else {
     preventSetState = false
-  }
-}
-
-export function throttleDeferForSetAppName (appName: string): void {
-  if (currentMicroAppName !== appName && !getPreventSetState()) {
-    setCurrentAppName(appName)
-    defer(() => {
-      setCurrentAppName(null)
-    })
   }
 }
 
