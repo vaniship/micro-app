@@ -278,17 +278,15 @@ class CSSParser {
 
   // https://developer.mozilla.org/en-US/docs/Web/CSS/@layer
   private layerRule (): boolean | void {
-    if (!this.commonMatch(/^@layer *([^{;@]+)/))
-        return false
+    if (!this.commonMatch(/^@layer *([^{;@]+)/)) { return false }
     if (!this.matchOpenBrace()) {
-        return !!this.commonMatch(/^[;\s]*/)
+      return !!this.commonMatch(/^[;\s]*/)
     }
-    this.matchComments();
-    this.matchRules();
-    if (!this.matchCloseBrace())
-        return parseError(`@layer missing '}'`, this.linkPath);
-    this.matchLeadingSpaces();
-    return true;
+    this.matchComments()
+    this.matchRules()
+    if (!this.matchCloseBrace()) { return parseError('@layer missing \'}\'', this.linkPath) }
+    this.matchLeadingSpaces()
+    return true
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSMediaRule

@@ -46,6 +46,7 @@ declare global {
     Node: any,
     EventTarget: any,
     HTMLElement: HTMLElement,
+    DocumentFragment: any,
   }
 }
 
@@ -66,16 +67,19 @@ export function initGlobalEnv (): void {
     const rawRootElement = rawWindow.Element
     const rawRootNode = rawWindow.Node
     const rawRootEventTarget = rawWindow.EventTarget
+    const rawDocumentFragment = rawWindow.DocumentFragment
 
     // save patch raw methods, pay attention to this binding
+    const rawAppendChild = rawRootNode.prototype.appendChild
+    const rawInsertBefore = rawRootNode.prototype.insertBefore
+    const rawReplaceChild = rawRootNode.prototype.replaceChild
+    const rawRemoveChild = rawRootNode.prototype.removeChild
     const rawSetAttribute = rawRootElement.prototype.setAttribute
-    const rawAppendChild = rawRootElement.prototype.appendChild
-    const rawInsertBefore = rawRootElement.prototype.insertBefore
-    const rawReplaceChild = rawRootElement.prototype.replaceChild
-    const rawRemoveChild = rawRootElement.prototype.removeChild
     const rawAppend = rawRootElement.prototype.append
     const rawPrepend = rawRootElement.prototype.prepend
-    const rawCloneNode = rawRootElement.prototype.cloneNode
+    const rawFragmentAppend = rawDocumentFragment.prototype.append
+    const rawFragmentPrepend = rawDocumentFragment.prototype.prepend
+    const rawCloneNode = rawRootNode.prototype.cloneNode
     const rawElementQuerySelector = rawRootElement.prototype.querySelector
     const rawElementQuerySelectorAll = rawRootElement.prototype.querySelectorAll
     const rawInsertAdjacentElement = rawRootElement.prototype.insertAdjacentElement
@@ -128,6 +132,7 @@ export function initGlobalEnv (): void {
       rawRootDocument,
       rawRootElement,
       rawRootNode,
+      rawDocumentFragment,
 
       // source/patch
       rawSetAttribute,
@@ -137,6 +142,8 @@ export function initGlobalEnv (): void {
       rawRemoveChild,
       rawAppend,
       rawPrepend,
+      rawFragmentAppend,
+      rawFragmentPrepend,
       rawCloneNode,
       rawElementQuerySelector,
       rawElementQuerySelectorAll,

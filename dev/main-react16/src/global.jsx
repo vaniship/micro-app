@@ -256,8 +256,8 @@ window.onclick = function () {
 //   console.log('基座监听的message事件', event.data, event)
 // })
 
-window.testIframeBody = function () {
-  const testIframeBody = window.document.createElement('div')
-  testIframeBody.innerHTML = 'testIframeBody'
-  document.body.appendChild(testIframeBody)
+window.insertNodeFromBaseApp = function () {
+  const div = window.document.createElement('div')
+  div.innerHTML = 'insertNodeFromBaseApp'
+  document.body.appendChild(div)
 }

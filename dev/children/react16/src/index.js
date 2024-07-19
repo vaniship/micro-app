@@ -571,37 +571,44 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 // })
 
 /* ---------------------- 测试iframe document.body/head 获取元素 --------------------- */
-setTimeout(() => {
-  // 场景1 querySelector: 不设置appName导致查询元素无法被拦截到子应用内部
-  console.log('获取子应用root元素 -- document.body', document.body.querySelector('#root'))
-  // console.log('获取子应用root元素 -- document.querySelector', document.querySelector('body').querySelector('#root'))
-  console.log('获取子应用body中第一个script元素', document.body.querySelector('script'))
-  console.log('获取子应用head中第一个script元素', document.head.querySelector('script'))
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  setTimeout(() => {
+    // 场景1 querySelector: 不设置appName导致查询元素无法被拦截到子应用内部
+    console.log('获取子应用root元素 -- document.body', document.body.querySelector('#root'))
+    // console.log('获取子应用root元素 -- document.querySelector', document.querySelector('body').querySelector('#root'))
+    console.log('获取子应用body中第一个script元素', document.body.querySelector('script'))
+    console.log('获取子应用head中第一个script元素', document.head.querySelector('script'))
 
-  // 场景2 querySelectorAll: 不设置appName导致查询元素无法被拦截到子应用内部
-  console.log('获取子应用所有root元素 -- document.body.querySelectorAll', document.body.querySelectorAll('#root'))
-  // console.log('获取子应用root元素 -- document.querySelectorAll', document.querySelector('body').querySelectorAll('#root'))
-  console.log('获取子应用body中所有script元素', document.body.querySelectorAll('script'))
-  console.log('获取子应用head中所有script元素', document.head.querySelectorAll('script'))
+    // 场景2 querySelectorAll: 不设置appName导致查询元素无法被拦截到子应用内部
+    console.log('获取子应用所有root元素 -- document.body.querySelectorAll', document.body.querySelectorAll('#root'))
+    // console.log('获取子应用root元素 -- document.querySelectorAll', document.querySelector('body').querySelectorAll('#root'))
+    console.log('获取子应用body中所有script元素', document.body.querySelectorAll('script'))
+    console.log('获取子应用head中所有script元素', document.head.querySelectorAll('script'))
+
+    console.log(`document.querySelector('script') ==>`, document.querySelector('script'))
+    console.log(`document.querySelectorAll('script') ==>`, document.querySelectorAll('script'))
 
 
+    // 场景2：设置appName导致基座元素插入子应用
+    // window.microApp.removeDomScope(true)
+    window.rawWindow.insertNodeFromBaseApp() // 调用主应用方法插入元素
+    // window.microApp.removeDomScope(false)
+  }, 1000);
+}
 
-  // 场景2：设置appName导致基座元素插入子应用
-  const rawWindow = window.rawWindow
-  window.abc // with获取rawWindow会主动弱清空一次绑定，用这里重新触发
-  // window.microApp.removeDomScope(true)
-  rawWindow.testIframeBody() // 调用主应用方法插入元素
-  // window.microApp.removeDomScope(false)
-}, 1000);
-
-// Fragment 问题
-setTimeout(() => {
-  console.log(22222222)
-  const a = document.createDocumentFragment()
-  const b = document.createElement('script')
-  b.src = 'http://127.0.0.1:8080/js/test.js'
-  a.appendChild(b)
-  // a.append(b)
-  // Element.prototype.appendChild.call(a, b)
-  document.body.appendChild(a)
-}, 2000);
+/* ---------------------- 测试 DocumentFragment --------------------- */
+if (window.__MICRO_APP_ENVIRONMENT__) {
+  setTimeout(() => {
+    // window.microApp.removeDomScope(true)
+    const a = document.createDocumentFragment()
+    const b = document.createElement('script')
+    // const b = window.microApp.pureCreateElement('script')
+    b.src = 'http://127.0.0.1:8080/js/test.js'
+    // a.appendChild(b)
+    // a.append(b)
+    a.prepend(b)
+    // Element.prototype.appendChild.call(a, b)
+    document.body.prepend(a)
+    // window.microApp.removeDomScope(false)
+  }, 1000);
+}

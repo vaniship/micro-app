@@ -10,6 +10,7 @@ import {
   isBaseElement,
   isElement,
   isNode,
+  isDocumentFragment,
 } from '../../libs/utils'
 import {
   updateElementInfo,
@@ -43,10 +44,12 @@ function patchIframeNode (
   sandbox: IframeSandbox,
 ): void {
   const rawRootElement = globalEnv.rawRootElement // native root Element
+  const rawRootNode = globalEnv.rawRootNode
   const rawDocument = globalEnv.rawDocument
   const microDocument = microAppWindow.document
   const microRootNode = microAppWindow.Node
   const microRootElement = microAppWindow.Element
+  const microDocumentFragment = microAppWindow.DocumentFragment
   // const rawMicroGetRootNode = microRootNode.prototype.getRootNode
   const rawMicroAppendChild = microRootNode.prototype.appendChild
   const rawMicroInsertBefore = microRootNode.prototype.insertBefore
@@ -54,6 +57,8 @@ function patchIframeNode (
   const rawMicroRemoveChild = microRootNode.prototype.removeChild
   const rawMicroAppend = microRootElement.prototype.append
   const rawMicroPrepend = microRootElement.prototype.prepend
+  const rawMicroFragmentAppend = microDocumentFragment.prototype.append
+  const rawMicroFragmentPrepend = microDocumentFragment.prototype.prepend
   const rawMicroInsertAdjacentElement = microRootElement.prototype.insertAdjacentElement
   const rawMicroCloneNode = microRootNode.prototype.cloneNode
   const rawInnerHTMLDesc = Object.getOwnPropertyDescriptor(microRootElement.prototype, 'innerHTML')!
@@ -79,7 +84,7 @@ function patchIframeNode (
     if (isPureNode(node)) {
       return rawMicroAppendChild.call(this, node)
     }
-    return rawRootElement.prototype.appendChild.call(getRawTarget(this), node)
+    return rawRootNode.prototype.appendChild.call(getRawTarget(this), node)
   }
 
   microRootNode.prototype.insertBefore = function insertBefore <T extends Node> (node: T, child: Node | null): T {
@@ -87,7 +92,7 @@ function patchIframeNode (
     if (isPureNode(node)) {
       return rawMicroInsertBefore.call(this, node, child)
     }
-    return rawRootElement.prototype.insertBefore.call(getRawTarget(this), node, child)
+    return rawRootNode.prototype.insertBefore.call(getRawTarget(this), node, child)
   }
 
   microRootNode.prototype.replaceChild = function replaceChild <T extends Node> (node: Node, child: T): T {
@@ -95,17 +100,17 @@ function patchIframeNode (
     if (isPureNode(node)) {
       return rawMicroReplaceChild.call(this, node, child)
     }
-    return rawRootElement.prototype.replaceChild.call(getRawTarget(this), node, child)
+    return rawRootNode.prototype.replaceChild.call(getRawTarget(this), node, child)
   }
 
   microRootNode.prototype.removeChild = function removeChild<T extends Node> (oldChild: T): T {
     if (isPureNode(oldChild) || this.contains(oldChild)) {
       return rawMicroRemoveChild.call(this, oldChild)
     }
-    return rawRootElement.prototype.removeChild.call(getRawTarget(this), oldChild)
+    return rawRootNode.prototype.removeChild.call(getRawTarget(this), oldChild)
   }
 
-  microRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
+  microDocumentFragment.prototype.append = microRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
     let i = 0; let hasPureNode = false
     while (i < nodes.length) {
       nodes[i] = isNode(nodes[i]) ? nodes[i] : microDocument.createTextNode(nodes[i])
@@ -113,12 +118,12 @@ function patchIframeNode (
       i++
     }
     if (hasPureNode) {
-      return rawMicroAppend.call(this, ...nodes)
+      return (isDocumentFragment(this) ? rawMicroFragmentAppend : rawMicroAppend).call(this, ...nodes)
     }
     return rawRootElement.prototype.append.call(getRawTarget(this), ...nodes)
   }
 
-  microRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
+  microDocumentFragment.prototype.prepend = microRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
     let i = 0; let hasPureNode = false
     while (i < nodes.length) {
       nodes[i] = isNode(nodes[i]) ? nodes[i] : microDocument.createTextNode(nodes[i])
@@ -126,7 +131,7 @@ function patchIframeNode (
       i++
     }
     if (hasPureNode) {
-      return rawMicroPrepend.call(this, ...nodes)
+      return (isDocumentFragment(this) ? rawMicroFragmentPrepend : rawMicroPrepend).call(this, ...nodes)
     }
     return rawRootElement.prototype.prepend.call(getRawTarget(this), ...nodes)
   }

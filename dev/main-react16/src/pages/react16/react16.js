@@ -433,7 +433,7 @@ export default class App extends React.Component {
                   baseroute={this.state.baseroute}
                   // keep-alive
                   // destroy
-                  // inline
+                  inline
                   // disableSandbox
                   // disable-sandbox
                   // disableScopecss

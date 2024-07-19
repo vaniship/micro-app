@@ -153,6 +153,10 @@ export function isBaseElement (target: unknown): target is HTMLBaseElement {
   return toTypeString(target) === '[object HTMLBaseElement]'
 }
 
+export function isDocumentFragment (target: unknown): target is DocumentFragment {
+  return toTypeString(target) === '[object DocumentFragment]'
+}
+
 export function isMicroAppBody (target: unknown): target is HTMLElement {
   return isElement(target) && target.tagName.toUpperCase() === 'MICRO-APP-BODY'
 }

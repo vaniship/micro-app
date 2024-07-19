@@ -36,6 +36,7 @@
   - 🐞 修复 iframe沙箱下`DOMParser`解析失败导致`AntV X6`, `docx-preview`等库运行异常的问题[1292](https://github.com/micro-zoe/micro-app/issues/1292)。
   - 🐞 修复 iframe沙箱下主应用元素被错误插入到子应用中的情况[1260](https://github.com/micro-zoe/micro-app/issues/1260)。
   - 🐞 修复 iframe沙箱下富文本编辑器表现异常的问题[1031](https://github.com/micro-zoe/micro-app/issues/1031)、[1231](https://github.com/micro-zoe/micro-app/issues/1231)、[1023](https://github.com/micro-zoe/micro-app/issues/1203)。
+  - 🐞 修复 Fragment内部link、script等元素无法拦截和处理的问题。
 
 - **Update**
   - 🚀 优化 `removeDomScope`方法，支持解除元素绑定的开关操作。
