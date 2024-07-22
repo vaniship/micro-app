@@ -99,7 +99,7 @@ export function initGlobalEnv (): void {
     const rawGetElementsByTagName = rawRootDocument.prototype.getElementsByTagName
     const rawGetElementsByName = rawRootDocument.prototype.getElementsByName
 
-    // TODO: 优化，将ImageProxy移出去
+    // TODO: 将ImageProxy移出去
     const ImageProxy = new Proxy(Image, {
       construct (Target, args): HTMLImageElement {
         return updateElementInfo(new Target(...args), getCurrentAppName())

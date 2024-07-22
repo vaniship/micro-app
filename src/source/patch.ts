@@ -271,7 +271,7 @@ function invokeRawMethod (
     /**
      * In iframe sandbox, script will pend to iframe.body, so we should reset rawMethod, because:
      * Element.prototype.append === DocumentFragment.prototype.append ==> false
-     * Node.prototype.appendChild === DocumentFragment.prototype.appendChild  ==> true
+     * Element.prototype.prepend === DocumentFragment.prototype.prepend ==> false
      */
     if (app?.iframe && isScriptElement(targetNode)) {
       if (rawMethod === globalEnv.rawFragmentAppend) {

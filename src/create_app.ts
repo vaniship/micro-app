@@ -25,7 +25,6 @@ import {
   isPromise,
   logError,
   getRootContainer,
-  isObject,
   execMicroAppGlobalHook,
   pureCreateElement,
   isDivElement,
@@ -314,30 +313,33 @@ export default class CreateApp implements AppInterface {
         })
 
         if (!this.umdMode) {
-          // update element info of html
-          this.sandBox?.actionBeforeExecScripts(this.container)
-          // if all js are executed, param isFinished will be true
-          execScripts(this, (isFinished: boolean) => {
-            if (!this.umdMode) {
-              const { mount, unmount } = this.getUmdLibraryHooks()
-              /**
-               * umdHookUnmount can works in default mode
-               * register through window.unmount
-               */
+          // patch element info of html
+          this.sandBox?.actionsBeforeExecScripts(this.container, (mount, unmount) => {
+            if (!this.umdMode && !this.isUnmounted()) {
+              this.umdHookMount = isFunction(mount) ? mount : null
+              // umdHookUnmount can works in default mode, register by window.unmount
               this.umdHookUnmount = isFunction(unmount) ? unmount : null
               // if mount & unmount is function, the sub app is umd mode
-              if (isFunction(mount) && isFunction(unmount)) {
-                this.umdHookMount = mount
-                // sandbox must exist
-                this.sandBox!.markUmdMode(this.umdMode = true)
+              if (isFunction(this.umdHookMount) && isFunction(this.umdHookUnmount)) {
+                this.sandBox?.markUmdMode(this.umdMode = true)
                 try {
-                  this.handleMounted(this.umdHookMount(microApp.getData(this.name, true)))
+                  // 如果发现状态为mounted，说明isFinished为true且this.handleMounted已经执行完成
+                  if (this.getAppState() === appStates.MOUNTED) {
+                    this.umdHookMount(microApp.getData(this.name, true))
+                  } else {
+                    this.handleMounted(this.umdHookMount(microApp.getData(this.name, true)))
+                  }
                 } catch (e) {
                   logError('An error occurred when mount \n', this.name, e)
                 }
-              } else if (isFinished === true) {
-                this.handleMounted()
               }
+            }
+          })
+
+          // if all js are executed, param isFinished will be true
+          execScripts(this, (isFinished: boolean) => {
+            if (!this.umdMode && isFinished === true) {
+              this.handleMounted()
             }
           })
         } else {
@@ -791,28 +793,6 @@ export default class CreateApp implements AppInterface {
   // is app already hidden
   public isHidden (): boolean {
     return keepAliveStates.KEEP_ALIVE_HIDDEN === this.keepAliveState
-  }
-
-  // get umd library, if it not exist, return empty object
-  private getUmdLibraryHooks (): Record<string, Func> {
-    // after execScripts, the app maybe unmounted
-    if (!this.isUnmounted() && this.sandBox) {
-      const libraryName = getRootContainer(this.container!).getAttribute('library') || `micro-app-${this.name}`
-
-      const proxyWindow = this.sandBox.proxyWindow as Record<string, any>
-
-      // compatible with pre versions
-      if (isObject(proxyWindow[libraryName])) {
-        return proxyWindow[libraryName]
-      }
-
-      return {
-        mount: proxyWindow.mount,
-        unmount: proxyWindow.unmount,
-      }
-    }
-
-    return {}
   }
 
   private getMicroAppGlobalHook (eventName: string): Func | null {

@@ -82,6 +82,8 @@ declare module '@micro-app/types' {
     staticEscapeProperties: PropertyKey[]
     // Variables that scoped in child app
     staticScopeProperties: PropertyKey[]
+    // reset mount, unmount when stop in default mode
+    resetHijackUmdHooks: () => void
   }
 
   interface WithSandBoxInterface extends BaseSandboxType {
@@ -104,7 +106,7 @@ declare module '@micro-app/types' {
     setPreRenderState (state: boolean): void
     markUmdMode(state: boolean): void
     patchStaticElement (container: Element | ShadowRoot): void
-    actionBeforeExecScripts (container: Element | ShadowRoot): void
+    actionsBeforeExecScripts (container: Element | ShadowRoot, handleUmdHooks: Func): void
     deleteIframeElement? (): void
     setStaticAppState (state: string): void
   }

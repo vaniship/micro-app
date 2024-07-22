@@ -571,47 +571,47 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 // })
 
 /* ---------------------- 测试iframe document.body/head 获取元素 --------------------- */
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  setTimeout(() => {
-    // // 场景1 querySelector: 不设置appName导致查询元素无法被拦截到子应用内部
-    // console.log(`document.body.querySelector('#root') ==>`, document.body.querySelector('#root'))
-    // // console.log(`获取子应用root元素 -- document.querySelector`, document.querySelector('body').querySelector('#root'))
-    // console.log(`document.body.querySelector('script') ==>`, document.body.querySelector('script'))
-    // console.log(`document.head.querySelector('script') ==>`, document.head.querySelector('script'))
+// if (window.__MICRO_APP_ENVIRONMENT__) {
+//   setTimeout(() => {
+//     // 场景1 querySelector: 不设置appName导致查询元素无法被拦截到子应用内部
+//     console.log(`document.body.querySelector('#root') ==>`, document.body.querySelector('#root'))
+//     // console.log(`获取子应用root元素 -- document.querySelector`, document.querySelector('body').querySelector('#root'))
+//     console.log(`document.body.querySelector('script') ==>`, document.body.querySelector('script'))
+//     console.log(`document.head.querySelector('script') ==>`, document.head.querySelector('script'))
 
-    // // 场景2 querySelectorAll: 不设置appName导致查询元素无法被拦截到子应用内部
-    // console.log(`document.body.querySelectorAll('#root') ==>`, document.body.querySelectorAll('#root'))
-    // // console.log(`document.querySelector('body').querySelectorAll('#root') ==>`, document.querySelector('body').querySelectorAll('#root'))
-    // console.log(`document.body.querySelectorAll('script') ==>`, document.body.querySelectorAll('script'))
-    // console.log(`document.head.querySelectorAll('script') ==>`, document.head.querySelectorAll('script'))
+//     // 场景2 querySelectorAll: 不设置appName导致查询元素无法被拦截到子应用内部
+//     console.log(`document.body.querySelectorAll('#root') ==>`, document.body.querySelectorAll('#root'))
+//     // console.log(`document.querySelector('body').querySelectorAll('#root') ==>`, document.querySelector('body').querySelectorAll('#root'))
+//     console.log(`document.body.querySelectorAll('script') ==>`, document.body.querySelectorAll('script'))
+//     console.log(`document.head.querySelectorAll('script') ==>`, document.head.querySelectorAll('script'))
 
-    // console.log(`document.querySelector('script') ==>`, document.querySelector('script'))
-    // console.log(`document.querySelectorAll('script') ==>`, document.querySelectorAll('script'))
+//     console.log(`document.querySelector('script') ==>`, document.querySelector('script'))
+//     console.log(`document.querySelectorAll('script') ==>`, document.querySelectorAll('script'))
 
-    console.log(`document.getElementsByTagName('head')[0].querySelector('script') ==>`, document.getElementsByTagName('head')[0].querySelector('script'))
-    console.log(`document.querySelector('body').querySelectorAll('script') ==>`, document.querySelector('body').querySelectorAll('script'))
+//     console.log(`document.getElementsByTagName('head')[0].querySelector('script') ==>`, document.getElementsByTagName('head')[0].querySelector('script'))
+//     console.log(`document.querySelector('body').querySelectorAll('script') ==>`, document.querySelector('body').querySelectorAll('script'))
 
 
-    // 场景2：设置appName导致基座元素插入子应用
-    // window.microApp.removeDomScope(true)
-    window.rawWindow.insertNodeFromBaseApp() // 调用主应用方法插入元素
-    // window.microApp.removeDomScope(false)
-  }, 1000);
-}
+//     // 场景2：设置appName导致基座元素插入子应用
+//     // window.microApp.removeDomScope(true)
+//     window.rawWindow.insertNodeFromBaseApp() // 调用主应用方法插入元素
+//     // window.microApp.removeDomScope(false)
+//   }, 1000);
+// }
 
 /* ---------------------- 测试 DocumentFragment --------------------- */
-if (window.__MICRO_APP_ENVIRONMENT__) {
-  setTimeout(() => {
-    // window.microApp.removeDomScope(true)
-    const a = document.createDocumentFragment()
-    const b = document.createElement('script')
-    // const b = window.microApp.pureCreateElement('script')
-    b.src = 'http://127.0.0.1:8080/js/test.js'
-    // a.appendChild(b)
-    // a.append(b)
-    a.prepend(b)
-    // Element.prototype.appendChild.call(a, b)
-    document.body.prepend(a)
-    // window.microApp.removeDomScope(false)
-  }, 1000);
-}
+// if (window.__MICRO_APP_ENVIRONMENT__) {
+//   setTimeout(() => {
+//     // window.microApp.removeDomScope(true)
+//     const a = document.createDocumentFragment()
+//     const b = document.createElement('script')
+//     // const b = window.microApp.pureCreateElement('script')
+//     b.src = 'http://127.0.0.1:8080/js/test.js'
+//     // a.appendChild(b)
+//     // a.append(b)
+//     a.prepend(b)
+//     // Element.prototype.appendChild.call(a, b)
+//     document.body.prepend(a)
+//     // window.microApp.removeDomScope(false)
+//   }, 1000);
+// }

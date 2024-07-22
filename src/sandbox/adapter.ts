@@ -18,7 +18,9 @@ import {
 import microApp from '../micro_app'
 
 export class BaseSandbox implements BaseSandboxType {
-  constructor () {
+  constructor (appName: string, url: string) {
+    this.appName = appName
+    this.url = url
     this.injectReactHMRProperty()
   }
 
@@ -43,6 +45,8 @@ export class BaseSandbox implements BaseSandboxType {
     'onhashchange',
   ]
 
+  public appName: string
+  public url: string
   // Properties that can only get and set in microAppWindow, will not escape to rawWindow
   public scopeProperties: PropertyKey[] = Array.from(this.staticScopeProperties)
   // Properties that can be escape to rawWindow
@@ -53,6 +57,8 @@ export class BaseSandbox implements BaseSandboxType {
   public escapeKeys = new Set<PropertyKey>()
   // Promise used to mark whether the sandbox is initialized
   public sandboxReady!: Promise<void>
+  // reset mount, unmount when stop in default mode
+  public resetHijackUmdHooks!: () => void
 
   // adapter for react
   private injectReactHMRProperty (): void {

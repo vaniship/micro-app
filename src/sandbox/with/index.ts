@@ -1,4 +1,5 @@
 import type {
+  Func,
   microAppWindowType,
   WithSandBoxInterface,
   plugins,
@@ -33,6 +34,7 @@ import {
   rawHasOwnProperty,
   pureCreateElement,
   assign,
+  isFunction,
 } from '../../libs/utils'
 import {
   patchDocument,
@@ -100,7 +102,7 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
   public microAppWindow = new CustomWindow() as MicroAppWindowType // Proxy target
 
   constructor (appName: string, url: string) {
-    super()
+    super(appName, url)
     this.patchWith((resolve: CallableFunction) => {
       // get scopeProperties and escapeProperties from plugins
       this.getSpecialProperties(appName)
@@ -205,6 +207,7 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
      *  1. injectedKeys and escapeKeys must be placed at the back
      *  2. if key in initial microAppWindow, and then rewrite, this key will be delete from microAppWindow when stop, and lost when restart
      *  3. umd mode will not delete global keys
+     *  4. mount & unmount hook should delete in default mode when stop
      */
     if (!umdMode || destroy) {
       clearMicroEventSource(this.microAppWindow.__MICRO_APP_NAME__)
@@ -218,6 +221,8 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
         Reflect.deleteProperty(globalEnv.rawWindow, key)
       })
       this.escapeKeys.clear()
+
+      this.resetHijackUmdHooks()
     }
 
     if (--globalEnv.activeSandbox === 0) {
@@ -596,8 +601,60 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
    * 1. patch static elements from html
    * @param container micro app container
    */
-  public actionBeforeExecScripts (container: Element | ShadowRoot): void {
+  public actionsBeforeExecScripts (container: Element | ShadowRoot, handleUmdHooks: Func): void {
     this.patchStaticElement(container)
+    this.resetHijackUmdHooks = this.setHijackUmdHooks(this.appName, this.microAppWindow, handleUmdHooks)
+  }
+
+  // set mount, unmount hook to microAppWindow
+  private setHijackUmdHooks (
+    appName: string,
+    microAppWindow: microAppWindowType,
+    handleUmdHooks: Func,
+  ): () => void {
+    let mount: Func | null, unmount: Func | null, microAppLibrary: Record<string, Func> | null
+    rawDefineProperties(microAppWindow, {
+      mount: {
+        configurable: true,
+        get () {
+          return mount
+        },
+        set (value) {
+          if (isFunction(value) && !mount) {
+            mount = value
+            handleUmdHooks(mount, unmount)
+          }
+        }
+      },
+      unmount: {
+        configurable: true,
+        get () {
+          return unmount
+        },
+        set (value) {
+          if (isFunction(value) && !unmount) {
+            unmount = value
+            handleUmdHooks(mount, unmount)
+          }
+        }
+      },
+      [`micro-app-${appName}`]: {
+        configurable: true,
+        get () {
+          return microAppLibrary
+        },
+        set (value) {
+          if (isPlainObject(microAppLibrary) && !microAppLibrary) {
+            microAppLibrary = value
+            handleUmdHooks(microAppLibrary?.mount, microAppLibrary?.unmount)
+          }
+        }
+      }
+    })
+
+    return () => {
+      mount = unmount = microAppLibrary = null
+    }
   }
 
   public setStaticAppState (state: string): void {

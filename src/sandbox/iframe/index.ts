@@ -1,4 +1,5 @@
 import type {
+  Func,
   microAppWindowType,
   MicroLocation,
   SandBoxStartParams,
@@ -19,6 +20,8 @@ import {
   isArray,
   defer,
   createURL,
+  rawDefineProperties,
+  isFunction,
 } from '../../libs/utils'
 import {
   EventCenterForMicroApp,
@@ -80,6 +83,8 @@ export default class IframeSandbox {
   // TODO: 放到 super中定义，super(appName, url)，with沙箱也需要简化
   public appName: string
   public url: string
+  // reset mount, unmount when stop in default mode
+  public resetHijackUmdHooks!: () => void
 
   constructor (appName: string, url: string) {
     this.appName = appName
@@ -226,6 +231,8 @@ export default class IframeSandbox {
         Reflect.deleteProperty(globalEnv.rawWindow, key)
       })
       this.escapeKeys.clear()
+
+      this.resetHijackUmdHooks()
     }
 
     if (--globalEnv.activeSandbox === 0) {
@@ -486,10 +493,61 @@ export default class IframeSandbox {
    * action before exec scripts when mount
    * Actions:
    * 1. patch static elements from html
+   * 2. hijack umd hooks -- mount, unmount, micro-app-appName
    * @param container micro app container
    */
-  public actionBeforeExecScripts (container: Element | ShadowRoot): void {
+  public actionsBeforeExecScripts (container: Element | ShadowRoot, handleUmdHooks: Func): void {
     this.patchStaticElement(container)
+    this.resetHijackUmdHooks = this.setHijackUmdHooks(this.appName, this.microAppWindow, handleUmdHooks)
+  }
+
+  // hijack mount, unmount, micro-app-appName hook to microAppWindow
+  private setHijackUmdHooks (
+    appName: string,
+    microAppWindow: microAppWindowType,
+    handleUmdHooks: Func,
+  ): () => void {
+    let mount: Func | null, unmount: Func | null, microAppLibrary: Record<string, Func> | null
+    rawDefineProperties(microAppWindow, {
+      mount: {
+        configurable: true,
+        get () {
+          return mount
+        },
+        set (value) {
+          if (isFunction(value) && !mount) {
+            handleUmdHooks(mount = value, unmount)
+          }
+        }
+      },
+      unmount: {
+        configurable: true,
+        get () {
+          return unmount
+        },
+        set (value) {
+          if (isFunction(value) && !unmount) {
+            handleUmdHooks(mount, unmount = value)
+          }
+        }
+      },
+      [`micro-app-${appName}`]: {
+        configurable: true,
+        get () {
+          return microAppLibrary
+        },
+        set (value) {
+          if (isPlainObject(microAppLibrary) && !microAppLibrary) {
+            microAppLibrary = value
+            handleUmdHooks(microAppLibrary?.mount, microAppLibrary?.unmount)
+          }
+        }
+      }
+    })
+
+    return () => {
+      mount = unmount = microAppLibrary = null
+    }
   }
 
   public setStaticAppState (state: string): void {
