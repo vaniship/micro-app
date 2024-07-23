@@ -16,6 +16,7 @@
 
   - 🐞 修复 iframe沙箱下history.go传入的是非0数字时iframe被重置导致异常的问题，[PR 1112](https://github.com/micro-zoe/micro-app/pull/1112) by [keuby](https://github.com/keuby)。
   - 🐞 修复 iframe沙箱下子应用事件类型判断异常的问题，[issue 975](https://github.com/micro-zoe/micro-app/issues/975)，[issue 1120](https://github.com/micro-zoe/micro-app/issues/1120)，[PR 985](https://github.com/micro-zoe/micro-app/pull/985) by [keuby](https://github.com/keuby)。
+  - 🐞 修复 UnoCSS等异步注册mount、unmount场景下导致umd模式加载失败的问题，[issue 881](https://github.com/micro-zoe/micro-app/issues/881)、[issue 1047](https://github.com/micro-zoe/micro-app/issues/1047)、[issue 1179](https://github.com/micro-zoe/micro-app/issues/1179)、[issue 1218](https://github.com/micro-zoe/micro-app/issues/1218)。
   - 🐞 修复 类型声明jsx.IntrinsicElements导致vue-ts部分元素lint异常的问题。
   - 🐞 修复 state路由模式下子应用为vue3时刷新浏览器路由状态丢失的问题。
   - 🐞 修复 iframe沙箱在默认模式下二次渲染时初始化沙箱过程中卸载子应用导致异常的问题。

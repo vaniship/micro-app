@@ -189,7 +189,7 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
     })
 
     /**
-     * In FireFox, iframe element will convert to browser Element Instance after insert to document
+     * In FireFox, iframe Element.prototype will point to native Element.prototype after insert to document
      *
      * Performance:
      *  iframe element.__proto__ === browser HTMLElement.prototype // Chrome: false, FireFox: true
