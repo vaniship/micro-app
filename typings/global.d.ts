@@ -82,8 +82,8 @@ declare module '@micro-app/types' {
     staticEscapeProperties: PropertyKey[]
     // Variables that scoped in child app
     staticScopeProperties: PropertyKey[]
-    // reset mount, unmount when stop in default mode
-    resetHijackUmdHooks: () => void
+    // clear mount, unmount when stop in default mode
+    clearHijackUmdHooks: () => void
   }
 
   interface WithSandBoxInterface extends BaseSandboxType {

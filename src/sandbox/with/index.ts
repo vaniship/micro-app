@@ -222,7 +222,7 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
       })
       this.escapeKeys.clear()
 
-      this.resetHijackUmdHooks()
+      this.clearHijackUmdHooks()
     }
 
     if (--globalEnv.activeSandbox === 0) {
@@ -599,54 +599,47 @@ export default class WithSandBox extends BaseSandbox implements WithSandBoxInter
    * action before exec scripts when mount
    * Actions:
    * 1. patch static elements from html
+   * 2. hijack umd hooks -- mount, unmount, micro-app-appName
    * @param container micro app container
    */
   public actionsBeforeExecScripts (container: Element | ShadowRoot, handleUmdHooks: Func): void {
     this.patchStaticElement(container)
-    this.resetHijackUmdHooks = this.setHijackUmdHooks(this.appName, this.microAppWindow, handleUmdHooks)
+    this.clearHijackUmdHooks = this.hijackUmdHooks(this.appName, this.microAppWindow, handleUmdHooks)
   }
 
-  // set mount, unmount hook to microAppWindow
-  private setHijackUmdHooks (
+  // hijack mount, unmount, micro-app-appName hook to microAppWindow
+  private hijackUmdHooks (
     appName: string,
     microAppWindow: microAppWindowType,
     handleUmdHooks: Func,
   ): () => void {
-    let mount: Func | null, unmount: Func | null, microAppLibrary: Record<string, Func> | null
+    let mount: Func | null, unmount: Func | null, microAppLibrary: Record<string, unknown> | null
     rawDefineProperties(microAppWindow, {
       mount: {
         configurable: true,
-        get () {
-          return mount
-        },
-        set (value) {
-          if (isFunction(value) && !mount) {
-            mount = value
-            handleUmdHooks(mount, unmount)
+        get: () => mount,
+        set: (value) => {
+          if (this.active && isFunction(value) && !mount) {
+            handleUmdHooks(mount = value, unmount)
           }
         }
       },
       unmount: {
         configurable: true,
-        get () {
-          return unmount
-        },
-        set (value) {
-          if (isFunction(value) && !unmount) {
-            unmount = value
-            handleUmdHooks(mount, unmount)
+        get: () => unmount,
+        set: (value) => {
+          if (this.active && isFunction(value) && !unmount) {
+            handleUmdHooks(mount, unmount = value)
           }
         }
       },
       [`micro-app-${appName}`]: {
         configurable: true,
-        get () {
-          return microAppLibrary
-        },
-        set (value) {
-          if (isPlainObject(microAppLibrary) && !microAppLibrary) {
+        get: () => microAppLibrary,
+        set: (value) => {
+          if (this.active && isPlainObject(value) && !microAppLibrary) {
             microAppLibrary = value
-            handleUmdHooks(microAppLibrary?.mount, microAppLibrary?.unmount)
+            handleUmdHooks(microAppLibrary.mount, microAppLibrary.unmount)
           }
         }
       }

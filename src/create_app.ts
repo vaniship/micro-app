@@ -323,7 +323,7 @@ export default class CreateApp implements AppInterface {
               if (isFunction(this.umdHookMount) && isFunction(this.umdHookUnmount)) {
                 this.sandBox?.markUmdMode(this.umdMode = true)
                 try {
-                  // 如果发现状态为mounted，说明isFinished为true且this.handleMounted已经执行完成
+                  // if appState is mounted, it means that isFinished is true and this.handleMounted has already been executed, just exec this.umdHookMount
                   if (this.getAppState() === appStates.MOUNTED) {
                     this.umdHookMount(microApp.getData(this.name, true))
                   } else {

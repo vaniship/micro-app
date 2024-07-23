@@ -58,7 +58,7 @@ export class BaseSandbox implements BaseSandboxType {
   // Promise used to mark whether the sandbox is initialized
   public sandboxReady!: Promise<void>
   // reset mount, unmount when stop in default mode
-  public resetHijackUmdHooks!: () => void
+  public clearHijackUmdHooks!: () => void
 
   // adapter for react
   private injectReactHMRProperty (): void {
