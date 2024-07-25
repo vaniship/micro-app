@@ -39,6 +39,8 @@
   - 🐞 修复 iframe沙箱下富文本编辑器表现异常的问题[1031](https://github.com/micro-zoe/micro-app/issues/1031)、[1231](https://github.com/micro-zoe/micro-app/issues/1231)、[1023](https://github.com/micro-zoe/micro-app/issues/1203)。
   - 🐞 修复 Fragment内部link、script等元素无法拦截和处理的问题。
   - 🐞 修复 iframe沙箱下通过`document.querySelector`、`document.querySelectorAll`获取script元素异常的问题。
+  - 🐞 修复 样式隔离对CSS规则`@layer`的支持，[PR 1303](https://github.com/micro-zoe/micro-app/pull/1303) by [alexgofreight](https://github.com/alexgofreight)。
+  - 🐞 修复 子应用存在多层CSS嵌套时样式隔离解析失败的问题，[PR 1300](https://github.com/micro-zoe/micro-app/pull/1300)、[PR 1298](https://github.com/micro-zoe/micro-app/pull/1298) by [alexgofreight](https://github.com/alexgofreight)。
 
 - **Update**
   - 🚀 优化 `removeDomScope`方法，支持解除元素绑定的开关操作。

@@ -92,9 +92,18 @@ class CSSParser {
     const m = this.commonMatch(/^[^{]+/, skip)
     if (!m) return false
 
+    /**
+     * NOTE:
+     *  1. :is(h1, h2, h3):has(+ h2, + h3, + h4) {}
+     *  2. :dir(ltr) {}
+     *  3. body :not(div, .fancy) {}
+     *  4. .a, .b, ul li:nth-child(3)
+     *  5. :is(.a, .b, .c) a {}
+     *  6. :where(.a, .b, .c) a {}
+     */
     return m[0].replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
       selector = trim(selector)
-      if (!(
+      if (selector && !(
         this.scopecssDisableNextLine ||
         (
           this.scopecssDisable && (
@@ -278,14 +287,18 @@ class CSSParser {
 
   // https://developer.mozilla.org/en-US/docs/Web/CSS/@layer
   private layerRule (): boolean | void {
-    if (!this.commonMatch(/^@layer *([^{;@]+)/)) { return false }
-    if (!this.matchOpenBrace()) {
-      return !!this.commonMatch(/^[;\s]*/)
-    }
+    if (!this.commonMatch(/^@layer\s*([^{;]+)/)) return false
+
+    if (!this.matchOpenBrace()) return !!this.commonMatch(/^[;]+/)
+
     this.matchComments()
+
     this.matchRules()
-    if (!this.matchCloseBrace()) { return parseError('@layer missing \'}\'', this.linkPath) }
+
+    if (!this.matchCloseBrace()) return parseError('@layer missing \'}\'', this.linkPath)
+
     this.matchLeadingSpaces()
+
     return true
   }
 
