@@ -231,7 +231,11 @@ function patchIframeAttribute (url: string, microAppWindow: microAppWindowType):
   const rawMicroSetAttribute = microRootElement.prototype.setAttribute
 
   microRootElement.prototype.setAttribute = function setAttribute (key: string, value: any): void {
-    if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
+    if (
+      /^micro-app(-\S+)?/i.test(this.tagName) &&
+      key === 'data' &&
+      this.setAttribute !== microRootElement.prototype.setAttribute
+    ) {
       this.setAttribute(key, value)
     } else {
       if (

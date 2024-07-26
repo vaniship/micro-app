@@ -60,7 +60,7 @@ let app = null
 // -------------------分割线-umd模式------------------ //
 // 👇 将渲染操作放入 mount 函数，子应用初始化时会自动执行
 window.mount = () => {
-  return new Promise((resolve) => {
+  // return new Promise((resolve) => {
     // setTimeout(() => {
       app = new Vue({
         router,
@@ -68,9 +68,9 @@ window.mount = () => {
       }).$mount('#app')
       console.log("微应用vue2渲染了 -- UMD模式")
       console.log('微应用vue2通过 microApp.getData 获取数据', window.microApp?.getData());
-      resolve()
+      // resolve()
     // }, 3000)
-  })
+  // })
 }
 
 // 👇 将卸载操作放入 unmount 函数

@@ -337,7 +337,7 @@ function commonElementHandler (
       currentAppName
     )
   ) {
-    updateElementInfo(newChild, currentAppName)
+    updateElementInfo(newChild, newChild.__MICRO_APP_NAME__ || currentAppName)
     const app = appInstanceMap.get(newChild.__MICRO_APP_NAME__!)
     if (app?.container) {
       if (isStyleElement(newChild)) {
@@ -528,7 +528,11 @@ export function patchElementAndDocument (): void {
 
   // rewrite setAttribute, complete resource address
   rawRootElement.prototype.setAttribute = function setAttribute (key: string, value: any): void {
-    if (/^micro-app(-\S+)?/i.test(this.tagName) && key === 'data') {
+    if (
+      /^micro-app(-\S+)?/i.test(this.tagName) &&
+      key === 'data' &&
+      this.setAttribute !== rawRootElement.prototype.setAttribute
+    ) {
       this.setAttribute(key, value)
     } else {
       const appName = this.__MICRO_APP_NAME__ || getCurrentAppName()

@@ -135,7 +135,7 @@ export default class IframeSandbox {
       id: appName,
       src: microApp.options.iframeSrc || browserPath,
       style: 'display: none',
-      env: 'micro-app',
+      'powered-by': 'micro-app',
     }
 
     Object.keys(iframeAttrs).forEach((key) => this.iframe!.setAttribute(key, iframeAttrs[key]))

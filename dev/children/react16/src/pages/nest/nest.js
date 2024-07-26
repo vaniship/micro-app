@@ -39,7 +39,7 @@ function Vue2 () {
         inline
         // disableScopecss
         // disableSandbox
-        iframe
+        // iframe
       />
       <img src={logo} className="App-logo" alt="logo" width='100' />
     </div>

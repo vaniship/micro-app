@@ -170,7 +170,7 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
   if (
     appName &&
     isNode(node) &&
-    !node.__MICRO_APP_NAME__ &&
+    node.__MICRO_APP_NAME__ !== appName &&
     !node.__PURE_ELEMENT__ &&
     !getPreventSetState()
   ) {
@@ -189,7 +189,7 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
     })
 
     /**
-     * In FireFox, iframe Element.prototype will point to native Element.prototype after insert to document
+     * In FireFox, iframe Node.prototype will point to native Node.prototype after insert to document
      *
      * Performance:
      *  iframe element.__proto__ === browser HTMLElement.prototype // Chrome: false, FireFox: true
