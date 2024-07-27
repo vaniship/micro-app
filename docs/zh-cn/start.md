@@ -1,6 +1,6 @@
 我们分别列出主应用和子应用需要进行的修改，具体介绍`micro-app`的使用方式。
 
-### 主应用
+### 主应用 :id=main
 
 **1、安装依赖**
 ```bash
@@ -47,7 +47,7 @@ export function MyPage () {
 > 2、url：必传参数，必须指向子应用的index.html，如：http://localhost:3000/ 或 http://localhost:3000/index.html
 
 
-### 子应用
+### 子应用 :id=child
 
 micro-app从主应用通过fetch加载子应用的静态资源，由于主应用与子应用的域名不一定相同，所以子应用需要支持跨域。
 

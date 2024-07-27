@@ -4,7 +4,7 @@
 
 实际上主应用和子应用的路由即同时基于浏览器地址进行渲染，又相互独立，我们通过路由配置让两个独立的路由系统实现共存，具体原理参考[关于native模式的原理解析](/zh-cn/native-mode?id=关于native模式的原理解析)。
 
-### 基础路径
+### 基础路径 :id=base
 基础路径即vue-router的[base](https://router.vuejs.org/zh/api/interfaces/RouterHistory.html#Properties-base)、react-router的[basename](https://reactrouter.com/en/main/router-components/browser-router#basename)，通常与应用托管在服务器的文件夹地址一致，但在微前端下子应用基础路径的设置有所不同，需要根据主应用的地址动态设置。
 
 由于主应用和子应用各有一套路由系统，为了防止冲突，主应用需要分配一个基础路径给子应用，子应用在这个路径下渲染，且不能超出这个路径的范围，实现主应用和子应用的并行渲染。
@@ -16,11 +16,11 @@
   - 2、如果主应用是hash路由，子应用也必须是hash路由，否则无法正常渲染。
   - 3、如果主、子同时是history路由或同时是hash路由，则按照下面的方式设置基础路径。
 
-#### 设置基础路径：
+#### 设置基础路径： :id=baseroute
 
 主应用通过`baseroute`下发基础路径的值，子应用通过`window.__MICRO_APP_BASE_ROUTE__`获取此值并设置基础路径。
 
-#### 主应用
+#### 主应用 :id=main
 
 <!-- tabs:start -->
 
@@ -163,7 +163,7 @@ export default routes
 
 <!-- tabs:end -->
 
-#### 子应用
+#### 子应用 :id=child
 
 <!-- tabs:start -->
 #### ** react16 **
@@ -293,7 +293,7 @@ const router = createRouter({
 
 
 
-### 关于native模式的原理解析
+### 关于native模式的原理解析 :id=principle
 主应用和子应用的路由系统既相互独立又同时基于浏览器地址进行渲染。
 
 相互独立：是指主应用和子应用是基于各自前端框架生成的路由系统，自身的路由变化不会直接影响对方，一方跳转到新的地址后，另外一方不会自动响应浏览器变化（除非刷新浏览器或者主动发送`PopStateEvent`事件）。
