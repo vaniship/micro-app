@@ -39,14 +39,8 @@ declare global {
     __MICRO_APP_BASE_APPLICATION__?: boolean
     __REACT_ERROR_OVERLAY_GLOBAL_HOOK__: boolean
     rawLocation: Location
-    rawWindow: Window
-    rawDocument: Document
-    Document: any
-    Element: any,
-    Node: any,
-    EventTarget: any,
-    HTMLElement: HTMLElement,
-    DocumentFragment: any,
+    rawWindow: any
+    rawDocument: any
   }
 }
 
@@ -100,7 +94,7 @@ export function initGlobalEnv (): void {
     const rawGetElementsByName = rawRootDocument.prototype.getElementsByName
 
     // TODO: 将ImageProxy移出去
-    const ImageProxy = new Proxy(Image, {
+    const ImageProxy = new Proxy(rawWindow.Image, {
       construct (Target, args): HTMLImageElement {
         return updateElementInfo(new Target(...args), getCurrentAppName())
       },

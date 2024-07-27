@@ -15,20 +15,6 @@
       window.document.domain = 'localhost'
       console.log('子应用修改了 window.document.domain')
     </script> -->
-    <!-- 测试 systemjs-importmap -->
-    <script type="systemjs-importmap">
-      {
-        "imports": {
-          "vue": "https://cdn.bootcss.com/vue/2.6.11/vue.js"
-        }
-      }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/systemjs/dist/system.js"></script>
-    <script>
-      System.import('vue').then((res) => {
-        console.log('systemjs-importmap:', res)
-      })
-    </script>
   </head>
   <body>
     <div id="app"></div>

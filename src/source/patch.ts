@@ -599,13 +599,13 @@ export function patchElementAndDocument (): void {
        *    // root is child app window, so root.document is proxyDocument or microDocument
        *    if (element.parentNode === root.document) ...
       */
-      const currentAppName = getCurrentAppName()
-      // if this is html element and currentAppName exists, html.parentNode will return proxyDocument
+      const currentAppName = getIframeCurrentAppName() || getCurrentAppName()
       if (currentAppName && this === globalEnv.rawDocument.firstElementChild) {
         const microDocument = appInstanceMap.get(currentAppName)?.sandBox?.proxyWindow?.document
         if (microDocument) return microDocument
       }
-      const result = globalEnv.rawParentNodeDesc.get.call(this) as Node
+      // NOTE: run after hijack html.parentNode
+      const result = globalEnv.rawParentNodeDesc.get.call(this)
       /**
        * If parentNode is <micro-app-body>, return rawDocument.body
        * Scenes:

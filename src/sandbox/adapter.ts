@@ -6,10 +6,10 @@ import globalEnv from '../libs/global_env'
 import {
   defer,
   isNode,
-  rawDefineProperty,
   rawDefineProperties,
   isMicroAppBody,
   getPreventSetState,
+  throttleDeferForIframeAppName,
 } from '../libs/utils'
 import {
   appInstanceMap,
@@ -103,42 +103,6 @@ export function fixReactHMRConflict (app: AppInterface): void {
         globalEnv.rawWindow.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = rawReactErrorHook
       })
     }
-  }
-}
-
-/**
- * reDefine parentNode of html (just for iframe sandbox)
- * Scenes:
- *  1. element-ui@2/lib/utils/popper.js
- *    var parent = element.parentNode;
- *    // root is child app window
- *    if (parent === root.document) ...
- */
-export function throttleDeferForParentNode (microDocument: Document | null): void {
-  if (microDocument) {
-    const html = globalEnv.rawDocument.firstElementChild
-    if (html.parentNode !== microDocument) {
-      setParentNode(html, microDocument)
-      defer(() => {
-        setParentNode(html, globalEnv.rawDocument)
-      })
-    }
-  }
-}
-
-/**
- * Modify the point of parentNode
- * @param target target Node
- * @param value parentNode
- */
-export function setParentNode (target: Node, value: Document | Element): void {
-  const descriptor = Object.getOwnPropertyDescriptor(target, 'parentNode')
-  if (!descriptor || descriptor.configurable) {
-    rawDefineProperty(target, 'parentNode', {
-      configurable: true,
-      enumerable: true,
-      value,
-    })
   }
 }
 
@@ -251,7 +215,7 @@ export function getIframeParentNodeDesc (
     configurable: true,
     enumerable: true,
     get (this: Node) {
-      throttleDeferForParentNode(this.ownerDocument)
+      throttleDeferForIframeAppName(appName)
       const result: ParentNode = parentNodeDesc.get?.call(this)
       /**
        * If parentNode is <micro-app-body>, return rawDocument.body

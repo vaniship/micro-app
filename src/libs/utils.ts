@@ -89,7 +89,7 @@ export function isPromise (target: unknown): target is Promise<unknown> {
 
 // is bind function
 export function isBoundFunction (target: unknown): boolean {
-  return isFunction(target) && target.name.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
+  return isFunction(target) && target.name?.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
 }
 
 // is constructor function
