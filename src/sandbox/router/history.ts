@@ -7,6 +7,7 @@ import type {
   HandleMicroPathResult,
 } from '@micro-app/types'
 import globalEnv from '../../libs/global_env'
+import bindFunctionToRawTarget from '../bind_function'
 import {
   isString,
   createURL,
@@ -14,22 +15,34 @@ import {
   isURL,
   assign,
   removeDomScope,
+  isUndefined,
+  isNull,
 } from '../../libs/utils'
 import {
   setMicroPathToURL,
   setMicroState,
   getMicroState,
+  getMicroRouterInfoState,
   getMicroPathFromURL,
   isEffectiveApp,
   isRouterModePure,
   isRouterModeSearch,
   isRouterModeState,
+  isRouterModeCustom,
 } from './core'
-import { dispatchNativeEvent } from './event'
-import { updateMicroLocation } from './location'
-import bindFunctionToRawTarget from '../bind_function'
-import { getActiveApps } from '../../micro_app'
-import { appInstanceMap, isIframeSandbox } from '../../create_app'
+import {
+  dispatchNativeEvent,
+} from './event'
+import {
+  updateMicroLocation,
+} from './location'
+import {
+  getActiveApps,
+} from '../../micro_app'
+import {
+  appInstanceMap,
+  isIframeSandbox,
+} from '../../create_app'
 
 /**
  * create proxyHistory for microApp
@@ -42,26 +55,23 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
   function getMicroHistoryMethod (methodName: string): CallableFunction {
     return function (...rests: any[]): void {
       // TODO: 测试iframe的URL兼容isURL的情况
-      if (isString(rests[2]) || isURL(rests[2])) {
-        const targetLocation = createURL(rests[2], microLocation.href)
-        const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
-        if (!isRouterModePure(appName)) {
-          navigateWithNativeEvent(
-            appName,
-            methodName,
-            setMicroPathToURL(appName, targetLocation),
-            true,
-            setMicroState(appName, rests[0], targetLocation),
-            rests[1],
-          )
-        }
-        if (targetFullPath !== microLocation.fullPath) {
-          updateMicroLocation(appName, targetFullPath, microLocation)
-        }
-        appInstanceMap.get(appName)?.sandBox.updateIframeBase?.()
-      } else {
-        nativeHistoryNavigate(appName, methodName, rests[2], rests[0], rests[1])
+      rests[2] = isUndefined(rests[2]) || isNull(rests[2]) || ('' + rests[2] === '') ? microLocation.href : '' + rests[2]
+      const targetLocation = createURL(rests[2], microLocation.href)
+      const targetFullPath = targetLocation.pathname + targetLocation.search + targetLocation.hash
+      if (!isRouterModePure(appName)) {
+        navigateWithNativeEvent(
+          appName,
+          methodName,
+          setMicroPathToURL(appName, targetLocation),
+          true,
+          setMicroState(appName, rests[0], targetLocation),
+          rests[1],
+        )
       }
+      if (targetFullPath !== microLocation.fullPath) {
+        updateMicroLocation(appName, targetFullPath, microLocation)
+      }
+      appInstanceMap.get(appName)?.sandBox.updateIframeBase?.()
     }
   }
 
@@ -72,6 +82,9 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
     return {
       pushState,
       replaceState,
+      go (delta?: number) {
+        return rawHistory.go(delta)
+      }
     } as MicroHistory
   }
 
@@ -206,15 +219,38 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
+      // TODO: 大部分情况下，history.pushState 都是先执行，micro-app后卸载，所以会产生一种情况：跳转到新地址后，search模式会在url上添加参数，卸载后再将参数删除，所以会导致浏览器地址闪烁，是否需要去掉这个功能
       if ((isRouterModeSearch(appName) || isRouterModeState(appName)) && !getMicroPathFromURL(appName)) {
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
           appName,
-          setMicroPathToURL(appName, app.sandBox.proxyWindow.location as MicroLocation),
-          setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location as MicroLocation),
+          setMicroPathToURL(appName, app.sandBox.proxyWindow.location),
+          setMicroState(appName, getMicroState(appName), app.sandBox.proxyWindow.location),
         )
       }
+
+      if (isRouterModeCustom(appName) && !getMicroRouterInfoState(appName)) {
+        nativeHistoryNavigate(
+          appName,
+          'replaceState',
+          rawWindow.location.href,
+          setMicroState(appName)
+        )
+      }
+
+      // if (isRouterModeCustom(appName) || isRouterModeSearch(appName)) {
+      /**
+         * history.pushState/replaceState后主动触发子应用响应
+         * 问题：子应用的卸载可能是异步的，而跳转的地址不一定在基础路径中，太快响应pushState可能会导致url地址被子应用改变或者子应用404，Promise太快卸载时出问题、setTimeout太慢keep-alive二次渲染后出问题
+         *  1、history.pushState/replaceState执行后，子应用以异步的形式被主应用卸载，Promise响应时子应用还在，导致子应用跳转404后者浏览器url被子应用修改，产生异常
+         *  2、keep-alive应用二次渲染时，由于setTimeout响应过慢，子应用在渲染后才接受到popstate事件，响应新的url，从而导致状态丢失
+         *  3、同一个页面多个子应用，修改地址响应
+         *  4、vue3跳转前会执行一次replace，有没有影响？
+         */
+
+      // }
     })
+
     // fix bug for nest app
     removeDomScope()
   }

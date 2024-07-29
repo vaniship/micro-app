@@ -92,9 +92,24 @@ class CSSParser {
     const m = this.commonMatch(/^[^{]+/, skip)
     if (!m) return false
 
+    /**
+     * NOTE:
+     *  1. :is(h1, h2, h3):has(+ h2, + h3, + h4) {}
+     *    should be ==> micro-app[name=xxx] :is(h1, h2, h3):has(+ h2, + h3, + h4) {}
+     *  2. :dir(ltr) {}
+     *    should be ==> micro-app[name=xxx] :dir(ltr) {}
+     *  3. body :not(div, .fancy) {}
+     *    should be ==> micro-app[name=xxx] micro-app-body :not(div, .fancy) {}
+     *  4. .a, .b, li:nth-child(3)
+     *    should be ==> micro-app[name=xxx] .a, micro-app[name=xxx] .b, micro-app[name=xxx] li:nth-child(3)
+     *  5. :is(.a, .b, .c) a {}
+     *    should be ==> micro-app[name=xxx] :is(.a, .b, .c) a {}
+     *  6. :where(.a, .b, .c) a {}
+     *    should be ==> micro-app[name=xxx] :where(.a, .b, .c) a {}
+     */
     return m[0].replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
       selector = trim(selector)
-      if (!(
+      if (selector && !(
         this.scopecssDisableNextLine ||
         (
           this.scopecssDisable && (
@@ -126,7 +141,7 @@ class CSSParser {
     return true
   }
 
-  private matchAllDeclarations (nesting = 1): void {
+  private matchAllDeclarations (nesting = 0): void {
     let cssValue = (this.commonMatch(/^(?:url\(["']?(?:[^)"'}]+)["']?\)|[^{}/])*/, true) as RegExpExecArray)[0]
 
     if (cssValue) {
@@ -156,14 +171,6 @@ class CSSParser {
 
     if (!this.cssText) return
 
-    if (this.cssText.charAt(0) === '}') {
-      if (!nesting) return
-      if (nesting > 1) {
-        this.commonMatch(/}+/)
-      }
-      return this.matchAllDeclarations(nesting - 1)
-    }
-
     // extract comments in declarations
     if (this.cssText.charAt(0) === '/') {
       if (this.cssText.charAt(1) === '*') {
@@ -171,11 +178,13 @@ class CSSParser {
       } else {
         this.commonMatch(/\/+/)
       }
-    }
-
-    if (this.cssText.charAt(0) === '{') {
-      this.commonMatch(/{+\s*/)
+    } else if (this.cssText.charAt(0) === '{') {
+      this.matchOpenBrace()
       nesting++
+    } else if (this.cssText.charAt(0) === '}') {
+      if (nesting < 1) return
+      this.matchCloseBrace()
+      nesting--
     }
 
     return this.matchAllDeclarations(nesting)
@@ -196,7 +205,8 @@ class CSSParser {
       this.documentRule() ||
       this.pageRule() ||
       this.hostRule() ||
-      this.fontFaceRule()
+      this.fontFaceRule() ||
+      this.layerRule()
   }
 
   // :global is CSS Modules rule, it will be converted to normal syntax
@@ -273,6 +283,23 @@ class CSSParser {
     if (!this.commonMatch(/^@font-face\s*/)) return false
 
     return this.commonHandlerForAtRuleWithSelfRule('font-face')
+  }
+
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/@layer
+  private layerRule (): boolean | void {
+    if (!this.commonMatch(/^@layer\s*([^{;]+)/)) return false
+
+    if (!this.matchOpenBrace()) return !!this.commonMatch(/^[;]+/)
+
+    this.matchComments()
+
+    this.matchRules()
+
+    if (!this.matchCloseBrace()) return parseError('@layer missing \'}\'', this.linkPath)
+
+    this.matchLeadingSpaces()
+
+    return true
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSMediaRule
@@ -399,7 +426,7 @@ class CSSParser {
   }
 
   private matchCloseBrace () {
-    return this.commonMatch(/^}/)
+    return this.commonMatch(/^}\s*/)
   }
 
   // match and slice the leading spaces

@@ -11,6 +11,8 @@ import {
   isFunction,
   logWarn,
   includes,
+  instanceOf,
+  isConstructor,
 } from '../../libs/utils'
 import {
   GLOBAL_KEY_TO_WINDOW,
@@ -20,6 +22,7 @@ import {
 import {
   escape2RawWindowKeys,
   escape2RawWindowRegExpKeys,
+  // hijackInstanceOfWindowRegExpKeys,
 } from './special_key'
 
 /**
@@ -77,6 +80,42 @@ function patchWindowProperty (
         }
         return false
       })
+
+      /**
+       * In FireFox, iframe Element.prototype will point to native Element.prototype after insert to document
+       * Rewrite all constructor's Symbol.hasInstance of iframeWindow
+       * NOTE:
+       *  1. native event instanceof iframe window.Event
+       *  2. native node instanceof iframe window.Node
+       *  3. native element instanceof iframe window.Element
+       *  4. native url instanceof iframe window.URL
+       *  ...
+       */
+      if (isConstructor(microAppWindow[key]) && key in rawWindow) {
+        rawDefineProperty(microAppWindow[key], Symbol.hasInstance, {
+          configurable: true,
+          enumerable: false,
+          value (target: unknown): boolean {
+            return target instanceof rawWindow[key] || instanceOf(target, microAppWindow[key])
+          },
+        })
+      }
+
+      // hijackInstanceOfWindowRegExpKeys.some((reg: RegExp) => {
+      //   if (reg.test(key) && key in rawWindow) {
+      //     rawDefineProperty(microAppWindow[key], Symbol.hasInstance, {
+      //       configurable: true,
+      //       enumerable: false,
+      //       value: (target: unknown) => {
+      //         return target instanceof rawWindow[key]
+      //           ? true
+      //           : instanceOf(target, microAppWindow[key])
+      //       },
+      //     })
+      //     return true
+      //   }
+      //   return false
+      // })
 
       return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT_OF_IFRAME.includes(key)
     })
@@ -178,11 +217,15 @@ function createProxyWindow (
 }
 
 function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHook {
-  const { rawWindow, rawAddEventListener, rawRemoveEventListener } = globalEnv
+  const { rawWindow, rawAddEventListener, rawRemoveEventListener, rawDispatchEvent } = globalEnv
   const eventListenerMap = new Map<string, Set<MicroEventListener>>()
   const sstEventListenerMap = new Map<string, Set<MicroEventListener>>()
 
   function getEventTarget (type: string): Window {
+    /**
+     * TODO: SCOPE_WINDOW_EVENT_OF_IFRAME的事件非常少，有可能导致问题
+     *  1、一些未知的需要绑定到iframe的事件被错误的绑定到原生window上
+     */
     return SCOPE_WINDOW_EVENT_OF_IFRAME.includes(type) ? microAppWindow : rawWindow
   }
 
@@ -212,6 +255,10 @@ function patchWindowEffect (microAppWindow: microAppWindowType): CommonEffectHoo
       listenerList.delete(listener)
     }
     rawRemoveEventListener.call(getEventTarget(type), type, listener, options)
+  }
+
+  microAppWindow.dispatchEvent = function (event: Event): boolean {
+    return rawDispatchEvent.call(getEventTarget(event?.type), event)
   }
 
   const reset = (): void => {

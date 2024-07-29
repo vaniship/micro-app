@@ -1,4 +1,4 @@
-// import 'virtual:uno.css'
+import 'virtual:uno.css'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import App from './App.vue'

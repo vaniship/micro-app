@@ -7,6 +7,7 @@ import type {
   AttrsType,
   fiberTasks,
   MicroAppElementTagNameMap,
+  MicroAppElementInterface,
 } from '@micro-app/types'
 
 export const version = '__MICRO_APP_VERSION__'
@@ -88,7 +89,7 @@ export function isPromise (target: unknown): target is Promise<unknown> {
 
 // is bind function
 export function isBoundFunction (target: unknown): boolean {
-  return isFunction(target) && target.name.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
+  return isFunction(target) && target.name?.indexOf('bound ') === 0 && !target.hasOwnProperty('prototype')
 }
 
 // is constructor function
@@ -152,8 +153,16 @@ export function isBaseElement (target: unknown): target is HTMLBaseElement {
   return toTypeString(target) === '[object HTMLBaseElement]'
 }
 
+export function isDocumentFragment (target: unknown): target is DocumentFragment {
+  return toTypeString(target) === '[object DocumentFragment]'
+}
+
 export function isMicroAppBody (target: unknown): target is HTMLElement {
   return isElement(target) && target.tagName.toUpperCase() === 'MICRO-APP-BODY'
+}
+
+export function isMicroAppHead (target: unknown): target is HTMLElement {
+  return isElement(target) && target.tagName.toUpperCase() === 'MICRO-APP-HEAD'
 }
 
 // is ProxyDocument
@@ -236,6 +245,15 @@ export function defer (fn: Func, ...args: unknown[]): void {
 }
 
 /**
+ * async execution with macro task
+ * @param fn callback
+ * @param args params
+ */
+export function macro (fn: Func, delay = 0, ...args: unknown[]): void {
+  setTimeout(fn.bind(null, ...args), delay)
+}
+
+/**
  * create URL as MicroLocation
  */
 export const createURL = (function (): (path: string | URL, base?: string) => MicroLocation {
@@ -300,8 +318,7 @@ export function formatAppName (name: string | null): string {
 export function getEffectivePath (url: string): string {
   const { origin, pathname } = createURL(url)
   if (/\.(\w+)$/.test(pathname)) {
-    const fullPath = `${origin}${pathname}`
-    const pathArr = fullPath.split('/')
+    const pathArr = `${origin}${pathname}`.split('/')
     pathArr.pop()
     return pathArr.join('/') + '/'
   }
@@ -417,34 +434,69 @@ export function promiseRequestIdle (callback: CallableFunction): Promise<void> {
 /**
  * Record the currently running app.name
  */
-let currentMicroAppName: string | null = null
+let currentAppName: string | null = null
 export function setCurrentAppName (appName: string | null): void {
-  currentMicroAppName = appName
+  currentAppName = appName
 }
 
 // get the currently running app.name
 export function getCurrentAppName (): string | null {
-  return currentMicroAppName
+  return currentAppName
 }
 
-// Clear appName
-let preventSetAppName = false
-export function removeDomScope (force?: boolean): void {
-  setCurrentAppName(null)
-  if (force && !preventSetAppName) {
-    preventSetAppName = true
-    defer(() => {
-      preventSetAppName = false
-    })
-  }
-}
-
-export function throttleDeferForSetAppName (appName: string) {
-  if (currentMicroAppName !== appName && !preventSetAppName) {
+export function throttleDeferForSetAppName (appName: string): void {
+  if (currentAppName !== appName && !getPreventSetState()) {
     setCurrentAppName(appName)
     defer(() => {
       setCurrentAppName(null)
     })
+  }
+}
+
+// only for iframe document.body(head).querySelector(querySelectorAll)
+let iframeCurrentAppName: string | null = null
+export function setIframeCurrentAppName (appName: string | null) {
+  iframeCurrentAppName = appName
+}
+
+export function getIframeCurrentAppName (): string | null {
+  return iframeCurrentAppName
+}
+
+export function throttleDeferForIframeAppName (appName: string): void {
+  if (iframeCurrentAppName !== appName && !getPreventSetState()) {
+    setIframeCurrentAppName(appName)
+    defer(() => {
+      setIframeCurrentAppName(null)
+    })
+  }
+}
+
+// prevent set app name
+let preventSetState = false
+export function getPreventSetState (): boolean {
+  return preventSetState
+}
+
+/**
+ * prevent set appName
+ * usage:
+ * removeDomScope(true)
+ * -----> element scope point to base app <-----
+ * removeDomScope(false)
+ */
+export function removeDomScope (force?: boolean): void {
+  if (force !== false) {
+    setCurrentAppName(null)
+    setIframeCurrentAppName(null)
+    if (force && !preventSetState) {
+      preventSetState = true
+      defer(() => {
+        preventSetState = false
+      })
+    }
+  } else {
+    preventSetState = false
   }
 }
 
@@ -480,12 +532,13 @@ export function isUniqueElement (key: string): boolean {
   )
 }
 
+export type RootContainer = HTMLElement & MicroAppElementInterface
 /**
  * get micro-app element
  * @param target app container
  */
-export function getRootContainer (target: HTMLElement | ShadowRoot): HTMLElement {
-  return (isShadowRoot(target) ? (target as ShadowRoot).host : target) as HTMLElement
+export function getRootContainer (target: HTMLElement | ShadowRoot): RootContainer {
+  return (isShadowRoot(target) ? (target as ShadowRoot).host : target) as RootContainer
 }
 
 /**
@@ -670,17 +723,23 @@ export function clearDOM ($dom: HTMLElement | ShadowRoot | Document): void {
   }
 }
 
-type BaseHTMLElementType = HTMLElement & {
-  new (): HTMLElement;
-  prototype: HTMLElement;
-}
-
-/**
- * get HTMLElement from base app
- * @returns HTMLElement
- */
-export function getBaseHTMLElement (): BaseHTMLElementType {
-  return (window.rawWindow?.HTMLElement || window.HTMLElement) as BaseHTMLElementType
+export function instanceOf<T extends new (...args: unknown[]) => unknown>(
+  instance: unknown,
+  constructor: T,
+): instance is T extends new (...args: unknown[]) => infer R ? R : boolean {
+  if (instance === null || instance === undefined) {
+    return false
+  } else if (!isFunction(constructor)) {
+    throw new TypeError("Right-hand side of 'instanceof' is not callable")
+  }
+  let proto = Object.getPrototypeOf(instance)
+  while (proto) {
+    if (proto === constructor.prototype) {
+      return true
+    }
+    proto = Object.getPrototypeOf(proto)
+  }
+  return false
 }
 
 /**
@@ -693,4 +752,12 @@ export function getBaseHTMLElement (): BaseHTMLElementType {
 const formatEventList = ['mounted', 'unmount']
 export function formatEventType (type: string, appName: string): string {
   return formatEventList.includes(type) ? `${type}-${appName}` : type
+}
+
+/**
+ * Is the object empty
+ * target maybe number, string, array ...
+ */
+export function isEmptyObject (target: unknown): boolean {
+  return isPlainObject(target) ? !Object.keys(target).length : true
 }

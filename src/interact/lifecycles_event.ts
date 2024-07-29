@@ -1,7 +1,7 @@
 import type { lifeCyclesType, AppInterface } from '@micro-app/types'
 import microApp from '../micro_app'
 import {
-  logError,
+  logWarn,
   isFunction,
   removeDomScope,
   getRootContainer,
@@ -35,13 +35,13 @@ type LifecycleEventName = keyof lifeCyclesType
  * @param error param from error hook
  */
 export default function dispatchLifecyclesEvent (
-  element: HTMLElement | ShadowRoot,
+  element: HTMLElement | ShadowRoot | null,
   appName: string,
   lifecycleName: LifecycleEventName,
   error?: Error,
 ): void {
   if (!element) {
-    return logError(`element does not exist in lifecycle ${lifecycleName}`, appName)
+    return logWarn(`element does not exist in lifecycle ${lifecycleName}`, appName)
   }
 
   element = getRootContainer(element)

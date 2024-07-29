@@ -22,7 +22,7 @@ const prefetchConfig = [
   // },
   {
     name: 'vue2',
-    url: `${config.vue2}micro-app/vue2`,
+    url: `${config.vue2}micro-app/vue2/`,
     // 'disable-scopecss': true,
     level: 3,
     // 'default-page': '/micro-app/vue2/#/page2',
@@ -250,3 +250,14 @@ window.onclick = function () {
 // window.onunhandledrejection = (event) => {
 //   console.error(`基座Promise报错监听 -- window.onunhandledrejection: `, event);
 // }
+
+/* ---------------------- 测试message, postMessage --------------------- */
+// window.addEventListener('message', function(event) {
+//   console.log('基座监听的message事件', event.data, event)
+// })
+
+window.insertNodeFromBaseApp = function () {
+  const div = window.document.createElement('div')
+  div.innerHTML = 'insertNodeFromBaseApp'
+  document.body.appendChild(div)
+}
