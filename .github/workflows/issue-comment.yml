@@ -45,5 +45,5 @@ jobs:
           actions: 'create-comment, close-issue'
           issue-number: ${{ github.event.issue.number }}
           body: |
-            Hello @${{ github.event.issue.user.login }}. The issue you reported has been fixed in the latest version. This issue will be closed. Thank you for your feedback.
-            您好 @${{ github.event.issue.user.login }}，您反馈的问题已在最新版本中修复，该 issue 将要被关闭，感谢反馈。
+            Hello @${{ github.event.issue.user.login }}. The issue you reported has been fixed. This issue will be closed. Thank you for your feedback.
+            您好 @${{ github.event.issue.user.login }}，您反馈的问题已修复，该 issue 将要被关闭，感谢反馈。
