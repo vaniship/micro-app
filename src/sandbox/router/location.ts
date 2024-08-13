@@ -364,12 +364,12 @@ export function updateMicroLocation (
   }
 
   /**
-   * native模式从state中取值，而浏览器地址的修改无法控制，很可能出现浏览器地址和__MICRO_APP_STATE__不一致的情况
-   * 尤其是在初始化和前进后退时，由于vue-router4会主动修改url地址，倒是上述情况经常出现
-   * 为了结局这个问题，在子应用初始化和响应popstate事件后，判断__MICRO_APP_STATE__和浏览器地址是否一致，如果不一致，则将浏览器地址更新为__MICRO_APP_STATE__的地址
-   * 说明：
-   *  1、如果__MICRO_APP_STATE__和url不一样，那么更新url的操作是对的，否则会产生url和渲染页面不一致的问题，开发者会更加困惑
-   *  2、当native模式有多个子应用同时存在，其中一个修改url地址，另外一个并不会改变__MICRO_APP_STATE__，刷新就产生问题，不一致，第二是根据谁更新url？
+   * The native mode also base of history.state, and the modification of the browser url cannot be controlled. It is very likely that the browser url and __MICRO_APP_STATE__ are different.
+   * Especially during init of child or forward and backward of browser, because vue-router@4 will actively modify the browser URL, the above situation often occurs
+   * To solve this problem, after child app is initialized and responds to the popstateEvent, it is determined whether __MICRO_APP_STATE__ and the browser url are different. If they are different, the browser url will updated to the address of __MICRO_APP_STATE__
+   * NOTE:
+   *  1. If __MICRO_APP_STATE__ is different from the URL, then the operation of updating the URL is correct, otherwise there will be a problem of inconsistency between the URL and the rendered page
+   *  2. When there are multiple child app in native mode, if one of them changes the URL address, the other one will not change __MICRO_APP_STATE__, and refresh browser will cause problems
    */
   const rawLocation = globalEnv.rawWindow.location
   if (
