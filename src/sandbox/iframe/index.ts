@@ -423,7 +423,7 @@ export default class IframeSandbox {
     this.microHead.appendChild(this.baseElement)
   }
 
-  // 初始化和每次跳转时都要更新base的href
+  // Update the base.href when initial and each redirect
   public updateIframeBase = (): void => {
     // origin must be child app origin
     this.baseElement?.setAttribute('href', createURL(this.url).origin + this.proxyLocation.pathname)

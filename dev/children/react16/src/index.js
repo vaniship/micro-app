@@ -615,5 +615,3 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 //     // window.microApp.removeDomScope(false)
 //   }, 1000);
 // }
-
-console.log(111111, location.href)
