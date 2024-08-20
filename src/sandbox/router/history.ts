@@ -221,7 +221,6 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
-      // TODO: 大部分情况下，history.pushState 都是先执行，micro-app后卸载，所以会产生一种情况：跳转到新地址后，search模式会在url上添加参数，卸载后再将参数删除，所以会导致浏览器地址闪烁，是否需要去掉这个功能
       if ((isRouterModeSearch(appName) || isRouterModeState(appName)) && !getMicroPathFromURL(appName)) {
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(

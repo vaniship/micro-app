@@ -8,13 +8,20 @@
 
 ---
 
+### 1.0.0-rc.8
+
+`2024-8-20`
+
+- **Bug Fix**
+  - 🐞 修复 with沙箱下子应用重写`history.pushState`、`history.replaceState`失败的问题，[issue 1210](https://github.com/micro-zoe/micro-app/issues/1210)。
+
+
 ### 1.0.0-rc.7
 
 `2024-8-20`
 
 - **Bug Fix**
   - 🐞 修复 vue3子应用初始化时，`createWebHistory()`参数为空导致默认页面跳转异常的问题，[issue 1317](https://github.com/micro-zoe/micro-app/issues/1317)、[issue 1318](https://github.com/micro-zoe/micro-app/issues/1318)、[issue 1335](https://github.com/micro-zoe/micro-app/issues/1335)。
-  - 🐞 修复 with沙箱下子应用重写`history.pushState`、`history.replaceState`失败的问题。
 
 - **Update**
   - 🚀 更新 内存优化相关文档。

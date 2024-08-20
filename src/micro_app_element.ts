@@ -147,7 +147,7 @@ export function defineElement (tagName: string): void {
         if (
           attr === ObservedAttrName.URL && (
             !this.appUrl ||
-            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+            !this.connectStateMap.get(this.connectedCount)
           )
         ) {
           newVal = formatAppURL(newVal, this.appName)
@@ -159,7 +159,7 @@ export function defineElement (tagName: string): void {
         } else if (
           attr === ObservedAttrName.NAME && (
             !this.appName ||
-            !this.connectStateMap.get(this.connectedCount) // TODO: 这里的逻辑可否再优化一下
+            !this.connectStateMap.get(this.connectedCount)
           )
         ) {
           const formatNewName = formatAppName(newVal)
@@ -168,7 +168,6 @@ export function defineElement (tagName: string): void {
             return logError(`Invalid attribute name ${newVal}`, this.appName)
           }
 
-          // TODO: 当micro-app还未插入文档中就修改name，逻辑可否再优化一下
           if (this.cacheData) {
             microApp.setData(formatNewName, this.cacheData)
             this.cacheData = null
