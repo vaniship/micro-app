@@ -137,7 +137,19 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
       return rawMicroQuerySelector.call(_this, selectors)
     }
 
-    return appInstanceMap.get(appName)?.querySelector(selectors) ?? rawMicroQuerySelector.call(microDocument, selectors) ?? null
+    /**
+     * The child app cannot query the base element inside iframe
+     * Same for querySelectorAll
+     *
+     * Scenes:
+     *  1. vue-router@4.x --> createWebHistory(base?: string)
+     *    const baseEl = document.querySelector('base')
+     *    base = (baseEl && baseEl.getAttribute('href')) || '/'
+     *
+     * Issue: https://github.com/micro-zoe/micro-app/issues/1335
+     */
+    const result = appInstanceMap.get(appName)?.querySelector(selectors)
+    return result || selectors === 'base' ? result : rawMicroQuerySelector.call(microDocument, selectors)
   }
 
   function querySelectorAll (this: Document, selectors: string): any {
@@ -151,7 +163,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     }
 
     const result = appInstanceMap.get(appName)?.querySelectorAll(selectors) ?? []
-    return result.length ? result : rawMicroQuerySelectorAll.call(microDocument, selectors)
+    return result.length || selectors === 'base' ? result : rawMicroQuerySelectorAll.call(microDocument, selectors)
   }
 
   microRootDocument.prototype.querySelector = querySelector
@@ -190,7 +202,8 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
       isInvalidQuerySelectorKey(key)
     ) {
       return rawMicroGetElementsByTagName.call(_this, key)
-    } else if (/^script|base$/i.test(key)) {
+    // just script, not base
+    } else if (/^script$/i.test(key)) {
       return rawMicroGetElementsByTagName.call(microDocument, key)
     }
 
