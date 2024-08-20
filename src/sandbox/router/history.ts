@@ -75,32 +75,34 @@ export function createMicroHistory (appName: string, microLocation: MicroLocatio
     }
   }
 
-  const pushState = getMicroHistoryMethod('pushState')
-  const replaceState = getMicroHistoryMethod('replaceState')
+  const originalHistory = {
+    pushState: getMicroHistoryMethod('pushState'),
+    replaceState: getMicroHistoryMethod('replaceState'),
+  }
 
   if (isIframeSandbox(appName)) {
-    return {
-      pushState,
-      replaceState,
+    return assign({
       go (delta?: number) {
         return rawHistory.go(delta)
       }
-    } as MicroHistory
+    }, originalHistory) as MicroHistory
   }
 
   return new Proxy(rawHistory, {
     get (target: History, key: PropertyKey): HistoryProxyValue {
-      if (key === 'state') {
+      if (key === 'pushState' || key === 'replaceState') {
+        return originalHistory[key]
+      } else if (key === 'state') {
         return getMicroState(appName)
-      } else if (key === 'pushState') {
-        return pushState
-      } else if (key === 'replaceState') {
-        return replaceState
       }
       return bindFunctionToRawTarget<History, HistoryProxyValue>(Reflect.get(target, key), target, 'HISTORY')
     },
     set (target: History, key: PropertyKey, value: unknown): boolean {
-      Reflect.set(target, key, value)
+      if (key === 'pushState' || key === 'replaceState') {
+        originalHistory[key] = value as CallableFunction
+      } else {
+        Reflect.set(target, key, value)
+      }
       /**
        * If the set() method returns false, and the assignment happened in strict-mode code, a TypeError will be thrown.
        * e.g. history.state = {}
@@ -219,7 +221,6 @@ function reWriteHistoryMethod (method: History['pushState' | 'replaceState']): C
       excludeHiddenApp: true,
       excludePreRender: true,
     }).forEach(appName => {
-      // TODO: 大部分情况下，history.pushState 都是先执行，micro-app后卸载，所以会产生一种情况：跳转到新地址后，search模式会在url上添加参数，卸载后再将参数删除，所以会导致浏览器地址闪烁，是否需要去掉这个功能
       if ((isRouterModeSearch(appName) || isRouterModeState(appName)) && !getMicroPathFromURL(appName)) {
         const app = appInstanceMap.get(appName)!
         attachRouteToBrowserURL(
