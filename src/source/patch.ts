@@ -632,7 +632,7 @@ export function patchElementAndDocument (): void {
     },
     set (code: string) {
       globalEnv.rawInnerHTMLDesc.set.call(this, code)
-      const currentAppName = this.__MICRO_APP_NAME__ || getCurrentAppName()
+      const currentAppName = this.__MICRO_APP_NAME__ || getIframeCurrentAppName() || getCurrentAppName()
       Array.from(this.children).forEach((child) => {
         if (isElement(child) && currentAppName) {
           updateElementInfo(child, currentAppName)
