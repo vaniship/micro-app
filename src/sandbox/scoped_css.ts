@@ -71,10 +71,11 @@ class CSSParser {
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleRule
   private matchStyleRule (): boolean | void {
     const selectors = this.formatSelector(true)
+
     // reset scopecssDisableNextLine
     this.scopecssDisableNextLine = false
 
-    if (!selectors) return parseError('selector missing', this.linkPath)
+    if (!selectors) return this.printError('selector missing', this.linkPath)
 
     this.recordResult(selectors)
 
@@ -130,16 +131,14 @@ class CSSParser {
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration
-  private styleDeclarations (): void {
-    if (this.cssText.length) {
-      if (!this.matchOpenBrace()) return parseError("Declaration missing '{'", this.linkPath)
+  private styleDeclarations (): boolean | void {
+    if (!this.matchOpenBrace()) return this.printError("Declaration missing '{'", this.linkPath)
 
-      this.matchAllDeclarations()
+    this.matchAllDeclarations()
 
-      if (this.cssText.length) {
-        if (!this.matchCloseBrace()) return parseError("Declaration missing '}'", this.linkPath)
-      }
-    }
+    if (!this.matchCloseBrace()) return this.printError("Declaration missing '}'", this.linkPath)
+
+    return true
   }
 
   private matchAllDeclarations (nesting = 0): void {
@@ -170,7 +169,7 @@ class CSSParser {
     // reset scopecssDisableNextLine
     this.scopecssDisableNextLine = false
 
-    if (!this.cssText) return
+    if (!this.cssText.length) return
 
     // extract comments in declarations
     if (this.cssText.charAt(0) === '/') {
@@ -223,18 +222,18 @@ class CSSParser {
   private keyframesRule (): boolean | void {
     if (!this.commonMatch(/^@([-\w]+)?keyframes\s*/)) return false
 
-    if (!this.commonMatch(/^[^{]+/)) return parseError('@keyframes missing name', this.linkPath)
+    if (!this.commonMatch(/^[^{]+/)) return this.printError('@keyframes missing name', this.linkPath)
 
     this.matchComments()
 
-    if (!this.matchOpenBrace()) return parseError("@keyframes missing '{'", this.linkPath)
+    if (!this.matchOpenBrace()) return this.printError("@keyframes missing '{'", this.linkPath)
 
     this.matchComments()
     while (this.keyframeRule()) {
       this.matchComments()
     }
 
-    if (!this.matchCloseBrace()) return parseError("@keyframes missing '}'", this.linkPath)
+    if (!this.matchCloseBrace()) return this.printError("@keyframes missing '}'", this.linkPath)
 
     this.matchLeadingSpaces()
 
@@ -296,7 +295,7 @@ class CSSParser {
 
     this.matchRules()
 
-    if (!this.matchCloseBrace()) return parseError('@layer missing \'}\'', this.linkPath)
+    if (!this.matchCloseBrace()) return this.printError('@layer missing \'}\'', this.linkPath)
 
     this.matchLeadingSpaces()
 
@@ -325,13 +324,13 @@ class CSSParser {
     return () => {
       if (!this.commonMatch(reg)) return false
 
-      if (!this.matchOpenBrace()) return parseError(`${name} missing '{'`, this.linkPath)
+      if (!this.matchOpenBrace()) return this.printError(`${name} missing '{'`, this.linkPath)
 
       this.matchComments()
 
       this.matchRules()
 
-      if (!this.matchCloseBrace()) return parseError(`${name} missing '}'`, this.linkPath)
+      if (!this.matchCloseBrace()) return this.printError(`${name} missing '}'`, this.linkPath)
 
       this.matchLeadingSpaces()
 
@@ -351,11 +350,11 @@ class CSSParser {
 
   // common handler for @font-face, @page
   private commonHandlerForAtRuleWithSelfRule (name: string): boolean | void {
-    if (!this.matchOpenBrace()) return parseError(`@${name} missing '{'`, this.linkPath)
+    if (!this.matchOpenBrace()) return this.printError(`@${name} missing '{'`, this.linkPath)
 
     this.matchAllDeclarations()
 
-    if (!this.matchCloseBrace()) return parseError(`@${name} missing '}'`, this.linkPath)
+    if (!this.matchCloseBrace()) return this.printError(`@${name} missing '}'`, this.linkPath)
 
     this.matchLeadingSpaces()
 
@@ -378,7 +377,7 @@ class CSSParser {
     i += 2
 
     if (this.cssText.charAt(i - 1) === '') {
-      return parseError('End of comment missing', this.linkPath)
+      return this.printError('End of comment missing', this.linkPath)
     }
 
     // get comment content
@@ -442,6 +441,12 @@ class CSSParser {
       this.result += encodeURIComponent(strFragment)
     } else {
       this.result += strFragment
+    }
+  }
+
+  private printError (msg: string, linkPath?: string): void {
+    if (this.cssText.length) {
+      parseError(msg, linkPath)
     }
   }
 }
