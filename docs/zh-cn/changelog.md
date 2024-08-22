@@ -15,6 +15,7 @@
 - **Bug Fix**
   - 🐞 修复 vite环境下iframe沙箱对于插件系统`escapeProperties`不支持的问题。
   - 🐞 修复 iframe沙箱下jquery通过`$('body').append`创建元素逃逸的问题，[issue 1339](https://github.com/micro-zoe/micro-app/issues/1339)。
+  - 🐞 修复 iframe沙箱部分场景下执行`instanceOf`导致死循环的问题，[issue 1341](https://github.com/micro-zoe/micro-app/issues/1341)。
 
 
 ### 1.0.0-rc.8

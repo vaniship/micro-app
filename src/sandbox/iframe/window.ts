@@ -96,7 +96,7 @@ function patchWindowProperty (
           configurable: true,
           enumerable: false,
           value (target: unknown): boolean {
-            return target instanceof rawWindow[key] || instanceOf(target, microAppWindow[key])
+            return instanceOf(target, rawWindow[key]) || instanceOf(target, microAppWindow[key])
           },
         })
       }
