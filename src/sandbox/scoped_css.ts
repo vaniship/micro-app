@@ -71,7 +71,6 @@ class CSSParser {
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleRule
   private matchStyleRule (): boolean | void {
     const selectors = this.formatSelector(true)
-
     // reset scopecssDisableNextLine
     this.scopecssDisableNextLine = false
 
@@ -131,14 +130,16 @@ class CSSParser {
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration
-  private styleDeclarations (): boolean | void {
-    if (!this.matchOpenBrace()) return parseError("Declaration missing '{'", this.linkPath)
+  private styleDeclarations (): void {
+    if (this.cssText.length) {
+      if (!this.matchOpenBrace()) return parseError("Declaration missing '{'", this.linkPath)
 
-    this.matchAllDeclarations()
+      this.matchAllDeclarations()
 
-    if (!this.matchCloseBrace()) return parseError("Declaration missing '}'", this.linkPath)
-
-    return true
+      if (this.cssText.length) {
+        if (!this.matchCloseBrace()) return parseError("Declaration missing '}'", this.linkPath)
+      }
+    }
   }
 
   private matchAllDeclarations (nesting = 0): void {
