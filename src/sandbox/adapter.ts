@@ -10,12 +10,18 @@ import {
   isMicroAppBody,
   getPreventSetState,
   throttleDeferForIframeAppName,
+  isAnchorElement,
+  isRelativePath,
+  isImageElement,
+  isVideoElement,
+  isAudioElement,
 } from '../libs/utils'
 import {
   appInstanceMap,
   isIframeSandbox,
 } from '../create_app'
 import microApp from '../micro_app'
+import { AppManager } from '../app_manager'
 
 export class BaseSandbox implements BaseSandboxType {
   constructor (appName: string, url: string) {
@@ -143,14 +149,37 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
      *  1. 测试baseURI和ownerDocument在with沙箱中是否正确
      *    经过验证with沙箱不能重写ownerDocument，否则react点击事件会触发两次
     */
-    rawDefineProperties(node, {
+    const props: {[kye:string]:any} = {
       __MICRO_APP_NAME__: {
         configurable: true,
         enumerable: true,
         writable: true,
         value: appName,
       },
-    })
+    }
+    if (isAnchorElement(node)) {
+      // a 标签
+      const microApp = AppManager.getInstance().get(appName)
+      if (microApp) {
+        let originalHref = node.href
+        props.href = {
+          get() {
+            if (isRelativePath(originalHref)) {
+              return `${microApp.url}${originalHref}`
+            }
+            return originalHref
+          },
+          set(value: string) {
+            originalHref = value
+          }
+        }
+      }
+    }
+    if (isImageElement(node) || isVideoElement(node) || isAudioElement(node)) {
+      // @ts-ignore
+      node.crossOrigin = 'anonymous'
+    }
+    rawDefineProperties(node, props)
 
     /**
      * In FireFox, iframe Node.prototype will point to native Node.prototype after insert to document
