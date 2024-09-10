@@ -68,8 +68,6 @@ export default class IframeSandbox {
   private removeHistoryListener!: CallableFunction
   // Properties that can be escape to rawWindow
   public escapeProperties: PropertyKey[] = []
-  // Properties escape to rawWindow, cleared when unmount
-  public escapeKeys = new Set<PropertyKey>()
   public deleteIframeElement: () => void
   public iframe!: HTMLIFrameElement | null
   // Promise used to mark whether the sandbox is initialized
@@ -226,11 +224,6 @@ export default class IframeSandbox {
 
     if (!umdMode || destroy) {
       this.deleteIframeElement()
-
-      this.escapeKeys.forEach((key: PropertyKey) => {
-        Reflect.deleteProperty(globalEnv.rawWindow, key)
-      })
-      this.escapeKeys.clear()
 
       this.clearHijackUmdHooks()
     }

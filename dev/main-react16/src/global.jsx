@@ -60,7 +60,14 @@ const prefetchConfig = [
 
 // microApp.preFetch(prefetchConfig)
 
+window['escapeKey1'] = 'escapeKey1 from base app by global plugin'
 window['escapeKey3'] = 'escapeKey3 from base app'
+window['scopeKey-vite-1'] = 'scopeKey-vite-1 from base app'
+window['escapeKey-vite-1'] = 'escapeKey-vite-1 from base app'
+window['escapeKey-vite-func'] = function () {
+  console.log('escapeKey-vite-func', this)
+  return this
+}
 window.Vue = { tip: 'Vue from base' }
 
 microApp.start({
@@ -146,6 +153,10 @@ microApp.start({
       }],
       vite2: [{
         escapeProperties: ['escapeKey3', 'escapeKey4'],
+      }],
+      vite4: [{
+        scopeProperties: ['scopeKey-vite-1', 'scopeKey-vite-2'],
+        escapeProperties: ['escapeKey-vite-1', 'escapeKey-vite-2', 'escapeKey-vite-func'],
       }],
     }
   },

@@ -22,7 +22,6 @@ import {
 import {
   escape2RawWindowKeys,
   escape2RawWindowRegExpKeys,
-  // hijackInstanceOfWindowRegExpKeys,
 } from './special_key'
 
 /**
@@ -37,7 +36,7 @@ export function patchWindow (
   microAppWindow: microAppWindowType,
   sandbox: IframeSandbox,
 ): CommonEffectHook {
-  patchWindowProperty(appName, microAppWindow)
+  patchWindowProperty(appName, microAppWindow, sandbox)
   createProxyWindow(microAppWindow, sandbox)
   return patchWindowEffect(microAppWindow)
 }
@@ -49,6 +48,7 @@ export function patchWindow (
 function patchWindowProperty (
   appName: string,
   microAppWindow: microAppWindowType,
+  sandbox: IframeSandbox,
 ):void {
   const rawWindow = globalEnv.rawWindow
 
@@ -96,26 +96,10 @@ function patchWindowProperty (
           configurable: true,
           enumerable: false,
           value (target: unknown): boolean {
-            return target instanceof rawWindow[key] || instanceOf(target, microAppWindow[key])
+            return instanceOf(target, rawWindow[key]) || instanceOf(target, microAppWindow[key])
           },
         })
       }
-
-      // hijackInstanceOfWindowRegExpKeys.some((reg: RegExp) => {
-      //   if (reg.test(key) && key in rawWindow) {
-      //     rawDefineProperty(microAppWindow[key], Symbol.hasInstance, {
-      //       configurable: true,
-      //       enumerable: false,
-      //       value: (target: unknown) => {
-      //         return target instanceof rawWindow[key]
-      //           ? true
-      //           : instanceOf(target, microAppWindow[key])
-      //       },
-      //     })
-      //     return true
-      //   }
-      //   return false
-      // })
 
       return /^on/.test(key) && !SCOPE_WINDOW_ON_EVENT_OF_IFRAME.includes(key)
     })
@@ -137,6 +121,24 @@ function patchWindowProperty (
         logWarn(e, appName)
       }
     })
+
+  /**
+   * In esmodule(vite) proxyWindow will not take effect,
+   * escapeProperties should define to microAppWindow
+   */
+  sandbox.escapeProperties.forEach((key: PropertyKey) => {
+    let rawValue = microAppWindow[key]
+    rawDefineProperty(microAppWindow, key, {
+      enumerable: true,
+      configurable: true,
+      get () {
+        return rawValue ?? bindFunctionToRawTarget(rawWindow[key], rawWindow)
+      },
+      set (value: unknown) {
+        rawValue = value
+      }
+    })
+  })
 }
 
 /**
@@ -179,7 +181,7 @@ function createProxyWindow (
        *  2. window.key in module app(vite), fall into microAppWindow(iframeWindow), escapeProperties will not take effect
        *  3. if (key)... --> fall into microAppWindow(iframeWindow), escapeProperties will not take effect
        */
-      if (includes(sandbox.escapeProperties, key) && !Reflect.has(target, key)) {
+      if (includes(sandbox.escapeProperties, key) && !Reflect.get(target, key)) {
         return bindFunctionToRawTarget(Reflect.get(rawWindow, key), rawWindow)
       }
 
@@ -194,19 +196,14 @@ function createProxyWindow (
         customProperties.add(key)
       }
 
+      // sandbox.escapeProperties will not set to rawWindow from rc.9
       Reflect.set(target, key, value)
-
-      if (includes(sandbox.escapeProperties, key)) {
-        !Reflect.has(rawWindow, key) && sandbox.escapeKeys.add(key)
-        Reflect.set(rawWindow, key, value)
-      }
 
       return true
     },
     has: (target: microAppWindowType, key: PropertyKey) => key in target,
     deleteProperty: (target: microAppWindowType, key: PropertyKey): boolean => {
       if (Reflect.has(target, key)) {
-        sandbox.escapeKeys.has(key) && Reflect.deleteProperty(rawWindow, key)
         return Reflect.deleteProperty(target, key)
       }
       return true
