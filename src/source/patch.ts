@@ -309,7 +309,7 @@ function completePathDynamic (app: AppInterface, newChild: Node): void {
       if (newChild.hasAttribute('srcset')) {
         globalEnv.rawSetAttribute.call(newChild, 'srcset', CompletionPath(newChild.getAttribute('srcset')!, app.url))
       }
-    } else if (/^(link|image)$/i.test(newChild.tagName) && newChild.hasAttribute('href')) {
+    } else if (/^(a|link|image)$/i.test(newChild.tagName) && newChild.hasAttribute('href')) {
       globalEnv.rawSetAttribute.call(newChild, 'href', CompletionPath(newChild.getAttribute('href')!, app.url))
     }
   }
@@ -541,7 +541,7 @@ export function patchElementAndDocument (): void {
         appInstanceMap.has(appName) &&
         (
           ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
-          (key === 'href' && /^(link|image)$/i.test(this.tagName))
+          (key === 'href' && /^(a|link|image)$/i.test(this.tagName))
         )
       ) {
         const app = appInstanceMap.get(appName)

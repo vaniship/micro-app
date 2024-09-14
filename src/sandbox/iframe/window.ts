@@ -23,6 +23,7 @@ import {
   escape2RawWindowKeys,
   escape2RawWindowRegExpKeys,
 } from './special_key'
+import WorkerProxy from '../../proxies/worker'
 
 /**
  * patch window of child app
@@ -153,6 +154,12 @@ function createProxyWindow (
   const rawWindow = globalEnv.rawWindow
   const customProperties = new Set<PropertyKey>()
 
+  Object.defineProperty(microAppWindow, 'Worker', {
+    value: WorkerProxy,
+    configurable: true,
+    writable: true,
+  })
+
   /**
    * proxyWindow will only take effect in certain scenes, such as window.key
    * e.g:
@@ -162,6 +169,9 @@ function createProxyWindow (
    */
   const proxyWindow = new Proxy(microAppWindow, {
     get: (target: microAppWindowType, key: PropertyKey): unknown => {
+      if (key === 'Worker') {
+        return WorkerProxy
+      }
       if (key === 'location') {
         return sandbox.proxyLocation
       }
