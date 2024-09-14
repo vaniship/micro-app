@@ -11,7 +11,6 @@ import {
   getPreventSetState,
   throttleDeferForIframeAppName,
   isAnchorElement,
-  isRelativePath,
   isImageElement,
   isVideoElement,
   isAudioElement,
@@ -161,17 +160,13 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
       // a 标签
       const microApp = AppManager.getInstance().get(appName)
       if (microApp) {
-        let originalHref = node.href
         props.href = {
           get() {
-            if (isRelativePath(originalHref)) {
-              return `${microApp.url}${originalHref}`
-            }
-            return originalHref
+            return this.getAttribute('href')
           },
           set(value: string) {
-            originalHref = value
-          }
+            this.setAttribute('href', value)
+          },
         }
       }
     }

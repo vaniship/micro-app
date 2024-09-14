@@ -14,7 +14,6 @@ import {
 import {
   updateElementInfo,
 } from '../sandbox/adapter'
-import '../proxies/worker'
 
 declare global {
   interface Node {

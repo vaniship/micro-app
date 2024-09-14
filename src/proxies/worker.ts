@@ -79,3 +79,5 @@ const WorkerProxy = new Proxy<Worker>(originalWorker, {
 
 // @ts-ignore
 window.Worker = WorkerProxy
+
+export default WorkerProxy

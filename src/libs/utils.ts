@@ -125,7 +125,7 @@ export function isNode(target: unknown): target is Node {
   return target instanceof Node || isNumber((target as Node)?.nodeType)
 }
 
-export function isCanvasElement(target: unknown): target is HTMLAnchorElement {
+export function isCanvasElement(target: unknown): target is HTMLCanvasElement {
   return toTypeString(target) === '[object HTMLCanvasElement]'
 }
 
@@ -133,11 +133,11 @@ export function isAnchorElement(target: unknown): target is HTMLAnchorElement {
   return toTypeString(target) === '[object HTMLAnchorElement]'
 }
 
-export function isAudioElement(target: unknown): target is HTMLAnchorElement {
+export function isAudioElement(target: unknown): target is HTMLAudioElement {
   return toTypeString(target) === '[object HTMLAudioElement]'
 }
 
-export function isVideoElement(target: unknown): target is HTMLAnchorElement {
+export function isVideoElement(target: unknown): target is HTMLVideoElement {
   return toTypeString(target) === '[object HTMLVideoElement]'
 }
 
@@ -777,10 +777,3 @@ export function formatEventType(type: string, appName: string): string {
 export function isEmptyObject(target: unknown): boolean {
   return isPlainObject(target) ? !Object.keys(target).length : true
 }
-
-/**
- *
- * @param {string} url  input url
- * @returns {boolean} is relative path
- */
-export const isRelativePath = (url: string) => !/^https?:\/\//i.test(url) && !/^\/\//i.test(url)

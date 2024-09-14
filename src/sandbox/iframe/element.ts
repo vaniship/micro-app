@@ -240,7 +240,7 @@ function patchIframeAttribute (url: string, microAppWindow: microAppWindowType):
     } else {
       if (
         ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
-        (key === 'href' && /^(link|image)$/i.test(this.tagName))
+        (key === 'href' && /^(a|link|image)$/i.test(this.tagName))
       ) {
         value = CompletionPath(value, url)
       }
