@@ -1,7 +1,7 @@
 
 欢迎小伙伴们加入micro-app微信群交流^ ^
 
-![IMG_0779](https://github.com/user-attachments/assets/bb4daf13-a2c5-40e8-878f-4037ec794d54)
+![IMG_0882](https://github.com/user-attachments/assets/aa133812-2920-4f87-80e3-c44778685725)
 
 
 
