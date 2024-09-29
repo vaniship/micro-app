@@ -28,6 +28,10 @@ import {
   isNull,
   getIframeCurrentAppName,
   isDocumentFragment,
+  isDocumentShadowRoot,
+  isImageElement,
+  isVideoElement,
+  isAudioElement,
 } from '../libs/utils'
 import scopedCSS from '../sandbox/scoped_css'
 import {
@@ -52,7 +56,7 @@ import globalEnv from '../libs/global_env'
 const dynamicElementInMicroAppMap = new WeakMap<Node, Element | Comment>()
 
 // Get the map element
-function getMappingNode (node: Node): Node {
+function getMappingNode(node: Node): Node {
   return dynamicElementInMicroAppMap.get(node) ?? node
 }
 
@@ -61,7 +65,7 @@ function getMappingNode (node: Node): Node {
  * @param child new node
  * @param app app
  */
-function handleNewNode (child: Node, app: AppInterface): Node {
+function handleNewNode(child: Node, app: AppInterface): Node {
   if (dynamicElementInMicroAppMap.has(child)) {
     return dynamicElementInMicroAppMap.get(child)!
   } else if (isStyleElement(child)) {
@@ -147,7 +151,7 @@ function handleNewNode (child: Node, app: AppInterface): Node {
  * @param targetNode target node
  * @param passiveNode second param of insertBefore and replaceChild
  */
-function invokePrototypeMethod (
+function invokePrototypeMethod(
   app: AppInterface,
   rawMethod: Func,
   parent: Node,
@@ -178,7 +182,7 @@ function invokePrototypeMethod (
         rawDefineProperties(targetNode, {
           parentNode: {
             configurable: true,
-            get () {
+            get() {
               const result: ParentNode = globalEnv.rawParentNodeDesc.get.call(this)
               if (isMicroAppBody(result) && app.container) {
                 // TODO: remove getRootElementParentNode
@@ -235,7 +239,7 @@ function invokePrototypeMethod (
 }
 
 // head/body map to micro-app-head/micro-app-body
-function getHijackParent (
+function getHijackParent(
   parent: Node,
   targetNode: Node,
   app: AppInterface,
@@ -260,7 +264,7 @@ function getHijackParent (
   return null
 }
 
-function invokeRawMethod (
+function invokeRawMethod(
   rawMethod: Func,
   parent: Node,
   targetNode: Node,
@@ -286,7 +290,7 @@ function invokeRawMethod (
   return rawMethod.call(parent, targetNode, passiveNode)
 }
 
-function isPendMethod (method: CallableFunction) {
+function isPendMethod(method: CallableFunction) {
   return (
     method === globalEnv.rawAppend ||
     method === globalEnv.rawPrepend ||
@@ -300,7 +304,7 @@ function isPendMethod (method: CallableFunction) {
  * @param app app instance
  * @param newChild target node
  */
-function completePathDynamic (app: AppInterface, newChild: Node): void {
+function completePathDynamic(app: AppInterface, newChild: Node): void {
   if (isElement(newChild)) {
     if (/^(img|script)$/i.test(newChild.tagName)) {
       if (newChild.hasAttribute('src')) {
@@ -322,7 +326,7 @@ function completePathDynamic (app: AppInterface, newChild: Node): void {
  * @param passiveNode passive node
  * @param rawMethod method
  */
-function commonElementHandler (
+function commonElementHandler(
   parent: Node,
   newChild: Node,
   passiveNode: Node | null,
@@ -360,7 +364,7 @@ function commonElementHandler (
 /**
  * Rewrite element prototype method
  */
-export function patchElementAndDocument (): void {
+export function patchElementAndDocument(): void {
   patchDocument()
 
   const rawRootElement = globalEnv.rawRootElement
@@ -368,20 +372,20 @@ export function patchElementAndDocument (): void {
   const rawDocumentFragment = globalEnv.rawDocumentFragment
 
   // prototype methods of add element👇
-  rawRootNode.prototype.appendChild = function appendChild<T extends Node> (newChild: T): T {
+  rawRootNode.prototype.appendChild = function appendChild<T extends Node>(newChild: T): T {
     return commonElementHandler(this, newChild, null, globalEnv.rawAppendChild)
   }
 
-  rawRootNode.prototype.insertBefore = function insertBefore<T extends Node> (newChild: T, refChild: Node | null): T {
+  rawRootNode.prototype.insertBefore = function insertBefore<T extends Node>(newChild: T, refChild: Node | null): T {
     return commonElementHandler(this, newChild, refChild, globalEnv.rawInsertBefore)
   }
 
-  rawRootNode.prototype.replaceChild = function replaceChild<T extends Node> (newChild: Node, oldChild: T): T {
+  rawRootNode.prototype.replaceChild = function replaceChild<T extends Node>(newChild: Node, oldChild: T): T {
     return commonElementHandler(this, newChild, oldChild, globalEnv.rawReplaceChild)
   }
 
   // prototype methods of delete element👇
-  rawRootNode.prototype.removeChild = function removeChild<T extends Node> (oldChild: T): T {
+  rawRootNode.prototype.removeChild = function removeChild<T extends Node>(oldChild: T): T {
     if (oldChild?.__MICRO_APP_NAME__) {
       const app = appInstanceMap.get(oldChild.__MICRO_APP_NAME__)
       if (app?.container) {
@@ -402,7 +406,7 @@ export function patchElementAndDocument (): void {
     return globalEnv.rawRemoveChild.call(this, oldChild) as T
   }
 
-  rawDocumentFragment.prototype.append = rawRootElement.prototype.append = function append (...nodes: (Node | string)[]): void {
+  rawDocumentFragment.prototype.append = rawRootElement.prototype.append = function append(...nodes: (Node | string)[]): void {
     let i = 0
     while (i < nodes.length) {
       let node = nodes[i]
@@ -417,8 +421,13 @@ export function patchElementAndDocument (): void {
     }
   }
 
-  rawDocumentFragment.prototype.prepend = rawRootElement.prototype.prepend = function prepend (...nodes: (Node | string)[]): void {
+  rawDocumentFragment.prototype.prepend = rawRootElement.prototype.prepend = function prepend(...nodes: (Node | string)[]): void {
     let i = nodes.length
+    let target = globalEnv.rawPrepend
+    if (isDocumentFragment(this) || isDocumentShadowRoot(this)) {
+      target = globalEnv.rawFragmentPrepend
+    }
+
     while (i > 0) {
       let node = nodes[i - 1]
       node = isNode(node) ? node : globalEnv.rawCreateTextNode.call(globalEnv.rawDocument, node)
@@ -426,7 +435,7 @@ export function patchElementAndDocument (): void {
         this,
         markElement(node as Node),
         null,
-        isDocumentFragment(this) ? globalEnv.rawFragmentPrepend : globalEnv.rawPrepend,
+        target,
       )
       i--
     }
@@ -456,7 +465,7 @@ export function patchElementAndDocument (): void {
    *  1. May cause some problems!
    *  2. Add config options?
    */
-  function getElementQueryTarget (targetNode: Node): Node | null {
+  function getElementQueryTarget(targetNode: Node): Node | null {
     const currentAppName = getIframeCurrentAppName() || getCurrentAppName()
     if ((targetNode === document.body || targetNode === document.head) && currentAppName) {
       const app = appInstanceMap.get(currentAppName)
@@ -480,7 +489,7 @@ export function patchElementAndDocument (): void {
    * @param selectors selectors
    * @param methodName querySelector or querySelectorAll
    */
-  function getElementQueryResult <T> (
+  function getElementQueryResult<T>(
     isEmpty: boolean,
     targetNode: Node,
     result: T,
@@ -502,7 +511,7 @@ export function patchElementAndDocument (): void {
     return result
   }
 
-  rawRootElement.prototype.querySelector = function querySelector (selectors: string): Node | null {
+  rawRootElement.prototype.querySelector = function querySelector(selectors: string): Node | null {
     const _this = getElementQueryTarget(this) ?? this
     const result = globalEnv.rawElementQuerySelector.call(_this, selectors)
     return getElementQueryResult<Node | null>(
@@ -514,7 +523,7 @@ export function patchElementAndDocument (): void {
     )
   }
 
-  rawRootElement.prototype.querySelectorAll = function querySelectorAll (selectors: string): NodeListOf<Node> {
+  rawRootElement.prototype.querySelectorAll = function querySelectorAll(selectors: string): NodeListOf<Node> {
     const _this = getElementQueryTarget(this) ?? this
     const result = globalEnv.rawElementQuerySelectorAll.call(_this, selectors)
     return getElementQueryResult<NodeListOf<Node>>(
@@ -527,7 +536,7 @@ export function patchElementAndDocument (): void {
   }
 
   // rewrite setAttribute, complete resource address
-  rawRootElement.prototype.setAttribute = function setAttribute (key: string, value: any): void {
+  rawRootElement.prototype.setAttribute = function setAttribute(key: string, value: any): void {
     if (
       /^micro-app(-\S+)?/i.test(this.tagName) &&
       key === 'data' &&
@@ -543,11 +552,20 @@ export function patchElementAndDocument (): void {
           ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
           (key === 'href' && /^(a|link|image)$/i.test(this.tagName))
         )
+
       ) {
         const app = appInstanceMap.get(appName)
         value = CompletionPath(value, app!.url)
       }
       globalEnv.rawSetAttribute.call(this, key, value)
+      if (isImageElement(this) || isVideoElement(this) || isAudioElement(this)) {
+        let includeCrossOrigin = false
+        if (microApp?.options?.includeCrossOrigin && isFunction(microApp.options.includeCrossOrigin)) {
+          includeCrossOrigin = microApp.options.includeCrossOrigin(value)
+        }
+        // @ts-ignore
+        includeCrossOrigin && (node.crossOrigin = 'anonymous')
+      }
     }
   }
 
@@ -591,7 +609,7 @@ export function patchElementAndDocument (): void {
   rawDefineProperty(rawRootNode.prototype, 'parentNode', {
     configurable: true,
     enumerable: true,
-    get () {
+    get() {
       /**
        * hijack parentNode of html for with sandbox
        * Scenes:
@@ -627,10 +645,10 @@ export function patchElementAndDocument (): void {
   rawDefineProperty(rawRootElement.prototype, 'innerHTML', {
     configurable: true,
     enumerable: true,
-    get () {
+    get() {
       return globalEnv.rawInnerHTMLDesc.get.call(this)
     },
-    set (code: string) {
+    set(code: string) {
       globalEnv.rawInnerHTMLDesc.set.call(this, code)
       const currentAppName = this.__MICRO_APP_NAME__ || getIframeCurrentAppName() || getCurrentAppName()
       Array.from(this.children).forEach((child) => {
@@ -642,7 +660,7 @@ export function patchElementAndDocument (): void {
   })
 
   // patch cloneNode
-  rawRootNode.prototype.cloneNode = function cloneNode (deep?: boolean): Node {
+  rawRootNode.prototype.cloneNode = function cloneNode(deep?: boolean): Node {
     const clonedNode = globalEnv.rawCloneNode.call(this, deep)
     return updateElementInfo(clonedNode, this.__MICRO_APP_NAME__)
   }
@@ -652,21 +670,21 @@ export function patchElementAndDocument (): void {
  * Mark the newly created element in the micro application
  * @param element new element
  */
-function markElement <T extends Node> (element: T): T {
+function markElement<T extends Node>(element: T): T {
   return updateElementInfo(element, getCurrentAppName())
 }
 
 // methods of document
-function patchDocument () {
+function patchDocument() {
   const rawDocument = globalEnv.rawDocument
   const rawRootDocument = globalEnv.rawRootDocument
 
-  function getBindTarget (target: Document): Document {
+  function getBindTarget(target: Document): Document {
     return isProxyDocument(target) ? rawDocument : target
   }
 
   // create element 👇
-  rawRootDocument.prototype.createElement = function createElement (
+  rawRootDocument.prototype.createElement = function createElement(
     tagName: string,
     options?: ElementCreationOptions,
   ): HTMLElement {
@@ -674,7 +692,7 @@ function patchDocument () {
     return markElement(element)
   }
 
-  rawRootDocument.prototype.createElementNS = function createElementNS (
+  rawRootDocument.prototype.createElementNS = function createElementNS(
     namespaceURI: string,
     name: string,
     options?: string | ElementCreationOptions,
@@ -689,18 +707,18 @@ function patchDocument () {
   //   return markElement(element)
   // }
 
-  rawRootDocument.prototype.createDocumentFragment = function createDocumentFragment (): DocumentFragment {
+  rawRootDocument.prototype.createDocumentFragment = function createDocumentFragment(): DocumentFragment {
     const element = globalEnv.rawCreateDocumentFragment.call(getBindTarget(this))
     return markElement(element)
   }
 
-  rawRootDocument.prototype.createComment = function createComment (data: string): Comment {
+  rawRootDocument.prototype.createComment = function createComment(data: string): Comment {
     const element = globalEnv.rawCreateComment.call(getBindTarget(this), data)
     return markElement(element)
   }
 
   // query element👇
-  function querySelector (this: Document, selectors: string): any {
+  function querySelector(this: Document, selectors: string): any {
     const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
@@ -716,7 +734,7 @@ function patchDocument () {
     return appInstanceMap.get(currentAppName)?.querySelector(selectors) ?? null
   }
 
-  function querySelectorAll (this: Document, selectors: string): any {
+  function querySelectorAll(this: Document, selectors: string): any {
     const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
@@ -734,7 +752,7 @@ function patchDocument () {
   rawRootDocument.prototype.querySelector = querySelector
   rawRootDocument.prototype.querySelectorAll = querySelectorAll
 
-  rawRootDocument.prototype.getElementById = function getElementById (this: Document, key: string): HTMLElement | null {
+  rawRootDocument.prototype.getElementById = function getElementById(this: Document, key: string): HTMLElement | null {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementById.call(_this, key)
@@ -747,7 +765,7 @@ function patchDocument () {
     }
   }
 
-  rawRootDocument.prototype.getElementsByClassName = function getElementsByClassName (this: Document, key: string): HTMLCollectionOf<Element> {
+  rawRootDocument.prototype.getElementsByClassName = function getElementsByClassName(this: Document, key: string): HTMLCollectionOf<Element> {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementsByClassName.call(_this, key)
@@ -760,7 +778,7 @@ function patchDocument () {
     }
   }
 
-  rawRootDocument.prototype.getElementsByTagName = function getElementsByTagName (this: Document, key: string): HTMLCollectionOf<Element> {
+  rawRootDocument.prototype.getElementsByTagName = function getElementsByTagName(this: Document, key: string): HTMLCollectionOf<Element> {
     const _this = getBindTarget(this)
     const currentAppName = getCurrentAppName()
     if (
@@ -779,7 +797,7 @@ function patchDocument () {
     }
   }
 
-  rawRootDocument.prototype.getElementsByName = function getElementsByName (this: Document, key: string): NodeListOf<HTMLElement> {
+  rawRootDocument.prototype.getElementsByName = function getElementsByName(this: Document, key: string): NodeListOf<HTMLElement> {
     const _this = getBindTarget(this)
     if (!getCurrentAppName() || isInvalidQuerySelectorKey(key)) {
       return globalEnv.rawGetElementsByName.call(_this, key)
@@ -793,7 +811,7 @@ function patchDocument () {
   }
 }
 
-function releasePatchDocument (): void {
+function releasePatchDocument(): void {
   const rawRootDocument = globalEnv.rawRootDocument
   rawRootDocument.prototype.createElement = globalEnv.rawCreateElement
   rawRootDocument.prototype.createElementNS = globalEnv.rawCreateElementNS
@@ -807,7 +825,7 @@ function releasePatchDocument (): void {
 }
 
 // release patch
-export function releasePatchElementAndDocument (): void {
+export function releasePatchElementAndDocument(): void {
   removeDomScope()
   releasePatchDocument()
 
@@ -829,7 +847,7 @@ export function releasePatchElementAndDocument (): void {
 
 // Set the style of micro-app-head and micro-app-body
 let hasRejectMicroAppStyle = false
-export function rejectMicroAppStyle (): void {
+export function rejectMicroAppStyle(): void {
   if (!hasRejectMicroAppStyle) {
     hasRejectMicroAppStyle = true
     const style = pureCreateElement('style')

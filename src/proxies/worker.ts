@@ -1,4 +1,7 @@
 
+import { appInstanceMap } from '../create_app'
+import { CompletionPath, getCurrentAppName } from '../libs/utils'
+
 interface WorkerOptions {
   name?: string;
   type?: 'classic' | 'module';
@@ -63,8 +66,16 @@ function urlFromScript(script: string) {
 // @ts-ignore
 const WorkerProxy = new Proxy<Worker>(originalWorker, {
   construct(Target, args): WorkerInstance {
-    const [scriptURL, options] = args
-    if (!isSameOrigin(scriptURL)) {
+    let [scriptURL, options] = args
+    options = options || {}
+    const appName = getCurrentAppName()
+    let url = scriptURL
+    if (appName) {
+      const app = appInstanceMap.get(appName)
+      url = CompletionPath(scriptURL, app!.url)
+    }
+
+    if (url && !isSameOrigin(url)) {
       // 如果 scriptURL 是跨域的，使用 Blob URL 加载并执行 worker
       const script = `import "${scriptURL}";`
       const workerPath = urlFromScript(script)
@@ -76,8 +87,5 @@ const WorkerProxy = new Proxy<Worker>(originalWorker, {
     }
   },
 })
-
-// @ts-ignore
-window.Worker = WorkerProxy
 
 export default WorkerProxy

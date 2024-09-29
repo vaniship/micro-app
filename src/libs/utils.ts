@@ -173,6 +173,10 @@ export function isDocumentFragment(target: unknown): target is DocumentFragment 
   return toTypeString(target) === '[object DocumentFragment]'
 }
 
+export function isDocumentShadowRoot(target: unknown): target is DocumentFragment {
+  return toTypeString(target) === '[object ShadowRoot]'
+}
+
 export function isMicroAppBody(target: unknown): target is HTMLElement {
   return isElement(target) && target.tagName.toUpperCase() === 'MICRO-APP-BODY'
 }
