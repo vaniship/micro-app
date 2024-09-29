@@ -361,6 +361,8 @@ declare module '@micro-app/types' {
     fetch?: fetchType
     globalAssets?: globalAssetsType,
     excludeAssetFilter?: (assetUrl: string) => boolean
+    /* image video audio 是否设置 crossOrigin = 'anonymous' */
+    includeCrossOrigin?: (assetUrl: string) => boolean
     getRootElementParentNode?: (node: Node, appName: AppName) => void
     customProxyDocumentProps?: Map<string | number | symbol, (value: unknown) => void>
   }
