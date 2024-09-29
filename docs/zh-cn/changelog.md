@@ -11,7 +11,7 @@
 
 ### 1.0.0-rc.11
 
-`2024-9-14`
+`2024-9-29`
 
 - **Bug Fix**
   - 🐞 修复 wangEditor-next 富文本插件报错，[issue 1354](https://github.com/micro-zoe/micro-app/issues/1354)。
