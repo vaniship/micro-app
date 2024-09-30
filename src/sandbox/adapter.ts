@@ -11,9 +11,6 @@ import {
   getPreventSetState,
   throttleDeferForIframeAppName,
   isAnchorElement,
-  isImageElement,
-  isVideoElement,
-  isAudioElement,
 } from '../libs/utils'
 import {
   appInstanceMap,
@@ -169,10 +166,6 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
           },
         }
       }
-    }
-    if (isImageElement(node) || isVideoElement(node) || isAudioElement(node)) {
-      // @ts-ignore
-      node.crossOrigin = 'anonymous'
     }
     rawDefineProperties(node, props)
 
