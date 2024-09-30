@@ -12,6 +12,7 @@ import {
   isUniqueElement,
   isInvalidQuerySelectorKey,
   throttleDeferForIframeAppName,
+  isWebComponentElement,
 } from '../../libs/utils'
 import globalEnv from '../../libs/global_env'
 import bindFunctionToRawTarget from '../bind_function'
@@ -86,7 +87,10 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
     tagName: string,
     options?: ElementCreationOptions,
   ): HTMLElement {
-    const element = rawMicroCreateElement.call(this, tagName, options)
+    let element = rawMicroCreateElement.call(this, tagName, options)
+    if (isWebComponentElement(element)) {
+      element = rawMicroCreateElement.call(rawDocument, tagName, options)
+    }
     return updateElementInfo(element, appName)
   }
 

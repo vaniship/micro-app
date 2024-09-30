@@ -185,6 +185,15 @@ export function isMicroAppHead(target: unknown): target is HTMLElement {
   return isElement(target) && target.tagName.toUpperCase() === 'MICRO-APP-HEAD'
 }
 
+export function isWebComponentElement(target: unknown): boolean {
+  let result = toTypeString(target) === '[object HTMLElement]'
+  if (result) {
+    const tagName = (target as HTMLElement).tagName.toUpperCase()
+    result = result && !tagName.startsWith('MICRO-APP')
+  }
+  return result
+}
+
 // is ProxyDocument
 export function isProxyDocument(target: unknown): target is Document {
   return toTypeString(target) === '[object ProxyDocument]'
