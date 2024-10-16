@@ -20,6 +20,7 @@ import {
   SCOPE_WINDOW_ON_EVENT_OF_IFRAME,
 } from '../../constants'
 import {
+  UN_PROXY_INSTANCEOF_KEYS,
   escape2RawWindowKeys,
   escape2RawWindowRegExpKeys,
 } from './special_key'
@@ -92,7 +93,7 @@ function patchWindowProperty (
        *  4. native url instanceof iframe window.URL
        *  ...
        */
-      if (isConstructor(microAppWindow[key]) && key in rawWindow) {
+      if (isConstructor(microAppWindow[key]) && key in rawWindow && !UN_PROXY_INSTANCEOF_KEYS.includes(key)) {
         rawDefineProperty(microAppWindow[key], Symbol.hasInstance, {
           configurable: true,
           enumerable: false,

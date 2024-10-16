@@ -1,5 +1,9 @@
+
+export const UN_PROXY_INSTANCEOF_KEYS = [
+  'Array'
+]
+
 export const escape2RawWindowKeys = [
-  'Array',
   'getComputedStyle',
   // FIX ISSUE: https://github.com/micro-zoe/micro-app/issues/1292
   'DOMParser',

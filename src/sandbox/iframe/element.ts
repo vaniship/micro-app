@@ -11,11 +11,14 @@ import {
   isElement,
   isNode,
   isDocumentFragment,
+  isFunction,
+  isBrowser,
 } from '../../libs/utils'
 import {
   updateElementInfo,
   getIframeParentNodeDesc,
 } from '../adapter'
+import microApp from '../../micro_app'
 
 /**
  * patch Element & Node of child app
@@ -242,7 +245,11 @@ function patchIframeAttribute (url: string, microAppWindow: microAppWindowType):
         ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
         (key === 'href' && /^(a|link|image)$/i.test(this.tagName))
       ) {
-        value = CompletionPath(value, url)
+        let _url = url
+        if (isBrowser && key === 'href' && /^a$/i.test(this.tagName) && isFunction(microApp.options.excludeAssetFilter) && microApp.options.excludeAssetFilter(value)) {
+          _url = document.baseURI
+        }
+        value = CompletionPath(value, _url)
       }
       rawMicroSetAttribute.call(this, key, value)
     }

@@ -162,6 +162,9 @@ export function updateElementInfo <T> (node: T, appName: string | null): T {
             return this.getAttribute('href')
           },
           set(value: string) {
+            if (value === undefined) {
+              return
+            }
             this.setAttribute('href', value)
           },
         }
