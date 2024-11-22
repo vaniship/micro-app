@@ -243,7 +243,9 @@ function patchIframeAttribute (url: string, microAppWindow: microAppWindowType):
     } else {
       if (
         ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
-        (key === 'href' && /^(a|link|image)$/i.test(this.tagName))
+        (key === 'href' && /^(link|image)$/i.test(this.tagName)) ||
+        // If it is the anchor tag,eg. <a href="#xxx"/>, the path will not be completed
+        (key === 'href' && /^(a)$/i.test(this.tagName) && !/^#/.test(value))
       ) {
         let _url = url
         if (isBrowser && key === 'href' && /^a$/i.test(this.tagName) && isFunction(microApp.options.excludeAssetFilter) && microApp.options.excludeAssetFilter(value)) {
