@@ -227,7 +227,7 @@ function invokePrototypeMethod(
       return globalEnv.rawAppendChild.call(hijackParent, targetNode)
     } else if (rawMethod === globalEnv.rawRemoveChild && !hijackParent.contains(targetNode)) {
       if (parent.contains(targetNode)) {
-        return rawMethod.call(parent, targetNode)
+        return rawMethod.call(targetNode.parentElement, targetNode)
       }
       return targetNode
     }
@@ -313,7 +313,10 @@ function completePathDynamic(app: AppInterface, newChild: Node): void {
       if (newChild.hasAttribute('srcset')) {
         globalEnv.rawSetAttribute.call(newChild, 'srcset', CompletionPath(newChild.getAttribute('srcset')!, app.url))
       }
-    } else if (/^(a|link|image)$/i.test(newChild.tagName) && newChild.hasAttribute('href')) {
+    } else if ((/^(link|image)$/i.test(newChild.tagName) && newChild.hasAttribute('href')) ||
+          // If it is the anchor tag,eg. <a href="#xxx"/>, the path will not be completed
+          (/^(a)$/i.test(newChild.tagName) && newChild.hasAttribute('href') && !/^#/.test(newChild.getAttribute('href') || ''))
+    ) {
       globalEnv.rawSetAttribute.call(newChild, 'href', CompletionPath(newChild.getAttribute('href')!, app.url))
     }
   }
@@ -550,7 +553,9 @@ export function patchElementAndDocument(): void {
         appInstanceMap.has(appName) &&
         (
           ((key === 'src' || key === 'srcset') && /^(img|script|video|audio|source|embed)$/i.test(this.tagName)) ||
-          (key === 'href' && /^(a|link|image)$/i.test(this.tagName))
+          (key === 'href' && /^(link|image)$/i.test(this.tagName)) ||
+          // If it is the anchor tag,eg. <a href="#xxx"/>, the path will not be completed
+          (key === 'href' && /^(a)$/i.test(this.tagName) && !/^#/.test(value))
         )
 
       ) {

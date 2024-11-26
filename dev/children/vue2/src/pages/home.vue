@@ -1,9 +1,10 @@
 <template>
   <div>
-    <div class='logo-img'></div>
+    <div id="imageId" class='logo-img'></div>
     <!-- <div class='outer-img'></div>
     <img src="../assets/logo.png" alt=""> -->
     <h3>Vue@{{version}}</h3>
+    <a href="#imageId">测试a标签瞄点</a>
     <HelloWorld msg="Welcome to Your Vue.js App"/>
     <div class='msg-title'>{{microDataStr}}</div>
     <span class="iconfont">&#xe649;</span>
