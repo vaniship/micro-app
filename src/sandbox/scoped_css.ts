@@ -107,8 +107,21 @@ class CSSParser {
      *  6. :where(.a, .b, .c) a {}
      *    should be ==> micro-app[name=xxx] :where(.a, .b, .c) a {}
      */
-    return m[0].replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
+    const attributeValues: {[key: string]: any} = {}
+    const matchRes = m[0].replace(/\[([^=]+)=?(.+?)\]/g, (match, p1, p2) => {
+      const mock = `__mock_${p1}Value__`
+      attributeValues[mock] = p2
+      return match.replace(p2, mock)
+    })
+
+    return matchRes.replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
       selector = trim(selector)
+      selector = selector.replace(/\[[^=]+=?(.+?)\]/g, (match:string, p1: string) => {
+        if (attributeValues[p1]) {
+          return match.replace(p1, attributeValues[p1])
+        }
+        return match
+      })
       if (selector && !(
         this.scopecssDisableNextLine ||
         (
@@ -149,7 +162,7 @@ class CSSParser {
         !this.scopecssDisableNextLine &&
         (!this.scopecssDisable || this.scopecssDisableSelectors.length)
       ) {
-        cssValue = cssValue.replace(/url\(["']?([^)"']+)["']?\)/gm, (all, $1) => {
+        cssValue = cssValue.replace(/url\((["']?)(.*?)\1\)/gm, (all, _, $1) => {
           if (/^((data|blob):|#|%23)/.test($1) || /^(https?:)?\/\//.test($1)) {
             return all
           }
