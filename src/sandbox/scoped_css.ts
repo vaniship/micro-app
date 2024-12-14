@@ -108,7 +108,7 @@ class CSSParser {
      *    should be ==> micro-app[name=xxx] :where(.a, .b, .c) a {}
      */
     const attributeValues: {[key: string]: any} = {}
-    const matchRes = m[0].replace(/\[([^=]+)=?(.+?)\]/g, (match, p1, p2) => {
+    const matchRes = m[0].replace(/\[([^\]=]+)(?:=([^\]]+))?\]/g, (match, p1, p2) => {
       const mock = `__mock_${p1}Value__`
       attributeValues[mock] = p2
       return match.replace(p2, mock)
@@ -116,7 +116,7 @@ class CSSParser {
 
     return matchRes.replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
       selector = trim(selector)
-      selector = selector.replace(/\[[^=]+=?(.+?)\]/g, (match:string, p1: string) => {
+      selector = selector.replace(/\[([^\]=]+)(?:=([^\]]+))?\]/g, (match:string, p1: string) => {
         if (attributeValues[p1]) {
           return match.replace(p1, attributeValues[p1])
         }
