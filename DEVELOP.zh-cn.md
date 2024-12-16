@@ -2,7 +2,7 @@
 
 ### 下载并运行
 ```bash
-git clone https://github.com/micro-zoe/micro-app.git
+git clone https://github.com/jd-opensource/micro-app.git
 
 cd micro-app
 

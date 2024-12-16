@@ -5,7 +5,7 @@ export const UN_PROXY_INSTANCEOF_KEYS = [
 
 export const escape2RawWindowKeys = [
   'getComputedStyle',
-  // FIX ISSUE: https://github.com/micro-zoe/micro-app/issues/1292
+  // FIX ISSUE: https://github.com/jd-opensource/micro-app/issues/1292
   'DOMParser',
   'visualViewport',
   'matchMedia',

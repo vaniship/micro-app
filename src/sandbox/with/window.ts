@@ -151,7 +151,7 @@ function createProxyWindow (
        * Some keywords, such as Vue, need to meet two conditions at the same time:
        * 1. window.Vue --> undefined
        * 2. 'Vue' in window --> false
-       * Issue https://github.com/micro-zoe/micro-app/issues/686
+       * Issue https://github.com/jd-opensource/micro-app/issues/686
        */
       if (includes(sandbox.scopeProperties, key)) {
         if (sandbox.injectedKeys.has(key)) {

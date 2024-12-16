@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://micro-zoe.github.io/micro-app/">
-    <img src="https://micro-zoe.github.io/micro-app/home/assets/logo.png" alt="logo" width="200"/>
+  <a href="https://jd-opensource.github.io/micro-app/">
+    <img src="https://jd-opensource.github.io/micro-app/home/assets/logo.png" alt="logo" width="200"/>
   </a>
 </p>
 
@@ -11,21 +11,21 @@
   <a href="https://www.npmjs.com/package/@micro-zoe/micro-app">
     <img src="https://img.shields.io/npm/dt/@micro-zoe/micro-app.svg" alt="downloads"/>
   </a>
-  <a href="https://github.com/micro-zoe/micro-app/blob/master/LICENSE">
+  <a href="https://github.com/jd-opensource/micro-app/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/@micro-zoe/micro-app.svg" alt="license"/>
   </a>
-  <a href="https://github.com/micro-zoe/micro-app/blob/dev/Contact.md">
+  <a href="https://github.com/jd-opensource/micro-app/blob/dev/Contact.md">
     <img src="https://img.shields.io/badge/chat-wechat-blue" alt="WeChat">
   </a>
-  <a href="https://travis-ci.com/github/micro-zoe/micro-app">
-    <img src="https://api.travis-ci.com/micro-zoe/micro-app.svg?branch=master" alt="travis"/>
+  <a href="https://travis-ci.com/github/jd-opensource/micro-app">
+    <img src="https://api.travis-ci.com/jd-opensource/micro-app.svg?branch=master" alt="travis"/>
   </a>
-  <a href="https://coveralls.io/github/micro-zoe/micro-app?branch=master">
-    <img src="https://coveralls.io/repos/github/micro-zoe/micro-app/badge.svg?branch=master" alt="coveralls"/>
+  <a href="https://coveralls.io/github/jd-opensource/micro-app?branch=master">
+    <img src="https://coveralls.io/repos/github/jd-opensource/micro-app/badge.svg?branch=master" alt="coveralls"/>
   </a>
 </p>
 
-English｜[简体中文](./README.zh-cn.md)｜[Documentation](https://micro-zoe.github.io/micro-app/)｜[Discussions](https://github.com/micro-zoe/micro-app/discussions)｜[WeChat](./Contact.md)
+English｜[简体中文](./README.zh-cn.md)｜[Documentation](https://jd-opensource.github.io/micro-app/)｜[Discussions](https://github.com/jd-opensource/micro-app/discussions)｜[WeChat](./Contact.md)
 
 # 📖Introduction
 micro-app is a micro front-end framework launched by JD Retail. It renders based on webcomponent-like and realizes the micro front-end from component thinking, it aiming to reduce the difficulty of getting started and improve work efficiency. 
@@ -72,7 +72,7 @@ The above micro front-end rendering is completed, and the effect is as follows:
 
 ![image](https://img10.360buyimg.com/imagetools/jfs/t1/188373/14/17696/41854/6111f4a0E532736ba/4b86f4f8e2044519.png)
 
-More detailed configuration can be viewed [Documentation](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/start).
+More detailed configuration can be viewed [Documentation](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/start).
 
 # 🤝 Contribution
 If you're interested in this project, you're welcome to mention pull request, and also welcome your "Star" ^_^
@@ -80,7 +80,7 @@ If you're interested in this project, you're welcome to mention pull request, an
 ### development
 1、Clone
 ```
-git clone https://github.com/micro-zoe/micro-app.git
+git clone https://github.com/jd-opensource/micro-app.git
 ```
 
 2、Install dependencies
@@ -93,7 +93,7 @@ yarn bootstrap
 yarn start
 ```
 
-For more commands, see [DEVELOP](https://github.com/micro-zoe/micro-app/blob/master/DEVELOP.md)
+For more commands, see [DEVELOP](https://github.com/jd-opensource/micro-app/blob/master/DEVELOP.md)
 
 # FAQ
 <details>
@@ -138,19 +138,19 @@ For more commands, see [DEVELOP](https://github.com/micro-zoe/micro-app/blob/mas
 <details>
   <summary>Does it support vite?</summary>
   
-  Yes, please see [adapt vite](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/vite) for details.
+  Yes, please see [adapt vite](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/framework/vite) for details.
 </details>
 
 <details>
   <summary>Does it support ssr?</summary>
   
-  Yes, please see [nextjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nextjs), [nuxtjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nuxtjs) for details.
+  Yes, please see [nextjs](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/framework/nextjs), [nuxtjs](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/framework/nuxtjs) for details.
 </details>
 
 # Contributors
-<a href="https://github.com/micro-zoe/micro-app/graphs/contributors">
+<a href="https://github.com/jd-opensource/micro-app/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=micro-zoe/micro-app" />
 </a>
 
 # License
-[MIT License](https://github.com/micro-zoe/micro-app/blob/master/LICENSE)
+[MIT License](https://github.com/jd-opensource/micro-app/blob/master/LICENSE)

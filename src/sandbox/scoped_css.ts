@@ -449,7 +449,7 @@ class CSSParser {
 
   // splice string
   private recordResult (strFragment: string): void {
-    // Firefox performance degradation when string contain special characters, see https://github.com/micro-zoe/micro-app/issues/256
+    // Firefox performance degradation when string contain special characters, see https://github.com/jd-opensource/micro-app/issues/256
     if (isFireFox()) {
       this.result += encodeURIComponent(strFragment)
     } else {

@@ -52,7 +52,7 @@ const GlobalHeaderRight = (props) => {
             color: 'inherit',
           }}
           target="_blank"
-          href="https://github.com/micro-zoe/micro-app/"
+          href="https://github.com/jd-opensource/micro-app/"
           rel="noopener noreferrer"
           className={styles.action}
         >

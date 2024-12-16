@@ -169,7 +169,7 @@ function invokePrototypeMethod(
      *  1. When operate child from parentNode async, may have been unmount
      *    e.g. target.parentNode.remove(target)
      * ISSUE:
-     *  1. https://github.com/micro-zoe/micro-app/issues/739
+     *  1. https://github.com/jd-opensource/micro-app/issues/739
      *    Solution: Return the true value when node not in document
      */
     if (
@@ -215,7 +215,7 @@ function invokePrototypeMethod(
      *    E.g: document.head.replaceChild(targetNode, document.scripts[0])
      *  2. If passiveNode not in hijackParent but in parent and method is insertBefore, try insert it into the position corresponding to hijackParent
      *    E.g: document.head.insertBefore(targetNode, document.head.childNodes[0])
-     *    ISSUE: https://github.com/micro-zoe/micro-app/issues/1071
+     *    ISSUE: https://github.com/jd-opensource/micro-app/issues/1071
      */
     if (passiveNode && !hijackParent.contains(passiveNode)) {
       if (rawMethod === globalEnv.rawInsertBefore && parent.contains(passiveNode)) {
@@ -730,7 +730,7 @@ function patchDocument() {
       !currentAppName ||
       !selectors ||
       isUniqueElement(selectors) ||
-      // ISSUE: https://github.com/micro-zoe/micro-app/issues/56
+      // ISSUE: https://github.com/jd-opensource/micro-app/issues/56
       rawDocument !== _this
     ) {
       return globalEnv.rawQuerySelector.call(_this, selectors)
