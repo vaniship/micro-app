@@ -648,7 +648,7 @@ export default class CreateApp implements AppInterface {
     /**
      * NOTE:
      *  1. this.container must set to container(micro-app element) before exec rebuildEffectSnapshot
-     *    ISSUE: https://github.com/micro-zoe/micro-app/issues/1115
+     *    ISSUE: https://github.com/jd-opensource/micro-app/issues/1115
      *  2. rebuildEffectSnapshot must exec before dispatch beforeshow event
      */
     const oldContainer = this.container

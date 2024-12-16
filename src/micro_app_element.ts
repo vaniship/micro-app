@@ -396,7 +396,7 @@ export function defineElement (tagName: string): void {
       app.isPrefetch = false
       /**
        * Fix error when navigate before app.mount by microApp.router.push(...)
-       * Issue: https://github.com/micro-zoe/micro-app/issues/908
+       * Issue: https://github.com/jd-opensource/micro-app/issues/908
        */
       app.setAppState(appStates.BEFORE_MOUNT)
       // exec mount async, simulate the first render scene

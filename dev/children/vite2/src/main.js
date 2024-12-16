@@ -211,7 +211,7 @@ window.onclick = function () {
 
 
 /* ---------------------- DOMParser --------------------- */
-// BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
+// BUG TEST: https://github.com/jd-opensource/micro-app/issues/56
 // const parser = new DOMParser()
 // const htmlString = `
 // <div>

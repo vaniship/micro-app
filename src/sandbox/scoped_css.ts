@@ -116,7 +116,7 @@ class CSSParser {
 
     return matchRes.replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
       selector = trim(selector)
-      selector = selector.replace(/\[([^\]=]+)(?:=([^\]]+))?\]/g, (match:string, p1: string) => {
+      selector = selector.replace(/\[[^\]=]+(?:=([^\]]+))?\]/g, (match:string, p1: string) => {
         if (attributeValues[p1]) {
           return match.replace(p1, attributeValues[p1])
         }
@@ -449,7 +449,7 @@ class CSSParser {
 
   // splice string
   private recordResult (strFragment: string): void {
-    // Firefox performance degradation when string contain special characters, see https://github.com/micro-zoe/micro-app/issues/256
+    // Firefox performance degradation when string contain special characters, see https://github.com/jd-opensource/micro-app/issues/256
     if (isFireFox()) {
       this.result += encodeURIComponent(strFragment)
     } else {

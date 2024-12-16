@@ -260,7 +260,7 @@ document.head.insertAdjacentElement('afterbegin', dynamicScript3)
 
 
 /* ---------------------- DOMParser --------------------- */
-// // BUG TEST: https://github.com/micro-zoe/micro-app/issues/56
+// // BUG TEST: https://github.com/jd-opensource/micro-app/issues/56
 // const parser = new DOMParser()
 // const htmlString = `
 // <div>
@@ -556,7 +556,7 @@ console.log('micro-app容器元素document.microAppElement', document.microAppEl
 
 
 /* ---------------------- 测试unhandledrejection --------------------- */
-// https://github.com/micro-zoe/micro-app/issues/1102
+// https://github.com/jd-opensource/micro-app/issues/1102
 // window.addEventListener('unhandledrejection', (event) => {
 //   console.error(`子应用Promise报错监听 -- window.addEventListener(unhandledrejection): `, event)
 //   event.preventDefault()

@@ -52,7 +52,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/micro-zoe/micro-app.git"
+    "url": "https://github.com/jd-opensource/micro-app.git"
   },
   "publishConfig": {
     "access": "public"
@@ -72,7 +72,7 @@
   "author": "cangdu",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/micro-zoe/micro-app/issues"
+    "url": "https://github.com/jd-opensource/micro-app/issues"
   },
   "husky": {
     "hooks": {

@@ -150,7 +150,7 @@ function patchDocumentPrototype (appName: string, microAppWindow: microAppWindow
      *    const baseEl = document.querySelector('base')
      *    base = (baseEl && baseEl.getAttribute('href')) || '/'
      *
-     * Issue: https://github.com/micro-zoe/micro-app/issues/1335
+     * Issue: https://github.com/jd-opensource/micro-app/issues/1335
      */
     const result = appInstanceMap.get(appName)?.querySelector(selectors)
     return result || selectors === 'base' ? result : rawMicroQuerySelector.call(microDocument, selectors)

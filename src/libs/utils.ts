@@ -313,7 +313,7 @@ export function formatAppURL(url: string | null, appName: string | null = null):
     const { origin, pathname, search } = createURL(addProtocol(url), (window.rawWindow || window).location.href)
     /**
      * keep the original url unchanged, such as .html .node .php .net .etc, search, except hash
-     * BUG FIX: Never using '/' to complete url, refer to https://github.com/micro-zoe/micro-app/issues/1147
+     * BUG FIX: Never using '/' to complete url, refer to https://github.com/jd-opensource/micro-app/issues/1147
      */
     const fullPath = `${origin}${pathname}${search}`
     return /^https?:\/\//.test(fullPath) ? fullPath : ''
@@ -774,7 +774,7 @@ export function instanceOf<T extends new (...args: unknown[]) => unknown>(
 /**
  * Format event name
  * In with sandbox, child event and lifeCycles bind to microAppElement, there are two events with same name - mounted unmount, it should be handled specifically to prevent conflicts
- * Issue: https://github.com/micro-zoe/micro-app/issues/1161
+ * Issue: https://github.com/jd-opensource/micro-app/issues/1161
  * @param type event name
  * @param appName app name
  */

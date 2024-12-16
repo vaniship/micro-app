@@ -623,7 +623,7 @@ function runCode2InlineScript (
     if (isInlineScript(address)) {
       /**
        * inline module script cannot convert to blob mode
-       * Issue: https://github.com/micro-zoe/micro-app/issues/805
+       * Issue: https://github.com/jd-opensource/micro-app/issues/805
        */
       scriptElement.textContent = code
     } else {

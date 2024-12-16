@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://micro-zoe.github.io/micro-app/">
+  <a href="https://jd-opensource.github.io/micro-app/">
     <img src="https://zeroing.jd.com/micro-app/media/logo.png" alt="logo" width="200"/>
   </a>
 </p>
@@ -11,21 +11,21 @@
   <a href="https://www.npmjs.com/package/@micro-zoe/micro-app">
     <img src="https://img.shields.io/npm/dt/@micro-zoe/micro-app.svg" alt="downloads"/>
   </a>
-  <a href="https://github.com/micro-zoe/micro-app/blob/master/LICENSE">
+  <a href="https://github.com/jd-opensource/micro-app/blob/master/LICENSE">
     <img src="https://img.shields.io/npm/l/@micro-zoe/micro-app.svg" alt="license"/>
   </a>
-  <a href="https://github.com/micro-zoe/micro-app/blob/dev/Contact.md">
+  <a href="https://github.com/jd-opensource/micro-app/blob/dev/Contact.md">
     <img src="https://img.shields.io/badge/chat-wechat-blue" alt="WeChat">
   </a>
-  <a href="https://travis-ci.com/github/micro-zoe/micro-app">
-    <img src="https://api.travis-ci.com/micro-zoe/micro-app.svg?branch=master" alt="travis"/>
+  <a href="https://travis-ci.com/github/jd-opensource/micro-app">
+    <img src="https://api.travis-ci.com/jd-opensource/micro-app.svg?branch=master" alt="travis"/>
   </a>
-  <a href="https://coveralls.io/github/micro-zoe/micro-app?branch=master">
-    <img src="https://coveralls.io/repos/github/micro-zoe/micro-app/badge.svg?branch=master" alt="coveralls"/>
+  <a href="https://coveralls.io/github/jd-opensource/micro-app?branch=master">
+    <img src="https://coveralls.io/repos/github/jd-opensource/micro-app/badge.svg?branch=master" alt="coveralls"/>
   </a>
 </p>
 
-[English](https://github.com/micro-zoe/micro-app)｜简体中文｜[官网文档](https://micro-zoe.github.io/micro-app/)｜[讨论组](https://github.com/micro-zoe/micro-app/discussions)｜[微信群](./Contact.md)
+[English](https://github.com/jd-opensource/micro-app)｜简体中文｜[官网文档](https://jd-opensource.github.io/micro-app/)｜[讨论组](https://github.com/jd-opensource/micro-app/discussions)｜[微信群](./Contact.md)
 
 # 📖简介
 micro-app是京东零售推出的一款微前端框架，它基于类WebComponent进行渲染，从组件化的思维实现微前端，旨在降低上手难度、提升工作效率。它是目前接入微前端成本最低的框架，并且提供了JS沙箱、样式隔离、元素隔离、预加载、虚拟路由系统、插件系统、数据通信等一系列完善的功能。
@@ -69,7 +69,7 @@ devServer: {
 
 <img src="https://img12.360buyimg.com/imagetools/jfs/t1/196940/34/1541/38365/610a14fcE46c21374/c321b9f8fa50a8fc.png" alt="result" width='900'/>
 
-更多详细配置可以查看[官网文档](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/start)
+更多详细配置可以查看[官网文档](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/start)
 
 # 🤝 参与共建
 如果您对这个项目感兴趣，欢迎参与贡献，也欢迎 "Star" 支持一下 ^_^
@@ -77,7 +77,7 @@ devServer: {
 ### 本地运行
 1、克隆项目
 ```
-git clone https://github.com/micro-zoe/micro-app.git
+git clone https://github.com/jd-opensource/micro-app.git
 ```
 
 2、安装依赖
@@ -90,16 +90,16 @@ yarn bootstrap
 yarn start # 访问 http://localhost:3000
 ```
 
-更多命令请查看[DEVELP](https://github.com/micro-zoe/micro-app/blob/master/DEVELOP.zh-cn.md)
+更多命令请查看[DEVELP](https://github.com/jd-opensource/micro-app/blob/master/DEVELOP.zh-cn.md)
 
 # FAQ
-[问题汇总](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/questions)
+[问题汇总](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/questions)
 <details>
 
   <summary>micro-app的优势在哪里？</summary>
   上手简单、侵入性低，只需改动少量的代码即可接入微前端，同时提供丰富的功能。
 
-  具体细节请参考文章：[micro-app介绍](https://github.com/micro-zoe/micro-app/issues/8)
+  具体细节请参考文章：[micro-app介绍](https://github.com/jd-opensource/micro-app/issues/8)
 
 </details>
 <details>
@@ -136,21 +136,21 @@ yarn start # 访问 http://localhost:3000
 <details>
   <summary>支持vite吗?</summary>
   
-  支持，详情请查看[适配vite](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/vite)
+  支持，详情请查看[适配vite](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/framework/vite)
 </details>
 
 <details>
   <summary>支持ssr吗?</summary>
   
-  支持，详情请查看[nextjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nextjs)、[nuxtjs](https://micro-zoe.github.io/micro-app/docs.html#/zh-cn/framework/nuxtjs)
+  支持，详情请查看[nextjs](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/framework/nextjs)、[nuxtjs](https://jd-opensource.github.io/micro-app/docs.html#/zh-cn/framework/nuxtjs)
 </details>
 
 
 # 贡献者们
-<a href="https://github.com/micro-zoe/micro-app/graphs/contributors">
+<a href="https://github.com/jd-opensource/micro-app/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=micro-zoe/micro-app" />
 </a>
 
 
 # License
-[MIT License](https://github.com/micro-zoe/micro-app/blob/master/LICENSE)
+[MIT License](https://github.com/jd-opensource/micro-app/blob/master/LICENSE)

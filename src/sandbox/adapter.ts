@@ -93,7 +93,7 @@ export function fixBabelPolyfill6 (): void {
 
 /**
  * Fix error of hot reload when parent&child created by create-react-app in development environment
- * Issue: https://github.com/micro-zoe/micro-app/issues/382
+ * Issue: https://github.com/jd-opensource/micro-app/issues/382
  */
 export function fixReactHMRConflict (app: AppInterface): void {
   if (__DEV__) {
