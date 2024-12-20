@@ -116,9 +116,9 @@ class CSSParser {
 
     return matchRes.replace(/(^|,[\n\s]*)([^,]+)/g, (_, separator, selector) => {
       selector = trim(selector)
-      selector = selector.replace(/\[[^\]=]+(?:=([^\]]+))?\]/g, (match:string, p1: string) => {
-        if (attributeValues[p1]) {
-          return match.replace(p1, attributeValues[p1])
+      selector = selector.replace(/\[[^\]=]+(?:=([^\]]+))?\]/g, (match:string, p1: string, p2: string) => {
+        if (attributeValues[p2]) {
+          return match.replace(p2, attributeValues[p2])
         }
         return match
       })
